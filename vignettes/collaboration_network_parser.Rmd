@@ -1,0 +1,32 @@
+---
+title: "Collaboration Network Parser"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Collaboration Network Parser}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+rm(list = ls())
+set.seed(1)
+```
+
+```{r}
+library(kaiaulu)
+```
+
+```{r}
+perceval_path <- "/Users/cvp/Desktop/kaiaulu/kaiaulu_env/bin/perceval"
+git_repo_path <- "/Users/cvp/Desktop/apr/.git"
+```
+
+Extract gitlog
+
+```{r}
+apr <- data.table(parse_gitlog(perceval_path,git_repo_path)$data)
+```
+

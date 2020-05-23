@@ -1,0 +1,29 @@
+Package: kaiaulu
+Type: Package
+Title: Kaiaulu
+Version: 0.0.0.9000
+Description: Communication and Collaboration Network Analysis
+Authors@R: c(
+    person('Carlos', 'Paradis', role = c('aut', 'cre'),
+      email = 'cvas@hawaii.edu'),
+    person('Damian', 'Tamburri', role = c('ths'),
+      email = ''),
+    person('Rick', 'Kazman', role = c('ths'),
+      email = '')
+    )
+Maintainer: Carlos Paradis <cvas@hawaii.edu>
+License: TBD
+Encoding: UTF-8
+LazyData: true
+Depends:
+    data.table (>= 1.12.8),
+    stringr (>= 1.4.0),
+    jsonlite
+Suggests: lubridate (>= 1.7.4),
+    ggplot2 (>= 3.2.1),
+    ggthemes (>= 4.2.0),
+    pkgdown (>= 1.4.1),
+    knitr (>= 1.26)
+VignetteBuilder: knitr
+URL: https://github.com/sailuh/kaiaulu
+BugReports: https://github.com/sailuh/kaiaulu/issues
