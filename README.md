@@ -9,17 +9,15 @@
  1. Clone this repo 
  2. Create a py virtualenv (optional)
  3. `pip3 install perceval`
- 4. `which perceval` (take note of the full path of the binary for the example below)   
- 5. Open `kaiaulu.Rproj` using RStudio.  
+ 4. `which perceval` (take note of the path to use on vignettes/network_parsers.Rmd)   
+ 5. Open `kaiaulu.Rproj` using RStudio
 
-## 2.1 Example - Collaboration Network Parser 
+## 2. Examples
 
- 1. Git clone the repo of interest for analysis, e.g. [APR](https://github.com/apache/apr) 
- 2. With .Rproj loaded, open the vignette `collaboration_network_parser.Rmd`.  
- 3. Specify the path of `perceval` on `perceval_path` 
- 4. Specify the downloaded `git_repo_path`, e.g. `/Users/cvp/Desktop/apr/.git` (the inclusion of the suffix .git is required). 
- 5. Run the vignette and make some coffee while it processes the entire log into a .csv (in the future, this will be an awesome network).
+See http://www2.hawaii.edu/~cvas/kaiaulu/ for a live example using vignettes/network_parsers.Rmd.
 
-## 2.2 Example - Communication Network Parser
-
-TO-DO. 
+ * The visualizations are interactive:
+    * Position the mouse cursor over any of the graphs and scroll to zoom in and out. When sufficiently zoomed-in, labels will display. 
+    * Hold the left the mouse button over the image on white space to move around the graph. 
+    * Hold the left the mouse button over a node to drag it around if the labels overlap. 
+ * The adjacency matrix can be browsed from left to right (note the horizontal bar at the bottom of the table). 
