@@ -86,6 +86,8 @@ parse_mbox <- function(perceval_path,mbox_path){
 parse_mbox_igraph <- function(project_mbox){
   # Obtain the relevant columns - Author, E-mail Thread, and Timestamp
   mbox_edgelist <- project_mbox[,.(author=data.From,thread=data.Subject,date=data.Date)]
+  # Select relevant columns for edgelist, grouping repeated rows as the edgelist weights
+  mbox_edgelist <- mbox_edgelist[,.(weight=.N),by=c("author","thread")]
   # Parse igraph from edgelist
   mbox_network <- igraph::graph_from_data_frame(mbox_edgelist,directed=TRUE)
   # Color authors black, and e-mail threads lightblue
