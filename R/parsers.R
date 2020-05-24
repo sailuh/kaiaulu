@@ -41,7 +41,9 @@ parse_gitlog <- function(perceval_path,git_repo_path){
                                                                 exact=TRUE)
   return(perceval_parsed)
 }
-parse_gitlog_igraph <- function(project_git){
+parse_gitlog_igraph <- function(project_git, mode = c("author","commit"){
+  # Check user did not specify a mode that does not exist
+  mode <- match.arg(mode)
   # Select and rename relevant columns. Key = commit_hash.
   project_git <- project_git[,.(author=data.Author,
                         author_date=data.AuthorDate,
@@ -60,14 +62,30 @@ parse_gitlog_igraph <- function(project_git){
                                                                          commit_hash,
                                                                          committer,
                                                                          committer_date)]
-  # Select relevant columns for edgelist, grouping repeated rows as the edgelist weights
-  git_edgelist <- git_edgelist[,.(weight=.N),by=c("author","file")]
-  # Parse igraph from edgelist (igraph auto-detect weights from a column labeled "weight")
-  git_network <- igraph::graph_from_data_frame(git_edgelist,directed=TRUE)
-  # Color authors black, and e-mail threads lightblue
-  igraph::V(git_network)$color <- ifelse(igraph::V(git_network)$name %in% git_edgelist$author,
-                                          "black",
-                                          "#f4dbb5")
+  if(mode == "author"){
+    # Select relevant columns for edgelist, grouping repeated rows as the edgelist weights
+    git_edgelist <- git_edgelist[,.(weight=.N),by=c("author","file")]
+    # Parse igraph from edgelist (igraph auto-detect weights from a column labeled "weight")
+    git_network <- igraph::graph_from_data_frame(git_edgelist,directed=TRUE)
+    # Color authors black, and e-mail threads lightblue
+    igraph::V(git_network)$color <- ifelse(igraph::V(git_network)$name %in% git_edgelist$author,
+                                           "black",
+                                           "#f4dbb5")
+  }else if(mode == "commit"){
+    # Select relevant columns for edgelist, grouping repeated rows as the edgelist weights
+    git_edgelist <- git_edgelist[,.(weight=.N),by=c("commit_hash","file")]
+    # Parse igraph from edgelist (igraph auto-detect weights from a column labeled "weight")
+    git_network <- igraph::graph_from_data_frame(git_edgelist,directed=FALSE)
+    # This undirected graph is also bipartite  - igraph knows this using $type
+    igraph::V(git_network)$type <- ifelse(igraph::V(git_network)$name %in% git_edgelist$commit_hash,
+                                           TRUE,
+                                           FALSE)
+    # Color authors black, and e-mail threads lightblue
+    igraph::V(git_network)$color <- ifelse(igraph::V(git_network)$name %in% git_edgelist$commit_hash,
+                                           "#afe569",
+                                           "#f4dbb5")
+  }
+
   return(git_network)
 
 }

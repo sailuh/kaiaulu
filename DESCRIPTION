@@ -25,7 +25,8 @@ Suggests: lubridate (>= 1.7.4),
     visNetwork (>= 2.0.9),
     ggthemes (>= 4.2.0),
     pkgdown (>= 1.4.1),
-    knitr (>= 1.26)
+    knitr (>= 1.26),
+    reactable (>= 0.1.0)
 VignetteBuilder: knitr
 URL: https://github.com/sailuh/kaiaulu
 BugReports: https://github.com/sailuh/kaiaulu/issues
