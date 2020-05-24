@@ -29,8 +29,47 @@ parse_gitlog <- function(perceval_path,git_repo_path){
                              args = c('git', '--git-log',gitlog_path,git_uri,'--json-line'),
                              stdout = TRUE,
                              stderr = FALSE)
-  # Return the parsed JSON output.
-  return(data.table(jsonlite::stream_in(textConnection(perceval_output))))
+  # Parsed JSON output.
+  perceval_parsed <- data.table(jsonlite::stream_in(textConnection(perceval_output),verbose=FALSE))
+
+  # Parse timestamps
+  perceval_parsed$data.AuthorDate <- lubridate::parse_date_time(perceval_parsed$data.AuthorDate,
+                             "%a %b %d %H:%M:%S %Y %z",
+                             exact=TRUE)
+  perceval_parsed$data.CommitDate <- lubridate::parse_date_time(perceval_parsed$data.CommitDate,
+                                                                "%a %b %d %H:%M:%S %Y %z",
+                                                                exact=TRUE)
+  return(perceval_parsed)
+}
+parse_gitlog_igraph <- function(project_git){
+  # Select and rename relevant columns. Key = commit_hash.
+  project_git <- project_git[,.(author=data.Author,
+                        author_date=data.AuthorDate,
+                        commit_hash=data.commit,
+                        committer=data.Commit,
+                        committer_date = data.CommitDate,
+                        files=data.files)]
+  # APR very first commit is a weird single case of commit without files. We filter them here.
+  is_commit_with_files <- !!sapply(project_git$files,length)
+  project_git <- project_git[is_commit_with_files]
+  # Column files is a data.table. Unlist, so project_git is a table instead of a table of tables.
+  git_edgelist <- project_git[, .(file=unlist(files[[1]]$file),
+                                 added=unlist(files[[1]]$added),
+                                 removed=unlist(files[[1]]$removed)),, by = list(author,
+                                                                         author_date,
+                                                                         commit_hash,
+                                                                         committer,
+                                                                         committer_date)]
+  # Select relevant columns for edgelist, grouping repeated rows as the edgelist weights
+  git_edgelist <- git_edgelist[,.(weight=.N),by=c("author","file")]
+  # Parse igraph from edgelist (igraph auto-detect weights from a column labeled "weight")
+  git_network <- igraph::graph_from_data_frame(git_edgelist,directed=TRUE)
+  # Color authors black, and e-mail threads lightblue
+  igraph::V(git_network)$color <- ifelse(igraph::V(git_network)$name %in% git_edgelist$author,
+                                          "black",
+                                          "#f4dbb5")
+  return(git_network)
+
 }
 parse_mbox <- function(perceval_path,mbox_path){
   # Remove ".mbox"
@@ -40,8 +79,9 @@ parse_mbox <- function(perceval_path,mbox_path){
                              args = c('mbox',mbox_uri,mbox_path,'--json-line'),
                              stdout = TRUE,
                              stderr = FALSE)
-  # Return the parsed JSON output as a data.table.
-  return(data.table(jsonlite::stream_in(textConnection(perceval_output))))
+  # Parsed JSON output as a data.table.
+  perceval_parsed <- data.table(jsonlite::stream_in(textConnection(perceval_output),verbose=FALSE))
+  return(perceval_parsed)
 }
 parse_mbox_igraph <- function(project_mbox){
   # Obtain the relevant columns - Author, E-mail Thread, and Timestamp

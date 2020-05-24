@@ -17,26 +17,29 @@ set.seed(1)
 
 ```{r}
 library(kaiaulu)
-library(igraph)
 library(visNetwork)
 ```
 
 ```{r}
 perceval_path <- "/Users/cvp/Desktop/kaiaulu/kaiaulu_env/bin/perceval"
-#git_repo_path <- "/Users/cvp/Desktop/kaiaulu_project_input/apr/.git"
-mbox_path <- "/Users/cvp/Desktop/kaiaulu_project_input/apr-dev.mbox"
-```
-
-Extract gitlog
-
-```{r}
-#apr_git <- parse_gitlog(perceval_path,git_repo_path)$data
-apr_mbox <- parse_mbox(perceval_path,mbox_path)
+git_repo_path <- "/Users/cvp/Desktop/kaiaulu_project_input/apr/.git"
+#mbox_path <- "/Users/cvp/Desktop/kaiaulu_project_input/apr-dev.mbox"
 ```
 
 # Construct Contribution Network
 
+
 ```{r}
+apr_git <- parse_gitlog(perceval_path,git_repo_path)
+apr_git <- apr_git[data.AuthorDate >= lubridate::ymd("2019-01-01") & data.AuthorDate < lubridate::ymd("2019-12-31")]
+apr_git_network <- parse_gitlog_igraph(apr_git)
+visIgraph(apr_git_network)
+```
+
+# Construct Communication Network
+
+```{r eval = FALSE}
+apr_mbox <- parse_mbox(perceval_path,mbox_path)
 apr_network <- parse_mbox_igraph(apr_mbox)
 visIgraph(apr_network)
 ```
