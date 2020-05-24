@@ -18,9 +18,11 @@ LazyData: true
 Depends:
     data.table (>= 1.12.8),
     stringr (>= 1.4.0),
-    jsonlite
+    jsonlite (>= 1.6),
+    igraph (>= 1.2.5)
 Suggests: lubridate (>= 1.7.4),
     ggplot2 (>= 3.2.1),
+    visNetwork (>= 2.0.9),
     ggthemes (>= 4.2.0),
     pkgdown (>= 1.4.1),
     knitr (>= 1.26)
