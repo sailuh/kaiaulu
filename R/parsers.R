@@ -39,9 +39,22 @@ parse_gitlog <- function(perceval_path,git_repo_path){
   perceval_parsed$data.CommitDate <- lubridate::parse_date_time(perceval_parsed$data.CommitDate,
                                                                 "%a %b %d %H:%M:%S %Y %z",
                                                                 exact=TRUE)
+
+  # APR very first commit is a weird single case of commit without files. We filter them here.
+  is_commit_with_files <- !!sapply(perceval_parsed$data.files,length)
+  perceval_parsed <- perceval_parsed[is_commit_with_files]
+  # Column data.files is a data.table. Unlist, so perceval_parsed is a table instead of a table of tables.
+  perceval_parsed <- perceval_parsed[, .(file=unlist(data.files[[1]]$file),
+                                         added=unlist(data.files[[1]]$added),
+                                         removed=unlist(data.files[[1]]$removed)),, by = list(data.Author,
+                                                                                       data.AuthorDate,
+                                                                                       data.commit,
+                                                                                       data.Commit,
+                                                                                       data.CommitDate)]
+
   return(perceval_parsed)
 }
-parse_gitlog_igraph <- function(project_git, mode = c("author","commit"){
+parse_gitlog_igraph <- function(project_git, mode = c("author","commit")){
   # Check user did not specify a mode that does not exist
   mode <- match.arg(mode)
   # Select and rename relevant columns. Key = commit_hash.
@@ -50,21 +63,10 @@ parse_gitlog_igraph <- function(project_git, mode = c("author","commit"){
                         commit_hash=data.commit,
                         committer=data.Commit,
                         committer_date = data.CommitDate,
-                        files=data.files)]
-  # APR very first commit is a weird single case of commit without files. We filter them here.
-  is_commit_with_files <- !!sapply(project_git$files,length)
-  project_git <- project_git[is_commit_with_files]
-  # Column files is a data.table. Unlist, so project_git is a table instead of a table of tables.
-  git_edgelist <- project_git[, .(file=unlist(files[[1]]$file),
-                                 added=unlist(files[[1]]$added),
-                                 removed=unlist(files[[1]]$removed)),, by = list(author,
-                                                                         author_date,
-                                                                         commit_hash,
-                                                                         committer,
-                                                                         committer_date)]
+                        file,added,removed)]
   if(mode == "author"){
     # Select relevant columns for edgelist, grouping repeated rows as the edgelist weights
-    git_edgelist <- git_edgelist[,.(weight=.N),by=c("author","file")]
+    git_edgelist <- project_git[,.(weight=.N),by=c("author","file")]
     # Parse igraph from edgelist (igraph auto-detect weights from a column labeled "weight")
     git_network <- igraph::graph_from_data_frame(git_edgelist,directed=TRUE)
     # Color authors black, and e-mail threads lightblue
@@ -73,7 +75,7 @@ parse_gitlog_igraph <- function(project_git, mode = c("author","commit"){
                                            "#f4dbb5")
   }else if(mode == "commit"){
     # Select relevant columns for edgelist, grouping repeated rows as the edgelist weights
-    git_edgelist <- git_edgelist[,.(weight=.N),by=c("commit_hash","file")]
+    git_edgelist <- project_git[,.(weight=.N),by=c("commit_hash","file")]
     # Parse igraph from edgelist (igraph auto-detect weights from a column labeled "weight")
     git_network <- igraph::graph_from_data_frame(git_edgelist,directed=FALSE)
     # This undirected graph is also bipartite  - igraph knows this using $type
