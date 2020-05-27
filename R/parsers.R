@@ -1,4 +1,4 @@
-parse_gitlog <- function(perceval_path,git_repo_path){
+parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA){
   # Remove ".git"
   git_uri <- str_split(git_repo_path,pattern=".git")[[1]][1]
   # The log will be saved to the /tmp/ folder
@@ -51,7 +51,10 @@ parse_gitlog <- function(perceval_path,git_repo_path){
                                                                                        data.commit,
                                                                                        data.Commit,
                                                                                        data.CommitDate)]
-
+  # Parsing gitlog can take awhile, save if a path is provided
+  if(!is.na(save_path)){
+    saveRDS(perceval_parsed,save_path)
+  }
   return(perceval_parsed)
 }
 parse_gitlog_igraph <- function(project_git, mode = c("author","commit")){
