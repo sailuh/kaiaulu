@@ -1,0 +1,97 @@
+---
+title: "Churn Metrics"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Collaboration Network Parser}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE,message=FALSE}
+library(kaiaulu)
+```
+
+```{r}
+perceval_path <- "/Users/cvp/Desktop/kaiaulu/kaiaulu_env/bin/perceval"
+```
+
+This vignette discusses assumptions made in deriving and defining churn metrics, in particular commit_interval_churn. 
+
+## File Churn 
+
+```{r}
+git_repo_path <- "/Users/cvp/Desktop/kaiaulu_project_input/git_repos/APR/.git"
+#apr_git <- parse_gitlog(perceval_path,git_repo_path)
+apr_git <- readRDS("/Users/cvp/Desktop/kaiaulu_project_input/rds/APR_git.rds")
+
+apr_git <- apr_git[added != "-" & removed != "-"] 
+apr_git$added <- as.numeric(apr_git$added)
+apr_git$removed <- as.numeric(apr_git$removed)
+
+apr_git$churn <- metric_churn(apr_git$added,apr_git$removed)
+head(apr_git)
+```
+
+## Commit Churn
+
+How much churn was generated in a given commit? We sum the individual file churns together for each commit. 
+
+Some files such as .swp and .cvsignore for APR are reported as "-" for lines added and removed, resulting in NA values for commit_churn. These files are filtered from the table. 
+
+Also note the choice of **data.AuthorDate** instead of **data.CommitDate** to define the time intervals.
+
+```{r}
+apr_git_commit_churn <- apr_git[,.(commit_churn=sum(churn)),
+                                by=c("data.commit","data.AuthorDate")]
+apr_git_commit_churn <- apr_git_commit_churn[!is.na(commit_churn)]
+```
+
+## Commit Churn Interval 
+
+Given a interval of commit hashes, what is the total churn? The hashes are used to obtain start and end dates, which in turn are used to calculate the total churn during the time interval.
+
+```{r}
+# Can't assume the data is ordered choronologically 
+apr_git_commit_churn <- apr_git_commit_churn[order(data.AuthorDate)]
+
+start_commit <- "8867d65df888e3a38823fd0056cdbfbbbffa30c9"
+end_commit <- "53e0aca5087e47f6387c7e95c57ef44b518140b4"
+
+
+interval_timestamps <- apr_git_commit_churn[data.commit %in% c(start_commit,end_commit)]$data.AuthorDate
+
+start_date <- interval_timestamps[1]
+end_date <- interval_timestamps[2]
+
+commit_interval_churn <- sum(apr_git_commit_churn[data.AuthorDate >= start_date & data.AuthorDate <= end_date]$commit_churn)
+```
+
+
+# Churn Function
+
+The above considerations are implemented in the metric_commit_interval_churn of this package. 
+
+```{r}
+git_repo_path <- "/Users/cvp/Desktop/kaiaulu_project_input/git_repos/APR/.git"
+apr_git <- parse_gitlog(perceval_path,git_repo_path)
+apr_git <- apr_git[added != "-" & removed != "-",.(commit_hash=data.commit,
+           date=data.AuthorDate,
+           added=as.numeric(added),
+           removed=as.numeric(removed))]
+```
+
+
+```{r}
+metric_commit_interval_churn(apr_git,"9eae9e96f15e1f216162810cef4271a439a74223","f1d2d568776b3708dd6a3077376e2331f9268b04")
+```
+
+
