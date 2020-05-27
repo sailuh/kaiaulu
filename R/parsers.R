@@ -1,7 +1,7 @@
 #' @export
 parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA){
   # Remove ".git"
-  git_uri <- str_split(git_repo_path,pattern=".git")[[1]][1]
+  git_uri <- stri_split_regex(git_repo_path,pattern=".git")[[1]][1]
   # The log will be saved to the /tmp/ folder
   gitlog_path <- "/tmp/gitlog.log"
   # Execute shell command to extract gitlog using Percerval recommended format (See it's README.md.
@@ -97,7 +97,7 @@ parse_gitlog_igraph <- function(project_git, mode = c("author","commit")){
 #' @export
 parse_mbox <- function(perceval_path,mbox_path){
   # Remove ".mbox"
-  mbox_uri <- str_split(git_repo_path,pattern=".mbox")[[1]][1]
+  mbox_uri <- stri_split_regex(git_repo_path,pattern=".mbox")[[1]][1]
   # Use percerval to parse mbox_path. --json line is required to be parsed by jsonlite::fromJSON.
   perceval_output <- system2(perceval_path,
                              args = c('mbox',mbox_uri,mbox_path,'--json-line'),
@@ -124,6 +124,8 @@ parse_mbox_igraph <- function(project_mbox){
 }
 
 # Various imports
+#' @importFrom stringi stri_c
+#' @importFrom stringi stri_split_regex
 #' @importFrom data.table data.table
 #' @importFrom data.table is.data.table
 #' @importFrom data.table as.data.table

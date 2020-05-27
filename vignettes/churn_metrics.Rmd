@@ -17,7 +17,7 @@ set.seed(seed)
 ```
 
 ```{r warning=FALSE,message=FALSE}
-library(kaiaulu)
+require(kaiaulu)
 ```
 
 ```{r}

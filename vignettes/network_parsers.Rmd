@@ -20,6 +20,7 @@ set.seed(seed)
 require(kaiaulu)
 require(visNetwork)
 require(reactable)
+require(data.table)
 ```
 
 ```{r}
@@ -52,7 +53,7 @@ visIgraph(project_commit_network,randomSeed = 1)
 # Co-Change Network
 
 ```{r}
-co_change_network <- bipartite_projection(project_commit_network,
+co_change_network <- igraph::bipartite_projection(project_commit_network,
                                           multiplicity = TRUE,
                                           which = FALSE) # FALSE is the file projection
 visIgraph(co_change_network,randomSeed = 1)
@@ -69,8 +70,8 @@ reactable:reactable(as_adjacency_matrix(co_change_network,attr = "weight",sparse
 
 # Construct Communication Network
 
-```{r eval = FALSE}
-mbox_path <- "/Users/cvp/Desktop/kaiaulu_project_input/apr-dev.mbox"
+```{r}
+mbox_path <- "/Users/cvp/Desktop/kaiaulu_project_input/mboxes/apr-dev.mbox"
 apr_mbox <- parse_mbox(perceval_path,mbox_path)
 apr_communication_network <- parse_mbox_igraph(apr_mbox)
 visIgraph(apr_communication_network,randomSeed = 1)

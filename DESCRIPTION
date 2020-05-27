@@ -26,7 +26,7 @@ Depends:
     R (>= 3.6.1)
 Imports:
     data.table (>= 1.12.8),
-    stringr (>= 1.4.0),
+    stringi (>= 1.4.6),
     jsonlite (>= 1.6),
     igraph (>= 1.2.5)
 VignetteBuilder: knitr

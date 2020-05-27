@@ -27,3 +27,16 @@ metric_commit_interval_churn <- function(git_log,start_commit,end_commit){
                                                       date <= end_date]$commit_churn)
   return(commit_interval_churn)
 }
+
+# Various imports
+#' @importFrom stringi stri_c
+#' @importFrom stringi stri_split_regex
+#' @importFrom data.table data.table
+#' @importFrom data.table is.data.table
+#' @importFrom data.table as.data.table
+#' @importFrom data.table :=
+#' @importFrom data.table rbindlist
+#' @importFrom data.table setkey
+#' @importFrom data.table setkeyv
+#' @importFrom data.table setnames
+NULL
