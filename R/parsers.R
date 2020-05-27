@@ -107,6 +107,7 @@ parse_mbox <- function(perceval_path,mbox_path){
   perceval_parsed <- data.table(jsonlite::stream_in(textConnection(perceval_output),verbose=FALSE))
   return(perceval_parsed)
 }
+#' @export
 parse_mbox_igraph <- function(project_mbox){
   # Obtain the relevant columns - Author, E-mail Thread, and Timestamp
   mbox_edgelist <- project_mbox[,.(author=data.From,thread=data.Subject,date=data.Date)]
