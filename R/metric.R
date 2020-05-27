@@ -1,10 +1,12 @@
 # Conversion to numeric must be performed before function call.
+#' @export
 metric_churn <- function(lines_added,lines_removed){
   churn <- lines_added + lines_removed
   return(churn)
 }
 # git_log is a data.table, where each row is identified by a commit. It must contain
 # 4 columns in any order but with these column names: commit_hash, date, added, removed.
+#' @export
 metric_commit_interval_churn <- function(git_log,start_commit,end_commit){
 
   git_log$churn <- metric_churn(git_log$added,git_log$removed)

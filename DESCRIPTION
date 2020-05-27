@@ -15,11 +15,6 @@ Maintainer: Carlos Paradis <cvas@hawaii.edu>
 License: TBD
 Encoding: UTF-8
 LazyData: true
-Depends:
-    data.table (>= 1.12.8),
-    stringr (>= 1.4.0),
-    jsonlite (>= 1.6),
-    igraph (>= 1.2.5)
 Suggests: lubridate (>= 1.7.4),
     ggplot2 (>= 3.2.1),
     visNetwork (>= 2.0.9),
@@ -27,6 +22,15 @@ Suggests: lubridate (>= 1.7.4),
     pkgdown (>= 1.4.1),
     knitr (>= 1.26),
     reactable (>= 0.1.0)
+Depends:
+    R (>= 3.6.1)
+Imports:
+    data.table (>= 1.12.8),
+    stringr (>= 1.4.0),
+    jsonlite (>= 1.6),
+    igraph (>= 1.2.5),
+    lubridate
 VignetteBuilder: knitr
 URL: https://github.com/sailuh/kaiaulu
 BugReports: https://github.com/sailuh/kaiaulu/issues
+RoxygenNote: 7.0.2

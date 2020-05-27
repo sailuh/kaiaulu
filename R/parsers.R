@@ -1,3 +1,4 @@
+#' @export
 parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA){
   # Remove ".git"
   git_uri <- str_split(git_repo_path,pattern=".git")[[1]][1]
@@ -57,6 +58,7 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA){
   }
   return(perceval_parsed)
 }
+#' @export
 parse_gitlog_igraph <- function(project_git, mode = c("author","commit")){
   # Check user did not specify a mode that does not exist
   mode <- match.arg(mode)
@@ -94,6 +96,7 @@ parse_gitlog_igraph <- function(project_git, mode = c("author","commit")){
   return(git_network)
 
 }
+#' @export
 parse_mbox <- function(perceval_path,mbox_path){
   # Remove ".mbox"
   mbox_uri <- str_split(git_repo_path,pattern=".mbox")[[1]][1]
@@ -120,3 +123,14 @@ parse_mbox_igraph <- function(project_mbox){
   # Return the parsed JSON output as an igraph object.
   return(mbox_network)
 }
+
+# Various imports
+#' @importFrom data.table data.table
+#' @importFrom data.table is.data.table
+#' @importFrom data.table as.data.table
+#' @importFrom data.table :=
+#' @importFrom data.table rbindlist
+#' @importFrom data.table setkey
+#' @importFrom data.table setkeyv
+#' @importFrom data.table setnames
+NULL

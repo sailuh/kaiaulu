@@ -17,9 +17,9 @@ set.seed(seed)
 ```
 
 ```{r warning=FALSE,message=FALSE}
-library(kaiaulu)
-library(visNetwork)
-library(reactable)
+require(kaiaulu)
+require(visNetwork)
+require(reactable)
 ```
 
 ```{r}
@@ -29,24 +29,30 @@ perceval_path <- "/Users/cvp/Desktop/kaiaulu/kaiaulu_env/bin/perceval"
 # Construct Contribution Network
 
 ```{r}
-git_repo_path <- "/Users/cvp/Desktop/kaiaulu_project_input/apr/.git"
-apr_git <- parse_gitlog(perceval_path,git_repo_path)
-apr_git <- apr_git[data.AuthorDate >= lubridate::ymd("2019-01-01") & data.AuthorDate < lubridate::ymd("2019-12-31")]
-apr_contribution_network <- parse_gitlog_igraph(apr_git,mode="author")
-visIgraph(apr_contribution_network,randomSeed = 1)
+git_repo_path <- "/Users/cvp/Desktop/kaiaulu_project_input/APR/.git"
+save_path <- "/Users/cvp/Desktop/kaiaulu_project_input/rds/APR_git.rds"
+#project_git <- parse_gitlog(perceval_path,git_repo_path,save_path)
+project_git <- readRDS(save_path)
 ```
+
+```{r}
+project_git <- project_git[data.AuthorDate >= lubridate::ymd("2019-01-01") & data.AuthorDate < lubridate::ymd("2019-12-31")]
+project_contribution_network <- parse_gitlog_igraph(project_git,mode="author")
+visIgraph(project_contribution_network,randomSeed = 1)
+```
+
 
 # Construct a Commit-File Network
 
 ```{r}
-apr_commit_network <- parse_gitlog_igraph(apr_git,mode="commit")
-visIgraph(apr_commit_network,randomSeed = 1)
+project_commit_network <- parse_gitlog_igraph(project_git,mode="commit")
+visIgraph(project_commit_network,randomSeed = 1)
 ```
 
 # Co-Change Network
 
 ```{r}
-co_change_network <- bipartite_projection(apr_commit_network,
+co_change_network <- bipartite_projection(project_commit_network,
                                           multiplicity = TRUE,
                                           which = FALSE) # FALSE is the file projection
 visIgraph(co_change_network,randomSeed = 1)
@@ -54,8 +60,8 @@ visIgraph(co_change_network,randomSeed = 1)
 
 ## Co-Change adjacency matrix 
 
-```{r}
-reactable(as_adjacency_matrix(co_change_network,attr = "weight",sparse = F))
+```{r eval = FALSE}
+reactable:reactable(as_adjacency_matrix(co_change_network,attr = "weight",sparse = F))
 ```
 
 
@@ -63,7 +69,7 @@ reactable(as_adjacency_matrix(co_change_network,attr = "weight",sparse = F))
 
 # Construct Communication Network
 
-```{r}
+```{r eval = FALSE}
 mbox_path <- "/Users/cvp/Desktop/kaiaulu_project_input/apr-dev.mbox"
 apr_mbox <- parse_mbox(perceval_path,mbox_path)
 apr_communication_network <- parse_mbox_igraph(apr_mbox)
