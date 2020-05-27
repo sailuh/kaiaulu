@@ -33,13 +33,11 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA){
   # Parsed JSON output.
   perceval_parsed <- data.table(jsonlite::stream_in(textConnection(perceval_output),verbose=FALSE))
 
-  # Parse timestamps
-  perceval_parsed$data.AuthorDate <- lubridate::parse_date_time(perceval_parsed$data.AuthorDate,
-                             "%a %b %d %H:%M:%S %Y %z",
-                             exact=TRUE)
-  perceval_parsed$data.CommitDate <- lubridate::parse_date_time(perceval_parsed$data.CommitDate,
-                                                                "%a %b %d %H:%M:%S %Y %z",
-                                                                exact=TRUE)
+  # Parse timestamps and convert to UTC
+  perceval_parsed$data.AuthorDate <- as.POSIXct(perceval_parsed$data.AuthorDate,
+                                                format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
+  perceval_parsed$data.CommitDate <- as.POSIXct(perceval_parsed$data.CommitDate,
+                                                format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
 
   # APR very first commit is a weird single case of commit without files. We filter them here.
   is_commit_with_files <- !!sapply(perceval_parsed$data.files,length)

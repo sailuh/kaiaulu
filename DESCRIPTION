@@ -28,8 +28,7 @@ Imports:
     data.table (>= 1.12.8),
     stringr (>= 1.4.0),
     jsonlite (>= 1.6),
-    igraph (>= 1.2.5),
-    lubridate
+    igraph (>= 1.2.5)
 VignetteBuilder: knitr
 URL: https://github.com/sailuh/kaiaulu
 BugReports: https://github.com/sailuh/kaiaulu/issues

@@ -36,7 +36,7 @@ project_git <- readRDS(save_path)
 ```
 
 ```{r}
-project_git <- project_git[data.AuthorDate >= lubridate::ymd("2019-01-01") & data.AuthorDate < lubridate::ymd("2019-12-31")]
+project_git <- project_git[data.AuthorDate >= as.POSIXct("2019-01-01", format = "%Y-%m-%d",tz = "UTC") & data.AuthorDate < as.POSIXct("2019-12-31", format = "%Y-%m-%d",tz = "UTC")]
 project_contribution_network <- parse_gitlog_igraph(project_git,mode="author")
 visIgraph(project_contribution_network,randomSeed = 1)
 ```
