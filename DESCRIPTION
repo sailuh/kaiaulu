@@ -15,20 +15,20 @@ Maintainer: Carlos Paradis <cvas@hawaii.edu>
 License: TBD
 Encoding: UTF-8
 LazyData: true
-Suggests: lubridate (>= 1.7.4),
-    ggplot2 (>= 3.2.1),
+Suggests:
     visNetwork (>= 2.0.9),
+    ggplot2 (>= 3.2.1),
     ggthemes (>= 4.2.0),
     pkgdown (>= 1.4.1),
     knitr (>= 1.26),
-    reactable (>= 0.1.0)
+    reactable (>= 0.1.0),
+    igraph (>= 1.2.5)    
 Depends:
     R (>= 3.6.1)
 Imports:
     data.table (>= 1.12.8),
     stringi (>= 1.4.6),
-    jsonlite (>= 1.6),
-    igraph (>= 1.2.5)
+    jsonlite (>= 1.6)
 VignetteBuilder: knitr
 URL: https://github.com/sailuh/kaiaulu
 BugReports: https://github.com/sailuh/kaiaulu/issues

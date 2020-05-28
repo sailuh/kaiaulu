@@ -57,7 +57,7 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA){
   return(perceval_parsed)
 }
 #' @export
-parse_gitlog_igraph <- function(project_git, mode = c("author","commit")){
+parse_gitlog_network <- function(project_git, mode = c("author","commit")){
   # Check user did not specify a mode that does not exist
   mode <- match.arg(mode)
   # Select and rename relevant columns. Key = commit_hash.
@@ -68,29 +68,31 @@ parse_gitlog_igraph <- function(project_git, mode = c("author","commit")){
                         committer_date = data.CommitDate,
                         file,added,removed)]
   if(mode == "author"){
+    # Select relevant columns for nodes
+    git_nodes <- c(unique(project_git$author),unique(project_git$file))
     # Select relevant columns for edgelist, grouping repeated rows as the edgelist weights
     git_edgelist <- project_git[,.(weight=.N),by=c("author","file")]
-    # Parse igraph from edgelist (igraph auto-detect weights from a column labeled "weight")
-    git_network <- igraph::graph_from_data_frame(git_edgelist,directed=TRUE)
-    # Color authors black, and e-mail threads lightblue
-    igraph::V(git_network)$color <- ifelse(igraph::V(git_network)$name %in% git_edgelist$author,
-                                           "black",
-                                           "#f4dbb5")
+    # Color nodes authors black, and e-mail threads lightblue
+    git_nodes <- data.table(name=git_nodes,color=ifelse(git_nodes %in% git_edgelist$author,
+                                                        "black",
+                                                        "#f4dbb5"))
   }else if(mode == "commit"){
+    # Select relevant columns for nodes
+    git_nodes <- c(unique(project_git$commit_hash),unique(project_git$file))
     # Select relevant columns for edgelist, grouping repeated rows as the edgelist weights
     git_edgelist <- project_git[,.(weight=.N),by=c("commit_hash","file")]
-    # Parse igraph from edgelist (igraph auto-detect weights from a column labeled "weight")
-    git_network <- igraph::graph_from_data_frame(git_edgelist,directed=FALSE)
-    # This undirected graph is also bipartite  - igraph knows this using $type
-    igraph::V(git_network)$type <- ifelse(igraph::V(git_network)$name %in% git_edgelist$commit_hash,
+    # Color authors black, and e-mail threads lightblue
+    git_nodes <- data.table(name=git_nodes,color=ifelse(git_nodes %in% git_edgelist$commit_hash,
+                                                          "#afe569",
+                                                          "#f4dbb5"))
+    # This undirected graph is also bipartite
+    git_nodes$type <-  ifelse(git_nodes$name %in% git_edgelist$commit_hash,
                                            TRUE,
                                            FALSE)
-    # Color authors black, and e-mail threads lightblue
-    igraph::V(git_network)$color <- ifelse(igraph::V(git_network)$name %in% git_edgelist$commit_hash,
-                                           "#afe569",
-                                           "#f4dbb5")
   }
-
+  git_network <- list()
+  git_network[["nodes"]] <- git_nodes
+  git_network[["edgelist"]] <- git_edgelist
   return(git_network)
 
 }
@@ -108,18 +110,21 @@ parse_mbox <- function(perceval_path,mbox_path){
   return(perceval_parsed)
 }
 #' @export
-parse_mbox_igraph <- function(project_mbox){
+parse_mbox_network <- function(project_mbox){
   # Obtain the relevant columns - Author, E-mail Thread, and Timestamp
-  mbox_edgelist <- project_mbox[,.(author=data.From,thread=data.Subject,date=data.Date)]
+  project_mbox <- project_mbox[,.(author=data.From,thread=data.Subject,date=data.Date)]
+  # Select relevant columns for nodes
+  mbox_nodes <- c(unique(project_mbox$author),unique(project_mbox$thread))
   # Select relevant columns for edgelist, grouping repeated rows as the edgelist weights
-  mbox_edgelist <- mbox_edgelist[,.(weight=.N),by=c("author","thread")]
-  # Parse igraph from edgelist
-  mbox_network <- igraph::graph_from_data_frame(mbox_edgelist,directed=TRUE)
+  mbox_edgelist <- project_mbox[,.(weight=.N),by=c("author","thread")]
   # Color authors black, and e-mail threads lightblue
-  igraph::V(mbox_network)$color <- ifelse(igraph::V(mbox_network)$name %in% mbox_edgelist$author,
-                                          "black",
-                                          "lightblue")
-  # Return the parsed JSON output as an igraph object.
+  mbox_nodes <- data.table(name=mbox_nodes,color=ifelse(mbox_nodes %in% mbox_edgelist$author,
+                                                      "black",
+                                                      "lightblue"))
+  # Return the parsed JSON output as nodes and edgelist.
+  mbox_network <- list()
+  mbox_network[["nodes"]] <- mbox_nodes
+  mbox_network[["edgelist"]] <- mbox_edgelist
   return(mbox_network)
 }
 
