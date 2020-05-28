@@ -27,7 +27,6 @@ Dependencies in this package are modular. Depending on what you seek, you may on
  
 ## 1.3 Static Code Analysis 
 
- 1. Create a py virtualenv (optional)
- 2. Download [Depends release](https://github.com/multilang-depends/depends/releases/) (last tested on 0.96a)
- 3. Open the depends folder, and take note of `depends.jar` path. 
- 4. See vignettes/depends_showcase.Rmd for examples and viz on file dependency analysis.  
+ 1. Download [Depends release](https://github.com/multilang-depends/depends/releases/) (last tested on 0.96a)
+ 2. Open the Depends folder, and take note of `depends.jar` path. 
+ 3. See vignettes/depends_showcase.Rmd for examples and viz on file dependency analysis.  
