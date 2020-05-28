@@ -1,0 +1,44 @@
+---
+title: "File Networks"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Collaboration Network Parser}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(visNetwork)
+require(data.table)
+require(stringi)
+require(igraph)
+```
+
+```{r}
+depends_jar_path <- "/Users/cvp/Desktop/depends-0.9.6/depends.jar"
+```
+
+# Construct File Network
+
+```{r}
+git_repo_path <- "/Users/cvp/Desktop/kaiaulu_project_input/git_repos/Cassandra/.git"
+project_dependencies <- parse_dependencies(depends_jar_path,git_repo_path,language="python")
+```
+
+```{r}
+project_file_network <- parse_dependencies_network(project_dependencies)
+project_file_network <- igraph::graph_from_data_frame(d=project_file_network[["edgelist"]], 
+                      directed = FALSE, 
+                      vertices = project_file_network[["nodes"]])
+visIgraph(project_file_network,randomSeed = 1)
+```

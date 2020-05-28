@@ -76,7 +76,7 @@ parse_gitlog_network <- function(project_git, mode = c("author","commit")){
     git_nodes <- c(unique(project_git$author),unique(project_git$file))
     # Select relevant columns for edgelist, grouping repeated rows as the edgelist weights
     git_edgelist <- project_git[,.(weight=.N),by=c("author","file")]
-    # Color nodes authors black, and e-mail threads lightblue
+    # Color nodes authors black, and files yellow
     git_nodes <- data.table(name=git_nodes,color=ifelse(git_nodes %in% git_edgelist$author,
                                                         "black",
                                                         "#f4dbb5"))
@@ -85,7 +85,7 @@ parse_gitlog_network <- function(project_git, mode = c("author","commit")){
     git_nodes <- c(unique(project_git$commit_hash),unique(project_git$file))
     # Select relevant columns for edgelist, grouping repeated rows as the edgelist weights
     git_edgelist <- project_git[,.(weight=.N),by=c("commit_hash","file")]
-    # Color authors black, and e-mail threads lightblue
+    # Color authors black, and commits green and files yellow
     git_nodes <- data.table(name=git_nodes,color=ifelse(git_nodes %in% git_edgelist$commit_hash,
                                                           "#afe569",
                                                           "#f4dbb5"))
@@ -131,8 +131,77 @@ parse_mbox_network <- function(project_mbox){
   mbox_network[["edgelist"]] <- mbox_edgelist
   return(mbox_network)
 }
+#' @export
+parse_dependencies <- function(depends_jar_path,git_repo_path,language){
+  # Remove ".git"
+  folder_path <- stri_replace_last(git_repo_path,replacement="",regex=".git")
+  project_name <- stri_split_regex(folder_path,pattern="/")[[1]]
+  project_name <- project_name[length(project_name)-1]
+  # Use Depends to parse the code folder.
+  system2("java",
+                             args = c("-jar",depends_jar_path,
+                                      language,folder_path,
+                                      project_name,'--dir=/tmp/',
+                                      '--auto-include',
+                                      '--granularity=file', '--namepattern=/',
+                                      '--format=json'),
+                             stdout = FALSE,
+                             stderr = FALSE)
+  # Construct /tmp/ file path
+  output_path <- stri_c("/tmp/",project_name,".json")
+  # Parsed JSON output.
+  depends_parsed <- jsonlite::read_json(output_path)
+  # The JSON has two main parts. The first is a vector of all file names.
+  file_names <- unlist(depends_parsed[["variables"]])
+  # /Users/user/git_repos/APR/xml/apr_xml_xmllite.c => "xml/apr_xml_xmllite.c"
+  file_names <- stri_replace_first(file_names,replacement="",regex=folder_path)
+  # The second part is the dependencies itself, which refer to the file name indices.
+  dependencies <- depends_parsed[["cells"]]
+  # The types of dependencies is a list of lists. First we unlist the various types.
+  dependencies_types <- rbindlist(lapply(dependencies,
+                                  function(x) as.data.table(x$values)),
+                           fill=TRUE)
+  # Fixes column types to numeric, and replace NAs by 0s, as an NA means 0 dependencies.
+  dependencies_types <- data.table(sapply(dependencies_types,as.numeric))
+  dependencies_types[is.na(dependencies_types)] <- 0
+  # Then we unlist the src and dest files.
+  dependencies_files <- rbindlist(lapply(dependencies,
+                                         function(x) as.data.table(x[c("src","dest")])),
+                                  fill=TRUE)
+  # And finally we combine them
+  depends_parsed <- cbind(dependencies_files,dependencies_types)
+  # We use the file_names to re-label the files for further analysis
+  # Note the +1: The json assumes a file index starts at 0. R index starts 1, hence the + 1.
+  depends_parsed$src <- file_names[depends_parsed$src + 1]
+  depends_parsed$dest <- file_names[depends_parsed$dest + 1]
+
+  return(depends_parsed)
+}
+
+# Available weight_types: See the columns available from parse_dependencies.
+# depends_parsed must be the output of parse_dependencies().
+#' @export
+parse_dependencies_network <- function(depends_parsed,weight_types=NA){
+  dependency_edgelist <- depends_parsed[,.(src,dest)]
+  if(is.na(weight_types)){
+    dependency_edgelist$weight <- rowSums(depends_parsed[,3:ncol(depends_parsed),with=FALSE])
+  }else{
+    dependency_edgelist$weight <- rowSums(depends_parsed[,c(weight_types),with=FALSE])
+  }
+  # Select relevant columns for nodes
+  dependency_nodes <- unique(c(dependency_edgelist$src,dependency_edgelist$dest))
+  # Color files yellow
+  dependency_nodes <- data.table(name=dependency_nodes,color="#f4dbb5")
+  # Return the parsed JSON output as nodes and edgelist.
+  file_network <- list()
+  file_network[["nodes"]] <- dependency_nodes
+  file_network[["edgelist"]] <- dependency_edgelist
+  return(file_network)
+}
 
 # Various imports
+#' @importFrom stringi stri_replace_last
+#' @importFrom stringi stri_replace_first
 #' @importFrom stringi stri_c
 #' @importFrom stringi stri_split_regex
 #' @importFrom data.table data.table
