@@ -103,7 +103,7 @@ parse_gitlog_network <- function(project_git, mode = c("author","commit")){
 #' @export
 parse_mbox <- function(perceval_path,mbox_path){
   # Remove ".mbox"
-  mbox_uri <- stri_split_regex(git_repo_path,pattern=".mbox")[[1]][1]
+  mbox_uri <- stri_split_regex(mbox_path,pattern=".mbox")[[1]][1]
   # Use percerval to parse mbox_path. --json line is required to be parsed by jsonlite::fromJSON.
   perceval_output <- system2(perceval_path,
                              args = c('mbox',mbox_uri,mbox_path,'--json-line'),
