@@ -6,13 +6,10 @@ Description: Communication and Collaboration Network Analysis
 Authors@R: c(
     person('Carlos', 'Paradis', role = c('aut', 'cre'),
       email = 'cvas@hawaii.edu'),
-    person('Damian', 'Tamburri', role = c('ths'),
-      email = ''),
-    person('Rick', 'Kazman', role = c('ths'),
-      email = '')
+    person('Rick', 'Kazman', role = c('ths'))
     )
 Maintainer: Carlos Paradis <cvas@hawaii.edu>
-License: TBD
+License: MPL-2.0 | file LICENSE
 Encoding: UTF-8
 LazyData: true
 Suggests:
