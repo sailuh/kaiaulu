@@ -6,18 +6,28 @@
 
 ## 1. Setup 
 
+Dependencies in this package are modular. Depending on what you seek, you may only need to setup a sub-set of this section. Each module is divided by subsection below. Minimally you need to:
+
  1. Clone this repo 
- 2. Create a py virtualenv (optional)
- 3. `pip3 install perceval`
- 4. `which perceval` (take note of the path to use on vignettes/network_parsers.Rmd)   
- 5. Open `kaiaulu.Rproj` using RStudio
+ 2. Open `kaiaulu.Rproj` using RStudio
+ 
+## 1.1 Gitlog analysis 
 
-## 2. Examples
+ 1. Create a py virtualenv (optional)
+ 2. `pip3 install perceval`
+ 3. `which perceval` (take note of the path for the vignette)
+ 4. Open vignettes/gitlog_showcase.Rmd or vignettes/churn_metrics.Rmd for examples and viz on gitlog analysis. 
+ 
+## 1.2 Mailing List Analysis
 
-See http://www2.hawaii.edu/~cvas/kaiaulu/ for a live example using vignettes/network_parsers.Rmd.
+ 1. Create a py virtualenv (optional)
+ 2. `pip3 install perceval`
+ 3. `which perceval` (take note of the path for the vignette)
+ 4. Open vignettes/mailinglist_showcase.Rmd for examples and viz on mailing list analysis. 
+ 
+## 1.3 Static Code Analysis 
 
- * The visualizations are interactive:
-    * Position the mouse cursor over any of the graphs and scroll to zoom in and out. When sufficiently zoomed-in, labels will display. 
-    * Hold the left the mouse button over the image on white space to move around the graph. 
-    * Hold the left the mouse button over a node to drag it around if the labels overlap. 
- * The adjacency matrix can be browsed from left to right (note the horizontal bar at the bottom of the table). 
+ 1. Create a py virtualenv (optional)
+ 2. Download [Depends release](https://github.com/multilang-depends/depends/releases/) (last tested on 0.96a)
+ 3. Open the depends folder, and take note of `depends.jar` path. 
+ 4. See vignettes/depends_showcase.Rmd for examples and viz on file dependency analysis.  
