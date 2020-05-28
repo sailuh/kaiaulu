@@ -1,0 +1,42 @@
+---
+title: "Collaboration Network Parser"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Collaboration Network Parser}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(visNetwork)
+require(reactable)
+require(data.table)
+require(igraph)
+```
+
+```{r}
+perceval_path <- "/Users/cvp/Desktop/kaiaulu/kaiaulu_env/bin/perceval"
+```
+
+# Construct Communication Network
+
+```{r}
+mbox_path <- "/Users/cvp/Desktop/kaiaulu_project_input/mboxes/apr-dev.mbox"
+project_mbox <- parse_mbox(perceval_path,mbox_path)
+project_communication_network <- parse_mbox_network(project_mbox)
+project_communication_network <- igraph::graph_from_data_frame(d=project_communication_network[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_communication_network[["nodes"]])
+visIgraph(project_communication_network,randomSeed = 1)
+```
+

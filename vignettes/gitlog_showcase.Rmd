@@ -74,8 +74,6 @@ reactable(as_adjacency_matrix(co_change_network,attr = "weight",sparse = F))
 ```
 
 
-
-
 # Construct Communication Network
 
 ```{r}
