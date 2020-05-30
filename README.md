@@ -4,29 +4,102 @@
 > n.
 > 1. Community, neighborhood, village. ʻOia nō kekahi o nā kānaka waiwai nui a kūʻonoʻono ma iā mau kaiāulu, he was one of the wealthiest and most prosperous persons of these communities.
 
-## 1. Setup 
+## Overview
+
+A common API to analyze various data sources common to software development (gitlog, mailing list, files, etc.), facilitate data interoperability through author and file linkage, filters, and popular code metrics. 
+
+## Installation 
 
 Dependencies in this package are modular. Depending on what you seek, you may only need to setup a sub-set of this section. Each module is divided by subsection below. Minimally you need to:
 
  1. Clone this repo 
  2. Open `kaiaulu.Rproj` using RStudio
  
-## 1.1 Gitlog analysis 
+### Gitlog analysis 
 
  1. Create a py virtualenv (optional)
  2. `pip3 install perceval`
  3. `which perceval` (take note of the path for the vignette)
  4. Open vignettes/gitlog_showcase.Rmd or vignettes/churn_metrics.Rmd for examples and viz on gitlog analysis. 
  
-## 1.2 Mailing List Analysis
+### Mailing List Analysis
 
  1. Create a py virtualenv (optional)
  2. `pip3 install perceval`
  3. `which perceval` (take note of the path for the vignette)
  4. Open vignettes/mailinglist_showcase.Rmd for examples and viz on mailing list analysis. 
  
-## 1.3 Static Code Analysis 
+### Static Code Analysis 
 
  1. Download [Depends release](https://github.com/multilang-depends/depends/releases/) (last tested on 0.96a)
  2. Open the Depends folder, and take note of `depends.jar` path. 
  3. See vignettes/depends_showcase.Rmd for examples and viz on file dependency analysis.  
+
+## Usage 
+
+ * `parse_*()` provide a simple interface to load data from common data sources of interest for SE research:
+
+```r
+# get each file changes per commit
+perceval_path <- "bin/perceval"
+git_repo_path <- "APR/.git"
+project_git <- parse_gitlog(perceval_path,git_repo_path)
+
+# get each message sent per email thread
+mbox_path <- "apr-dev.mbox"
+project_mbox <- parse_mbox(perceval_path,mbox_path)
+
+# identify authors with different name and emails
+name_emails <- c(unique(project_git$data.Author),unique(project_mbox$data.From))
+name_mapping <- data.table(raw_name=name_emails,
+                           id=assign_exact_identity(name_emails))
+```
+
+ * `parse_*_network()` can then create edgelists from the parsed logs for libraries such as `igraph` and `Gephi`:
+
+```r
+perceval_path <- "bin/perceval"
+git_repo_path <- "APR/.git"
+project_git <- parse_gitlog(perceval_path,git_repo_path)
+
+network <- parse_gitlog_network(project_git,mode="author")
+
+# creates igraph object
+network_igraph <- igraph::graph_from_data_frame(
+  d=project_contribution_network[["edgelist"]],
+  directed = TRUE, 
+  vertices = project_contribution_network[["nodes"]])
+
+# plot a interactive viz of the network                      
+visIgraph(project_contribution_network,randomSeed = 1)
+```
+
+ * `parse_dependencies()` and `parse_dependencies_network()` can also be used to generate a network of static dependency between files. 
+
+```r
+# get each file function call to another file by type
+depends_jar_path <- "depends-0.9.6/depends.jar"
+git_repo_path <- "APR/.git"
+language <- "cpp" # accepts cpp, java, ruby, python, pom
+
+dependencies <- parse_dependencies(depends_jar_path,git_repo_path,language=language)   
+network <- parse_dependencies_network(dependencies)
+
+network_igraph <- igraph::graph_from_data_frame(
+  d=network[["edgelist"]], 
+  directed = TRUE, 
+  vertices = network[["nodes"]])
+visIgraph(network_igraph,randomSeed = 1)
+```
+
+ * `metric_churn()` and `metric_commit_interval_churn() ` can calculate churn for files and churn for commit intervals:
+
+```r
+# calculate code churn for a commit interval
+
+perceval_path <- "bin/perceval"
+git_repo_path <- "APR/.git"
+project_git <- parse_gitlog(perceval_path,git_repo_path)
+
+interval_churn <- metric_commit_interval_churn(project_git,"9eae9e9","f1d2d56")
+```
