@@ -31,10 +31,11 @@ perceval_path <- "/Users/cvp/Desktop/kaiaulu/kaiaulu_env/bin/perceval"
 # Construct Contribution Network
 
 ```{r}
-git_repo_path <- "/Users/cvp/Desktop/kaiaulu_project_input/APR/.git"
+git_repo_path <- "/Users/cvp/Desktop/kaiaulu_project_input/git_repos/APR/.git"
 save_path <- "/Users/cvp/Desktop/kaiaulu_project_input/rds/APR_git.rds"
+project_git <- parse_gitlog(perceval_path,git_repo_path)
 #project_git <- parse_gitlog(perceval_path,git_repo_path,save_path)
-project_git <- readRDS(save_path)
+#project_git <- readRDS(save_path)
 ```
 
 ```{r}
@@ -72,17 +73,3 @@ visIgraph(co_change_network,randomSeed = 1)
 ```{r eval = FALSE}
 reactable(as_adjacency_matrix(co_change_network,attr = "weight",sparse = F))
 ```
-
-
-# Construct Communication Network
-
-```{r}
-mbox_path <- "/Users/cvp/Desktop/kaiaulu_project_input/mboxes/apr-dev.mbox"
-project_mbox <- parse_mbox(perceval_path,mbox_path)
-project_communication_network <- parse_mbox_network(project_mbox)
-project_communication_network <- igraph::graph_from_data_frame(d=project_communication_network[["edgelist"]], 
-                      directed = TRUE, 
-                      vertices = project_communication_network[["nodes"]])
-visIgraph(project_communication_network,randomSeed = 1)
-```
-
