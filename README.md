@@ -1,4 +1,4 @@
-# Kaiāulu
+# Kaiāulu <a href="https://github.com/sailuh/kaiaulu"><img src="man/figures/logo.png" align="right" height="140" /></a>
 
 > kai.ā.ulu
 > n.
