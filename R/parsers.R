@@ -55,6 +55,10 @@ parse_gitlog_network <- function(project_git, mode = c("author","commit")){
     git_nodes <- data.table(name=git_nodes,color=ifelse(git_nodes %in% git_edgelist$author,
                                                         "black",
                                                         "#f4dbb5"))
+    # bipartite graph
+    git_nodes$type <- ifelse(git_nodes$name %in% git_edgelist$author,
+                              TRUE,
+                              FALSE)
   }else if(mode == "commit"){
     # Select relevant columns for nodes
     git_nodes <- c(unique(project_git$commit_hash),unique(project_git$file))
@@ -86,6 +90,9 @@ parse_mbox <- function(perceval_path,mbox_path){
                              stderr = FALSE)
   # Parsed JSON output as a data.table.
   perceval_parsed <- data.table(jsonlite::stream_in(textConnection(perceval_output),verbose=FALSE))
+  # Parse timestamps and convert to UTC
+  perceval_parsed$data.Date <- as.POSIXct(perceval_parsed$data.Date,
+                                                format = "%a, %d %b %Y %H:%M:%S %z", tz = "UTC")
   return(perceval_parsed)
 }
 #' @export
@@ -100,6 +107,10 @@ parse_mbox_network <- function(project_mbox){
   mbox_nodes <- data.table(name=mbox_nodes,color=ifelse(mbox_nodes %in% mbox_edgelist$author,
                                                       "black",
                                                       "lightblue"))
+  # bipartite graph
+  mbox_nodes$type <- ifelse(mbox_nodes$name %in% mbox_edgelist$author,
+                           TRUE,
+                           FALSE)
   # Return the parsed JSON output as nodes and edgelist.
   mbox_network <- list()
   mbox_network[["nodes"]] <- mbox_nodes
