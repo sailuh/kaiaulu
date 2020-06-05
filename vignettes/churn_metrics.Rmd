@@ -21,7 +21,9 @@ require(kaiaulu)
 ```
 
 ```{r}
-perceval_path <- "/Users/cvp/Desktop/kaiaulu/kaiaulu_env/bin/perceval"
+conf <- yaml::read_yaml("../conf/apr.yml")
+perceval_path <- conf[["toolpath"]][["perceval"]][["bin"]]
+git_repo_path <- conf[["datapath"]][["git"]]
 ```
 
 This vignette discusses assumptions made in deriving and defining churn metrics, in particular commit_interval_churn. 
@@ -29,9 +31,8 @@ This vignette discusses assumptions made in deriving and defining churn metrics,
 ## File Churn 
 
 ```{r}
-git_repo_path <- "/Users/cvp/Desktop/kaiaulu_project_input/git_repos/APR/.git"
-#apr_git <- parse_gitlog(perceval_path,git_repo_path)
-apr_git <- readRDS("/Users/cvp/Desktop/kaiaulu_project_input/rds/APR_git.rds")
+apr_git <- parse_gitlog(perceval_path,git_repo_path)
+#apr_git <- readRDS("/Users/cvp/Desktop/kaiaulu_project_input/rds/APR_git.rds")
 
 apr_git <- apr_git[added != "-" & removed != "-"] 
 apr_git$added <- as.numeric(apr_git$added)
@@ -81,7 +82,6 @@ commit_interval_churn <- sum(apr_git_commit_churn[data.AuthorDate >= start_date 
 The above considerations are implemented in the metric_commit_interval_churn of this package. 
 
 ```{r}
-git_repo_path <- "/Users/cvp/Desktop/kaiaulu_project_input/git_repos/APR/.git"
 apr_git <- parse_gitlog(perceval_path,git_repo_path)
 apr_git <- apr_git[added != "-" & removed != "-",.(commit_hash=data.commit,
            date=data.AuthorDate,

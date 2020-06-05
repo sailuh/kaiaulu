@@ -1,5 +1,5 @@
 ---
-title: "Collaboration Network Parser"
+title: "Communication Network Parser"
 output: 
   html_document:
     toc: true
@@ -22,16 +22,20 @@ require(visNetwork)
 require(reactable)
 require(data.table)
 require(igraph)
+require(yaml)
 ```
 
+Load config file.
+
 ```{r}
-perceval_path <- "/Users/cvp/Desktop/kaiaulu/kaiaulu_env/bin/perceval"
+conf <- yaml::read_yaml("../conf/apr.yml")
+perceval_path <- conf[["toolpath"]][["perceval"]][["bin"]]
+mbox_path <- conf[["datapath"]][["mbox"]]
 ```
 
 # Construct Communication Network
 
 ```{r}
-mbox_path <- "/Users/cvp/Desktop/kaiaulu_project_input/mboxes/apr-dev.mbox"
 project_mbox <- parse_mbox(perceval_path,mbox_path)
 project_communication_network <- parse_mbox_network(project_mbox)
 project_communication_network <- igraph::graph_from_data_frame(d=project_communication_network[["edgelist"]], 

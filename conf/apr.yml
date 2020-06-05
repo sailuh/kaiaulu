@@ -1,0 +1,12 @@
+datapath:
+  git: ~/kaiaulu_project_input/git_repos/APR/.git
+  mbox: ~/kaiaulu_project_input/mboxes/apr-dev_2013.mbox
+toolpath:
+  perceval:
+    # please see: https://github.com/chaoss/grimoirelab-perceval
+    bin: ~/perceval/bin/perceval
+  depends:
+    # please see: https://github.com/multilang-depends/depends
+    bin: ~/depends-0.9.6/depends.jar
+    # accepts cpp, java, ruby, python, pom
+    codelanguage: cpp

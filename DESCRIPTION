@@ -20,7 +20,8 @@ Suggests:
     knitr (>= 1.26),
     reactable (>= 0.1.0),
     igraph (>= 1.2.5),
-    gh (>= 1.1.0)
+    gh (>= 1.1.0),
+    yaml (>= 2.2.1)
 Depends:
     R (>= 3.6.1)
 Imports:

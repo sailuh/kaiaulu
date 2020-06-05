@@ -23,10 +23,14 @@ require(data.table)
 require(stringi)
 require(igraph)
 require(gh)
+require(yaml)
 ```
 
 ```{r}
-depends_jar_path <- "/Users/cvp/Desktop/depends-0.9.6/depends.jar"
+conf <- yaml::read_yaml("../conf/apr.yml")
+depends_jar_path <- conf[["toolpath"]][["depends"]][["bin"]]
+language <- conf[["toolpath"]][["depends"]][["codelanguage"]]
+git_repo_path <- conf[["datapath"]][["git"]]
 ```
 
 # Construct File Network
@@ -52,9 +56,6 @@ format(round(language_distribution_byte, 2), nsmall = 2)
 Based on the most used language on the project, choose the parameter below for Depends. Accepted languages are: cpp, java, ruby, python, pom.
 
 ```{r}
-git_repo_path <- "/Users/cvp/Desktop/kaiaulu_project_input/git_repos/APR/.git"
-language <- "cpp" #accepts cpp, java, ruby, python, pom
-
 project_dependencies <- parse_dependencies(depends_jar_path,git_repo_path,language=language)
 ```
 

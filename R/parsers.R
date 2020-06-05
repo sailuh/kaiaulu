@@ -9,6 +9,11 @@
 #' @param save_path optional save path for .rds object
 #' @export
 parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA){
+  # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
+  perceval_path <- path.expand(perceval_path)
+  git_repo_path <- path.expand(git_repo_path)
+  save_path <- ifelse(!is.na(save_path),path.expand(save_path),NA)
+
   # Use percerval to parse .git --json line is required to be parsed by jsonlite::fromJSON.
   perceval_output <- system2(perceval_path,
                              args = c('git',git_repo_path,'--json-line'),
@@ -94,6 +99,9 @@ parse_gitlog_network <- function(project_git, mode = c("author","commit")){
 #' @param mbox_path path to mbox archive file (ends in .mbox)
 #' @export
 parse_mbox <- function(perceval_path,mbox_path){
+  # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
+  perceval_path <- path.expand(perceval_path)
+  mbox_path <- path.expand(mbox_path)
   # Remove ".mbox"
   mbox_uri <- stri_replace_last(mbox_path,replacement="",regex=".mbox")
   # Use percerval to parse mbox_path. --json line is required to be parsed by jsonlite::fromJSON.
@@ -140,6 +148,9 @@ parse_mbox_network <- function(project_mbox){
 #' @param language the language of the .git repo (accepts cpp, java, ruby, python, pom)
 #' @export
 parse_dependencies <- function(depends_jar_path,git_repo_path,language){
+  # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
+  depends_jar_path <- path.expand(depends_jar_path)
+  git_repo_path <- path.expand(git_repo_path)
   # Remove ".git"
   folder_path <- stri_replace_last(git_repo_path,replacement="",regex=".git")
   project_name <- stri_split_regex(folder_path,pattern="/")[[1]]
