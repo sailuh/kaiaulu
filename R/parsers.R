@@ -2,6 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+#' Parse gitlog from Perceval
+#'
+#' @param perceval_path path to perceval binary
+#' @param git_repo_path path to git repo (ends in .git)
+#' @param save_path optional save path for .rds object
 #' @export
 parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA){
   # Use percerval to parse .git --json line is required to be parsed by jsonlite::fromJSON.
@@ -35,6 +40,10 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA){
   }
   return(perceval_parsed)
 }
+#' Transform parsed git repo into an edgelist
+#'
+#' @param project_git A parsed git project by \code{parse_gitlog}.
+#' @param mode The network of interest: author-file, or commit-file
 #' @export
 parse_gitlog_network <- function(project_git, mode = c("author","commit")){
   # Check user did not specify a mode that does not exist
@@ -79,6 +88,10 @@ parse_gitlog_network <- function(project_git, mode = c("author","commit")){
   return(git_network)
 
 }
+#' Parse mbox from Perceval
+#'
+#' @param perceval_path path to perceval binary
+#' @param mbox_path path to mbox archive file (ends in .mbox)
 #' @export
 parse_mbox <- function(perceval_path,mbox_path){
   # Remove ".mbox"
@@ -95,6 +108,9 @@ parse_mbox <- function(perceval_path,mbox_path){
                                                 format = "%a, %d %b %Y %H:%M:%S %z", tz = "UTC")
   return(perceval_parsed)
 }
+#' Transform parsed mbox into a network
+#'
+#' @param project_mbox A parsed mbox by \code{parse_mbox}.
 #' @export
 parse_mbox_network <- function(project_mbox){
   # Obtain the relevant columns - Author, E-mail Thread, and Timestamp
@@ -117,6 +133,11 @@ parse_mbox_network <- function(project_mbox){
   mbox_network[["edgelist"]] <- mbox_edgelist
   return(mbox_network)
 }
+#' Parse dependencies from Depends
+#'
+#' @param depends_jar_path path to depends jar
+#' @param git_repo_path path to git repo (ends in .git)
+#' @param language the language of the .git repo (accepts cpp, java, ruby, python, pom)
 #' @export
 parse_dependencies <- function(depends_jar_path,git_repo_path,language){
   # Remove ".git"
@@ -163,9 +184,11 @@ parse_dependencies <- function(depends_jar_path,git_repo_path,language){
 
   return(depends_parsed)
 }
-
-# Available weight_types: See the columns available from parse_dependencies.
-# depends_parsed must be the output of parse_dependencies().
+#' Transform parsed dependencies into a network
+#'
+#' @param project_mbox A parsed mbox by \code{parse_dependencies}.
+#' @param weight_types The weight types as defined in Depends.
+#'
 #' @export
 parse_dependencies_network <- function(depends_parsed,weight_types=NA){
   dependency_edgelist <- depends_parsed[,.(src,dest)]

@@ -51,6 +51,10 @@ is_same_identity <- function(i,j,parsed_name_email){
   is_email_match <- ifelse(is.na(is_email_match),FALSE,is_email_match)
   return(is_name_match | is_email_match)
 }
+
+#' Identify authors with different names and emails
+#'
+#' @param unique_name_email A single string containing name and email as used in git and mailinglists.
 #' @export
 assign_exact_identity <- function(unique_name_email){
   formatted_name_email <- format_name_email(unique_name_email)

@@ -1,0 +1,21 @@
+destination: docs
+template:
+  params:
+    bootswatch: simplex
+reference:
+- title: Parsers
+  desc:  Provides various interfaces to external tools to parse data.
+- contents:
+  - parse_gitlog
+  - parse_mbox
+  - parse_dependencies
+- title: Networks
+  desc:  Transforms parsed data into a format suitable to network libraries
+- contents:
+  - parse_gitlog_network
+  - parse_mbox_network
+  - parse_dependencies_network
+- title: Identity
+  desc:  Provide the same id to authors who use variations of names or emails.
+- contents:
+  - assign_exact_identity
