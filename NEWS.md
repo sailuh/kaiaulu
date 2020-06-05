@@ -28,4 +28,5 @@ kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (in developm
 
 ### DOCUMENTATION FIXES
 
+  * add pkgdown documentation to repo [#26](https://github.com/sailuh/kaiaulu/issues/26)
   * README.md now provides example vignettes according to data of interest. [#24](https://github.com/sailuh/kaiaulu/issues/24)
