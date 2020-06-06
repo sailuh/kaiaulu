@@ -16,3 +16,9 @@ parse_dependencies(depends_jar_path, git_repo_path, language)
 \description{
 Parse dependencies from Depends
 }
+\seealso{
+Other parsers: 
+\code{\link{parse_gitlog}()},
+\code{\link{parse_mbox}()}
+}
+\concept{parsers}

@@ -8,6 +8,7 @@
 #' @param git_repo_path path to git repo (ends in .git)
 #' @param save_path optional save path for .rds object
 #' @export
+#' @family parsers
 parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   perceval_path <- path.expand(perceval_path)
@@ -50,6 +51,7 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA){
 #' @param project_git A parsed git project by \code{parse_gitlog}.
 #' @param mode The network of interest: author-file, or commit-file
 #' @export
+#' @family edgelists
 parse_gitlog_network <- function(project_git, mode = c("author","commit")){
   # Check user did not specify a mode that does not exist
   mode <- match.arg(mode)
@@ -98,6 +100,7 @@ parse_gitlog_network <- function(project_git, mode = c("author","commit")){
 #' @param perceval_path path to perceval binary
 #' @param mbox_path path to mbox archive file (ends in .mbox)
 #' @export
+#' @family parsers
 parse_mbox <- function(perceval_path,mbox_path){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   perceval_path <- path.expand(perceval_path)
@@ -120,6 +123,7 @@ parse_mbox <- function(perceval_path,mbox_path){
 #'
 #' @param project_mbox A parsed mbox by \code{parse_mbox}.
 #' @export
+#' @family edgelists
 parse_mbox_network <- function(project_mbox){
   # Obtain the relevant columns - Author, E-mail Thread, and Timestamp
   project_mbox <- project_mbox[,.(author=data.From,thread=data.Subject,date=data.Date)]
@@ -147,6 +151,7 @@ parse_mbox_network <- function(project_mbox){
 #' @param git_repo_path path to git repo (ends in .git)
 #' @param language the language of the .git repo (accepts cpp, java, ruby, python, pom)
 #' @export
+#' @family parsers
 parse_dependencies <- function(depends_jar_path,git_repo_path,language){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   depends_jar_path <- path.expand(depends_jar_path)
@@ -201,6 +206,7 @@ parse_dependencies <- function(depends_jar_path,git_repo_path,language){
 #' @param weight_types The weight types as defined in Depends.
 #'
 #' @export
+#' @family edgelists
 parse_dependencies_network <- function(depends_parsed,weight_types=NA){
   dependency_edgelist <- depends_parsed[,.(src,dest)]
   if(is.na(weight_types)){
@@ -217,6 +223,38 @@ parse_dependencies_network <- function(depends_parsed,weight_types=NA){
   file_network[["nodes"]] <- dependency_nodes
   file_network[["edgelist"]] <- dependency_edgelist
   return(file_network)
+}
+#' Filter commit files by extension
+#'
+#' Filters a data.table containing filepaths using the specified extensions
+#'
+#' @param dt_file any data.table with a named column `file` containing filepaths
+#' @param extension a character vector of extensions (e.g. c(py,java)) to *keep*
+#' in the table
+#' @return a data.table which contains only filepaths with the specified extensions
+#' @export
+#' @family {filters}
+#' @seealso \code{\link{parse_gitlog}} and \code{\link{parse_dependencies}} to create dt_file
+filter_by_file_extension <- function(dt_file,extension){
+  file_extension_re <- stri_c('[.](',stri_c(extension,collapse="|"),')$')
+  is_file_with_extension <- stri_detect_regex(dt_file$file,file_extension_re)
+  return(dt_file[is_file_with_extension])
+}
+#' Filter by filepath substring
+#'
+#' Filters a data.table containing filepaths using the specified substring (e.g. remove
+#' all filepaths which contain the word 'test' anywhere in it)
+#'
+#' @param dt_file any data.table with a named column `file` containing filepaths
+#' @param substring a character vector of substrings (e.g. c(py,java)) we wish to *filter*
+#'
+#' @export
+#' @family filters
+#' @seealso \code{\link{parse_gitlog}} and \code{\link{parse_dependencies}} to create dt_file
+filter_by_filepath_substring <- function(dt_file,substring){
+  file_contains_re <- stri_c('(',stri_c(substring,collapse="|"),')')
+  is_not_filepath_with_substring <- !stri_detect_regex(dt_file$file,file_contains_re)
+  return(dt_file[is_not_filepath_with_substring])
 }
 
 # Various imports

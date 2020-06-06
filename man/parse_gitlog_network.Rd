@@ -14,3 +14,9 @@ parse_gitlog_network(project_git, mode = c("author", "commit"))
 \description{
 Transform parsed git repo into an edgelist
 }
+\seealso{
+Other edgelists: 
+\code{\link{parse_dependencies_network}()},
+\code{\link{parse_mbox_network}()}
+}
+\concept{edgelists}

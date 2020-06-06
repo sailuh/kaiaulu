@@ -4,11 +4,13 @@ template:
     bootswatch: simplex
 reference:
 - title: Parsers
-  desc:  Provides various interfaces to external tools to parse data.
+  desc:  Provides various interfaces to external tools to parse data and filters.
 - contents:
   - parse_gitlog
   - parse_mbox
   - parse_dependencies
+  - filter_by_file_extension
+  - filter_by_filepath_substring
 - title: Networks
   desc:  Transforms parsed data into a format suitable to network libraries
 - contents:

@@ -10,3 +10,14 @@ toolpath:
     bin: ~/depends-0.9.6/depends.jar
     # accepts cpp, java, ruby, python, pom
     codelanguage: cpp
+heuristics:
+  keep_files_ending_with:
+    - cpp
+    - c
+    - h
+    - java
+    - js
+    - py
+    - cc
+  filter_filepaths_containing:
+    - test

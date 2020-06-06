@@ -14,3 +14,9 @@ parse_mbox(perceval_path, mbox_path)
 \description{
 Parse mbox from Perceval
 }
+\seealso{
+Other parsers: 
+\code{\link{parse_dependencies}()},
+\code{\link{parse_gitlog}()}
+}
+\concept{parsers}

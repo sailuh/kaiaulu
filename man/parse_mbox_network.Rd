@@ -12,3 +12,9 @@ parse_mbox_network(project_mbox)
 \description{
 Transform parsed mbox into a network
 }
+\seealso{
+Other edgelists: 
+\code{\link{parse_dependencies_network}()},
+\code{\link{parse_gitlog_network}()}
+}
+\concept{edgelists}

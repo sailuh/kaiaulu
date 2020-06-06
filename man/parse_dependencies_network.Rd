@@ -14,3 +14,9 @@ parse_dependencies_network(depends_parsed, weight_types = NA)
 \description{
 Transform parsed dependencies into a network
 }
+\seealso{
+Other edgelists: 
+\code{\link{parse_gitlog_network}()},
+\code{\link{parse_mbox_network}()}
+}
+\concept{edgelists}

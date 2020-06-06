@@ -16,3 +16,9 @@ parse_gitlog(perceval_path, git_repo_path, save_path = NA)
 \description{
 Parse gitlog from Perceval
 }
+\seealso{
+Other parsers: 
+\code{\link{parse_dependencies}()},
+\code{\link{parse_mbox}()}
+}
+\concept{parsers}
