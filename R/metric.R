@@ -2,36 +2,61 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-# Conversion to numeric must be performed before function call.
+#' Churn Metric
+#'
+#' Simply adds two columns, expected to be additions and deletions from a file.
+#'
+#' @param lines_added numeric vector additions to a file due to a commit
+#' @param lines_removed numeric vector of deletions to a file due to a commit
+#' in the table
+#' @return a numeric vector of churn
 #' @export
+#' @family {metrics}
+#' @seealso \code{\link{parse_gitlog}} to obtain additions and deletions from gitlog
 metric_churn <- function(lines_added,lines_removed){
-  churn <- lines_added + lines_removed
+    churn <- lines_added + lines_removed
   return(churn)
 }
 # git_log is a data.table, where each row is identified by a commit. It must contain
 # 4 columns in any order but with these column names: commit_hash, date, added, removed.
-#' @export
-metric_commit_interval_churn <- function(git_log,start_commit,end_commit){
 
-  git_log$churn <- metric_churn(git_log$added,git_log$removed)
+#' Churn Metric per Commit Interval
+#'
+#' Calculates the churn metric for a sequence of commits
+#'
+#' @param git_log a parsed git log table where each row is identified by commit+file
+#' @return a single value with the sum of all churn in the commit interval
+#' @family {metrics}
+#' @seealso \code{\link{parse_gitlog}} to obtain `git_log``
+#' @export
+metric_churn_per_commit_interval <- function(git_log){
+  git_log <- metric_churn_per_commit_per_file(git_log)
+
   # Calculate Churn per Commit
-  project_git_commit_churn <- git_log[,.(commit_churn=sum(churn)),
-                                  by=c("commit_hash","date")]
-  # Filter files which do not contain added or removed lines specified (i.e. value is "-")
-  project_git_commit_churn <- project_git_commit_churn[!is.na(commit_churn)]
-  # Can't assume the data is ordered choronologically
-  project_git_commit_churn <- project_git_commit_churn[order(date)]
-  # Identify the time interval of the date interval of the commit hash interval
-  interval_timestamps <- project_git_commit_churn[commit_hash %in%
-                                                c(start_commit,end_commit)]$date
-  start_date <- interval_timestamps[1]
-  end_date <- interval_timestamps[2]
-  # Use date interval to calculate the sum churn of the time interval
-  commit_interval_churn <- sum(project_git_commit_churn[date >= start_date &
-                                                      date <= end_date]$commit_churn)
+  git_log <- git_log[,.(commit_churn=sum(churn)),by=c("data.commit","data.Author")]
+
+  # Calculate the sum churn of the time interval
+  commit_interval_churn <- sum(git_log$commit_churn)
   return(commit_interval_churn)
 }
+#' Churn Metric per Commit per File
+#'
+#' Calculates the churn metric for a sequence of commits per commit per file
+#'
+#' @param git_log a parsed git log table where each row is identified by commit+file
+#' @return `git_log` with an additional `churn` column.
+#' @family {metrics}
+#' @seealso \code{\link{parse_gitlog}} to obtain `git_log``
+#' @export
+metric_churn_per_commit_per_file <- function(git_log){
+  # Filter files which do not contain added or removed lines specified (i.e. value is "-")
+  git_log <- git_log[added != "-" & removed != "-"]
 
+  # Calculate Churn per Commit per File
+  git_log$churn <- metric_churn(as.numeric(git_log$added),
+                                as.numeric(git_log$removed))
+  return(git_log)
+}
 # Various imports
 #' @importFrom stringi stri_c
 #' @importFrom stringi stri_split_regex

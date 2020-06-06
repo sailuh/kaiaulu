@@ -1,0 +1,104 @@
+---
+title: "Using Intervals to analyze Churn Metric"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Collaboration Network Parser}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(eval = TRUE)
+```
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r message = FALSE, warning = FALSE}
+require(kaiaulu)
+require(data.table)
+require(stringi)
+require(knitr)
+require(magrittr)
+```
+
+
+# Introduction
+
+This notebook showcases how to incorporate `metric.R` with `interval.R` functions, It also showcases how to check for outliers on churn.
+
+First, we load the configuration file, which is available on this project Github. We specify in this case that we wish to use, and have installed separately from this package, Perceval as a gitlog parser. 
+
+When calculating churn over several commits, the value can easily be inflated by changes to changelogs, licenses, and other files that do not reflect code effort. We specify which files we wish to consider for the analysis also in the config files. 
+
+Finally, we may not be interested in observing churn for test files by filtering out filepaths which mention the word "test" or other terms we are familiar with. This is also specified on the config file. 
+
+```{r}
+conf <- yaml::read_yaml("../conf/apr.yml")
+perceval_path <- conf[["toolpath"]][["perceval"]][["bin"]]
+file_extensions <- conf[["heuristics"]][["keep_files_ending_with"]]
+substring_filepath <- conf[["heuristics"]][["filter_filepaths_containing"]]
+```
+
+The next step is defining a table which minimally contains per row commit intervals of the form `start_commit-end_commit`. This table can for example already contain other metrics. The table below contains per row a project_id, a commit_hash_interval as defined, and various metrics. We use the interval function to add one additional metric, churn, to it's list of metrics.
+
+```{r}
+# Load legacy data and split as a list
+legacy_dt <- data.table::fread("~/Downloads/all_projects_blank_cells_corrected.csv")
+project_metrics <- split(x=legacy_dt,by="project_name")
+# This named list names matches the name of each git repo stored locally.
+project_names <- names(project_metrics)
+
+# Iterate over each project commit_hash and calculate churn per commit per file
+i <- 1
+for(project_name in project_names){
+  #git_repo_path <- stri_c(path.expand("~/kaiaulu_project_input/git_repos/"),project_name,"/.git")
+  project_git <- readRDS(stringi::stri_c("~/kaiaulu_project_input/rds/",project_name,"_git.rds"))
+  #save_path <- stri_c(path.expand("~/kaiaulu_project_input/rds/"),project_name,"_git.rds")
+  project_metrics[[project_name]]$commit_interval_churn <- project_git %>%
+    interval_commit_metric(project_metrics[[project_name]],
+                         metric_churn_per_commit_interval,
+                         file_extensions,
+                         substring_filepath)
+
+  print(stri_c("Project name: ",project_name," concluded. ",i,"/28"))
+  
+  i <- i + 1
+}
+
+```
+
+```{r}
+knitr::kable(head(project_metrics))
+```
+
+# Outlier Inspection
+
+Run the code below for the project and commit hash interval of interest. The output table is sorted in decreasing order of churn. Use the commit associated to the highest churn, and paste on the project's github for details to see what went wrong. It will show the top 10 highest churn, but you can choose it to display more or the entire table.
+
+```{r}
+
+# Main
+
+project_name <- "Audacity"
+start_commit <- "61285bc7be4757ed223fb57d5dc22a0cc6e66a57"
+end_commit <- "6e384e2f6b95acd469cab5d7cf0cdc9e37e53380"
+
+project_git <- readRDS(stri_c("~/kaiaulu_project_input/rds/",project_name,"_git.rds"))
+
+churn_per_commit_file <- project_git %>% 
+  filter_by_commit_interval(start_commit,end_commit)  %>% 
+  filter_by_file_extension(file_extensions)  %>% 
+  filter_by_filepath_substring(substring_filepath)  %>% 
+  metric_churn_per_commit_per_file()
+
+knitr::kable(head(churn_per_commit_file[order(-churn),.(data.Commit,added,removed,churn)]))
+```
+
+We can see from above a very clear pattern where files have been added and subsequently removed. Checking for the commit hash directly on Github shows [there was a mistake on assigning a release tag](https://github.com/audacity/audacity/commit/6d9489c4758f95ab9bf0306d4adb0e91022235a7).

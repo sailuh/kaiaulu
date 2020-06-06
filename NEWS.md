@@ -3,6 +3,8 @@ kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (in developm
 
 ### NEW FEATURES
 
+  * a new vignettes/interval_and_metric_showcase.Rmd was added to replace vignettes/churn_metrics.Rmd [#19](https://github.com/sailuh/kaiaulu/issues/19).
+  * churn metric functions in R/metric.R, `metric_churn_per_commit_interval()` `metric_churn_per_commit_per_file()` logic were substantially simplified, and can now be used with interval/R [#19](https://github.com/sailuh/kaiaulu/issues/19). 
   * add minimal interval analysis support with `interval.R/interval_commit_metric()` and `parsers.R/filter_by_commit_interval()`. [#44](https://github.com/sailuh/kaiaulu/issues/44) 
   * add filters `filter_by_file_extension()` `filter_by_filepath_substring()` for files not relevant for metrics. config file schema also has been extended to provide parameters to the filters. [#30](https://github.com/sailuh/kaiaulu/issues/30)
   * config files per project have been defined, and used across all showcase vignettes. [#41](https://github.com/sailuh/kaiaulu/issues/41)

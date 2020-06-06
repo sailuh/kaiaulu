@@ -12,7 +12,6 @@
 #' @param dt_range a data.table which contains a column `range` specifying the
 #' commit interval on the form `commitsha1-commitsha2`
 #' @return a numeric vector of `metric_function` values for each commit interval specified in `dt_range`
-#' @importFrom magrittr %>%
 #' @seealso \code{\link{metric_churn_per_commit_interval}} as an example of metric_function
 #' @export
 interval_commit_metric <- function(project_git,dt_range,metric_function,file_extensions,substring_filepath){
@@ -22,8 +21,8 @@ interval_commit_metric <- function(project_git,dt_range,metric_function,file_ext
     end_commit <- stri_split_regex(dt_range[i]$range,pattern = "-")[[1]][2]
 
     sum_metric <- filter_by_commit_interval(project_git,start_commit,end_commit)  %>%
-      filter_commit_files_by_extension(file_extensions)  %>%
-      filter_commit_files_by_substring(substring_filepath)  %>%
+      filter_by_file_extension(file_extensions)  %>%
+      filter_by_filepath_substring(substring_filepath)  %>%
       metric_function()
 
     commit_interval_metric <- c(commit_interval_metric,sum_metric)
@@ -41,6 +40,8 @@ interval_commit_metric <- function(project_git,dt_range,metric_function,file_ext
 get_date_from_commit_hash <- function(git_log,commit_hash){
   return(git_log[data.commit == commit_hash]$data.AuthorDate[1])
 }
+
+#' @importFrom magrittr %>%
 #' @importFrom data.table data.table
 #' @importFrom data.table is.data.table
 #' @importFrom data.table as.data.table
@@ -49,4 +50,4 @@ get_date_from_commit_hash <- function(git_log,commit_hash){
 #' @importFrom data.table setkey
 #' @importFrom data.table setkeyv
 #' @importFrom data.table setnames
-
+NULL

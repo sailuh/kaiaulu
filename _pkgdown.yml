@@ -11,6 +11,7 @@ reference:
   - parse_dependencies
   - filter_by_file_extension
   - filter_by_filepath_substring
+  - filter_by_commit_interval
 - title: Networks
   desc:  Transforms parsed data into a format suitable to network libraries
 - contents:
@@ -22,8 +23,11 @@ reference:
 - contents:
   - assign_exact_identity
 - title: Interval
-  desc:  Provides different types of interval windows (e.g. release) to plu
-  metric functions.
+  desc:  Provides different types of interval windows (e.g. release) for metric functions.
 - contents:
   - interval_commit_metric
-
+- title: Metrics
+  desc:  Various metrics used to estimate code quality, complexity and effort
+- contents:
+  - metric_churn_per_commit_interval
+  - metric_churn_per_commit_per_file

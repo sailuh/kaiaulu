@@ -274,6 +274,7 @@ filter_by_commit_interval <- function(git_log,start_commit,end_commit){
   return(git_log)
 }
 # Various imports
+#' @importFrom magrittr %>%
 #' @importFrom stringi stri_replace_last
 #' @importFrom stringi stri_replace_first
 #' @importFrom stringi stri_c
