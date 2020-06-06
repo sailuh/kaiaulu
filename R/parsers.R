@@ -242,12 +242,12 @@ filter_by_file_extension <- function(dt_file,extension){
 }
 #' Filter by filepath substring
 #'
-#' Filters a data.table containing filepaths using the specified substring (e.g. remove
+#' Filters a data.table with filepaths using the specified substring (e.g. remove
 #' all filepaths which contain the word 'test' anywhere in it)
 #'
-#' @param dt_file any data.table with a named column `file` containing filepaths
+#' @param dt_file any data.table with a named column `file` with filepaths
 #' @param substring a character vector of substrings (e.g. c(py,java)) we wish to *filter*
-#'
+#' @return a data.table which contains does *not* contain filepaths with the specified words
 #' @export
 #' @family filters
 #' @seealso \code{\link{parse_gitlog}} and \code{\link{parse_dependencies}} to create dt_file
@@ -256,7 +256,23 @@ filter_by_filepath_substring <- function(dt_file,substring){
   is_not_filepath_with_substring <- !stri_detect_regex(dt_file$file,file_contains_re)
   return(dt_file[is_not_filepath_with_substring])
 }
-
+#' Filter by commit interval
+#'
+#' Filters a data.table by with author or commit datetime using the specified start and end commits
+#'
+#' @param git_log any data.table with a named column `data.AuthorDate` with datetime in POSIXct
+#' @param start_commit a commit hash which indicates the start of interval (the commit must exist in `git_log`)
+#' @param end_commit a commit hash which indicates the end of interval (the commit must exist in `git_log`)
+#' @return a data.table which contains only commits within `start_commit` and `end_commit`
+#' @export
+#' @family filters
+#' @seealso \code{\link{parse_gitlog}} to create git_log
+filter_by_commit_interval <- function(git_log,start_commit,end_commit){
+  start_date <- get_date_from_commit_hash(git_log,start_commit)
+  end_date <- get_date_from_commit_hash(git_log,end_commit)
+  git_log <- git_log[data.AuthorDate >= start_date & data.AuthorDate <= end_date]
+  return(git_log)
+}
 # Various imports
 #' @importFrom stringi stri_replace_last
 #' @importFrom stringi stri_replace_first

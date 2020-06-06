@@ -7,15 +7,21 @@
 filter_by_filepath_substring(dt_file, substring)
 }
 \arguments{
-\item{dt_file}{any data.table with a named column `file` containing filepaths}
+\item{dt_file}{any data.table with a named column `file` with filepaths}
 
 \item{substring}{a character vector of substrings (e.g. c(py,java)) we wish to *filter*}
 }
+\value{
+a data.table which contains does *not* contain filepaths with the specified words
+}
 \description{
-Filters a data.table containing filepaths using the specified substring (e.g. remove
+Filters a data.table with filepaths using the specified substring (e.g. remove
 all filepaths which contain the word 'test' anywhere in it)
 }
 \seealso{
 \code{\link{parse_gitlog}} and \code{\link{parse_dependencies}} to create dt_file
+
+Other filters: 
+\code{\link{filter_by_commit_interval}()}
 }
 \concept{filters}

@@ -27,7 +27,8 @@ Depends:
 Imports:
     data.table (>= 1.12.8),
     stringi (>= 1.4.6),
-    jsonlite (>= 1.6)
+    jsonlite (>= 1.6),
+    magrittr (>= 1.5)
 VignetteBuilder: knitr
 URL: https://github.com/sailuh/kaiaulu
 BugReports: https://github.com/sailuh/kaiaulu/issues

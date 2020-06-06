@@ -21,3 +21,9 @@ reference:
   desc:  Provide the same id to authors who use variations of names or emails.
 - contents:
   - assign_exact_identity
+- title: Interval
+  desc:  Provides different types of interval windows (e.g. release) to plu
+  metric functions.
+- contents:
+  - interval_commit_metric
+
