@@ -3,6 +3,7 @@ kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (in developm
 
 ### NEW FEATURES
 
+  * adds a built-in R static code parser relying on base R Abstract Syntax Tree Parser (vignette will be added in a future commit showcasing the network). [#47](https://github.com/sailuh/kaiaulu/issues/47) 
   * a new vignettes/interval_and_metric_showcase.Rmd was added to replace vignettes/churn_metrics.Rmd [#19](https://github.com/sailuh/kaiaulu/issues/19).
   * churn metric functions in R/metric.R, `metric_churn_per_commit_interval()` `metric_churn_per_commit_per_file()` logic were substantially simplified, and can now be used with interval/R [#19](https://github.com/sailuh/kaiaulu/issues/19). 
   * add minimal interval analysis support with `interval.R/interval_commit_metric()` and `parsers.R/filter_by_commit_interval()`. [#44](https://github.com/sailuh/kaiaulu/issues/44) 
