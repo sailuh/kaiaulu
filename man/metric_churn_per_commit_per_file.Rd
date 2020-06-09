@@ -19,6 +19,7 @@ Calculates the churn metric for a sequence of commits per commit per file
 \code{\link{parse_gitlog}} to obtain `git_log`
 
 Other {metrics}: 
+\code{\link{commit_message_id_coverage}()},
 \code{\link{metric_churn_per_commit_interval}()},
 \code{\link{metric_churn}()}
 }

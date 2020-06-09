@@ -57,6 +57,23 @@ metric_churn_per_commit_per_file <- function(git_log){
                                 as.numeric(git_log$removed))
   return(git_log)
 }
+#' Commit Message Id Coverage Metric
+#'
+#' Calculates the number of commits from the git log which contains the message id.
+#'
+#' @param git_log a parsed git log table where each row is identified by commit+file
+#' @param commit_message_id_regex the regex to extract the id from the commit message
+#' in the table
+#' @return a single numeric value with the number of commits which contains the id
+#' @export
+#' @family {metrics}
+#' @seealso \code{\link{parse_gitlog}} to obtain additions and deletions from gitlog
+commit_message_id_coverage <- function(git_log,commit_message_id_regex){
+  git_log <- unique(git_log[,.(data.commit,data.message)])
+  is_match <- stringi::stri_detect_regex(git_log$data.message,
+                                         pattern = commit_message_id_regex)
+  return(length(is_match[is_match]))
+}
 # Various imports
 #' @importFrom stringi stri_c
 #' @importFrom stringi stri_split_regex

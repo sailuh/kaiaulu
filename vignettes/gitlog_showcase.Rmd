@@ -88,8 +88,17 @@ visIgraph(co_change_network,randomSeed = 1)
 
 ## Issue Networks
 
+First, we can check the coverage of commits which contain cve-id labels
+
+```{r}
+coverage <- commit_message_id_coverage(project_git,cveid_regex)/length(unique(project_git$data.commit))
+coverage
+```
+
+
 ```{r}
 project_commit_message_id_network <- parse_commit_message_id_network(project_git,commit_message_id_regex = cveid_regex)
+
 project_commit_message_id_network <- igraph::graph_from_data_frame(d=project_commit_message_id_network[["edgelist"]], 
                       directed = TRUE, 
                       vertices = project_commit_message_id_network[["nodes"]])

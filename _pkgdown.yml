@@ -9,6 +9,7 @@ reference:
   - parse_gitlog
   - parse_mbox
   - parse_dependencies
+  - parse_commit_message_id_network
   - filter_by_file_extension
   - filter_by_filepath_substring
   - filter_by_commit_interval
@@ -31,3 +32,4 @@ reference:
 - contents:
   - metric_churn_per_commit_interval
   - metric_churn_per_commit_per_file
+  - commit_message_id_coverage

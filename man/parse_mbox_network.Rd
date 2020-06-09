@@ -14,6 +14,7 @@ Transform parsed mbox into a network
 }
 \seealso{
 Other edgelists: 
+\code{\link{parse_commit_message_id_network}()},
 \code{\link{parse_dependencies_network}()},
 \code{\link{parse_gitlog_network}()}
 }

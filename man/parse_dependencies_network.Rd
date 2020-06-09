@@ -16,6 +16,7 @@ Transform parsed dependencies into a network
 }
 \seealso{
 Other edgelists: 
+\code{\link{parse_commit_message_id_network}()},
 \code{\link{parse_gitlog_network}()},
 \code{\link{parse_mbox_network}()}
 }

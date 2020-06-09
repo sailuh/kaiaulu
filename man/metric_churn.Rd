@@ -22,6 +22,7 @@ Simply adds two columns, expected to be additions and deletions from a file.
 \code{\link{parse_gitlog}} to obtain additions and deletions from gitlog
 
 Other {metrics}: 
+\code{\link{commit_message_id_coverage}()},
 \code{\link{metric_churn_per_commit_interval}()},
 \code{\link{metric_churn_per_commit_per_file}()}
 }

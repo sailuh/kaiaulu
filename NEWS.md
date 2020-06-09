@@ -3,6 +3,7 @@ kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (in developm
 
 ### NEW FEATURES
 
+  * the number of commit messages which contains a given id can now be computed with `commit_message_id_coverage()`. See example on gitlog_showcase.Rmd. [#46](https://github.com/sailuh/kaiaulu/issues/46)
   * git log commit messages can now be parsed `parse_commit_message_id_network()`. example of interesting labels are issue ids and cve-ids. You can now also specify them directly on the config files (see conf folder). Vignettes/gitlog_showcase.Rmd has been updated to showcase a cve-id network. [#46](https://github.com/sailuh/kaiaulu/issues/46)
   * adds a built-in R static code parser relying on base R Abstract Syntax Tree Parser (vignette will be added in a future commit showcasing the network). [#47](https://github.com/sailuh/kaiaulu/issues/47) 
   * a new vignettes/interval_and_metric_showcase.Rmd was added to replace vignettes/churn_metrics.Rmd [#19](https://github.com/sailuh/kaiaulu/issues/19).
