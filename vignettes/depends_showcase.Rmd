@@ -24,6 +24,7 @@ require(stringi)
 require(igraph)
 require(gh)
 require(yaml)
+require(magrittr)
 ```
 
 ```{r}
@@ -31,6 +32,10 @@ conf <- yaml::read_yaml("../conf/apr.yml")
 depends_jar_path <- conf[["toolpath"]][["depends"]][["bin"]]
 language <- conf[["toolpath"]][["depends"]][["codelanguage"]]
 git_repo_path <- conf[["datapath"]][["git"]]
+
+# Filters
+file_extensions <- conf[["heuristics"]][["keep_files_ending_with"]]
+substring_filepath <- conf[["heuristics"]][["filter_filepaths_containing"]]
 ```
 
 # Construct File Network
@@ -59,24 +64,23 @@ Based on the most used language on the project, choose the parameter below for D
 project_dependencies <- parse_dependencies(depends_jar_path,git_repo_path,language=language)
 ```
 
-A simple filter for `tests` and `__init__.py` is provided in this code block.
+# Filter files
 
 ```{r}
-is_test_src_or_dest <- as.vector(!is.na(stri_match(project_dependencies$src,regex="test")) | 
-                                   !is.na(stri_match(project_dependencies$dest,regex="test")))
-
-is_initpy_src_or_dest <- as.vector(!is.na(stri_match_first_regex(project_dependencies$src,
-                                                                pattern="__init__.py")) | 
-                                   !is.na(stri_match_first_regex(project_dependencies$dest,
-                                                                 pattern="__init__.py")))
-
-project_dependencies <- project_dependencies[!is_test_src_or_dest & !is_initpy_src_or_dest]
+project_dependencies <- project_dependencies  %>%
+  filter_by_file_extension(file_extensions,"src")  %>% 
+  filter_by_file_extension(file_extensions,"dest")  %>% 
+  filter_by_filepath_substring(substring_filepath,"src") %>%
+  filter_by_filepath_substring(substring_filepath,"dest")
 ```
 
 ## Example Viz with igraph
 
 ```{r}
-project_file_network <- parse_dependencies_network(project_dependencies)
+project_dependencies_slice <- project_dependencies
+
+
+project_file_network <- parse_dependencies_network(project_dependencies_slice)
 project_file_network <- igraph::graph_from_data_frame(d=project_file_network[["edgelist"]], 
                       directed = TRUE, 
                       vertices = project_file_network[["nodes"]])

@@ -28,9 +28,14 @@ require(yaml)
 Load config file.
 
 ```{r}
-conf <- yaml::read_yaml("../conf/apr.yml")
+conf <- yaml::read_yaml("../conf/openssl.yml")
 perceval_path <- conf[["toolpath"]][["perceval"]][["bin"]]
 git_repo_path <- conf[["datapath"]][["git"]]
+cveid_regex <- conf[["commit_message_id_regex"]][["cve_id"]]
+
+# Filters
+file_extensions <- conf[["heuristics"]][["keep_files_ending_with"]]
+substring_filepath <- conf[["heuristics"]][["filter_filepaths_containing"]]
 ```
 
 # Construct Contribution Network
@@ -42,10 +47,19 @@ project_git <- parse_gitlog(perceval_path,git_repo_path)
 #project_git <- readRDS(save_path)
 ```
 
-```{r}
-project_git <- project_git[data.AuthorDate >= as.POSIXct("2019-01-01", format = "%Y-%m-%d",tz = "UTC") & data.AuthorDate < as.POSIXct("2019-12-31", format = "%Y-%m-%d",tz = "UTC")]
+# Filter files
 
-project_contribution_network <- parse_gitlog_network(project_git,mode="author")
+```{r}
+project_git <- project_git  %>%
+  filter_by_file_extension(file_extensions,"file")  %>% 
+  filter_by_filepath_substring(substring_filepath,"file")
+```
+
+
+```{r}
+project_git_slice <- project_git[data.AuthorDate >= as.POSIXct("2019-01-01", format = "%Y-%m-%d",tz = "UTC") & data.AuthorDate < as.POSIXct("2019-01-31", format = "%Y-%m-%d",tz = "UTC")]
+
+project_contribution_network <- parse_gitlog_network(project_git_slice,mode="author")
 project_contribution_network <- igraph::graph_from_data_frame(d=project_contribution_network[["edgelist"]], 
                       directed = TRUE, 
                       vertices = project_contribution_network[["nodes"]])
@@ -56,7 +70,7 @@ visIgraph(project_contribution_network,randomSeed = 1)
 # Construct a Commit-File Network
 
 ```{r}
-project_commit_network <- parse_gitlog_network(project_git,mode="commit")
+project_commit_network <- parse_gitlog_network(project_git_slice,mode="commit")
 project_commit_network <- igraph::graph_from_data_frame(d=project_commit_network[["edgelist"]], 
                       directed = TRUE, 
                       vertices = project_commit_network[["nodes"]])
@@ -71,6 +85,17 @@ co_change_network <- igraph::bipartite_projection(project_commit_network,
                                           which = FALSE) # FALSE is the file projection
 visIgraph(co_change_network,randomSeed = 1)
 ```
+
+## Issue Networks
+
+```{r}
+project_commit_message_id_network <- parse_commit_message_id_network(project_git,commit_message_id_regex = cveid_regex)
+project_commit_message_id_network <- igraph::graph_from_data_frame(d=project_commit_message_id_network[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_commit_message_id_network[["nodes"]])
+visIgraph(project_commit_message_id_network,randomSeed = 1)
+```
+
 
 ## Co-Change adjacency matrix 
 

@@ -1,6 +1,6 @@
 datapath:
-  git: ~/kaiaulu_project_input/git_repos/APR/.git
-  mbox: ~/kaiaulu_project_input/mboxes/apr-dev_2013.mbox
+  git: ~/kaiaulu_project_input/git_repos/OpenSSL/.git
+  #mbox: ?
 toolpath:
   perceval:
     # please see: https://github.com/chaoss/grimoirelab-perceval

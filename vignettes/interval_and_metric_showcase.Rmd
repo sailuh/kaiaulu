@@ -42,6 +42,8 @@ Finally, we may not be interested in observing churn for test files by filtering
 ```{r}
 conf <- yaml::read_yaml("../conf/apr.yml")
 perceval_path <- conf[["toolpath"]][["perceval"]][["bin"]]
+
+# Filters
 file_extensions <- conf[["heuristics"]][["keep_files_ending_with"]]
 substring_filepath <- conf[["heuristics"]][["filter_filepaths_containing"]]
 ```
@@ -65,7 +67,8 @@ for(project_name in project_names){
     interval_commit_metric(project_metrics[[project_name]],
                          metric_churn_per_commit_interval,
                          file_extensions,
-                         substring_filepath)
+                         substring_filepath,
+                         "file")
 
   print(stri_c("Project name: ",project_name," concluded. ",i,"/28"))
   
@@ -94,8 +97,8 @@ project_git <- readRDS(stri_c("~/kaiaulu_project_input/rds/",project_name,"_git.
 
 churn_per_commit_file <- project_git %>% 
   filter_by_commit_interval(start_commit,end_commit)  %>% 
-  filter_by_file_extension(file_extensions)  %>% 
-  filter_by_filepath_substring(substring_filepath)  %>% 
+  filter_by_file_extension(file_extensions,"file")  %>% 
+  filter_by_filepath_substring(substring_filepath,"file")  %>% 
   metric_churn_per_commit_per_file()
 
 knitr::kable(head(churn_per_commit_file[order(-churn),.(data.Commit,added,removed,churn)]))

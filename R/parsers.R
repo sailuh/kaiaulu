@@ -96,6 +96,40 @@ parse_gitlog_network <- function(project_git, mode = c("author","commit")){
   return(git_network)
 
 }
+#' Transform parsed git repo commit messages id and files into an edgelist
+#'
+#' @param project_git A parsed git project by \code{parse_gitlog}.
+#' @param commit_message_id_regex the regex to extract the id from the commit message
+#' @export
+#' @family edgelists
+parse_commit_message_id_network <- function(project_git, commit_message_id_regex){
+  # Extract the id according to the parameter regex
+  project_git$commit_message_id <- data.table(stringi::stri_match_first_regex(project_git$data.message,
+                                                                 pattern = commit_message_id_regex))
+
+  # Keep only the edges which contain the commit message id
+
+  project_git <- project_git[!is.na(commit_message_id),.(commit_message_id,
+                                                         file)]
+  # Select relevant columns for nodes
+  git_nodes <- c(unique(project_git$commit_message_id),unique(project_git$file))
+  # Select relevant columns for edgelist, grouping repeated rows as the edgelist weights
+  git_edgelist <- project_git[,.(weight=.N),by=c("commit_message_id","file")]
+  # Color nodes commit_message_id dark blue, and files yellow
+  git_nodes <- data.table(name=git_nodes,color=ifelse(git_nodes %in% git_edgelist$commit_message_id,
+                                                        "#0052cc",
+                                                        "#f4dbb5"))
+  # bipartite graph
+  git_nodes$type <- ifelse(git_nodes$name %in% git_edgelist$commit_message_id,
+                           TRUE,
+                           FALSE)
+
+  commit_message_id_network <- list()
+  commit_message_id_network[["nodes"]] <- git_nodes
+  commit_message_id_network[["edgelist"]] <- git_edgelist
+  return(commit_message_id_network)
+
+}
 #' Parse mbox from Perceval
 #'
 #' @param perceval_path path to perceval binary
