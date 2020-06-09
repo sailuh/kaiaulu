@@ -9,7 +9,8 @@ interval_commit_metric(
   dt_range,
   metric_function,
   file_extensions,
-  substring_filepath
+  substring_filepath,
+  file_column_name
 )
 }
 \arguments{
@@ -17,6 +18,12 @@ interval_commit_metric(
 
 \item{dt_range}{a data.table which contains a column `range` specifying the
 commit interval on the form `commitsha1-commitsha2`}
+
+\item{file_extensions}{a character vector of extensions (e.g. c(py,java)) to *keep*}
+
+\item{substring_filepath}{a character vector of substrings (e.g. c(py,java)) we wish to *filter*}
+
+\item{file_column_name}{a string indicating the column name which contains filepaths}
 }
 \value{
 a numeric vector of `metric_function` values for each commit interval specified in `dt_range`

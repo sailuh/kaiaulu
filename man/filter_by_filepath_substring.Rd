@@ -4,12 +4,14 @@
 \alias{filter_by_filepath_substring}
 \title{Filter by filepath substring}
 \usage{
-filter_by_filepath_substring(dt_file, substring)
+filter_by_filepath_substring(dt_file, substring, file_column_name)
 }
 \arguments{
-\item{dt_file}{any data.table with a named column `file` with filepaths}
+\item{dt_file}{any data.table containing filepaths}
 
 \item{substring}{a character vector of substrings (e.g. c(py,java)) we wish to *filter*}
+
+\item{file_column_name}{a string indicating the column name which contains filepaths}
 }
 \value{
 a data.table which contains does *not* contain filepaths with the specified words

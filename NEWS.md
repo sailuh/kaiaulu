@@ -21,6 +21,7 @@ kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (in developm
 
 ### MINOR IMPROVEMENTS
 
+  * various functions which assumed tables to have certain column names now require the name by parameter. this is work in progress to define a common interface as more data parsing is added to this codebase. [#43](https://github.com/sailuh/kaiaulu/issues/43)
   * added a logo to the project. [#35](https://github.com/sailuh/kaiaulu/issues/35)
   * removed unecessary step to parse gitlogs from Perceval. [#33](https://github.com/sailuh/kaiaulu/issues/33)
   * igraph is no longer a dependence of the package. `parse_log_*()` functions now provide edgelist instead of igraph objects. vignettes were adjusted to showcase usage. [#14](https://github.com/sailuh/kaiaulu/issues/14)

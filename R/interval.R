@@ -11,18 +11,22 @@
 #' @param project_git a data.table where the key is commit+file
 #' @param dt_range a data.table which contains a column `range` specifying the
 #' commit interval on the form `commitsha1-commitsha2`
+#' @param file_extensions a character vector of extensions (e.g. c(py,java)) to *keep*
+#' @param substring_filepath a character vector of substrings (e.g. c(py,java)) we wish to *filter*
+#' @param file_column_name a string indicating the column name which contains filepaths
 #' @return a numeric vector of `metric_function` values for each commit interval specified in `dt_range`
 #' @seealso \code{\link{metric_churn_per_commit_interval}} as an example of metric_function
 #' @export
-interval_commit_metric <- function(project_git,dt_range,metric_function,file_extensions,substring_filepath){
+interval_commit_metric <- function(project_git,dt_range,metric_function,
+                                   file_extensions,substring_filepath,file_column_name){
   commit_interval_metric <- c()
   for(i in 1:nrow(dt_range)){
     start_commit <- stri_split_regex(dt_range[i]$range,pattern = "-")[[1]][1]
     end_commit <- stri_split_regex(dt_range[i]$range,pattern = "-")[[1]][2]
 
     sum_metric <- filter_by_commit_interval(project_git,start_commit,end_commit)  %>%
-      filter_by_file_extension(file_extensions)  %>%
-      filter_by_filepath_substring(substring_filepath)  %>%
+      filter_by_file_extension(file_extensions,file_column_name)  %>%
+      filter_by_filepath_substring(substring_filepath,file_column_name)  %>%
       metric_function()
 
     commit_interval_metric <- c(commit_interval_metric,sum_metric)

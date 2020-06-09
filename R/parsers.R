@@ -39,7 +39,8 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA){
                                                                                        data.AuthorDate,
                                                                                        data.commit,
                                                                                        data.Commit,
-                                                                                       data.CommitDate)]
+                                                                                       data.CommitDate,
+                                                                                       data.message)]
   # Parsing gitlog can take awhile, save if a path is provided
   if(!is.na(save_path)){
     saveRDS(perceval_parsed,save_path)
@@ -228,16 +229,17 @@ parse_dependencies_network <- function(depends_parsed,weight_types=NA){
 #'
 #' Filters a data.table containing filepaths using the specified extensions
 #'
-#' @param dt_file any data.table with a named column `file` containing filepaths
+#' @param dt_file any data.table containing filepaths
 #' @param extension a character vector of extensions (e.g. c(py,java)) to *keep*
 #' in the table
+#' @param file_column_name a string indicating the column name which contains filepaths
 #' @return a data.table which contains only filepaths with the specified extensions
 #' @export
 #' @family {filters}
 #' @seealso \code{\link{parse_gitlog}} and \code{\link{parse_dependencies}} to create dt_file
-filter_by_file_extension <- function(dt_file,extension){
+filter_by_file_extension <- function(dt_file,extension,file_column_name){
   file_extension_re <- stri_c('[.](',stri_c(extension,collapse="|"),')$')
-  is_file_with_extension <- stri_detect_regex(dt_file$file,file_extension_re)
+  is_file_with_extension <- stri_detect_regex(dt_file[[file_column_name]],file_extension_re)
   return(dt_file[is_file_with_extension])
 }
 #' Filter by filepath substring
@@ -245,15 +247,16 @@ filter_by_file_extension <- function(dt_file,extension){
 #' Filters a data.table with filepaths using the specified substring (e.g. remove
 #' all filepaths which contain the word 'test' anywhere in it)
 #'
-#' @param dt_file any data.table with a named column `file` with filepaths
+#' @param dt_file any data.table containing filepaths
 #' @param substring a character vector of substrings (e.g. c(py,java)) we wish to *filter*
+#' @param file_column_name a string indicating the column name which contains filepaths
 #' @return a data.table which contains does *not* contain filepaths with the specified words
 #' @export
 #' @family filters
 #' @seealso \code{\link{parse_gitlog}} and \code{\link{parse_dependencies}} to create dt_file
-filter_by_filepath_substring <- function(dt_file,substring){
+filter_by_filepath_substring <- function(dt_file,substring,file_column_name){
   file_contains_re <- stri_c('(',stri_c(substring,collapse="|"),')')
-  is_not_filepath_with_substring <- !stri_detect_regex(dt_file$file,file_contains_re)
+  is_not_filepath_with_substring <- !stri_detect_regex(dt_file[[file_column_name]],file_contains_re)
   return(dt_file[is_not_filepath_with_substring])
 }
 #' Filter by commit interval
@@ -277,6 +280,8 @@ filter_by_commit_interval <- function(git_log,start_commit,end_commit){
 #' @importFrom magrittr %>%
 #' @importFrom stringi stri_replace_last
 #' @importFrom stringi stri_replace_first
+#' @importFrom stringi stri_match_first_regex
+#' @importFrom stringi stri_detect_regex
 #' @importFrom stringi stri_c
 #' @importFrom stringi stri_split_regex
 #' @importFrom data.table data.table

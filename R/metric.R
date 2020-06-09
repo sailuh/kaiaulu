@@ -46,7 +46,7 @@ metric_churn_per_commit_interval <- function(git_log){
 #' @param git_log a parsed git log table where each row is identified by commit+file
 #' @return `git_log` with an additional `churn` column.
 #' @family {metrics}
-#' @seealso \code{\link{parse_gitlog}} to obtain `git_log``
+#' @seealso \code{\link{parse_gitlog}} to obtain `git_log`
 #' @export
 metric_churn_per_commit_per_file <- function(git_log){
   # Filter files which do not contain added or removed lines specified (i.e. value is "-")

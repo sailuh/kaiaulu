@@ -4,13 +4,15 @@
 \alias{filter_by_file_extension}
 \title{Filter commit files by extension}
 \usage{
-filter_by_file_extension(dt_file, extension)
+filter_by_file_extension(dt_file, extension, file_column_name)
 }
 \arguments{
-\item{dt_file}{any data.table with a named column `file` containing filepaths}
+\item{dt_file}{any data.table containing filepaths}
 
 \item{extension}{a character vector of extensions (e.g. c(py,java)) to *keep*
 in the table}
+
+\item{file_column_name}{a string indicating the column name which contains filepaths}
 }
 \value{
 a data.table which contains only filepaths with the specified extensions
