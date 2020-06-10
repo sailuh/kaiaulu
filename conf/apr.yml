@@ -1,4 +1,5 @@
 datapath:
+  # https://github.com/apache/apr
   git: ~/kaiaulu_project_input/git_repos/APR/.git
   mbox: ~/kaiaulu_project_input/mboxes/apr-dev_2013.mbox
 toolpath:
@@ -10,6 +11,21 @@ toolpath:
     bin: ~/depends-0.9.6/depends.jar
     # accepts cpp, java, ruby, python, pom
     codelanguage: cpp
+    # Specify which types of Dependencies to keep - see Depends README.md for details.
+    keep_dependencies_type:
+      - Import
+      - Call
+      - ImplLink
+      - Return
+      - Use
+      - Parameter
+      - Cast
+      - Contain
+      - Implement
+      - Set
+      - Extend
+      - Create
+      - Throw
 heuristics:
   keep_files_ending_with:
     - cpp
@@ -23,4 +39,4 @@ heuristics:
     - test
 commit_message_id_regex:
   #issue_id: ?
-  cve_id: CVE-[0-9]+-[0-9]+
+  #cve_id: ?

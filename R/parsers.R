@@ -243,12 +243,16 @@ parse_dependencies <- function(depends_jar_path,git_repo_path,language){
 #' @export
 #' @family edgelists
 parse_dependencies_network <- function(depends_parsed,weight_types=NA){
+  # Can only include types user wants if Depends found them at least once on codebase
+  weight_types <- intersect(names(depends_parsed)[3:ncol(depends_parsed)],weight_types)
   dependency_edgelist <- depends_parsed[,.(src,dest)]
   if(is.na(weight_types)){
     dependency_edgelist$weight <- rowSums(depends_parsed[,3:ncol(depends_parsed),with=FALSE])
   }else{
-    dependency_edgelist$weight <- rowSums(depends_parsed[,c(weight_types),with=FALSE])
+    dependency_edgelist$weight <- rowSums(depends_parsed[,weight_types,with=FALSE])
   }
+  # Remove dependencies not chosen by user
+  dependency_edgelist <- dependency_edgelist[weight != 0]
   # Select relevant columns for nodes
   dependency_nodes <- unique(c(dependency_edgelist$src,dependency_edgelist$dest))
   # Color files yellow

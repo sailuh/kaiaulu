@@ -29,9 +29,12 @@ require(magrittr)
 
 ```{r}
 conf <- yaml::read_yaml("../conf/apr.yml")
+git_repo_path <- conf[["datapath"]][["git"]]
+
+# Depends parameters
 depends_jar_path <- conf[["toolpath"]][["depends"]][["bin"]]
 language <- conf[["toolpath"]][["depends"]][["codelanguage"]]
-git_repo_path <- conf[["datapath"]][["git"]]
+keep_dependencies_type <- conf[["toolpath"]][["depends"]][["keep_dependencies_type"]]
 
 # Filters
 file_extensions <- conf[["heuristics"]][["keep_files_ending_with"]]
@@ -80,7 +83,8 @@ project_dependencies <- project_dependencies  %>%
 project_dependencies_slice <- project_dependencies
 
 
-project_file_network <- parse_dependencies_network(project_dependencies_slice)
+project_file_network <- parse_dependencies_network(project_dependencies_slice,
+                                                   weight_types = keep_dependencies_type)
 project_file_network <- igraph::graph_from_data_frame(d=project_file_network[["edgelist"]], 
                       directed = TRUE, 
                       vertices = project_file_network[["nodes"]])
