@@ -24,6 +24,7 @@ kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (in developm
 
 ### MINOR IMPROVEMENTS
 
+  * config files were refactored for clarity and to accomodate dv8 wrapper. [#50](https://github.com/sailuh/kaiaulu/issues/50)
   * vignettes dependencies_showcase.Rmd and gitlog_showcase.Rmd now also make use of the chosen heuristics to filter files. Up to this point only interval_and_metric_showcase.Rmd used them. [#30](https://github.com/sailuh/kaiaulu/issues/30) 
   * various functions which assumed tables to have certain column names now require the name by parameter. this is work in progress to define a common interface as more data parsing is added to this codebase. [#43](https://github.com/sailuh/kaiaulu/issues/43)
   * added a logo to the project. [#35](https://github.com/sailuh/kaiaulu/issues/35)

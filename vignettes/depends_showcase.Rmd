@@ -29,16 +29,16 @@ require(magrittr)
 
 ```{r}
 conf <- yaml::read_yaml("../conf/apr.yml")
-git_repo_path <- conf[["datapath"]][["git"]]
+git_repo_path <- conf[["data_path"]][["git"]]
 
 # Depends parameters
-depends_jar_path <- conf[["toolpath"]][["depends"]][["bin"]]
-language <- conf[["toolpath"]][["depends"]][["codelanguage"]]
-keep_dependencies_type <- conf[["toolpath"]][["depends"]][["keep_dependencies_type"]]
+depends_jar_path <- conf[["tool"]][["depends"]][["bin"]]
+language <- conf[["tool"]][["depends"]][["code_language"]]
+keep_dependencies_type <- conf[["tool"]][["depends"]][["keep_dependencies_type"]]
 
 # Filters
-file_extensions <- conf[["heuristics"]][["keep_files_ending_with"]]
-substring_filepath <- conf[["heuristics"]][["filter_filepaths_containing"]]
+file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
+substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
 ```
 
 # Construct File Network
@@ -90,6 +90,5 @@ project_file_network <- igraph::graph_from_data_frame(d=project_file_network[["e
                       vertices = project_file_network[["nodes"]])
 visIgraph(project_file_network,randomSeed = 1)
 ```
-
 
 

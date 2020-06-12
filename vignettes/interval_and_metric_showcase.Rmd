@@ -41,11 +41,11 @@ Finally, we may not be interested in observing churn for test files by filtering
 
 ```{r}
 conf <- yaml::read_yaml("../conf/apr.yml")
-perceval_path <- conf[["toolpath"]][["perceval"]][["bin"]]
+perceval_path <- conf[["tool"]][["perceval"]][["bin"]]
 
 # Filters
-file_extensions <- conf[["heuristics"]][["keep_files_ending_with"]]
-substring_filepath <- conf[["heuristics"]][["filter_filepaths_containing"]]
+file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
+substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
 ```
 
 The next step is defining a table which minimally contains per row commit intervals of the form `start_commit-end_commit`. This table can for example already contain other metrics. The table below contains per row a project_id, a commit_hash_interval as defined, and various metrics. We use the interval function to add one additional metric, churn, to it's list of metrics.

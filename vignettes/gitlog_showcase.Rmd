@@ -29,13 +29,13 @@ Load config file.
 
 ```{r}
 conf <- yaml::read_yaml("../conf/openssl.yml")
-perceval_path <- conf[["toolpath"]][["perceval"]][["bin"]]
-git_repo_path <- conf[["datapath"]][["git"]]
+perceval_path <- conf[["tool"]][["perceval"]][["bin"]]
+git_repo_path <- conf[["data_path"]][["git"]]
 cveid_regex <- conf[["commit_message_id_regex"]][["cve_id"]]
 
 # Filters
-file_extensions <- conf[["heuristics"]][["keep_files_ending_with"]]
-substring_filepath <- conf[["heuristics"]][["filter_filepaths_containing"]]
+file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
+substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
 ```
 
 # Construct Contribution Network
@@ -106,8 +106,9 @@ visIgraph(project_commit_message_id_network,randomSeed = 1)
 ```
 
 
-## Co-Change adjacency matrix 
 
-```{r eval = FALSE}
+
+```{r eval = FALSE,include=FALSE}
+## Co-Change adjacency matrix 
 reactable(as_adjacency_matrix(co_change_network,attr = "weight",sparse = F))
 ```

@@ -1,8 +1,8 @@
-datapath:
+data_path:
   # https://github.com/openssl/openssl
   git: ~/kaiaulu_project_input/git_repos/OpenSSL/.git
   #mbox: ?
-toolpath:
+tool:
   perceval:
     # please see: https://github.com/chaoss/grimoirelab-perceval
     bin: ~/perceval/bin/perceval
@@ -10,24 +10,27 @@ toolpath:
     # please see: https://github.com/multilang-depends/depends
     bin: ~/depends-0.9.6/depends.jar
     # accepts cpp, java, ruby, python, pom
-    codelanguage: cpp
+    code_language: cpp
     # Specify which types of Dependencies to keep - see Depends README.md for details.
     keep_dependencies_type:
-      - Import
-      - Call
-      - ImplLink
-      - Return
-      - Use
-      - Parameter
       - Cast
-      - Contain
-      - Implement
+      - Call
+      - Import
+      - Return
       - Set
+      - Use
+      - Implement
+      - ImplLink
       - Extend
       - Create
       - Throw
-heuristics:
-  keep_files_ending_with:
+      - Parameter
+      - Contain
+  dv8:
+    # please see https://archdia.com/
+    bin: /Applications/DV8/bin/dv8-console
+filter:
+  keep_filepaths_ending_with:
     - cpp
     - c
     - h
@@ -35,7 +38,7 @@ heuristics:
     - js
     - py
     - cc
-  filter_filepaths_containing:
+  remove_filepaths_containing:
     - test
 commit_message_id_regex:
   #issue_id: ?
