@@ -16,6 +16,7 @@ Transform parsed git repo commit messages id and files into an edgelist
 }
 \seealso{
 Other edgelists: 
+\code{\link{parse_cve_cwe_file_network}()},
 \code{\link{parse_dependencies_network}()},
 \code{\link{parse_gitlog_network}()},
 \code{\link{parse_mbox_network}()}

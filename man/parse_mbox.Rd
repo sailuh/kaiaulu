@@ -17,6 +17,7 @@ Parse mbox from Perceval
 \seealso{
 Other parsers: 
 \code{\link{parse_dependencies}()},
-\code{\link{parse_gitlog}()}
+\code{\link{parse_gitlog}()},
+\code{\link{parse_nvdfeed}()}
 }
 \concept{parsers}

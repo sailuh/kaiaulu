@@ -28,7 +28,7 @@ tool:
       - Contain
   dv8:
     # please see https://archdia.com/
-    bin: /Applications/DV8/bin/dv8-console
+    bin: /Applications/dv8/bin/dv8-console
 filter:
   keep_filepaths_ending_with:
     - cpp

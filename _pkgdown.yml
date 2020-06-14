@@ -9,7 +9,7 @@ reference:
   - parse_gitlog
   - parse_mbox
   - parse_dependencies
-  - parse_commit_message_id_network
+  - parse_nvdfeed
   - filter_by_file_extension
   - filter_by_filepath_substring
   - filter_by_commit_interval
@@ -19,6 +19,8 @@ reference:
   - parse_gitlog_network
   - parse_mbox_network
   - parse_dependencies_network
+  - parse_commit_message_id_network
+  - parse_cve_cwe_file_network
 - title: Identity
   desc:  Provide the same id to authors who use variations of names or emails.
 - contents:

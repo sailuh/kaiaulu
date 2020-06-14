@@ -19,6 +19,7 @@ Parse gitlog from Perceval
 \seealso{
 Other parsers: 
 \code{\link{parse_dependencies}()},
-\code{\link{parse_mbox}()}
+\code{\link{parse_mbox}()},
+\code{\link{parse_nvdfeed}()}
 }
 \concept{parsers}
