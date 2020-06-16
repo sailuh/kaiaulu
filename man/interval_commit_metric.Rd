@@ -19,6 +19,8 @@ interval_commit_metric(
 \item{dt_range}{a data.table which contains a column `range` specifying the
 commit interval on the form `commitsha1-commitsha2`}
 
+\item{metric_function}{A metric function from metric.R to apply to each interval}
+
 \item{file_extensions}{a character vector of extensions (e.g. c(py,java)) to *keep*}
 
 \item{substring_filepath}{a character vector of substrings (e.g. c(py,java)) we wish to *filter*}

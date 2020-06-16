@@ -30,6 +30,7 @@ metric_churn <- function(lines_added,lines_removed){
 #' @seealso \code{\link{parse_gitlog}} to obtain `git_log``
 #' @export
 metric_churn_per_commit_interval <- function(git_log){
+  churn <- NULL # due to NSE notes in R CMD check
   git_log <- metric_churn_per_commit_per_file(git_log)
 
   # Calculate Churn per Commit
@@ -49,6 +50,7 @@ metric_churn_per_commit_interval <- function(git_log){
 #' @seealso \code{\link{parse_gitlog}} to obtain `git_log`
 #' @export
 metric_churn_per_commit_per_file <- function(git_log){
+  added <- removed <- NULL # due to NSE notes in R CMD check
   # Filter files which do not contain added or removed lines specified (i.e. value is "-")
   git_log <- git_log[added != "-" & removed != "-"]
 
@@ -69,6 +71,7 @@ metric_churn_per_commit_per_file <- function(git_log){
 #' @family {metrics}
 #' @seealso \code{\link{parse_gitlog}} to obtain additions and deletions from gitlog
 commit_message_id_coverage <- function(git_log,commit_message_id_regex){
+  data.commit <- data.message <- NULL
   git_log <- unique(git_log[,.(data.commit,data.message)])
   is_match <- stringi::stri_detect_regex(git_log$data.message,
                                          pattern = commit_message_id_regex)

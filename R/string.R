@@ -2,19 +2,27 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+#' Edit Distance of two words
+#' @param a a string
+#' @param b a string
 #' @export
+#' @importFrom utils adist
 normalized_levenshtein <- function(a,b){
   return(drop(1 - adist(a,b)/max(nchar(a),nchar(b))))
 }
+#' Format Name and Email
+#' @param name_email A string containing name and email
 #' @export
 format_name_email <- function(name_email){
   # Remove < or > if any
-  name_email <- stri_replace_all_regex(name_email,pattern="<|>",replace="")
+  name_email <- stri_replace_all_regex(name_email,pattern="<|>",replacement="")
   # Fix at, AT => @
   at_regex <- "at|AT| at | AT "
-  name_email <- stri_replace_last_regex(name_email,pattern=at_regex,replace="@")
+  name_email <- stri_replace_last_regex(name_email,pattern=at_regex,replacement="@")
   return(name_email)
 }
+#' Split Name and Email
+#' @param name_email A formatted name and email.
 #' @export
 split_name_email <- function(name_email){ # rename parameter to format_name_email
   name_email_split <- list()
@@ -29,7 +37,7 @@ split_name_email <- function(name_email){ # rename parameter to format_name_emai
     name_email_split[["email"]] <- name_email[length(name_email)]
     # Only name or email exist -- which?
   }else if(length(name_email) == 1){
-    is_email <- drop(!is.na(stri_match(name_email,regex = "@")))
+    is_email <- drop(!is.na(stri_match_first_regex(name_email,regex = "@")))
     if(is_email){
       name_email_split[["email"]] <- name_email
     }else{
@@ -38,6 +46,10 @@ split_name_email <- function(name_email){ # rename parameter to format_name_emai
   }
   return(name_email_split)
 }
+#' Compares identities in a list by index
+#' @param i Index of the first identity
+#' @param j Index of the second identity
+#' @param parsed_name_email The list of name and email identities
 #' @export
 is_same_identity <- function(i,j,parsed_name_email){
   # R does not stop on first false condition on AND like C.
@@ -89,6 +101,10 @@ assign_exact_identity <- function(unique_name_email){
 #' @importFrom stringi stri_replace_last
 #' @importFrom stringi stri_replace_first
 #' @importFrom stringi stri_c
+#' @importFrom stringi stri_cmp_eq
+#' @importFrom stringi stri_replace_last_regex
+#' @importFrom stringi stri_replace_all_regex
+#' @importFrom stringi stri_replace_all_regex
 #' @importFrom stringi stri_split_regex
 #' @importFrom data.table data.table
 #' @importFrom data.table is.data.table

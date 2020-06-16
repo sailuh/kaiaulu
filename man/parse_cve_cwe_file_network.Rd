@@ -7,9 +7,9 @@
 parse_cve_cwe_file_network(project_cve, nvd_feed)
 }
 \arguments{
-\item{project_cve}{A parsed cve edgelist by \link{\code{parse_commit_message_id_network}}.}
+\item{project_cve}{A parsed cve edgelist by \code{\link{parse_commit_message_id_network}}.}
 
-\item{nvdfeed}{Parsed  nvdfeed by \link{\code{parse_nvdfeed}}.}
+\item{nvd_feed}{Parsed  nvdfeed by \code{\link{parse_nvdfeed}}.}
 }
 \description{
 Transform parsed cveid and nvdfeed into a network

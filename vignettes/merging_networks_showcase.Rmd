@@ -1,8 +1,18 @@
 ---
-title: "Merging Networks via Identity"
-author: "Carlos Paradis"
-output: html_document
+title: "Identity Showcase"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Identity Showcase}
+  %\VignetteEncoding{UTF-8}
 ---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(eval = FALSE)
+```
 
 ```{r}
 rm(list = ls())
@@ -14,22 +24,136 @@ set.seed(seed)
 require(kaiaulu)
 require(data.table)
 require(stringi)
+require(igraph)
+require(knitr)
+require(visNetwork)
+source("../R/smells.R")
 ```
 
+Load config file.
+
 ```{r}
-perceval_path <- "/Users/cvp/Desktop/kaiaulu/kaiaulu_env/bin/perceval"
+conf <- yaml::read_yaml("../conf/apr.yml")
+perceval_path <- conf[["tool"]][["perceval"]][["bin"]]
+git_repo_path <- conf[["data_path"]][["git"]]
+mbox_path <- conf[["data_path"]][["mbox"]]
+```
 
-git_repo_path <- "/Users/cvp/Desktop/kaiaulu_project_input/git_repos/APR/.git"
+
+Obtain edgelist 
+
+```{r}
 project_git <- parse_gitlog(perceval_path,git_repo_path)
-
-mbox_path <- "/Users/cvp/Desktop/kaiaulu_project_input/mboxes/apr-dev.mbox"
 project_mbox <- parse_mbox(perceval_path,mbox_path)
 ```
 
+Specify the commit interval of interest
 
 ```{r}
-all_name_emails <- c(unique(project_git$data.Author),unique(project_mbox$data.From))
+start_commit <- "9eae9e96f15e1f216162810cef4271a439a74223"
+end_commit <- "f1d2d568776b3708dd6a3077376e2331f9268b04"
+
+interval_timestamps <- project_git[data.commit %in% c(start_commit,end_commit)]$data.AuthorDate
+start_date <- interval_timestamps[1]
+end_date <- interval_timestamps[2]
+
+project_git <- project_git[data.AuthorDate >= start_date & data.AuthorDate <= end_date]
+project_mbox <- project_mbox[data.Date >= start_date & data.Date <= end_date]
+```
+
+Parse networks edgelist from extracted data
+
+```{r}
+project_git <- parse_gitlog_network(project_git,mode="author")
+project_mbox <- parse_mbox_network(project_mbox)
+```
+
+
+
+Load networks in igraph
+
+```{r}
+git_network <- igraph::graph_from_data_frame(d=project_git[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_git[["nodes"]])
+mbox_network <- igraph::graph_from_data_frame(d=project_mbox[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_mbox[["nodes"]])
+```
+
+Assign common identity (id) to both networks authors
+
+```{r}
+# git_author_network type == TRUE if node is author, else is file
+git_authors <- V(git_network)$name[V(git_network)$type]
+git_files <- V(git_network)$name[!V(git_network)$type]
+# mbox_network type == TRUE if node is author, else is thread
+mbox_authors <- V(mbox_network)$name[V(mbox_network)$type]
+mbox_threads <- V(mbox_network)$name[!V(mbox_network)$type]
+
+all_name_emails <- unique(c(git_authors,mbox_authors))
 name_mapping <- data.table(raw_name=all_name_emails,id=assign_exact_identity(all_name_emails))
-head(name_mapping[,.(authors=stri_c(raw_name,collapse=",")),by="id"])
+
+# Map the ids to git_authors vertices from the graph
+author_v_ids <- merge(data.table(raw_name=git_authors),
+                      name_mapping,
+                      by="raw_name",all.x=TRUE,sort=FALSE)$id
+#Suplement the remaining node ids, i.e. files, with NA
+#git_n_files <- length(V(git_network)$name[!V(git_network)$type])
+#V(git_network)$id <- c(author_v_ids,rep(NA,git_n_files))
+V(git_network)$id <- c(author_v_ids,git_files)
+
+# Similarly, map the ids to the ids of mbox_authos
+mbox_v_ids <- merge(data.table(raw_name=mbox_authors),
+                      name_mapping,
+                      by="raw_name",all.x=TRUE,sort=FALSE)$id
+#Suplement the remaining node ids, i.e. files, with NA
+#mbox_n_files <- length(V(mbox_network)$name[!V(mbox_network)$type])
+#V(mbox_network)$id <- c(mbox_v_ids,rep(NA,mbox_n_files))
+V(mbox_network)$id <- c(mbox_v_ids,mbox_threads)
+```
+
+Community Smells functions are defined base of the projection networks of dev-thread => dev-dev, and dev-file => dev-dev. This creates both dev-dev via graph projections:
+
+```{r}
+git_network_authors <- igraph::bipartite_projection(git_network,
+                                          multiplicity = TRUE,
+                                          which = TRUE) # FALSE is the thread projection
+
+mbox_network_authors <- igraph::bipartite_projection(mbox_network,
+                                          multiplicity = TRUE,
+                                          which = TRUE) # FALSE is the thread projection
+```
+
+
+There are `r length(intersect(mbox_v_ids,author_v_ids))` authors in common between both networks. 
+
+# Identity Manual Evaluation 
+
+We can also export the table of authors for manual inspection to see how the identity algorithm did matching people. The table is omitted in the vignette due for privacy of the participants in the open source project.
+
+```{r eval = FALSE}
+knitr::kable(name_mapping[,.(authors=stri_c(raw_name,collapse=",")),by="id"])
+```
+
+# Which are the 7 identified missing links?
+
+```{r}
+visIgraph(git_network,randomSeed = 1)
+```
+
+
+```{r}
+visIgraph(git_network_authors,randomSeed = 1)
+```
+
+
+
+```{r}
+visIgraph(mbox_network,randomSeed = 1)
+```
+
+```{r}
+visIgraph(mbox_network_authors,randomSeed = 1)
 ```
 

@@ -2,13 +2,19 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+#' Parse R Abstract Syntax Tree
+#' @param filepath The filepath of an R file
 #' @export
+#' @importFrom utils getParseData
 parse_rfile_ast <- function(filepath){
   parsed_file <- parse(path.expand(filepath))
   return(data.table(getParseData(parsed_file, includeText = TRUE)))
 }
+#' Parse R Function Definitions
+#' @param parsed_r_file A parsed R file (see \code{\link{parse_rfile_ast}})
 #' @export
 parse_r_function_definition <-function(parsed_r_file){
+  token <- NULL # due to NSE notes in R CMD check
   parsed_r_file$row_id <- 1:nrow(parsed_r_file)
   # Obtain function definitions
   src_line_functions_start <- parsed_r_file[token == "FUNCTION"]$line1
@@ -47,8 +53,15 @@ parse_r_function_definition <-function(parsed_r_file){
 
   return(function_definition)
 }
+#' Parse R Function Dependencies
+#'
+#' Identify function calls in an R File.
+#' @param parsed_r_file A parsed R file (see \code{\link{parse_rfile_ast}})
+#' @param function_definition A list of function definitions (see \code{\link{parse_r_function_definition}})
 #' @export
+#' @importFrom utils tail
 parse_r_function_dependencies <- function(parsed_r_file,function_definition){
+  token <- NULL # due to NSE notes in R CMD check
   # Get metadata of function calls
   src_line_functions_call_start <- parsed_r_file[token == "SYMBOL_FUNCTION_CALL"]$line1
   src_line_functions_call_end <- parsed_r_file[token == "SYMBOL_FUNCTION_CALL"]$line2

@@ -11,6 +11,7 @@
 #' @param project_git a data.table where the key is commit+file
 #' @param dt_range a data.table which contains a column `range` specifying the
 #' commit interval on the form `commitsha1-commitsha2`
+#' @param metric_function A metric function from metric.R to apply to each interval
 #' @param file_extensions a character vector of extensions (e.g. c(py,java)) to *keep*
 #' @param substring_filepath a character vector of substrings (e.g. c(py,java)) we wish to *filter*
 #' @param file_column_name a string indicating the column name which contains filepaths
@@ -42,6 +43,7 @@ interval_commit_metric <- function(project_git,dt_range,metric_function,
 #' commit interval on the form `commitsha1-commitsha2`
 #' @return a numeric vector of `metric_function` values for each commit interval specified in `dt_range`
 get_date_from_commit_hash <- function(git_log,commit_hash){
+  data.commit <- NULL # due to NSE notes in R CMD check
   return(git_log[data.commit == commit_hash]$data.AuthorDate[1])
 }
 

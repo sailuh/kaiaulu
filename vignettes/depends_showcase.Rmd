@@ -6,7 +6,7 @@ output:
     number_sections: true
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{Collaboration Network Parser}
+  %\VignetteIndexEntry{File Network Parser}
   %\VignetteEncoding{UTF-8}
 ---
 
@@ -90,5 +90,4 @@ project_file_network <- igraph::graph_from_data_frame(d=project_file_network[["e
                       vertices = project_file_network[["nodes"]])
 visIgraph(project_file_network,randomSeed = 1)
 ```
-
 

@@ -10,6 +10,7 @@
 #' @export
 #' @family parsers
 parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA){
+  data.files <- data.Author <- data.AuthorDate <- data.commit <- data.Commit <- data.CommitDate <- data.message <- NULL # due to NSE notes in R CMD check
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   perceval_path <- path.expand(perceval_path)
   git_repo_path <- path.expand(git_repo_path)
@@ -54,6 +55,7 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA){
 #' @export
 #' @family edgelists
 parse_gitlog_network <- function(project_git, mode = c("author","commit")){
+  data.Author <- data.AuthorDate <- data.commit <- data.Commit <- data.CommitDate <- added <- removed <- NULL # due to NSE notes in R CMD check
   # Check user did not specify a mode that does not exist
   mode <- match.arg(mode)
   # Select and rename relevant columns. Key = commit_hash.
@@ -103,6 +105,7 @@ parse_gitlog_network <- function(project_git, mode = c("author","commit")){
 #' @export
 #' @family edgelists
 parse_commit_message_id_network <- function(project_git, commit_message_id_regex){
+  commit_message_id <- NULL # due to NSE notes in R CMD check
   # Extract the id according to the parameter regex
   project_git$commit_message_id <- data.table(stringi::stri_match_first_regex(project_git$data.message,
                                                                  pattern = commit_message_id_regex))
@@ -160,6 +163,7 @@ parse_mbox <- function(perceval_path,mbox_path){
 #' @export
 #' @family edgelists
 parse_mbox_network <- function(project_mbox){
+  data.From <- data.Subject <- data.Date <- NULL # due to NSE notes in R CMD check
   # Obtain the relevant columns - Author, E-mail Thread, and Timestamp
   project_mbox <- project_mbox[,.(author=data.From,thread=data.Subject,date=data.Date)]
   # Select relevant columns for nodes
@@ -237,12 +241,13 @@ parse_dependencies <- function(depends_jar_path,git_repo_path,language){
 }
 #' Transform parsed dependencies into a network
 #'
-#' @param project_mbox A parsed mbox by \code{parse_dependencies}.
+#' @param depends_parsed A parsed mbox by \code{parse_dependencies}.
 #' @param weight_types The weight types as defined in Depends.
 #'
 #' @export
 #' @family edgelists
 parse_dependencies_network <- function(depends_parsed,weight_types=NA){
+  src <- dest <- weight <- NULL # due to NSE notes in R CMD check
   # Can only include types user wants if Depends found them at least once on codebase
   weight_types <- intersect(names(depends_parsed)[3:ncol(depends_parsed)],weight_types)
   dependency_edgelist <- depends_parsed[,.(src,dest)]
@@ -302,11 +307,12 @@ parse_nvdfeed <- function(nvdfeed_folder_path){
 }
 #' Transform parsed cveid and nvdfeed into a network
 #'
-#' @param project_cve A parsed cve edgelist by \link{\code{parse_commit_message_id_network}}.
-#' @param nvdfeed  Parsed  nvdfeed by \link{\code{parse_nvdfeed}}.
+#' @param project_cve A parsed cve edgelist by \code{\link{parse_commit_message_id_network}}.
+#' @param nvd_feed  Parsed  nvdfeed by \code{\link{parse_nvdfeed}}.
 #' @export
 #' @family edgelists
 parse_cve_cwe_file_network <- function(project_cve,nvd_feed){
+  commit_message_id <- cwe_id <- name <- color <- src <- dest <- weight <- NULL # due to NSE notes in R CMD check
 
   cve_nodes <- project_cve[["nodes"]]
   cve_edgelist <- project_cve[["edgelist"]]
@@ -385,12 +391,14 @@ filter_by_filepath_substring <- function(dt_file,substring,file_column_name){
 #' @family filters
 #' @seealso \code{\link{parse_gitlog}} to create git_log
 filter_by_commit_interval <- function(git_log,start_commit,end_commit){
+  data.AuthorDate <- NULL # due to NSE notes in R CMD check
   start_date <- get_date_from_commit_hash(git_log,start_commit)
   end_date <- get_date_from_commit_hash(git_log,end_commit)
   git_log <- git_log[data.AuthorDate >= start_date & data.AuthorDate <= end_date]
   return(git_log)
 }
 # Various imports
+utils::globalVariables(c("."))
 #' @importFrom magrittr %>%
 #' @importFrom stringi stri_replace_last
 #' @importFrom stringi stri_replace_first
@@ -401,6 +409,7 @@ filter_by_commit_interval <- function(git_log,start_commit,end_commit){
 #' @importFrom data.table data.table
 #' @importFrom data.table is.data.table
 #' @importFrom data.table as.data.table
+#' @importFrom data.table .N
 #' @importFrom data.table :=
 #' @importFrom data.table rbindlist
 #' @importFrom data.table setkey

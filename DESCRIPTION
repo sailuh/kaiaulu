@@ -2,7 +2,7 @@ Package: kaiaulu
 Type: Package
 Title: Kaiaulu
 Version: 0.0.0.9000
-Description: Communication and Collaboration Network Analysis
+Description: Communication and Collaboration Network Analysis.
 Authors@R: c(
     person('Carlos', 'Paradis', role = c('aut', 'cre'),
       email = 'cvas@hawaii.edu'),
@@ -23,7 +23,7 @@ Suggests:
     gh (>= 1.1.0),
     yaml (>= 2.2.1)
 Depends:
-    R (>= 3.6.1)
+    R (>= 3.6.0)
 Imports:
     data.table (>= 1.12.8),
     stringi (>= 1.4.6),

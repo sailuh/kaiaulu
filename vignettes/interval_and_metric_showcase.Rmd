@@ -6,7 +6,7 @@ output:
     number_sections: true
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{Collaboration Network Parser}
+  %\VignetteIndexEntry{Using Intervals to analyze Churn Metric}
   %\VignetteEncoding{UTF-8}
 ---
 
