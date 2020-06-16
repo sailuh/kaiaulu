@@ -2,18 +2,13 @@
 # for architectural details on its src.
 data_path:
   # https://chromium.googlesource.com/chromium/src
-  git: ~/kaiaulu_project_input/git_repos/Chromium/.git
+  git: ../rawdata/git_repo/Chromium/.git
   #mbox: ?
   # Provide a folder path containing nvd cve feeds (e.g. nvdcve-1.1-2018.json)
   # You can obtain them freely at: https://nvd.nist.gov/vuln/data-feeds
-  nvd_feed: ~/kaiaulu_project_input/nvdfeed
+  nvd_feed: ../rawdata/nvdfeed
 tool:
-  perceval:
-    # please see: https://github.com/chaoss/grimoirelab-perceval
-    bin: ~/perceval/bin/perceval
   depends:
-    # please see: https://github.com/multilang-depends/depends
-    bin: ~/depends-0.9.6/depends.jar
     # accepts cpp, java, ruby, python, pom
     code_language: cpp
     # Specify which types of Dependencies to keep - see Depends README.md for details.
@@ -31,9 +26,6 @@ tool:
       - Throw
       - Parameter
       - Contain
-  dv8:
-    # please see https://archdia.com/
-    bin: /Applications/dv8/bin/dv8-console
 filter:
   keep_filepaths_ending_with:
     - cpp

@@ -37,7 +37,7 @@ split_name_email <- function(name_email){ # rename parameter to format_name_emai
     name_email_split[["email"]] <- name_email[length(name_email)]
     # Only name or email exist -- which?
   }else if(length(name_email) == 1){
-    is_email <- drop(!is.na(stri_match_first_regex(name_email,regex = "@")))
+    is_email <- drop(!is.na(stri_match_first(name_email,regex = "@")))
     if(is_email){
       name_email_split[["email"]] <- name_email
     }else{

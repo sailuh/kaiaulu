@@ -1,0 +1,6 @@
+# please see: https://github.com/chaoss/grimoirelab-perceval
+perceval: ~/perceval/bin/perceval
+# please see: https://github.com/multilang-depends/depends
+depends: ~/depends-0.9.6/depends.jar
+# please see https://archdia.com/
+dv8: /Applications/dv8/bin/dv8-console

@@ -28,8 +28,9 @@ require(yaml)
 Load config file.
 
 ```{r}
+tool <- yaml::read_yaml("../tools.yml")
 conf <- yaml::read_yaml("../conf/apr.yml")
-perceval_path <- conf[["tool"]][["perceval"]][["bin"]]
+perceval_path <- tool[["perceval"]]
 mbox_path <- conf[["data_path"]][["mbox"]]
 ```
 

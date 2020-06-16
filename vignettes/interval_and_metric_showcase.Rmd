@@ -40,8 +40,9 @@ When calculating churn over several commits, the value can easily be inflated by
 Finally, we may not be interested in observing churn for test files by filtering out filepaths which mention the word "test" or other terms we are familiar with. This is also specified on the config file. 
 
 ```{r}
+tool <- yaml::read_yaml("../tools.yml")
 conf <- yaml::read_yaml("../conf/apr.yml")
-perceval_path <- conf[["tool"]][["perceval"]][["bin"]]
+perceval_path <- tool[["perceval"]]
 
 # Filters
 file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
@@ -61,7 +62,7 @@ project_names <- names(project_metrics)
 i <- 1
 for(project_name in project_names){
   #git_repo_path <- stri_c(path.expand("~/kaiaulu_project_input/git_repos/"),project_name,"/.git")
-  project_git <- readRDS(stringi::stri_c("~/kaiaulu_project_input/rds/",project_name,"_git.rds"))
+  project_git <- readRDS(stringi::stri_c("../rawdata/rds/",project_name,"_git.rds"))
   #save_path <- stri_c(path.expand("~/kaiaulu_project_input/rds/"),project_name,"_git.rds")
   project_metrics[[project_name]]$commit_interval_churn <- project_git %>%
     interval_commit_metric(project_metrics[[project_name]],
@@ -93,7 +94,7 @@ project_name <- "Audacity"
 start_commit <- "61285bc7be4757ed223fb57d5dc22a0cc6e66a57"
 end_commit <- "6e384e2f6b95acd469cab5d7cf0cdc9e37e53380"
 
-project_git <- readRDS(stri_c("~/kaiaulu_project_input/rds/",project_name,"_git.rds"))
+project_git <- readRDS(stri_c("../rawdata/rds/",project_name,"_git.rds"))
 
 churn_per_commit_file <- project_git %>% 
   filter_by_commit_interval(start_commit,end_commit)  %>% 

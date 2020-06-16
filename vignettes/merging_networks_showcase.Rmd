@@ -10,10 +10,6 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r include=FALSE}
-knitr::opts_chunk$set(eval = FALSE)
-```
-
 ```{r}
 rm(list = ls())
 seed <- 1
@@ -27,14 +23,14 @@ require(stringi)
 require(igraph)
 require(knitr)
 require(visNetwork)
-source("../R/smells.R")
 ```
 
 Load config file.
 
 ```{r}
+tool <- yaml::read_yaml("../tools.yml")
 conf <- yaml::read_yaml("../conf/apr.yml")
-perceval_path <- conf[["tool"]][["perceval"]][["bin"]]
+perceval_path <- tool[["perceval"]]
 git_repo_path <- conf[["data_path"]][["git"]]
 mbox_path <- conf[["data_path"]][["mbox"]]
 ```
@@ -113,7 +109,7 @@ mbox_v_ids <- merge(data.table(raw_name=mbox_authors),
 V(mbox_network)$id <- c(mbox_v_ids,mbox_threads)
 ```
 
-Community Smells functions are defined base of the projection networks of dev-thread => dev-dev, and dev-file => dev-dev. This creates both dev-dev via graph projections:
+We can also obtain the projection networks of dev-thread => dev-dev, and dev-file => dev-dev.
 
 ```{r}
 git_network_authors <- igraph::bipartite_projection(git_network,
@@ -126,7 +122,7 @@ mbox_network_authors <- igraph::bipartite_projection(mbox_network,
 ```
 
 
-There are `r length(intersect(mbox_v_ids,author_v_ids))` authors in common between both networks. 
+There are `r length(intersect(mbox_v_ids,author_v_ids))` number of authors in common between both networks.
 
 # Identity Manual Evaluation 
 
@@ -136,10 +132,10 @@ We can also export the table of authors for manual inspection to see how the ide
 knitr::kable(name_mapping[,.(authors=stri_c(raw_name,collapse=",")),by="id"])
 ```
 
-# Which are the 7 identified missing links?
+# Networks after Identity Mapping
 
 ```{r}
-visIgraph(git_network,randomSeed = 1)
+visNetwork::visIgraph(git_network,randomSeed = 1)
 ```
 
 

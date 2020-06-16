@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-source("/home/carlos/kaiaulu_project/kaiaulu/R/parsers.R")
+library(kaiaulu)
 library(stringi)
 library(yaml)
 library(cli)

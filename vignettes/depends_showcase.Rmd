@@ -28,11 +28,12 @@ require(magrittr)
 ```
 
 ```{r}
+tool <- yaml::read_yaml("../tools.yml")
 conf <- yaml::read_yaml("../conf/apr.yml")
 git_repo_path <- conf[["data_path"]][["git"]]
 
 # Depends parameters
-depends_jar_path <- conf[["tool"]][["depends"]][["bin"]]
+depends_jar_path <- tool[["depends"]]
 language <- conf[["tool"]][["depends"]][["code_language"]]
 keep_dependencies_type <- conf[["tool"]][["depends"]][["keep_dependencies_type"]]
 
