@@ -2,7 +2,7 @@
 # for architectural details on its src.
 data_path:
   # https://chromium.googlesource.com/chromium/src
-  git: ../rawdata/git_repo/Chromium/.git
+  git: ../rawdata/git_repo/chromium/.git
   #mbox: ?
   # Provide a folder path containing nvd cve feeds (e.g. nvdcve-1.1-2018.json)
   # You can obtain them freely at: https://nvd.nist.gov/vuln/data-feeds
@@ -41,4 +41,4 @@ commit_message_id_regex:
   # bug=119250,bug=117627,bug=118317,bug=139744,bug=127449,bug=122654,bug=100879,bug=112961,
   # bug=113496,bug=127522,bug=132890
   #issue_id: ?
-  cve_id: CVE-[0-9]+-[0-9]+
+  cve_id: (?i)CVE-[0-9]+-[0-9]+

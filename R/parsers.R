@@ -7,22 +7,75 @@
 #' @param perceval_path path to perceval binary
 #' @param git_repo_path path to git repo (ends in .git)
 #' @param save_path optional save path for .rds object
+#' @param from_date a string of the form "YYYY-MM-DD"
+#' @param to_date a string of the form "YYYY-MM-DD"
 #' @export
 #' @family parsers
-parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA){
+parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA,perl_regex=NA){
   data.files <- data.Author <- data.AuthorDate <- data.commit <- data.Commit <- data.CommitDate <- data.message <- NULL # due to NSE notes in R CMD check
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   perceval_path <- path.expand(perceval_path)
   git_repo_path <- path.expand(git_repo_path)
+  git_uri <-  git_repo_path
   save_path <- ifelse(!is.na(save_path),path.expand(save_path),NA)
 
   # Use percerval to parse .git --json line is required to be parsed by jsonlite::fromJSON.
+  # The log will be saved to the /tmp/ folder
+  gitlog_path <- "/tmp/gitlog.log"
+
+  # Perceval suggested flags
+  perceval_flags <-
+    c(
+      '--raw',
+      '--numstat',
+      '--pretty=fuller',
+      '--decorate=full',
+      '--parents',
+      '--reverse',
+      '--topo-order',
+      '-M',
+      '-C',
+      '-c',
+      '--remotes=origin'
+    )
+  # Execute shell command to extract gitlog using Percerval recommended format (See it's README.md.
+  if(!is.na(perl_regex)){
+    gitlog_call_message <- system2("git",
+                                   args = c('--git-dir',
+                                            git_repo_path,
+                                            'log',
+                                            '--no-merges',
+                                            'master',
+                                            stri_c('--grep=','"',perl_regex,'"'),
+                                            '--perl-regexp',
+                                            perceval_flags,
+                                            #'--all',
+                                            '>' ,
+                                            gitlog_path),
+                                   stdout = TRUE,
+                                   stderr = FALSE)
+  }else{
+    gitlog_call_message <- system2("git",
+                                   args = c('--git-dir',
+                                            git_repo_path,
+                                            'log',
+#                                            '--no-merges',
+#                                            'master',
+                                            perceval_flags,
+                                            '--all',
+                                            '>',
+                                            gitlog_path),
+                                   stdout = TRUE,
+                                   stderr = FALSE)
+  }
+
+  # Parsed JSON output.
   perceval_output <- system2(perceval_path,
-                             args = c('git',git_repo_path,'--json-line'),
+                             args = c('git', '--git-log',gitlog_path,git_uri,'--json-line'),
                              stdout = TRUE,
                              stderr = FALSE)
-  # Parsed JSON output.
-  perceval_parsed <- data.table(jsonlite::stream_in(textConnection(perceval_output),verbose=FALSE))
+
+  perceval_parsed <- data.table(jsonlite::stream_in(textConnection(perceval_output),verbose = FALSE))
 
   # Parse timestamps and convert to UTC
   perceval_parsed$data.AuthorDate <- as.POSIXct(perceval_parsed$data.AuthorDate,

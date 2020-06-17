@@ -1,12 +1,12 @@
 ---
-title: "Collaboration Network Parser"
+title: "Collaboration Network Parser with Vulnerabilities"
 output: 
   html_document:
     toc: true
     number_sections: true
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{Collaboration Network Parser}
+  %\VignetteIndexEntry{Collaboration Network Parser with Vulnerabilities}
   %\VignetteEncoding{UTF-8}
 ---
 
@@ -29,10 +29,11 @@ Load config file.
 
 ```{r}
 tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/openssl.yml")
+conf <- yaml::read_yaml("../conf/chromium.yml")
 perceval_path <- tool[["perceval"]]
 git_repo_path <- conf[["data_path"]][["git"]]
 nvdfeed_folder_path <- conf[["data_path"]][["nvd_feed"]]
+cveid_regex <- conf[["commit_message_id_regex"]][["cve_id"]]
 
 # Filters
 file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
@@ -43,7 +44,7 @@ substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
 
 ```{r}
 #save_path <- "/Users/cvp/Desktop/kaiaulu_project_input/rds/APR_git.rds"
-project_git <- parse_gitlog(perceval_path,git_repo_path)
+project_git <- parse_gitlog(perceval_path,git_repo_path,perl_regex = cveid_regex)
 #project_git <- parse_gitlog(perceval_path,git_repo_path,save_path)
 #project_git <- readRDS(save_path)
 ```
@@ -58,8 +59,7 @@ project_git <- project_git  %>%
 
 
 ```{r}
-project_git_slice <- project_git[data.AuthorDate >= as.POSIXct("2019-01-01", format = "%Y-%m-%d",tz = "UTC") & data.AuthorDate < as.POSIXct("2019-01-31", format = "%Y-%m-%d",tz = "UTC")]
-
+project_git_slice <- project_git
 
 project_contribution_network <- parse_gitlog_network(project_git_slice,mode="author")
 project_contribution_network <- igraph::graph_from_data_frame(d=project_contribution_network[["edgelist"]], 
@@ -87,6 +87,41 @@ co_change_network <- igraph::bipartite_projection(project_commit_network,
                                           which = FALSE) # FALSE is the file projection
 visIgraph(co_change_network,randomSeed = 1)
 ```
+
+## Issue Networks
+
+First, we can check the coverage of commits which contain cve-id labels
+
+```{r}
+coverage <- commit_message_id_coverage(project_git,cveid_regex)/length(unique(project_git$data.commit))
+coverage
+```
+
+
+```{r}
+project_commit_message_id_edgelist <- parse_commit_message_id_network(project_git,commit_message_id_regex = cveid_regex)
+
+project_commit_message_id_network <- igraph::graph_from_data_frame(d=project_commit_message_id_edgelist[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_commit_message_id_edgelist[["nodes"]])
+visIgraph(project_commit_message_id_network,randomSeed = 1)
+```
+If the chosen commit message label is associated to CVEs, one additional metadata of interest to CVEs are their weaknesses. Weaknesses groups related CVE ids. We can obtain the mapping from CVE to CWEs from [NVD Feeds](https://nvd.nist.gov/vuln/data-feeds)
+
+```{r}
+# This can take a few minutes!
+cve_cwe_mapping <- parse_nvdfeed(nvdfeed_folder_path)
+cve_cwe_file_network <- parse_cve_cwe_file_network(project_commit_message_id_edgelist,cve_cwe_mapping)
+```
+
+```{r}
+project_commit_message_id_network <- igraph::graph_from_data_frame(d=cve_cwe_file_network[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = cve_cwe_file_network[["nodes"]])
+visIgraph(project_commit_message_id_network,randomSeed = 1)
+```
+
+
 
 ```{r eval = FALSE,include=FALSE}
 ## Co-Change adjacency matrix 
