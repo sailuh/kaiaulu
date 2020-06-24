@@ -64,6 +64,13 @@ project_git <- parse_gitlog_network(project_git,mode="author")
 project_mbox <- parse_mbox_network(project_mbox)
 ```
 
+Assign common identity (id) to both networks authors
+
+```{r}
+projects <- assign_network_identity(project_git,project_mbox,assign_exact_identity)
+project_git <- projects[["project_git"]]
+project_mbox <- projects[["project_mbox"]]
+```
 
 
 Load networks in igraph
@@ -77,37 +84,7 @@ mbox_network <- igraph::graph_from_data_frame(d=project_mbox[["edgelist"]],
                       vertices = project_mbox[["nodes"]])
 ```
 
-Assign common identity (id) to both networks authors
 
-```{r}
-# git_author_network type == TRUE if node is author, else is file
-git_authors <- V(git_network)$name[V(git_network)$type]
-git_files <- V(git_network)$name[!V(git_network)$type]
-# mbox_network type == TRUE if node is author, else is thread
-mbox_authors <- V(mbox_network)$name[V(mbox_network)$type]
-mbox_threads <- V(mbox_network)$name[!V(mbox_network)$type]
-
-all_name_emails <- unique(c(git_authors,mbox_authors))
-name_mapping <- data.table(raw_name=all_name_emails,id=assign_exact_identity(all_name_emails))
-
-# Map the ids to git_authors vertices from the graph
-author_v_ids <- merge(data.table(raw_name=git_authors),
-                      name_mapping,
-                      by="raw_name",all.x=TRUE,sort=FALSE)$id
-#Suplement the remaining node ids, i.e. files, with NA
-#git_n_files <- length(V(git_network)$name[!V(git_network)$type])
-#V(git_network)$id <- c(author_v_ids,rep(NA,git_n_files))
-V(git_network)$id <- c(author_v_ids,git_files)
-
-# Similarly, map the ids to the ids of mbox_authos
-mbox_v_ids <- merge(data.table(raw_name=mbox_authors),
-                      name_mapping,
-                      by="raw_name",all.x=TRUE,sort=FALSE)$id
-#Suplement the remaining node ids, i.e. files, with NA
-#mbox_n_files <- length(V(mbox_network)$name[!V(mbox_network)$type])
-#V(mbox_network)$id <- c(mbox_v_ids,rep(NA,mbox_n_files))
-V(mbox_network)$id <- c(mbox_v_ids,mbox_threads)
-```
 
 We can also obtain the projection networks of dev-thread => dev-dev, and dev-file => dev-dev.
 
@@ -122,14 +99,13 @@ mbox_network_authors <- igraph::bipartite_projection(mbox_network,
 ```
 
 
-There are `r length(intersect(mbox_v_ids,author_v_ids))` number of authors in common between both networks.
-
 # Identity Manual Evaluation 
 
-We can also export the table of authors for manual inspection to see how the identity algorithm did matching people. The table is omitted in the vignette due for privacy of the participants in the open source project.
+We can also export the table of authors for manual inspection to see how the identity algorithm did matching people. The table is omitted in the public vignette due for privacy of the participants in the open source project.
 
-```{r eval = FALSE}
-knitr::kable(name_mapping[,.(authors=stri_c(raw_name,collapse=",")),by="id"])
+```{r}
+knitr::kable(project_mbox[["nodes"]][suppressWarnings(!is.na(as.numeric(id))),
+                                     .(id,raw_name)])
 ```
 
 # Networks after Identity Mapping

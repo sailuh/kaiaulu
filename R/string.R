@@ -95,6 +95,78 @@ assign_exact_identity <- function(unique_name_email){
   ids <- sapply(A,"[[",3)
   return(ids)
 }
+#' Assign Common Id to Nodes and Edgelists to Git and Mbox
+#' @param project_git the parsed mbox file from \code{\link{parse_gitlog}}
+#' @param project_mbox the parsed mbox file from \code{\link{parse_mbox}}
+#' @param assign_identity_function The heuristic function which decides common IDs
+#' (currently only available: \code{\link{assign_network_identity}})
+#' @export
+assign_network_identity <- function(project_git,project_mbox,assign_identity_function){
+  # git_author_network type == TRUE if node is author, else is file
+  git_authors <- project_git[["nodes"]]$name[project_git[["nodes"]]$type]
+  git_files <- project_git[["nodes"]]$name[!project_git[["nodes"]]$type]
+
+  # mbox_network type == TRUE if node is author, else is thread
+  mbox_authors <- project_mbox[["nodes"]]$name[project_mbox[["nodes"]]$type]
+  mbox_threads <- project_mbox[["nodes"]]$name[!project_mbox[["nodes"]]$type]
+
+  all_name_emails <- unique(c(git_authors,mbox_authors))
+  name_mapping <- data.table(raw_name=all_name_emails,id=assign_identity_function(all_name_emails))
+
+  # Map the ids to git_authors vertices from the graph
+  author_v_ids <- merge(data.table(raw_name=git_authors),
+                        name_mapping,
+                        by="raw_name",all.x=TRUE,sort=FALSE)$id
+  #Suplement the remaining node ids, i.e. files, with NA
+  project_git[["nodes"]]$id <- c(author_v_ids,git_files)
+
+  # Similarly, map the ids to the ids of mbox_authors
+  mbox_v_ids <- merge(data.table(raw_name=mbox_authors),
+                      name_mapping,
+                      by="raw_name",all.x=TRUE,sort=FALSE)$id
+  #Suplement the remaining node ids, i.e. files, with NA
+  project_mbox[["nodes"]]$id <- c(mbox_v_ids,mbox_threads)
+
+  # Swap name attribute and id attribute to simplify usage by igraph
+  # Node
+  project_git[["nodes"]]$raw_name <- project_git[["nodes"]]$name
+  project_mbox[["nodes"]]$raw_name <- project_mbox[["nodes"]]$name
+  project_git[["nodes"]]$name <- project_git[["nodes"]]$id
+  project_mbox[["nodes"]]$name <- project_mbox[["nodes"]]$id
+  # Edgelist
+  name_id_mapping <- project_git[["nodes"]]$id
+  names(name_id_mapping) <- project_git[["nodes"]]$raw_name
+  project_git[["edgelist"]]$author <- name_id_mapping[project_git[["edgelist"]]$author]
+
+  name_id_mapping <- project_mbox[["nodes"]]$id
+  names(name_id_mapping) <- project_mbox[["nodes"]]$raw_name
+  project_mbox[["edgelist"]]$author <- name_id_mapping[project_mbox[["edgelist"]]$author]
+
+  # Node list must not occur twice, collapse raw_names
+  project_git[["nodes"]] <- project_git[["nodes"]][,.(color=color[1],
+                                                      type=type[1],
+                                                      id=id[1],
+                                                      raw_name=stri_c(raw_name,
+                                                                      collapse=" | "))
+                                                   ,by="name"]
+  project_mbox[["nodes"]] <- project_mbox[["nodes"]][,.(color=color[1],
+                                                        type=type[1],
+                                                        id=id[1],
+                                                        raw_name=stri_c(raw_name,
+                                                                        collapse=" | "))
+                                                     ,by="name"]
+  # Edgelists of previous 2 different authors may now be the same, sum weights up.
+  project_git[["edgelist"]] <- project_git[["edgelist"]][,.(weight=sum(weight)),
+                                                         by=c("author","file")]
+  project_mbox[["edgelist"]] <- project_mbox[["edgelist"]][,.(weight=sum(weight)),
+                                                           by=c("author","thread")]
+
+  projects <- list()
+  projects[["project_git"]] <- project_git
+  projects[["project_mbox"]] <- project_mbox
+
+  return(projects)
+}
 
 
 # Various imports
