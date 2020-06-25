@@ -1,0 +1,29 @@
+---
+title: "Refactoring Miner Showcase"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Refactoring Miner Showcase}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+require(kaiaulu)
+```
+
+This is a wrapper for [Refactoring Miner](https://github.com/tsantalis/RefactoringMiner#running-refactoringminer-from-the-command-line). See README.md for setup details.
+
+```{r}
+tool <- yaml::read_yaml("../tools.yml")
+conf <- yaml::read_yaml("../conf/tomcat.yml")
+rminer_path <- tool[["refactoring_miner"]]
+git_repo_path <- conf[["data_path"]][["git"]]
+start_commit <- conf[["interval"]][["enumeration"]][["commit"]][1]
+end_commit <- conf[["interval"]][["enumeration"]][["commit"]][2]
+
+parse_java_code_refactoring_json(rminer_path,git_repo_path,start_commit,end_commit)
+```
+

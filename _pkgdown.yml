@@ -9,6 +9,7 @@ reference:
   - parse_gitlog
   - parse_mbox
   - parse_dependencies
+  - parse_java_code_refactoring_json
   - parse_nvdfeed
   - filter_by_file_extension
   - filter_by_filepath_substring
@@ -25,6 +26,7 @@ reference:
   desc:  Provide the same id to authors who use variations of names or emails.
 - contents:
   - assign_exact_identity
+  - assign_network_identity
 - title: Interval
   desc:  Provides different types of interval windows (e.g. release) for metric functions.
 - contents:

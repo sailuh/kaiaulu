@@ -411,6 +411,34 @@ parse_cve_cwe_file_network <- function(project_cve,nvd_feed){
   cve_cwe_file_network[["edgelist"]] <- cve_cwe_file_edgelist
   return(cve_cwe_file_network)
 }
+#' Parse Java Code Refactorings
+#'
+#' @param rminer_path The path to RMiner binary.
+#'  See \url{https://github.com/tsantalis/RefactoringMiner#running-refactoringminer-from-the-command-line}
+#' @param git_repo_path path to git repo (ends in .git)
+#' @param start_commit the start commit hash
+#' @param end_commit the end commit hash
+#' @export
+#' @references Nikolaos Tsantalis, Matin Mansouri, Laleh Eshkevari,
+#' Davood Mazinanian, and Danny Dig, "Accurate and Efficient Refactoring
+#' Detection in Commit History," 40th
+#' International Conference on Software Engineering (ICSE 2018),
+#' Gothenburg, Sweden, May 27 - June 3, 2018.
+parse_java_code_refactoring_json <- function(rminer_path,git_repo_path,start_commit,end_commit){
+  # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
+  rminer_path <- path.expand(rminer_path)
+  git_repo_path <- path.expand(git_repo_path)
+  # Remove ".git"
+  git_uri <- stri_replace_last(git_repo_path,replacement="",regex=".git")
+  # Use percerval to parse mbox_path. --json line is required to be parsed by jsonlite::fromJSON.
+  rminer_output <- system2(rminer_path,
+                             args = c('-bc',git_uri,start_commit,end_commit),
+                             stdout = TRUE,
+                             stderr = FALSE)
+  # Parsed JSON output as a data.table.
+  rminer_parsed <- jsonlite::parse_json(rminer_output)
+  return(rminer_parsed)
+}
 #' Filter commit files by extension
 #'
 #' Filters a data.table containing filepaths using the specified extensions

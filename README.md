@@ -19,21 +19,27 @@ Dependencies in this package are modular. Depending on what you seek, you may on
 
  1. Create a py virtualenv (optional)
  2. `pip3 install perceval`
- 3. `which perceval` (take note of the path for the vignette)
+ 3. `which perceval` `which perceval` and note its path in `tools.yml`.
  4. Open vignettes/gitlog_showcase.Rmd or vignettes/churn_metrics.Rmd for examples and viz on gitlog analysis. 
  
 ### Mailing List Analysis
 
  1. Create a py virtualenv (optional)
  2. `pip3 install perceval`
- 3. `which perceval` (take note of the path for the vignette)
+ 3. `which perceval` and note its path in `tools.yml`.
  4. Open vignettes/mailinglist_showcase.Rmd for examples and viz on mailing list analysis. 
  
 ### Static Code Analysis 
 
  1. Download [Depends release](https://github.com/multilang-depends/depends/releases/) (last tested on 0.96a)
- 2. Open the Depends folder, and take note of `depends.jar` path. 
+ 2. Open the Depends folder, and note the `depends.jar` path in `tools.yml`. 
  3. See vignettes/depends_showcase.Rmd for examples and viz on file dependency analysis.  
+ 
+### Refactoring Code Analysis (Java only)
+ 1. Download or clone most recent version of [Refactoring Miner](https://github.com/tsantalis/RefactoringMiner#running-refactoringminer-from-the-command-line)
+ 2. `cd` to Refactoring Miner folder and type `./gradlew distZip`
+ 3. Extract the file under `build/distribution/RefactoringMiner.zip` in the desired location
+ 4. In the extracted folder, locate `/bin/RefactoringMiner`, and note its path on Kaiaulu `tools.yml`.
 
 ## Usage 
 
