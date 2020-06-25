@@ -104,10 +104,10 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA,perl_regex=NA)
 #' Transform parsed git repo into an edgelist
 #'
 #' @param project_git A parsed git project by \code{parse_gitlog}.
-#' @param mode The network of interest: author-file, or commit-file
+#' @param mode The network of interest: author-file, commit-file, or author-comitter
 #' @export
 #' @family edgelists
-parse_gitlog_network <- function(project_git, mode = c("author","commit")){
+parse_gitlog_network <- function(project_git, mode = c("author","commit",'author-committer')){
   data.Author <- data.AuthorDate <- data.commit <- data.Commit <- data.CommitDate <- added <- removed <- NULL # due to NSE notes in R CMD check
   # Check user did not specify a mode that does not exist
   mode <- match.arg(mode)
@@ -144,6 +144,19 @@ parse_gitlog_network <- function(project_git, mode = c("author","commit")){
     git_nodes$type <-  ifelse(git_nodes$name %in% git_edgelist$commit_hash,
                                            TRUE,
                                            FALSE)
+  }else if(mode == "author-committer"){
+    # Select relevant columns for nodes
+    git_nodes <- unique(c(project_git$author,project_git$committer))
+    # Select relevant columns for edgelist, grouping repeated rows as the edgelist weights
+    git_edgelist <- project_git[,.(weight=.N),by=c("author","committer")]
+    # Color authors who appear at least once under comitter as gray. Author only roles are black as usual.
+    git_nodes <- data.table(name=git_nodes,color=ifelse(git_nodes %in% git_edgelist$committer,
+                                                        "#bed7be",
+                                                        "black"))
+    # This undirected graph is also bipartite
+    git_nodes$type <-  ifelse(git_nodes$name %in% git_edgelist$author,
+                              TRUE,
+                              FALSE)
   }
   git_network <- list()
   git_network[["nodes"]] <- git_nodes

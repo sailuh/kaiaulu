@@ -4,12 +4,15 @@
 \alias{parse_gitlog_network}
 \title{Transform parsed git repo into an edgelist}
 \usage{
-parse_gitlog_network(project_git, mode = c("author", "commit"))
+parse_gitlog_network(
+  project_git,
+  mode = c("author", "commit", "author-committer")
+)
 }
 \arguments{
 \item{project_git}{A parsed git project by \code{parse_gitlog}.}
 
-\item{mode}{The network of interest: author-file, or commit-file}
+\item{mode}{The network of interest: author-file, commit-file, or author-comitter}
 }
 \description{
 Transform parsed git repo into an edgelist
