@@ -439,6 +439,32 @@ parse_java_code_refactoring_json <- function(rminer_path,git_repo_path,start_com
   rminer_parsed <- jsonlite::parse_json(rminer_output)
   return(rminer_parsed)
 }
+#' Parse File Line Metrics
+#'
+#' @param scc_path The path to scc binary.
+#'  See \url{https://github.com/boyter/scc}
+#' @param git_repo_path path to git repo (ends in .git)
+#' @export
+parse_line_metrics <- function(scc_path,git_repo_path){
+  # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
+  scc_path <- path.expand(scc_path)
+  git_repo_path <- path.expand(git_repo_path)
+  # Remove ".git"
+  folder_path <- stri_replace_last(git_repo_path,replacement="",regex=".git")
+  # Use Depends to parse the code folder.
+  stdout <- system2(
+    scc_path,
+    args = c(folder_path, '--by-file','--format','csv'),
+    stdout = TRUE,
+    stderr = FALSE
+  )
+  line_metrics <- fread(stri_c(stdout,collapse = "\n"))
+  # /Users/user/git_repos/APR/xml/apr_xml_xmllite.c => "xml/apr_xml_xmllite.c"
+  line_metrics$Location <- stri_replace_first(line_metrics$Location,
+                                              replacement="",
+                                              regex=folder_path)
+  return(line_metrics)
+}
 #' Filter commit files by extension
 #'
 #' Filters a data.table containing filepaths using the specified extensions

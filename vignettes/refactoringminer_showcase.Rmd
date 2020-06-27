@@ -24,6 +24,14 @@ git_repo_path <- conf[["data_path"]][["git"]]
 start_commit <- conf[["interval"]][["enumeration"]][["commit"]][1]
 end_commit <- conf[["interval"]][["enumeration"]][["commit"]][2]
 
-parse_java_code_refactoring_json(rminer_path,git_repo_path,start_commit,end_commit)
+
+```
+
+A sample of parsed refactorings is shown below in json format:
+
+```{r}
+refactorings <- parse_java_code_refactoring_json(rminer_path,git_repo_path,start_commit,end_commit)
+
+str(refactorings$commits[16])
 ```
 

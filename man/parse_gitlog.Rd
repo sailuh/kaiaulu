@@ -4,7 +4,7 @@
 \alias{parse_gitlog}
 \title{Parse gitlog from Perceval}
 \usage{
-parse_gitlog(perceval_path, git_repo_path, save_path = NA)
+parse_gitlog(perceval_path, git_repo_path, save_path = NA, perl_regex = NA)
 }
 \arguments{
 \item{perceval_path}{path to perceval binary}
@@ -12,14 +12,13 @@ parse_gitlog(perceval_path, git_repo_path, save_path = NA)
 \item{git_repo_path}{path to git repo (ends in .git)}
 
 \item{save_path}{optional save path for .rds object}
+
+\item{from_date}{a string of the form "YYYY-MM-DD"}
+
+\item{to_date}{a string of the form "YYYY-MM-DD"}
 }
 \description{
 Parse gitlog from Perceval
 }
-\seealso{
-Other parsers: 
-\code{\link{parse_dependencies}()},
-\code{\link{parse_mbox}()},
-\code{\link{parse_nvdfeed}()}
-}
-\concept{parsers}
+\concept{parsers
+--all',}

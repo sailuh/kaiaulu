@@ -1,0 +1,34 @@
+---
+title: "File Line Metrics Showcase"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{File Line Metrics Showcase}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r warning = FALSE, message = FALSE}
+require(kaiaulu)
+require(data.table)
+require(knitr)
+```
+
+This is a wrapper for [SCC](https://github.com/boyter/scc). See README.md for setup details.
+
+```{r}
+tool <- yaml::read_yaml("../tools.yml")
+conf <- yaml::read_yaml("../conf/apr.yml")
+scc_path <- tool[["scc"]]
+git_repo_path <- conf[["data_path"]][["git"]]
+```
+
+A sample of rows is shown below: 
+
+```{r}
+kable(head(parse_line_metrics(scc_path,git_repo_path),10))
+```
+
+

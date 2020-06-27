@@ -29,11 +29,17 @@ Dependencies in this package are modular. Depending on what you seek, you may on
  3. `which perceval` and note its path in `tools.yml`.
  4. Open vignettes/mailinglist_showcase.Rmd for examples and viz on mailing list analysis. 
  
-### Static Code Analysis 
+### Dependency Analysis 
 
  1. Download [Depends release](https://github.com/multilang-depends/depends/releases/) (last tested on 0.96a)
  2. Open the Depends folder, and note the `depends.jar` path in `tools.yml`. 
  3. See vignettes/depends_showcase.Rmd for examples and viz on file dependency analysis.  
+ 
+### Lines of Code, Comments, etc
+
+ 1. Download [scc](https://github.com/boyter/scc/releases) (last tested on 2.12.0)
+ 2. Unzip to obtain a `scc` executable. Note its path in `tools.yml`
+ 3. See vignettes/scc_showcase.Rmd for examples.
  
 ### Refactoring Code Analysis (Java only)
  1. Download or clone most recent version of [Refactoring Miner](https://github.com/tsantalis/RefactoringMiner#running-refactoringminer-from-the-command-line)

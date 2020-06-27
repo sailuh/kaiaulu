@@ -11,6 +11,7 @@ reference:
   - parse_dependencies
   - parse_java_code_refactoring_json
   - parse_nvdfeed
+  - parse_line_metrics
   - filter_by_file_extension
   - filter_by_filepath_substring
   - filter_by_commit_interval
