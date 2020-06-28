@@ -465,6 +465,37 @@ parse_line_metrics <- function(scc_path,git_repo_path){
                                               regex=folder_path)
   return(line_metrics)
 }
+#' Parse File Line Type
+#'
+#' @param utags_path The path to scc binary.
+#'  See \url{https://github.com/boyter/scc}
+#' @param git_repo_path path to git repo (ends in .git)
+#' @export
+parse_line_type <- function(utags_path,git_repo_path){
+  # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
+  utags_path <- path.expand(utags_path)
+  git_repo_path <- path.expand(git_repo_path)
+  # Remove ".git"
+  folder_path <- stri_replace_last(git_repo_path,replacement="",regex=".git")
+  # Use Depends to parse the code folder.
+  stdout <- system2(
+    utags_path,
+    args = c('-f','-','-x','-R',folder_path),
+    stdout = TRUE,
+    stderr = FALSE
+  )
+  line_types <- fread(stri_c(stdout,collapse = "\n"),sep="",
+                      strip.white=TRUE,
+                      header=FALSE)
+  line_types <- rbindlist(lapply(stri_match_all(stdout,regex="(\\w+)[\\s]+(\\w+)[\\s]+(\\d+)[\\s]+(\\S+)[\\s]+(.+)",simplify = TRUE),data.table))
+  colnames(line_types) <- c("raw_utag","token","line_type","line_number","file_path","line_content")
+
+  # /Users/user/git_repos/APR/xml/apr_xml_xmllite.c => "xml/apr_xml_xmllite.c"
+  line_types$file_path <- stri_replace_first(line_types$file_path,
+                                              replacement="",
+                                              regex=folder_path)
+  return(line_types)
+}
 #' Filter commit files by extension
 #'
 #' Filters a data.table containing filepaths using the specified extensions
@@ -522,6 +553,7 @@ utils::globalVariables(c("."))
 #' @importFrom magrittr %>%
 #' @importFrom stringi stri_replace_last
 #' @importFrom stringi stri_replace_first
+#' @importFrom stringi stri_match_all
 #' @importFrom stringi stri_match_first_regex
 #' @importFrom stringi stri_detect_regex
 #' @importFrom stringi stri_c

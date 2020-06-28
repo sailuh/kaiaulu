@@ -6,5 +6,7 @@ depends: ~/depends-0.9.6/depends.jar
 refactoring_miner: ~/RefactoringMiner-1.0/bin/RefactoringMiner
 # https://github.com/boyter/scc
 scc: ~/scc/scc
+# universal-ctags
+utags: /usr/local/Cellar/universal-ctags/HEAD-62f0144/bin/ctags
 # https://archdia.com/
 dv8: /Applications/dv8/bin/dv8-console

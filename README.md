@@ -39,7 +39,13 @@ Dependencies in this package are modular. Depending on what you seek, you may on
 
  1. Download [scc](https://github.com/boyter/scc/releases) (last tested on 2.12.0)
  2. Unzip to obtain a `scc` executable. Note its path in `tools.yml`
- 3. See vignettes/scc_showcase.Rmd for examples.
+ 3. See vignettes/line_metrics_showcase.Rmd for examples.
+ 
+### Line types 
+
+ 1. Download [Universal ctags](https://github.com/universal-ctags/ctags/blob/master/docs/osx.rst) using brew. 
+ 2. Emacs ctags may conflict with brew ctags. If so, using `ctags` may call emacs ctags instead of universal ctags from brew. Locate the binary of brew ctags and note its path on `tools.yml`
+ 3. See vignettes/line_type_showcase.Rmd for usage.
  
 ### Refactoring Code Analysis (Java only)
  1. Download or clone most recent version of [Refactoring Miner](https://github.com/tsantalis/RefactoringMiner#running-refactoringminer-from-the-command-line)

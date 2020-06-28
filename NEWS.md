@@ -3,8 +3,9 @@ kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (in developm
 
 ### NEW FEATURES
 
-  * adds various file line metrics `parse_line_metrics()`. See line_metrics_showcase.Rmd for example usage. See [#59](https://github.com/sailuh/kaiaulu/issues/59)
-  * adds gitlog parser for java code refactorings `parse_java_code_refactoring_json()`. See refactoringminer_showcase.Rmd for example usage. See [#57](https://github.com/sailuh/kaiaulu/issues/57)
+  * add source code line type identification using universal ctags `parse_line_type()`. See line_type_showcase.Rmd for usage. [#60](https://github.com/sailuh/kaiaulu/issues/60)
+  * adds various file line metrics `parse_line_metrics()`. See line_metrics_showcase.Rmd for example usage. [#59](https://github.com/sailuh/kaiaulu/issues/59)
+  * adds gitlog parser for java code refactorings `parse_java_code_refactoring_json()`. See refactoringminer_showcase.Rmd for example usage. [#57](https://github.com/sailuh/kaiaulu/issues/57)
   * file-cve-cwe networks can now be obtained by parsing nvd feeds for cve-cwe mapping `parse_nvdfeed()` and `parse_cve_cwe_file_network()`. See gitlog_showcase.Rmd for example usage. [#51](https://github.com/sailuh/kaiaulu/issues/51)
   * users can now specify the dependency types they wish to see for Depends on config file [#49](https://github.com/sailuh/kaiaulu/issues/49)
   * the number of commit messages which contains a given id can now be computed with `commit_message_id_coverage()`. See example on gitlog_showcase.Rmd. [#46](https://github.com/sailuh/kaiaulu/issues/46)

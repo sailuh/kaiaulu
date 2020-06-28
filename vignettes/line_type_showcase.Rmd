@@ -1,0 +1,34 @@
+---
+title: "File Line Type Showcase"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{File Line Type Showcase}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r warning = FALSE, message = FALSE}
+require(kaiaulu)
+require(data.table)
+require(knitr)
+```
+
+This is a wrapper for [Universal ctags](https://github.com/universal-ctags/ctags). See README.md for setup details.
+
+```{r}
+tool <- yaml::read_yaml("../tools.yml")
+conf <- yaml::read_yaml("../conf/apr.yml")
+utags_path <- tool[["utags"]]
+git_repo_path <- conf[["data_path"]][["git"]]
+```
+
+A sample of rows is shown below: 
+
+```{r}
+kable(head(parse_line_type(utags_path,git_repo_path)[order(file_path,line_number)],10))
+```
+
+
