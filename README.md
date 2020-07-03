@@ -19,7 +19,7 @@ Dependencies in this package are modular. Depending on what you seek, you may on
 
  1. Create a py virtualenv (optional)
  2. `pip3 install perceval`
- 3. `which perceval` `which perceval` and note its path in `tools.yml`.
+ 3. `which perceval` and note its path in `tools.yml`.
  4. Open vignettes/gitlog_showcase.Rmd or vignettes/churn_metrics.Rmd for examples and viz on gitlog analysis. 
  
 ### Mailing List Analysis

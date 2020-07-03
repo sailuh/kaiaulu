@@ -33,9 +33,15 @@ reference:
   desc:  Provides different types of interval windows (e.g. release) for metric functions.
 - contents:
   - interval_commit_metric
+  - get_date_from_commit_hash
 - title: Metrics
   desc:  Various metrics used to estimate code quality, complexity and effort
 - contents:
   - metric_churn_per_commit_interval
   - metric_churn_per_commit_per_file
   - commit_message_id_coverage
+- title: Git
+  desc:  Functions to interact with git interface to facilitate interval static code analysis.
+- contents:
+  - git_checkout
+  - git_head

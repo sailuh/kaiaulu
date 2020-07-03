@@ -42,6 +42,7 @@ interval_commit_metric <- function(project_git,dt_range,metric_function,
 #' @param commit_hash a string character with the commit hash we want to obtain the datetime from
 #' commit interval on the form `commitsha1-commitsha2`
 #' @return a numeric vector of `metric_function` values for each commit interval specified in `dt_range`
+#' @export
 get_date_from_commit_hash <- function(git_log,commit_hash){
   data.commit <- NULL # due to NSE notes in R CMD check
   return(git_log[data.commit == commit_hash]$data.AuthorDate[1])
