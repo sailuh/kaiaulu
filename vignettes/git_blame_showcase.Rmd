@@ -1,0 +1,45 @@
+---
+title: "git_blame_showcase"
+output: html_document
+---
+
+```{r warning=FALSE,message=FALSE}
+
+require(kaiaulu)
+require(visNetwork)
+require(reactable)
+require(data.table)
+require(igraph)
+require(yaml)
+library(stringi)
+```
+
+Load config file.
+
+```{r}
+tool <- yaml::read_yaml("../tools.yml")
+conf <- yaml::read_yaml("../conf/drill.yml")
+perceval_path <- tool[["perceval"]]
+git_repo_path <- conf[["data_path"]][["git"]]
+nvdfeed_folder_path <- conf[["data_path"]][["nvd_feed"]]
+
+commit_hash <- '408168c4fb50bc20f324849e8875ba2f43849ed8'
+gitlog_path<- '/tmp/gitlog.log'
+
+# Filters
+file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
+substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+```
+
+
+```{r pressure, echo=FALSE}
+#Checkout to the the last commit on the interval range.
+git_checkout(commit_hash,git_repo_path)
+# Compute the blame df 
+# The only inconvinient is that it works if in the conf file there is the absolute path of the git_repo
+git_blame_data_frame <- parse_git_blame(git_repo_path)
+# All commits that touched each line in all history of the repository (Take a while)
+git_blame_all_dataframe <- parse_git_blame(git_repo_path,all=TRUE)
+# All commits that touched each line in a time interval (Take a while)
+git_blame_interval_dataframe<-parse_git_blame(git_repo_path,all=TRUE, since="01-01-2012",until="01-01-2018")
+```

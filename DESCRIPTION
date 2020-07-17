@@ -6,7 +6,8 @@ Description: Communication and Collaboration Network Analysis.
 Authors@R: c(
     person('Carlos', 'Paradis', role = c('aut', 'cre'),
       email = 'cvas@hawaii.edu'),
-    person('Rick', 'Kazman', role = c('ths'))
+    person('Rick', 'Kazman', role = c('ths')),
+    person('Massimo', 'Manca', role = c('ctb'))
     )
 Maintainer: Carlos Paradis <cvas@hawaii.edu>
 License: MPL-2.0 | file LICENSE
@@ -32,4 +33,4 @@ Imports:
 VignetteBuilder: knitr
 URL: https://github.com/sailuh/kaiaulu
 BugReports: https://github.com/sailuh/kaiaulu/issues
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.1
