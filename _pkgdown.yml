@@ -13,6 +13,7 @@ reference:
   - parse_nvdfeed
   - parse_line_metrics
   - parse_line_type
+  - parse_commit_message_id
   - filter_by_file_extension
   - filter_by_filepath_substring
   - filter_by_commit_interval
@@ -45,3 +46,4 @@ reference:
 - contents:
   - git_checkout
   - git_head
+  - git_log

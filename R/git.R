@@ -26,7 +26,7 @@ git_checkout <- function(commit_hash,git_repo_path){
 }
 #' Gets the current commit hash head of the git repo
 #'
-#' @param commit_hash The commit hash the repo should be checkout
+#' @param git_repo_path The git repo path
 #' @return A commit hash character
 #' @export
 git_head <- function(git_repo_path){
@@ -40,4 +40,25 @@ git_head <- function(git_repo_path){
                   stdout = TRUE,
                   stderr = FALSE)
   return(head)
+}
+#' Saves gitlog to a path
+#'
+#' @param git_repo_path The git repo path
+#' @param flags Optional flags for git log command
+#' @param save_path the filepath to save the file
+#' @export
+git_log <- function(git_repo_path,flags,save_path){
+  system2(
+    "git",
+    args = c(
+      '--git-dir',
+      git_repo_path,
+      'log',
+      flags,
+      '>' ,
+      save_path
+    ),
+    stdout = TRUE,
+    stderr = FALSE
+  )
 }

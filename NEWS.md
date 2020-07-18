@@ -31,6 +31,7 @@ kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (in developm
 
 ### MINOR IMPROVEMENTS
 
+  * refactored git_log() from parse_gilog and parse_commit_message_id() from R/parsers.R. [#74](https://github.com/sailuh/kaiaulu/issues/74)
   * various functions were moved to different files to clarify the API. [#73](https://github.com/sailuh/kaiaulu/issues/73)
   * config files were refactored for clarity and to accomodate dv8 wrapper. [#50](https://github.com/sailuh/kaiaulu/issues/50)
   * vignettes dependencies_showcase.Rmd and gitlog_showcase.Rmd now also make use of the chosen heuristics to filter files. Up to this point only interval_and_metric_showcase.Rmd used them. [#30](https://github.com/sailuh/kaiaulu/issues/30) 
