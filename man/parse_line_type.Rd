@@ -8,7 +8,7 @@ parse_line_type(utags_path, git_repo_path)
 }
 \arguments{
 \item{utags_path}{The path to scc binary.
-See \url{https://github.com/boyter/scc}}
+See \url{https://github.com/universal-ctags/ctags}}
 
 \item{git_repo_path}{path to git repo (ends in .git)}
 }

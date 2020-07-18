@@ -18,6 +18,8 @@ Parse dependencies from Depends
 }
 \seealso{
 Other parsers: 
+\code{\link{parse_commit_message_id}()},
+\code{\link{parse_gitlog}()},
 \code{\link{parse_mbox}()},
 \code{\link{parse_nvdfeed}()}
 }

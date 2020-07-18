@@ -20,5 +20,11 @@ parse_gitlog(perceval_path, git_repo_path, save_path = NA, perl_regex = NA)
 \description{
 Parse gitlog from Perceval
 }
-\concept{parsers
---all',}
+\seealso{
+Other parsers: 
+\code{\link{parse_commit_message_id}()},
+\code{\link{parse_dependencies}()},
+\code{\link{parse_mbox}()},
+\code{\link{parse_nvdfeed}()}
+}
+\concept{parsers}
