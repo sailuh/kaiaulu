@@ -15,34 +15,44 @@ normalized_levenshtein <- function(a,b){
 #' @export
 format_name_email <- function(name_email){
   # Remove < or > if any
-  name_email <- stri_replace_all_regex(name_email,pattern="<|>",replacement="")
-  # Fix at, AT => @
-  at_regex <- "at|AT| at | AT "
-  name_email <- stri_replace_last_regex(name_email,pattern=at_regex,replacement="@")
+  name_email <- stri_replace_all_regex(name_email,
+                                       pattern='<|>|\\(|\\)|\\"|,| via RT'
+                                       ,replacement="")
+
+  # Fix at only if @ doesnt exist. Matt != M@t (See unit test)
+  email_symbol_exist <- any(!is.na(stri_match_all(name_email,regex = "@")))
+  # The @ is hiding somewhere. Find it!
+  if(!email_symbol_exist){
+    # Find the at!
+    at_regex <- "-at-| at | AT | At | aT |at|AT|At|aT"
+    name_email <- stri_replace_last_regex(name_email,pattern=at_regex,replacement="@")
+  }else{
+    # Fix spaced at, AT => @
+    at_regex <- "-at-|AT| at | AT "
+    name_email <- stri_replace_last_regex(name_email,pattern=at_regex,replacement="@")
+  }
   return(name_email)
 }
 #' Split Name and Email
 #' @param name_email A formatted name and email.
 #' @export
 split_name_email <- function(name_email){ # rename parameter to format_name_email
-  name_email_split <- list()
-  name_email_split[["name"]] <- NA
-  name_email_split[["email"]] <- NA
-  name_email_split[["id"]] <- NA
-
-  name_email <- stri_split_regex(name_email,pattern=" ")[[1]]
-  # If there is a name AND email (assumes name occurs before email)
-  if(length(name_email)  > 1){
-    name_email_split[["name"]] <- stri_c(name_email[1:(length(name_email)-1)],collapse=" ")
-    name_email_split[["email"]] <- name_email[length(name_email)]
-    # Only name or email exist -- which?
-  }else if(length(name_email) == 1){
-    is_email <- drop(!is.na(stri_match_first(name_email,regex = "@")))
-    if(is_email){
-      name_email_split[["email"]] <- name_email
-    }else{
-      name_email_split[["name"]] <- name_email
-    }
+  name_email_split <- list(name = NA, email = NA, id = NA)
+  words <- stri_split_regex(name_email,pattern=" ")[[1]]
+  n_words <- length(words)
+  # Which string is name, and which string is email?
+  email_index <- which(!is.na(stri_match_first(words,regex = "@")))
+  contains_email <- length(email_index) == 1
+  # If there is a name AND email
+  if(n_words > 1 & contains_email){
+    name_email_split[["email"]] <- words[email_index]
+    name_email_split[["name"]] <- stri_c(words[!(1:n_words %in% email_index)],
+                                         collapse=" ")
+   # Only name or email exist -- which?
+  }else if(n_words <= 1 & contains_email){
+      name_email_split[["email"]] <- words[email_index]
+  }else{
+      name_email_split[["name"]] <- stri_c(words,collapse=" ")
   }
   return(name_email_split)
 }
@@ -51,42 +61,61 @@ split_name_email <- function(name_email){ # rename parameter to format_name_emai
 #' @param j Index of the second identity
 #' @param parsed_name_email The list of name and email identities
 #' @export
-is_same_identity <- function(i,j,parsed_name_email){
+is_same_identity <- function(i,j,parsed_name_email,use_name_only=FALSE){
   # R does not stop on first false condition on AND like C.
-  if(i == 0){
+  if(j == 0){
     return(FALSE)
   }
+  # name comparison
   is_name_match <- stri_cmp_eq(parsed_name_email[[i]]$name,
                                parsed_name_email[[j]]$name)
   # name is missing to compare
   is_name_match <- ifelse(is.na(is_name_match),FALSE,is_name_match)
 
+  # reverse name comparison
+  name <- stri_split_regex(parsed_name_email[[i]]$name," ")[[1]]
+  reverse_name <- stri_c(name[length(name):1],collapse=" ")
+  is_reverse_name_match <- stri_cmp_eq(reverse_name,
+                                       parsed_name_email[[j]]$name)
+  # reverse name is missing
+  is_reverse_name_match <- ifelse(is.na(is_reverse_name_match),
+                                  FALSE,
+                                  is_reverse_name_match)
+
+  # email comparison
   is_email_match <- stri_cmp_eq(parsed_name_email[[i]]$email,
                                 parsed_name_email[[j]]$email)
-  # name is missing to comppare
+  # email is missing to compare
   is_email_match <- ifelse(is.na(is_email_match),FALSE,is_email_match)
-  return(is_name_match | is_email_match)
+
+  if(use_name_only){
+    return(is_name_match)
+  }else{
+    return(is_name_match | is_reverse_name_match | is_email_match)
+  }
 }
 
 #' Identify authors with different names and emails
 #'
 #' @param unique_name_email A single string containing name and email as used in git and mailinglists.
 #' @export
-assign_exact_identity <- function(unique_name_email){
+assign_exact_identity <- function(unique_name_email,use_name_only=FALSE){
   formatted_name_email <- format_name_email(unique_name_email)
-  A <- lapply(unique_name_email,split_name_email)
+  A <- lapply(formatted_name_email,split_name_email)
   id <- 1
   i <- 1
   while( i <= length(A)){
     j <- i
-    while(j > 1 & !is_same_identity(j-1,i,A)){
+    while(j >= 2 & !is_same_identity(i,j-1,A,use_name_only)){
       j <- j - 1
     }
+    # When j == 2, we tested A[i] and A[j-1]
+    # Hence, no id is found or j would be 2
     # No existing id found, assign new id
     if(j == 1){
       A[[i]]$id <- id
       id <- id + 1
-    # j > 1 and a match was found
+    # a match was found
     }else{
       A[[i]]$id <- A[[j-1]]$id
     }
@@ -101,7 +130,7 @@ assign_exact_identity <- function(unique_name_email){
 #' @param assign_identity_function The heuristic function which decides common IDs
 #' (currently only available: \code{\link{assign_network_identity}})
 #' @export
-assign_network_identity <- function(project_git,project_mbox,assign_identity_function){
+assign_network_identity <- function(project_git,project_mbox,assign_identity_function,use_name_only=FALSE){
   # git_author_network type == TRUE if node is author, else is file
   git_authors <- project_git[["nodes"]]$name[project_git[["nodes"]]$type]
   git_files <- project_git[["nodes"]]$name[!project_git[["nodes"]]$type]
@@ -111,7 +140,7 @@ assign_network_identity <- function(project_git,project_mbox,assign_identity_fun
   mbox_threads <- project_mbox[["nodes"]]$name[!project_mbox[["nodes"]]$type]
 
   all_name_emails <- unique(c(git_authors,mbox_authors))
-  name_mapping <- data.table(raw_name=all_name_emails,id=assign_identity_function(all_name_emails))
+  name_mapping <- data.table(raw_name=all_name_emails,id=assign_identity_function(all_name_emails,use_name_only))
 
   # Map the ids to git_authors vertices from the graph
   author_v_ids <- merge(data.table(raw_name=git_authors),

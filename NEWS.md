@@ -3,6 +3,7 @@ kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (in developm
 
 ### NEW FEATURES
 
+  * several fixes and improvements to R/string.R to assign identity under different ways to define name and e-mail between different sources. All tests now pass, and assign_exact_identity() can also perform identity match based on name only, should the e-mails be redacted (e.g. Google Groups) or missing. [#72](https://github.com/sailuh/kaiaulu/issues/72)  
   * add unit tests framework testthat and several tests for identity service. [#38](https://github.com/sailuh/kaiaulu/issues/38)
   * add new module R/git.R to facilitate checking current branch `git_head()` and checkout to a particular commit `git_checkout()`, the later required to analyze multiple intervals with static code analysis such as `parse_line_metrics()` and `parse_dependencies()`. A vignette will be added at a later date showcasing the functions. [#62](https://github.com/sailuh/kaiaulu/issues/62)
   * add source code line type identification using universal ctags `parse_line_type()`. See line_type_showcase.Rmd for usage. [#60](https://github.com/sailuh/kaiaulu/issues/60)
