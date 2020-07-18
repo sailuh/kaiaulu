@@ -3,7 +3,8 @@ kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (in developm
 
 ### NEW FEATURES
 
-  * add new module R/git.R to facilitate checking current branch `git_head()` and checkout to a particular commit `git_checkout`, the later required to analyze multiple intervals with static code analysis such as `parse_line_metrics()` and `parse_dependencies()`. A vignette will be added at a later date showcasing the functions. [#62](https://github.com/sailuh/kaiaulu/issues/62)
+  * add unit tests framework testthat and several tests for identity service. [#38](https://github.com/sailuh/kaiaulu/issues/38)
+  * add new module R/git.R to facilitate checking current branch `git_head()` and checkout to a particular commit `git_checkout()`, the later required to analyze multiple intervals with static code analysis such as `parse_line_metrics()` and `parse_dependencies()`. A vignette will be added at a later date showcasing the functions. [#62](https://github.com/sailuh/kaiaulu/issues/62)
   * add source code line type identification using universal ctags `parse_line_type()`. See line_type_showcase.Rmd for usage. [#60](https://github.com/sailuh/kaiaulu/issues/60)
   * adds various file line metrics `parse_line_metrics()`. See line_metrics_showcase.Rmd for example usage. [#59](https://github.com/sailuh/kaiaulu/issues/59)
   * adds gitlog parser for java code refactorings `parse_java_code_refactoring_json()`. See refactoringminer_showcase.Rmd for example usage. [#57](https://github.com/sailuh/kaiaulu/issues/57)

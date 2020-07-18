@@ -7,7 +7,7 @@
 git_head(git_repo_path)
 }
 \arguments{
-\item{commit_hash}{The commit hash the repo should be checkout}
+\item{git_repo_path}{The git repo path}
 }
 \value{
 A commit hash character
