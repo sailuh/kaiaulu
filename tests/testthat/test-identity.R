@@ -1,5 +1,3 @@
-context("string.R")
-
 test_that("name and email are split from name_email strings", {
   require(stringi)
   split_format_name_email <- function(x) split_name_email(format_name_email(x))

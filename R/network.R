@@ -1,3 +1,7 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 #' Transform parsed git repo into an edgelist
 #'
 #' @param project_git A parsed git project by \code{parse_gitlog}.
