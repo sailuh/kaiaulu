@@ -62,3 +62,25 @@ git_log <- function(git_repo_path,flags,save_path){
     stderr = FALSE
   )
 }
+#' Git blame wrapper
+#'
+#' @param git_repo_path The git repo pat
+#' @param flags Optional flags for git log command
+#' @param commit_hash The commit hash of the file we will blame
+#' @param file_path The file we will blame
+#' @export
+git_blame <- function(git_repo_path,flags,commit_hash,file_path){
+  system2(
+    "git",
+    args = c(
+      '--git-dir',
+      git_repo_path,
+      'blame',
+      flags,
+      commit_hash,
+      file_path
+    ),
+    stdout = TRUE,
+    stderr = FALSE
+  )
+}

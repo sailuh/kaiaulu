@@ -14,6 +14,9 @@ reference:
   - parse_line_metrics
   - parse_line_type
   - parse_commit_message_id
+- title: Filters
+  desc:  Filters for file extensions, and substrings, such as test files, and time intervals.
+- contents:
   - filter_by_file_extension
   - filter_by_filepath_substring
   - filter_by_commit_interval
@@ -28,6 +31,9 @@ reference:
 - title: Identity
   desc:  Provide the same id to authors who use variations of names or emails.
 - contents:
+  - format_name_email
+  - split_name_email
+  - is_same_identity
   - assign_exact_identity
   - assign_network_identity
 - title: Interval
@@ -47,3 +53,4 @@ reference:
   - git_checkout
   - git_head
   - git_log
+  - git_blame
