@@ -14,14 +14,14 @@ git_checkout <- function(commit_hash,git_repo_path){
   # Remove ".git"
   folder_path <- stri_replace_last(git_repo_path,replacement="",regex=".git")
   error <- system2('git',
-                   args = c('--git-dir',
-                            git_repo_path,
-                            '--work-tree',
-                            folder_path,
-                            'checkout',
-                            commit_hash),
-                   stdout = TRUE,
-                   stderr = FALSE)
+                  args = c('--git-dir',
+                           git_repo_path,
+                           '--work-tree',
+                           folder_path,
+                           'checkout',
+                           commit_hash),
+                  stdout = TRUE,
+                  stderr = FALSE)
   return(error)
 }
 #' Gets the current commit hash head of the git repo
