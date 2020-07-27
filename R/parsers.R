@@ -555,6 +555,7 @@ filter_by_commit_interval <- function(git_log,start_commit,end_commit){
 #' @param git_repo_path git_repo_path path to git repo (ends in .git)
 #' @param flags the parameters for invoking git blame (https://git-scm.com/docs/git-blame)
 #' @param commit_hash a commit hash which indicates the specific version of the file (the commit must exist in `git_log`)
+#' @param file_path the relative path of the file to analyse
 #' @return a data.table which contains blame commits for each line of a file and metadata of the commits.
 #' @export
 parse_git_blame <- function(git_repo_path,flags,commit_hash,file_path){
