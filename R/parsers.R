@@ -548,6 +548,62 @@ filter_by_commit_interval <- function(git_log,start_commit,end_commit){
   git_log <- git_log[data.AuthorDate >= start_date & data.AuthorDate <= end_date]
   return(git_log)
 }
+#' Parse the git blame message of a file
+#'
+#' Create a data.table with the blame data of each line of a file in a specific commit.
+#'
+#' @param git_repo_path git_repo_path path to git repo (ends in .git)
+#' @param flags the parameters for invoking git blame (https://git-scm.com/docs/git-blame)
+#' @param commit_hash a commit hash which indicates the specific version of the file (the commit must exist in `git_log`)
+#' @return a data.table which contains blame commits for each line of a file and metadata of the commits.
+#' @export
+parse_git_blame <- function(git_repo_path,flags,commit_hash,file_path){
+  # Call function git_blame to obtain the blame message into blame_file
+  blame_file <- git_blame(git_repo_path,
+                          flags,
+                          commit_hash,
+                          file_path)
+ # Regex to find the commit that refers to the blame of a line
+  cond<-'(?<=.)(?=[a-f0-9]{40} \\d+)'
+  # Paste the content of blame_file into one line
+  pasted <- paste(blame_file,collapse = '')
+  # Split the pasted text on the commits that refer to the blame
+  splitted <- stri_split_regex(pasted,cond)
+  # contains the hash of the blame commit, the line on the original and line on the final file all together
+  commit_line <- stri_match_all_regex(unlist(splitted),"^([a-f0-9]{40}) (\\d+) (\\d+)")
+  # Retrieve from these characters the hash only
+  commits <- unlist(lapply(commit_line, `[[`, 2))
+  # Retrieve from these characters the number of line on the original files only
+  line_number_of_the_line_in_the_original_file <- unlist(lapply(commit_line, `[[`, 3))
+  # Retrieve from these character the number of line on the final file only
+  line_number_of_the_line_in_the_final_file <- unlist(lapply(commit_line, `[[`, 4))
+  # Retrieve with regex functions other metadata from the chatacters splitted on the hash.
+  authors <- unlist(stri_match_all_regex(unlist(splitted), "(?<=author).*(?=author-mail)"))
+  author_mails <- unlist(stri_match_all_regex(unlist(splitted), "(?<=author-mail).*(?=author-time)"))
+  author_time <- unlist(stri_match_all_regex(unlist(splitted), "(?<=author-time).*(?=author-tz)"))
+  committers <- unlist(stri_match_all_regex(unlist(splitted), "(?<=committer).*(?=committer-mail)"))
+  committer_mails <- unlist(stri_match_all_regex(unlist(splitted), "(?<=committer-mail).*(?=committer-time)"))
+  committer_time <- unlist(stri_match_all_regex(unlist(splitted), "(?<=committer-time).*(?=committer-tz)"))
+  committer_tz <- unlist(stri_match_all_regex(unlist(splitted), "(?<=committer-tz).*(?=summary)"))
+  summaries <- unlist(stri_match_all_regex(unlist(splitted), "(?<=summary).*(?=filename)"))
+  file_names <- unlist(stri_match_all_regex(unlist(splitted), "(?<=filename).*(?=\t)"))
+  lines <- unlist(stri_match_all_regex(unlist(splitted), "(?<=\t).*$"))
+  # Clean the retrieved metadata from the white space on the first position
+  authors <- sub('.', '', authors)
+  author_mails <- sub('.', '', author_mails)
+  author_time <- sub('.', '', author_time)
+  committers <- sub('.', '', committers)
+  committer_mails <- sub('.', '', committer_mails)
+  committer_time <- sub('.', '', committer_time)
+  committer_tz <- sub('.', '', committer_tz)
+  summaries <- sub('.', '', summaries)
+  file_names <- sub('.', '', file_names)
+  # Crete a table with the metadata of the blame message
+  df <- data.table(commits,line_number_of_the_line_in_the_original_file,line_number_of_the_line_in_the_final_file,
+                   authors,author_mails,author_time,committers,committer_mails,committer_time,committer_tz,summaries,
+                   file_names,lines)
+  return(df)
+}
 # Various imports
 utils::globalVariables(c("."))
 #' @importFrom magrittr %>%

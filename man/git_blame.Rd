@@ -2,16 +2,19 @@
 % Please edit documentation in R/git.R
 \name{git_blame}
 \alias{git_blame}
-\title{Call git blame from cmd line and store the output in gitlog_path}
+\title{Git blame wrapper}
 \usage{
-git_blame(file_path)
+git_blame(git_repo_path, flags, commit_hash, file_path)
 }
 \arguments{
-\item{file_path}{The path of a file}
-}
-\value{
-the blame file
+\item{git_repo_path}{The git repo pat}
+
+\item{flags}{Optional flags for git log command}
+
+\item{commit_hash}{The commit hash of the file we will blame}
+
+\item{file_path}{The file we will blame}
 }
 \description{
-Call git blame from cmd line and store the output in gitlog_path
+Git blame wrapper
 }

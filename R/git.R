@@ -14,19 +14,19 @@ git_checkout <- function(commit_hash,git_repo_path){
   # Remove ".git"
   folder_path <- stri_replace_last(git_repo_path,replacement="",regex=".git")
   error <- system2('git',
-                  args = c('--git-dir',
-                           git_repo_path,
-                           '--work-tree',
-                           folder_path,
-                           'checkout',
-                           commit_hash),
-                  stdout = TRUE,
-                  stderr = FALSE)
+                   args = c('--git-dir',
+                            git_repo_path,
+                            '--work-tree',
+                            folder_path,
+                            'checkout',
+                            commit_hash),
+                   stdout = TRUE,
+                   stderr = FALSE)
   return(error)
 }
 #' Gets the current commit hash head of the git repo
 #'
-#' @param commit_hash The commit hash the repo should be checkout
+#' @param git_repo_path The git repo path
 #' @return A commit hash character
 #' @export
 git_head <- function(git_repo_path){
@@ -41,212 +41,46 @@ git_head <- function(git_repo_path){
                   stderr = FALSE)
   return(head)
 }
-
-#' Find the extension of a file
-#'
-#' @param filename The path or the name of a file
-#' @return The extension of a file
-#' @export
-extension <- function(filename){
-  last.index <- length(strsplit(filename, '\\.')[[1]])
-  ext <- strsplit(filename, '\\.')[[1]][last.index]
-  return(ext)
-}
-
-
-#' splith_path splits the file path into root adress and file name
-#'
-#' @param file_path The path of a file
-#' @return List: first element:root folder, second element:file name
-#' @export
-split_path <- function(file_path){
-  if(grepl('/', file_path))
-  {
-    last.index <- length(strsplit(file_path, '/')[[1]])
-    file <- strsplit(file_path, '/')[[1]][last.index]
-    folder_path <- stri_replace_last(file_path,replacement="",regex=file)
-  }
-  else
-  {
-    file <- file_path
-    folder_path <- ''
-  }
-  return(c(folder_path,file))
-}
-
-
-
-
-#' Stores the path of each file in a repository in a text file in /tmp/files.txt
+#' Saves gitlog to a path
 #'
 #' @param git_repo_path The git repo path
-#' @return A list containing all the files
+#' @param flags Optional flags for git log command
+#' @param save_path the filepath to save the file
 #' @export
-list_files_in_repo <- function(git_repo_path){
-# List all file in the checkout.
-cmd <- system2("git", args=c('--git-dir',
-                                    git_repo_path,
-                                    'ls-tree',
-                                    '--full-tree',
-                                    '-r',
-                                    '--name-only',
-                                    'HEAD',
-                                    '>',
-                                    '/tmp/files.txt'
-))
-files=readLines('/tmp/files.txt')
-return(files)
+git_log <- function(git_repo_path,flags,save_path){
+  system2(
+    "git",
+    args = c(
+      '--git-dir',
+      git_repo_path,
+      'log',
+      flags,
+      '>' ,
+      save_path
+    ),
+    stdout = TRUE,
+    stderr = FALSE
+  )
 }
-
-
-#' Call git blame from cmd line and store the output in gitlog_path
-#' @param file_path The path of a file
-#' @return the blame file
-#' @export
-git_blame  <- function(file_path)
-{
-  root_and_filename <- split_path(file_path)
-  file <- root_and_filename[2]
-  folder_path <- root_and_filename[1]
-
-  #Store the blame file into gitlog_path
-  terminal_cmd <- system2("git",
-                          args = c(#'--git-dir',
-                            #git_repo_path,
-                            #'--work-tree',
-                            '-C',
-                            folder_path,
-                            'blame',
-                            file,
-                            '-l',
-                            '-w',
-                            '-C',
-                            '-M',
-                            #'--all',
-                            '>',
-                            gitlog_path))
-  blame_file <- readLines(gitlog_path)
-  return(blame_file)
-}
-
-#' Call git blame from cmd line and store the output in gitlog_path
-#' @param file_path The path of a file
-#' @return the blame of a single line with all the commits that touched the lines
-#' @export
-git_blame_all <- function(file_path, line, since, until){
-
-  root_and_filename <- split_path(file_path)
-  file <- root_and_filename[2]
-  folder_path <- root_and_filename[1]
-  if(missing(since) || missing(until)) {
-    #Store the blame file into gitlog_path
-    terminal_cmd <- system2("git",
-                            args = c(#'--git-dir',
-                              #git_repo_path,
-                              #'--work-tree',
-                              '-C',
-                              root_and_filename[1],
-                              'log',
-                              '-L',
-                              paste(line,',',line,':',root_and_filename[2],sep=''),
-                              #'--all',
-                              '>',
-                              gitlog_path))
-  }
-  else{
-  #Store the blame file into gitlog_path
-  terminal_cmd <- system2("git",
-                          args = c(
-                            '-C',
-                            root_and_filename[1],
-                            'log',
-                            '--since',
-                            since,
-                            '--until',
-                            until,
-                            '-L',
-                            paste(line,',',line,':',root_and_filename[2],sep=''),
-                            '>',
-                            gitlog_path))
-  }
-  blame_of_a_line <- readLines(gitlog_path)
-  return(blame_of_a_line)
-}
-
-
-#' Creates a dataframe where each line of each file has the last commit that touched the line
+#' Git blame wrapper
 #'
-#' @param git_repo_path The git repo path
-#' @param all If FALSE returns only the last commit for each line, if TRUE all co
-#' @return Dataframe with the last commit that touched each line of all files
+#' @param git_repo_path The git repo pat
+#' @param flags Optional flags for git log command
+#' @param commit_hash The commit hash of the file we will blame
+#' @param file_path The file we will blame
 #' @export
-#'
-parse_git_blame <- function(git_repo_path, all=FALSE, since, until){
-  # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
-  git_repo_path <- path.expand(git_repo_path)
-  # Remove ".git"
-  folder_path <- stri_replace_last(git_repo_path,replacement="",regex=".git")
-  # List all file in the checkout.
-  files = list_files_in_repo(git_repo_path)
-  # Initiate an empty dataframe
-  df <- data.table(key=c(file, path, line, commit))
-  file=1
-  while (file <= length(files)){
-    if (extension(files[file]) %in% c("cpp", "c", "h","java","js","py","cc" ))
-    {
-      root_and_filename <- split_path(files[file])
-      if(!(all)){
-      blame_file <- git_blame(paste(folder_path, files[file], sep=''))
-      length_file <- length(blame_file)
-      # Initiate an empty list to store commit of each line of a file
-      commit <- list()
-      #teratively pick the commit of each line from the blame file I
-      j =1
-      while(j<=length_file)
-      {
-        commit[[j]] <- strsplit(blame_file[j], ' ')[[1]][1]
-        j = j+1
-      }
-      # Create a sequence to from 1 to length of the blame file to name each line
-      line <- 1:length_file
-      # Create a dataframe with the information of the file in the current iteration
-      df_blame <- data.table(file=root_and_filename[2], path=root_and_filename[1], line, unlist(commit))
-
-      l = list(df, df_blame)
-      # Stack the dataframe of the current iteration to the overall dataframe
-      df <- rbindlist(l)
-      }
-      else{
-      blame_file <- git_blame(paste(folder_path, files[file], sep=''))
-      length_file <- length(blame_file)
-      # Initiate a loop to append to the commits of each line
-      line_file <- 1
-      while (line_file <= length_file){
-        blame_of_a_line <- git_blame_all(paste(folder_path, files[file], sep=''),line_file, since, until)
-        line <- 1
-        while(line<=length(blame_of_a_line))
-        {
-          if(grepl('commit', blame_of_a_line[line]))
-          {
-            commit_blame <- strsplit(blame_of_a_line[line], ' ')[[1]][2]
-            # Create a dataframe with the information of the line within a file in the current iteration
-            df_blame <- data.table(file=root_and_filename[2], path=root_and_filename[1], line_file , commit_blame)
-
-            l = list(df, df_blame)
-            # Stack the dataframe of the current iteration to the overall dataframe
-            df <- rbindlist(l)
-          }
-          line <- line + 1
-        }
-        line_file <- line_file + 1
-      }}
-      }
-    file=file+1}
-  return(df)
+git_blame <- function(git_repo_path,flags,commit_hash,file_path){
+  system2(
+    "git",
+    args = c(
+      '--git-dir',
+      git_repo_path,
+      'blame',
+      flags,
+      commit_hash,
+      file_path
+    ),
+    stdout = TRUE,
+    stderr = FALSE
+  )
 }
-
-
-
-#utils::globalVariables(c("."))
-#' @importFrom stringi stri_replace_last
-#NULL
