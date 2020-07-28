@@ -18,7 +18,7 @@ data_path:
   # You can obtain them freely at: https://nvd.nist.gov/vuln/data-feeds
   #nvd_feed: rawdata/nvdfeed
 issue_tracker:
-  url: http://mail-archives.apache.org/mod_mbox/flink-issues/
+  url: https://issues.apache.org/jira/projects/KAFKA/issues/KAFKA-10319?filter=allopenissues
   # types: bugzilla, jira, other
   type: jira
 interval:
