@@ -72,11 +72,11 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA,perl_regex=NA)
   perceval_parsed <- perceval_parsed[, .(file=unlist(data.files[[1]]$file),
                                          added=unlist(data.files[[1]]$added),
                                          removed=unlist(data.files[[1]]$removed)),, by = list(data.Author,
-                                                                                       data.AuthorDate,
-                                                                                       data.commit,
-                                                                                       data.Commit,
-                                                                                       data.CommitDate,
-                                                                                       data.message)]
+                                                                                              data.AuthorDate,
+                                                                                              data.commit,
+                                                                                              data.Commit,
+                                                                                              data.CommitDate,
+                                                                                              data.message)]
   # Parsing gitlog can take awhile, save if a path is provided
   if(!is.na(save_path)){
     saveRDS(perceval_parsed,save_path)
@@ -96,6 +96,133 @@ parse_commit_message_id <- function(project_git, commit_message_id_regex){
                                                                                      pattern = commit_message_id_regex)
 
   return(project_git)
+}
+#' Parse the git blame message of a file
+#'
+#' Create a data.table with the blame data of each line of a file in a specific commit.
+#'
+#' @param git_repo_path git_repo_path path to git repo (ends in .git)
+#' @param commit_hash a commit hash which indicates the specific version of the file (the commit must exist in `git_log`)
+#' @return a data.table which contains blame commits for each line of a file and metadata of the commits.
+#' @param file_path the filepath to the file which will be blamed
+#' @export
+parse_git_blame <- function(git_repo_path,commit_hash,file_path){
+  parse_lines_content <- function(lines_content){
+    n_lines_content <- length(lines_content)
+    parsed_lines <- list(
+      commit_hash = NA_character_,
+      line_n_original_file = NA_character_,
+      line_n_final_file = NA_character_,
+      author_name = NA_character_,
+      author_email = NA_character_,
+      author_timestamp = NA_character_,
+      author_tz = NA_character_,
+      committer_name = NA_character_,
+      committer_email = NA_character_,
+      committer_timestamp = NA_character_,
+      committer_tz = NA_character_,
+      committer_summary = NA_character_,
+      previous_commit_hash = NA_character_,
+      previous_file = NA_character_,
+      filename = NA_character_,
+      content = NA_character_
+    )
+    # Case 1. No metadata, (starts with 'commit hash'
+    # followed by 'line content' -- total 2 lines)
+    if(n_lines_content == 2){
+      commit_line <- regex_git_blame_commit_line(lines_content[1])
+      parsed_lines[["commit_hash"]] <- commit_line[2]
+      parsed_lines[["line_n_original_file"]] <- commit_line[3]
+      parsed_lines[["line_n_final_file"]] <- commit_line[4]
+      parsed_lines[["content"]] <- lines_content[2]
+    }else if(n_lines_content == 4){
+      commit_line <- regex_git_blame_commit_line(lines_content[1])
+      parsed_lines[["commit_hash"]] <- commit_line[2]
+      previous_line <- regex_git_blame_previous_line(lines_content[2])
+      parsed_lines[["previous_commit_hash"]] = previous_line[2]
+      parsed_lines[["previous_file"]] = previous_line[3]
+      parsed_lines[["filename"]] = regex_git_blame_filename_line(lines_content[3])[2]
+      parsed_lines[["content"]] = lines_content[4]
+      # All lines immediately followed by a commit line and before the next commit line are one of 3 kinds:
+      # Case 2. Lines Metadata (starts with 'commit hash'
+      # ends with 'previous','filename',and 'line content' -- total of 13 lines)
+      # lines_content <- blame_content[1:13]
+    }else if(n_lines_content == 13){
+      commit_line <- regex_git_blame_commit_line(lines_content[1])
+      previous_line <- regex_git_blame_previous_line(lines_content[11])
+      parsed_lines[["commit_hash"]] = commit_line[2]
+      parsed_lines[["line_n_original_file"]] = commit_line[3]
+      parsed_lines[["line_n_final_file"]] = commit_line[4]
+      parsed_lines[["author_name"]] = regex_git_blame_author_name_line(lines_content[2])[2]
+      parsed_lines[["author_email"]] = regex_git_blame_author_email_line(lines_content[3])[2]
+      parsed_lines[["author_timestamp"]] = regex_git_blame_author_time_line(lines_content[4])[2]
+      parsed_lines[["author_tz"]] = regex_git_blame_author_tz_line(lines_content[5])[2]
+      parsed_lines[["committer_name"]] = regex_git_blame_committer_name_line(lines_content[6])[2]
+      parsed_lines[["committer_email"]] = regex_git_blame_committer_email_line(lines_content[7])[2]
+      parsed_lines[["committer_timestamp"]] = regex_git_blame_committer_time_line(lines_content[8])[2]
+      parsed_lines[["committer_tz"]] = regex_git_blame_committer_tz_line(lines_content[9])[2]
+      parsed_lines[["committer_summary"]] = regex_git_blame_summary_line(lines_content[10])[2]
+      parsed_lines[["previous_commit_hash"]] = previous_line[2]
+      parsed_lines[["previous_file"]] = previous_line[3]
+      parsed_lines[["filename"]] = regex_git_blame_filename_line(lines_content[12])[2]
+      parsed_lines[["content"]] = lines_content[13]
+      # Case 3. Lines Metadata (starts with 'commit hash'
+      # ends with 'summary','filename', and 'line content' (no 'previous') -- total 12 lines)
+      # lines_content <- blame_content[27:38]
+    }else if(n_lines_content == 12){
+      commit_line <- regex_git_blame_commit_line(lines_content[1])
+      parsed_lines[["commit_hash"]] = commit_line[2]
+      parsed_lines[["line_n_original_file"]] = commit_line[3]
+      parsed_lines[["line_n_final_file"]] = commit_line[4]
+      parsed_lines[["author_name"]] = regex_git_blame_author_name_line(lines_content[2])[2]
+      parsed_lines[["author_email"]] = regex_git_blame_author_email_line(lines_content[3])[2]
+      parsed_lines[["author_timestamp"]] = regex_git_blame_author_time_line(lines_content[4])[2]
+      parsed_lines[["author_tz"]] = regex_git_blame_author_tz_line(lines_content[5])[2]
+      parsed_lines[["committer_name"]] = regex_git_blame_committer_name_line(lines_content[6])[2]
+      parsed_lines[["committer_email"]] = regex_git_blame_committer_email_line(lines_content[7])[2]
+      parsed_lines[["committer_timestamp"]] = regex_git_blame_committer_time_line(lines_content[8])[2]
+      parsed_lines[["committer_tz"]] = regex_git_blame_committer_tz_line(lines_content[9])[2]
+      parsed_lines[["committer_summary"]] = regex_git_blame_summary_line(lines_content[10])[2]
+      parsed_lines[["filename"]] = regex_git_blame_filename_line(lines_content[11])[2]
+      parsed_lines[["content"]] = lines_content[12]
+    }else{
+      stop(stri_c("Do not know how to parse case with number of lines: ",
+                  length(lines_content)," commit hash: ",lines_content[1]))
+    }
+    return(parsed_lines)
+  }
+
+  # Call function git_blame to obtain the blame message into blame_file
+  blame_content <- git_blame(git_repo_path,
+                             flags=c('-p','-C','-w','-M'),
+                             commit_hash,
+                             file_path)
+  # Only commit or file lines are succeeded by content lines
+  # Parse all lines which are commit hashes - Only capture first 2 digits, 3rd is inconsistent
+  parsed_commit <- data.table(regex_git_blame_commit_line(blame_content))
+  setnames(parsed_commit,
+           old=c("V1","V2","V3","V4"),
+           new = c("raw_line","commit_hash","line_n_original_file","line_n_final_file"))
+  parsed_commit[,is_commit_line := !is.na(raw_line)]
+  non_parsed_lines_index <- which(is.na(parsed_commit$raw_line))
+  parsed_commit[non_parsed_lines_index,
+                raw_line := blame_content[non_parsed_lines_index]]
+  parsed_commit[,commit_hash_id := cumsum(is_commit_line)]
+  parsed_commit <- parsed_commit[,parse_lines_content(raw_line),by="commit_hash_id"]
+  mapping <- parsed_commit[!is.na(author_name),
+                           .(commit_hash,
+                             author_name,
+                             author_email,
+                             author_timestamp,
+                             author_tz,
+                             committer_name,
+                             committer_email,
+                             committer_timestamp,
+                             committer_tz,
+                             committer_summary)]
+  parsed_commit <- parsed_commit[,.(commit_hash,line_n_original_file,line_n_final_file,previous_commit_hash,content)]
+  parsed_commit[mapping, on = .(commit_hash), names(mapping) := mget(paste0("i.", names(mapping)))][]
+  return(parsed_commit)
 }
 #' Parse mbox from Perceval
 #'
@@ -118,7 +245,7 @@ parse_mbox <- function(perceval_path,mbox_path){
   perceval_parsed <- data.table(jsonlite::stream_in(textConnection(perceval_output),verbose=FALSE))
   # Parse timestamps and convert to UTC
   perceval_parsed$data.Date <- as.POSIXct(perceval_parsed$data.Date,
-                                                format = "%a, %d %b %Y %H:%M:%S %z", tz = "UTC")
+                                          format = "%a, %d %b %Y %H:%M:%S %z", tz = "UTC")
   return(perceval_parsed)
 }
 #' Parse dependencies from Depends
@@ -138,14 +265,14 @@ parse_dependencies <- function(depends_jar_path,git_repo_path,language){
   project_name <- project_name[length(project_name)-1]
   # Use Depends to parse the code folder.
   system2("java",
-                             args = c("-jar",depends_jar_path,
-                                      language,folder_path,
-                                      project_name,'--dir=/tmp/',
-                                      '--auto-include',
-                                      '--granularity=file', '--namepattern=/',
-                                      '--format=json'),
-                             stdout = FALSE,
-                             stderr = FALSE)
+          args = c("-jar",depends_jar_path,
+                   language,folder_path,
+                   project_name,'--dir=/tmp/',
+                   '--auto-include',
+                   '--granularity=file', '--namepattern=/',
+                   '--format=json'),
+          stdout = FALSE,
+          stderr = FALSE)
   # Construct /tmp/ file path
   output_path <- stri_c("/tmp/",project_name,".json")
   # Parsed JSON output.
@@ -158,8 +285,8 @@ parse_dependencies <- function(depends_jar_path,git_repo_path,language){
   dependencies <- depends_parsed[["cells"]]
   # The types of dependencies is a list of lists. First we unlist the various types.
   dependencies_types <- rbindlist(lapply(dependencies,
-                                  function(x) as.data.table(x$values)),
-                           fill=TRUE)
+                                         function(x) as.data.table(x$values)),
+                                  fill=TRUE)
   # Fixes column types to numeric, and replace NAs by 0s, as an NA means 0 dependencies.
   dependencies_types <- data.table(sapply(dependencies_types,as.numeric))
   dependencies_types[is.na(dependencies_types)] <- 0
@@ -234,9 +361,9 @@ parse_java_code_refactoring_json <- function(rminer_path,git_repo_path,start_com
   git_uri <- stri_replace_last(git_repo_path,replacement="",regex=".git")
   # Use percerval to parse mbox_path. --json line is required to be parsed by jsonlite::fromJSON.
   rminer_output <- system2(rminer_path,
-                             args = c('-bc',git_uri,start_commit,end_commit),
-                             stdout = TRUE,
-                             stderr = FALSE)
+                           args = c('-bc',git_uri,start_commit,end_commit),
+                           stdout = TRUE,
+                           stderr = FALSE)
   # Parsed JSON output as a data.table.
   rminer_parsed <- jsonlite::parse_json(rminer_output)
   return(rminer_parsed)
@@ -294,8 +421,8 @@ parse_line_type <- function(utags_path,git_repo_path){
 
   # /Users/user/git_repos/APR/xml/apr_xml_xmllite.c => "xml/apr_xml_xmllite.c"
   line_types$file_path <- stri_replace_first(line_types$file_path,
-                                              replacement="",
-                                              regex=folder_path)
+                                             replacement="",
+                                             regex=folder_path)
   return(line_types)
 }
 

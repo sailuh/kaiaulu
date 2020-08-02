@@ -14,6 +14,7 @@ reference:
   - parse_line_metrics
   - parse_line_type
   - parse_commit_message_id
+  - parse_git_blame
 - title: Filters
   desc:  Filters for file extensions, and substrings, such as test files, and time intervals.
 - contents:
