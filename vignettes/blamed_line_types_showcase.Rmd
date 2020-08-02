@@ -1,0 +1,197 @@
+---
+title: "Blamed Line Types"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Blamed Line Types}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r warning=FALSE,message=FALSE}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+require(kaiaulu)
+require(stringi)
+require(data.table)
+require(knitr)
+require(formattable)
+require(magrittr)
+```
+
+# Introduction
+
+This vignette introduces the blamed line types concept of Kaiaulu. This is an extension to the idea defined in [Codeface](https://github.com/siemens/codeface) to combine `git blame` to `ctags` parser. 
+
+## Project Configuration File
+
+To identify line types, we must choose what types of lines are of our interest (e.g. functions, structs, etc). Kaiaulu defers to the project configuration file the choice of line types and uses [Universal Ctags](https://github.com/universal-ctags/ctags). The relevant portion of the configuration file in APR is as follows:
+
+```
+tool:
+  uctags:
+    # See https://github.com/sailuh/kaiaulu/wiki/Universal-Ctags for details
+    keep_lines_type:
+      c:
+        - f # function definition
+        - p # function prototype
+        - g # enumeration names
+        - u # union names
+      cpp:
+        - c # classes
+        - f # function definition
+        - p # function prototype
+        - g # enumeration names
+        - u # union names
+      java:
+        - c # classes
+        - m # methods
+        - g # enumeration types
+      python:
+        - c # classes
+        - f # functions
+      r:
+        - f # functions
+```
+
+[Kaiaulu's GitHub wiki page](https://github.com/sailuh/kaiaulu/wiki/Universal-Ctags) also provides more details on Universal Ctags various flags. 
+
+We also leverage from the project configuration file the location of the repository on the computer, commonly used across the other vignettes:
+
+```
+data_path:
+  git: ../rawdata/git_repo/apr/.git
+```
+
+And what file filters we desire:
+
+```
+filter:
+  keep_filepaths_ending_with:
+    - cpp
+    - c
+    - h
+    - java
+    - js
+    - py
+    - cc
+  remove_filepaths_containing:
+    - test
+```
+
+We load the above various sections of the single .yaml project configuration file as follows:
+
+```{r}
+tool <- yaml::read_yaml("../tools.yml")
+conf <- yaml::read_yaml("../conf/apr.yml")
+
+# 3rd Party Tools
+perceval_path <- tool[["perceval"]]
+utags_path <- tool[["utags"]]
+
+# Ctags Line Types
+kinds <- conf[["tool"]][["uctags"]][["keep_lines_type"]]
+
+# Local Git Repo Folder Path
+git_repo_path <- conf[["data_path"]][["git"]]
+
+# File Filters
+file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
+substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+```
+
+
+# First Step: Finding a File Change
+
+What file changes have been made which we can blame? We can find this information via the API after we `parse_gitlog()`, `filter_by_file_extension()` and `filter_by_filepath_substring()`:
+
+```{r}
+project_git <- parse_gitlog(perceval_path,git_repo_path)
+project_git <- project_git  %>%
+  filter_by_file_extension(file_extensions,"file")  %>% 
+  filter_by_filepath_substring(substring_filepath,"file")
+```
+
+To keep the example short, let's use a small file change made to APR's [groupinfo.c](https://github.com/apache/apr/blob/trunk/user/unix/groupinfo.c). We can queue the changes made to this file using Kaiaulu API as follows:
+
+```{r}
+file_path <- "user/unix/groupinfo.c"
+formattable(head(project_git[file == file_path]))
+```
+The 5th change looks non-trivial, 19 lines were changed. Let's consider this change commit hash for the remainder of this example:
+
+```{r}
+commit_hash <- head(project_git[file == file_path])[5]$data.commit
+formattable(head(project_git[file == file_path])[5])
+```
+
+Note while in this vignette we manually chose a small file for clarity, we could have iterated over the `parse_gitlog()` table to obtain the necessary information for the subsequent analysis presented in this vignette. 
+
+# Second Step: Blaming a File Change
+
+In posession of a `commit_hash` and a `file_path`, we can now move to the second step, blaming a file. We do so using Kaiaulu API as follows:
+
+```{r}
+blamed_file <- parse_git_blame(git_repo_path,commit_hash,file_path)
+```
+
+This is how the content of our file looks like after the 19 lines of code change: 
+
+```{r, comment="", prompt=TRUE}
+cat(blamed_file$content,sep="\n")
+```
+
+Blaming a file provides more than just content, however. Whereas `parse_gitlog()` only provide us with information of author and committers at file granularity, blaming a file with `parse_git_blame()` provides this at `line` granularity (note the last column to the right is, per row, 1 line of the original `groupinfo.c` source code):
+
+```{r}
+kable(blamed_file[, .(
+  author_name,
+  author_email,
+  author_timestamp,
+  author_tz,
+  committer_name,
+  committer_email,
+  committer_timestamp,
+  committer_tz,
+  commit_hash,
+  committer_summary,
+  line_n_original_file,
+  line_n_final_file,
+  line_content=content
+)])
+```
+
+
+We now know who were the people who last modified the blamed file. What else can we learn?
+
+# Third Step: Blamed Line Types
+
+A common question of Socio-technical analysis in mining software repositories is if a developer B, which makes changes to developer A code, communicated with developer A to make said changes.
+
+The reason we expect communication to be a healthy choice for the codebase is because we assume understanding another developer's code is not always easy, and subsequent misunderstandings can lead to bad things, such as code bugs or software vulnerabilities.
+
+We can extend this idea by moving it to a lower granularity than files: I.e. code lines. Suppose again Developer B makes a change in our exemple file `groupinfo.c`, which was previously modified by Developer A. Should B have communicated with A? The answer is: It depends what **type of line** B and A changed, or in other words as posed in [Mitchell Joblin's dissertation](https://www.infosun.fim.uni-passau.de/spl/theses/MitchellJoblinDiss.pdf), if the pair of lines constitutes **collaboration**. For example, while Developer A and Developer B may have changed different lines, they may still be **collaborating** if both lines are part of the **same function**.
+
+In Kaiaulu, you decide what pair of lines constitutes **collaboration** by choosing them in the project configuration file (see Section 1.1 of this vignette), **per language** in a given **project**. Before we construct the dependency between developers, however, we must know where in `groupinfo.c` the line types of interest are defined.
+
+We use the blamed file content, which is acquired by `parse_git_blame()`, and create a temporary file for Universal Ctags, similar to Codeface. This results in the following metadata:
+
+```{r}
+language <- stri_trans_tolower(last(stri_split_regex(file_path,"\\.")[[1]]))
+file_path <- make_temporary_file(blamed_file$content,extension = stri_c(".",language,collapse=""))
+tags <- parse_line_type_file(utags_path,file_path,kinds)
+unlink(file_path)
+kable(tags[, .(entity_name,
+                     line_content,
+                     entity_type,
+                     line_start,
+                     line_end)])
+```
+
+
+We can compare the `line_start` and `line_end` identified by Universal Ctags to see it indeed finds the start and ending line of the types of interest in `groupinfo.c`. 
+
+If we know the start and ending lines of the structures of interest, we can then verify if the lines changed by a developer are within the same function or any other type: Thus allowing to create dependency networks for our structures of our interest, which will be discussed in a future vignette.

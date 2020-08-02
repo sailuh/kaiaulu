@@ -61,6 +61,29 @@ tool:
       - Throw
       - Parameter
       - Contain
+  uctags:
+    # See https://github.com/sailuh/kaiaulu/wiki/Universal-Ctags for details
+    keep_lines_type:
+      c:
+        - f # function definition
+        - p # function prototype
+        - g # enumeration names
+        - u # union names
+      cpp:
+        - c # classes
+        - f # function definition
+        - p # function prototype
+        - g # enumeration names
+        - u # union names
+      java:
+        - c # classes
+        - m # methods
+        - g # enumeration types
+      python:
+        - c # classes
+        - f # functions
+      r:
+        - f # functions
 filter:
   keep_filepaths_ending_with:
     - cpp
@@ -74,4 +97,5 @@ filter:
     - test
 commit_message_id_regex:
   #issue_id: ?
-  #cve_id: ?
+  cve_id: (?i)CVE-[0-9]+-[0-9]+
+

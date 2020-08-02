@@ -12,7 +12,6 @@
 #' @export
 #' @family parsers
 parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA,perl_regex=NA){
-  data.files <- data.Author <- data.AuthorDate <- data.commit <- data.Commit <- data.CommitDate <- data.message <- NULL # due to NSE notes in R CMD check
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   perceval_path <- path.expand(perceval_path)
   git_repo_path <- path.expand(git_repo_path)
@@ -398,34 +397,39 @@ parse_line_metrics <- function(scc_path,git_repo_path){
 #'
 #' @param utags_path The path to scc binary.
 #'  See \url{https://github.com/universal-ctags/ctags}
-#' @param git_repo_path path to git repo (ends in .git)
+#' @param filepath path to file
 #' @export
-parse_line_type <- function(utags_path,git_repo_path){
+parse_line_type_file <- function(utags_path,filepath,kinds){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   utags_path <- path.expand(utags_path)
-  git_repo_path <- path.expand(git_repo_path)
-  # Remove ".git"
-  folder_path <- stri_replace_last(git_repo_path,replacement="",regex=".git")
-  # Use Depends to parse the code folder.
+  filepath <- path.expand(filepath)
+  language <- stri_trans_tolower(last(stri_split_regex(filepath,"\\.")[[1]]))
+  # Entity Kinds e.g. (function, class, etc) are specified by user.
+  file_kinds <- kinds[[language]]
+  # Specify fields of uctags output this function will parse and show to user:
+  # n = start line
+  # e = end line
+  # k = entity kind specified as single letter (i.e. 'f','c', etc)
+  fields <- c("n","e","k")
   stdout <- system2(
-    utags_path,
-    args = c('-f','-','-x','-R',folder_path),
+    command = utags_path,
+    args = c(
+      stri_c("--fields=",stri_c(fields, collapse = "")),
+      stri_c("--kinds-", language,"=",stri_c(file_kinds,collapse=""), collapse =""),
+      '-f','-',filepath),
     stdout = TRUE,
     stderr = FALSE
   )
-  line_types <- fread(stri_c(stdout,collapse = "\n"),sep="",
-                      strip.white=TRUE,
-                      header=FALSE)
-  line_types <- rbindlist(lapply(stri_match_all(stdout,regex="(\\w+)[\\s]+(\\w+)[\\s]+(\\d+)[\\s]+(\\S+)[\\s]+(.+)",simplify = TRUE),data.table))
-  colnames(line_types) <- c("raw_utag","token","line_type","line_number","file_path","line_content")
+  parsed_tags <- data.table(
+    stri_match_first_regex(stdout,
+                           pattern = '^(\\S+)\\t(\\S+)\\t/\\^(.+)\\$?\\/;\"\\t(\\w)\\tline:(\\d+)\\tend:(\\d+)')
+  )
+  setnames(parsed_tags,
+           c("raw_ctags","entity_name","filepath","line_content","entity_type","line_start","line_end"))
 
-  # /Users/user/git_repos/APR/xml/apr_xml_xmllite.c => "xml/apr_xml_xmllite.c"
-  line_types$file_path <- stri_replace_first(line_types$file_path,
-                                             replacement="",
-                                             regex=folder_path)
-  return(line_types)
+  parsed_tags[]
+  return(parsed_tags)
 }
-
 # Various imports
 utils::globalVariables(c("."))
 #' @importFrom magrittr %>%
