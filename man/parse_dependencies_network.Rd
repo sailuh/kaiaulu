@@ -19,6 +19,7 @@ Other edgelists:
 \code{\link{parse_commit_message_id_network}()},
 \code{\link{parse_cve_cwe_file_network}()},
 \code{\link{parse_gitlog_network}()},
+\code{\link{parse_gitlog_temporal_network}()},
 \code{\link{parse_mbox_network}()}
 }
 \concept{edgelists}

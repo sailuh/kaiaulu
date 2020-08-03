@@ -65,6 +65,75 @@ parse_gitlog_network <- function(project_git, mode = c("author","commit",'author
   return(git_network)
 
 }
+#' Create time-ordered contribution network
+#'
+#' @description Create a collaboration network as described by Joblin et al.
+#' where an edge from developer A to developer B is created if A modifies a
+#' file, and B modifies it chronologically immediately after. Note contrary
+#' to the paper this definition is for files, not functions, and the weight
+#' of the edges is the number of changes to a file, not churn.
+#'
+#' @param project_git A parsed git project by \code{parse_gitlog}.
+#' @export
+#' @family edgelists
+#' @references M. Joblin, W. Mauerer, S. Apel,
+#' J. Siegmund and D. Riehle, "From Developer Networks
+#' to Verified Communities: A Fine-Grained Approach,"
+#' 2015 IEEE/ACM 37th IEEE International Conference on
+#' Software Engineering, Florence, 2015, pp. 563-573,
+#' doi: 10.1109/ICSE.2015.73.
+parse_gitlog_temporal_network <- function(project_git, mode = c("author","identity")){
+  # The code from developer A was modified by developer B
+  # from A to B
+  get_consecutive_authors <- function(author_commit_date){
+    dt <- author_commit_date[order(data.AuthorDate)]
+    author <- dt$name
+    consecutive_authors <- data.table(from = author[1:(length(author) - 1)],
+                                      to = author[2:(length(author))])
+
+    return(consecutive_authors)
+  }
+
+  mode <- match.arg(mode)
+
+  # If identity matching was performed, use the name column will be id
+  if("id" %in% colnames(project_git)){
+    # Create nodes
+    project_git[,name:=id]
+    # Select relevant columns for nodes
+    git_nodes <- unique(project_git[,.(name,raw_name)])
+    git_nodes <- git_nodes[,.(raw_name = stri_c(raw_name,collapse = " | ")),
+                           by="name"]
+    setcolorder(git_nodes,c("name","raw_name"))
+    # Color nodes authors black, and files yellow
+    git_nodes[,color:="black"]
+
+    # Create edgelists
+    git_edgelist <- project_git[, get_consecutive_authors(.SD),
+                                by = c("file"),
+                                .SDcols = c("data.AuthorDate", "name")]
+    # Filter cases where no second change was made to a given file in git log
+    git_edgelist <- git_edgelist[complete.cases(git_edgelist)]
+    #setcolorder(git_edgelist,c("from","to","file"))
+    # Select relevant columns for edgelist, grouping repeated rows as the edgelist weights
+    git_edgelist <- git_edgelist[,.(weight=.N),by=c("from","to")]
+    # Assign to name the merged names or the id depending on user choice
+    if(mode == "author"){
+      mapping <- git_nodes$raw_name
+      names(mapping) <- git_nodes$name
+      git_nodes[,name:= raw_name]
+      git_edgelist[,from:= mapping[as.character(from)]]
+      git_edgelist[,to:= mapping[as.character(to)]]
+    }
+  }else{
+    stop("No id column found. Did you use identity matching?")
+  }
+
+  git_network <- list(nodes=git_nodes,edgelist=git_edgelist)
+
+
+  return(git_network)
+}
 #' Transform parsed cveid and nvdfeed into a network
 #'
 #' @param project_cve A parsed cve edgelist by \code{\link{parse_commit_message_id_network}}.

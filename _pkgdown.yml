@@ -7,6 +7,7 @@ reference:
   desc:  Provides various interfaces to external tools to parse data and filters.
 - contents:
   - parse_gitlog
+  - parse_git_blame
   - parse_mbox
   - parse_dependencies
   - parse_java_code_refactoring_json
@@ -14,7 +15,6 @@ reference:
   - parse_line_metrics
   - parse_line_type_file
   - parse_commit_message_id
-  - parse_git_blame
 - title: Filters
   desc:  Filters for file extensions, and substrings, such as test files, and time intervals.
 - contents:
@@ -29,6 +29,7 @@ reference:
   - parse_dependencies_network
   - parse_commit_message_id_network
   - parse_cve_cwe_file_network
+  - parse_gitlog_temporal_network
 - title: Identity
   desc:  Provide the same id to authors who use variations of names or emails.
 - contents:
@@ -48,6 +49,11 @@ reference:
   - metric_churn_per_commit_interval
   - metric_churn_per_commit_per_file
   - commit_message_id_coverage
+- title: IO
+  desc:  Functions to create and read temporary files in R.
+- contents:
+  - make_temporary_file
+  - read_temporary_file
 - title: Git
   desc:  Functions to interact with git interface to facilitate interval static code analysis.
 - contents:

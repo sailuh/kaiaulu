@@ -2,6 +2,7 @@ kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (in developm
 =========================
 
 ### NEW FEATURES
+  * added a new `parse_gitlog_temporal_network()` which provides a directed network for collaboration at file level. [#78](https://github.com/sailuh/kaiaulu/issues/78)
   * modify `parse_line_type()` to `parse_line_type_file()` to take as input information from git history instead of a local computer file, so it can be used to analyze git log changes. [#2](https://github.com/sailuh/kaiaulu/issues/2)
   * add `git_blame()` wrapper and parser. [#68](https://github.com/sailuh/kaiaulu/issues/68)
   * several fixes and improvements to R/string.R to assign identity under different ways to define name and e-mail between different sources. All tests now pass, and assign_exact_identity() can also perform identity match based on name only, should the e-mails be redacted (e.g. Google Groups) or missing. [#72](https://github.com/sailuh/kaiaulu/issues/72)  
