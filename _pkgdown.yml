@@ -8,6 +8,7 @@ reference:
 - contents:
   - parse_gitlog
   - parse_git_blame
+  - parse_gitlog_entity
   - parse_mbox
   - parse_dependencies
   - parse_java_code_refactoring_json
@@ -30,6 +31,8 @@ reference:
   - parse_commit_message_id_network
   - parse_cve_cwe_file_network
   - parse_gitlog_temporal_network
+  - parse_gitlog_entity_network
+  - parse_gitlog_entity_temporal_network
 - title: Identity
   desc:  Provide the same id to authors who use variations of names or emails.
 - contents:

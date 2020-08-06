@@ -1,0 +1,203 @@
+---
+title: "Git Log Entity vs File Network Showcase"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Git Log Entity vs File Network Showcase}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(visNetwork)
+require(reactable)
+require(data.table)
+require(igraph)
+require(yaml)
+require(stringi)
+require(knitr)
+```
+
+Load config file.
+
+```{r}
+tool <- yaml::read_yaml("../tools.yml")
+conf <- yaml::read_yaml("../conf/apr.yml")
+
+# 3rd Party Tools
+perceval_path <- tool[["perceval"]]
+utags_path <- tool[["utags"]]
+
+# Ctags Line Types
+kinds <- conf[["tool"]][["uctags"]][["keep_lines_type"]]
+
+# Local Git Repo Folder Path
+git_repo_path <- conf[["data_path"]][["git"]]
+
+# File Filters
+file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
+substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+```
+
+# Construct Contribution Network
+
+```{r}
+#save_path <- "/Users/cvp/Desktop/kaiaulu_project_input/rds/APR_git.rds"
+project_git <- parse_gitlog(perceval_path,git_repo_path)
+#project_git <- parse_gitlog(perceval_path,git_repo_path,save_path)
+#project_git <- readRDS(save_path)
+```
+
+# Filter files
+
+```{r}
+project_git <- project_git  %>%
+  filter_by_file_extension(file_extensions,"file")  %>% 
+  filter_by_filepath_substring(substring_filepath,"file")
+```
+
+```{r}
+project_git_slice <- project_git[data.AuthorDate >= as.POSIXct("2019-01-01", format = "%Y-%m-%d",tz = "UTC") & data.AuthorDate < as.POSIXct("2019-12-30", format = "%Y-%m-%d",tz = "UTC")]
+```
+
+```{r}
+changed_entities <- parse_gitlog_entity(git_repo_path,utags_path,project_git_slice,kinds)
+kable(head(changed_entities))
+```
+
+Identity 
+
+```{r}
+changed_entities[,c("data.Author",
+                    "data.AuthorDate",
+                    "data.commit",
+                    "data.Commit",
+                    "data.CommitDate",
+                    "entity",
+                    "weight"):=list(stri_c(author_name,author_email,sep= " "),
+                                    author_timestamp,
+                                    stri_c(committer_name,committer_email,sep= " "),
+                                    commit_hash,
+                                    committer_timestamp,
+                                    entity_definition_name,
+                                    n_lines_changed
+                                    )]
+
+changed_entities[,c("id","raw_name"):=list(assign_exact_identity(data.Author),data.Author)]
+```
+
+# Entity Networks
+
+## Parse Gitlog Entity Temporal Network
+
+```{r}
+project_temporal_collaboration_network <- parse_gitlog_entity_temporal_network(changed_entities,mode = "author")
+project_temporal_collaboration_network <- igraph::graph_from_data_frame(d=project_temporal_collaboration_network[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_temporal_collaboration_network[["nodes"]])
+visIgraph(project_temporal_collaboration_network,randomSeed = 1)
+```
+
+## Parse Git Log Only Function and Method Entities
+
+```{r}
+kinds <- list( java=c('c','m'), python=c('c','f'), cpp=c('c','f'), c=c('f') )
+changed_functions <- parse_gitlog_entity(git_repo_path,utags_path,project_git_slice,kinds)
+
+changed_functions[,c("data.Author",
+                    "data.AuthorDate",
+                    "data.commit",
+                    "data.Commit",
+                    "data.CommitDate",
+                    "entity",
+                    "weight"):=list(stri_c(author_name,author_email,sep= " "),
+                                    author_timestamp,
+                                    stri_c(committer_name,committer_email,sep= " "),
+                                    commit_hash,
+                                    committer_timestamp,
+                                    entity_definition_name,
+                                    n_lines_changed
+                                    )]
+changed_functions[,c("id","raw_name"):=list(assign_exact_identity(data.Author),data.Author)]
+
+
+project_temporal_collaboration_network <- parse_gitlog_entity_temporal_network(changed_functions,mode = "author")
+project_temporal_collaboration_network <- igraph::graph_from_data_frame(d=project_temporal_collaboration_network[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_temporal_collaboration_network[["nodes"]])
+visIgraph(project_temporal_collaboration_network,randomSeed = 1)
+```
+
+## Parse Git Log Only Class Entities
+
+```{r}
+kinds <- list( java=c('c'), python=c('c'), cpp=c('c'), c=c('') )
+changed_classes <- parse_gitlog_entity(git_repo_path,utags_path,project_git_slice,kinds)
+
+changed_classes[,c("data.Author",
+                    "data.AuthorDate",
+                    "data.commit",
+                    "data.Commit",
+                    "data.CommitDate",
+                    "entity",
+                    "weight"):=list(stri_c(author_name,author_email,sep= " "),
+                                    author_timestamp,
+                                    stri_c(committer_name,committer_email,sep= " "),
+                                    commit_hash,
+                                    committer_timestamp,
+                                    entity_definition_name,
+                                    n_lines_changed
+                                    )]
+changed_classes[,c("id","raw_name"):=list(assign_exact_identity(data.Author),data.Author)]
+
+
+project_temporal_collaboration_network <- parse_gitlog_entity_temporal_network(changed_classes,mode = "author")
+project_temporal_collaboration_network <- igraph::graph_from_data_frame(d=project_temporal_collaboration_network[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_temporal_collaboration_network[["nodes"]])
+visIgraph(project_temporal_collaboration_network,randomSeed = 1)
+```
+
+## Parse Git Log Author - Entity Network
+
+
+```{r}
+project_collaboration_network <- parse_gitlog_entity_network(changed_entities,mode = "author")
+project_collaboration_network <- igraph::graph_from_data_frame(d=project_collaboration_network[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_collaboration_network[["nodes"]])
+visIgraph(project_collaboration_network,randomSeed = 1)
+```
+
+# File Network 
+
+## Parse Gitlog File Temporal Network
+
+```{r}
+project_git_slice[,c("id","raw_name"):=list(assign_exact_identity(data.Author),data.Author)]
+project_temporal_collaboration_network <- parse_gitlog_temporal_network(project_git_slice,mode = "author")
+
+project_temporal_collaboration_network <- igraph::graph_from_data_frame(d=project_temporal_collaboration_network[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_temporal_collaboration_network[["nodes"]])
+visIgraph(project_temporal_collaboration_network,randomSeed = 1)
+```
+## Parse Git Log Author - File Network
+
+```{r}
+project_contribution_network <- parse_gitlog_network(project_git_slice,mode="author")
+project_contribution_network <- igraph::graph_from_data_frame(d=project_contribution_network[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_contribution_network[["nodes"]])
+visIgraph(project_contribution_network,randomSeed = 1)
+```
+

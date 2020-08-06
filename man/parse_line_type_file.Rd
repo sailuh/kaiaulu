@@ -7,7 +7,7 @@
 parse_line_type_file(utags_path, filepath, kinds)
 }
 \arguments{
-\item{utags_path}{The path to scc binary.
+\item{utags_path}{The path to utags binary.
 See \url{https://github.com/universal-ctags/ctags}}
 
 \item{filepath}{path to file}

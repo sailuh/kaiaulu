@@ -134,6 +134,11 @@ parse_git_blame <- function(git_repo_path,commit_hash,file_path){
       parsed_lines[["line_n_original_file"]] <- commit_line[3]
       parsed_lines[["line_n_final_file"]] <- commit_line[4]
       parsed_lines[["content"]] <- lines_content[2]
+    }else if(n_lines_content == 3){
+      commit_line <- regex_git_blame_commit_line(lines_content[1])
+      parsed_lines[["commit_hash"]] <- commit_line[2]
+      parsed_lines[["filename"]] = regex_git_blame_filename_line(lines_content[2])[2]
+      parsed_lines[["content"]] = lines_content[3]
     }else if(n_lines_content == 4){
       commit_line <- regex_git_blame_commit_line(lines_content[1])
       parsed_lines[["commit_hash"]] <- commit_line[2]
@@ -185,8 +190,11 @@ parse_git_blame <- function(git_repo_path,commit_hash,file_path){
       parsed_lines[["filename"]] = regex_git_blame_filename_line(lines_content[11])[2]
       parsed_lines[["content"]] = lines_content[12]
     }else{
-      stop(stri_c("Do not know how to parse case with number of lines: ",
-                  length(lines_content)," commit hash: ",lines_content[1]))
+      stop(stri_c("Do not know how to parse git blame case with " ,
+                  length(lines_content)," number of lines: ",
+                  "\n\tCase occurs in commit hash: ",commit_hash,
+                  "\n\tfile_path: ",file_path,
+                  "\n\tline content starting in: ",lines_content[1]))
     }
     return(parsed_lines)
   }
@@ -196,6 +204,8 @@ parse_git_blame <- function(git_repo_path,commit_hash,file_path){
                              flags=c('-p','-C','-w','-M'),
                              commit_hash,
                              file_path)
+  # If git blame fails, return NA
+  if(any(is.null(blame_content))){return(NULL)}
   # Only commit or file lines are succeeded by content lines
   # Parse all lines which are commit hashes - Only capture first 2 digits, 3rd is inconsistent
   parsed_commit <- data.table(regex_git_blame_commit_line(blame_content))
@@ -395,7 +405,7 @@ parse_line_metrics <- function(scc_path,git_repo_path){
 }
 #' Parse File Line Type
 #'
-#' @param utags_path The path to scc binary.
+#' @param utags_path The path to utags binary.
 #'  See \url{https://github.com/universal-ctags/ctags}
 #' @param filepath path to file
 #' @export
@@ -429,6 +439,202 @@ parse_line_type_file <- function(utags_path,filepath,kinds){
 
   parsed_tags[]
   return(parsed_tags)
+}
+#' Parse Git log entities by line additions
+#'
+#' @description Refines the parsed git log to include
+#' information of what entities a developer changed
+#' when performing a commit. Changed entities are obtained
+#' by examining if a changed line is within the start and
+#' end line of any of the available Universal Ctags types
+#' specified in `kinds`.
+#'
+#' An entity is defined and detected by Universal Ctags
+#' by language. The list of available `kinds` is
+#' currently Classes ('c'), Functions ('f'), and
+#' Methods ('m'), which can be specified
+#' to the parameter `kinds` as follows:
+#'
+#' \code{list(
+#' java=c('c','m'),
+#' python=c('c','f'),
+#' cpp=c('c','f'),
+#' c=c('f')
+#' )}
+#'
+#' For example,
+#' if the kind is 'f', the output will be all line addition
+#' changes to
+#' functions per commit in the project. If the kind is
+#' 'c', then all changes to classes per commit will be
+#' provided.
+#'
+#' Any combination of types can be provided per
+#' language, which will result in the output containing the
+#' union of all changes per commit made by developers to these
+#' entities. Note because Ctags assigns a type per line changed,
+#' if a change is done to a method of a class, then the changed
+#' line will be assigned only the method, and not both method
+#' and class.
+#'
+#' The enumerated `kinds` will be used as needed, and therefore
+#' it is fine to specify languages not included in the project
+#' to save time.
+#' However, files analyzed must have their language specified.
+#' Therefore, ensure \code{filter_by_file_extension} is properly
+#' used on the parameter `project_git_log`.
+#' This decision is by design: `kinds` vary per language, and may
+#' substantially impact the output of this function, affecting the
+#' analysis. Therefore, no default settings are provided to encourage
+#' both \code{filter_by_file_extension} and `kinds` parameters are properly documented in a project
+#' configuration file to facilitate reproducibility.
+#'
+#' Other entity types will be added in a later version.
+#'
+#' Please note this function will blame every file in a git log
+#' to parse the data. Even for a 200 MB project git log this can
+#' take one or more hours. Also, because this function relies on
+#' git blame, only line addition changes will be captured.
+#' Line deletions will -not- be captured. For example, if a
+#' developer removes a line of a function through a commit,
+#' this data will not be available in this function output.
+#'
+#' See Joblin'17 Chapter 3.1.1.1 for background and
+#' conceptual details.
+#'
+#' @param git_repo_path path to git repo (ends in .git)
+#' @param project_git_log A parsed git project by \code{parse_gitlog}.
+#' @param utags_path The path to utags binary.
+#' @param kinds A named list of character vectors of the form:
+#' list(extension_1 = c('type_i','type_j',...),
+#' extension_2 = c('type_i','type_k')). See examples.
+#'
+#'
+#' @references Mitchell Joblin (2017). Structural
+#' and Evolutionary Analysis of Developer Networks.
+#' (Doctoral dissertation, University of Passau, Germany).
+#'
+#'@examples
+#'\dontrun{
+#' # Obtain additions only to functions
+#' kinds <- list(
+#' java = c('m'),
+#' python = c('f'),
+#' cpp = c('c', 'f'),
+#' c = c('f')
+#' # Parse Project Git Log
+#' project_git_log <- parse_gitlog(perceval_path, git_repo_path)
+#' # Filter Files
+#' project_git_log <- project_git_log  %>%
+#'   filter_by_file_extension(file_extensions, "file")  %>%
+#'   filter_by_filepath_substring(substring_filepath, "file")
+#' # Parse Function Additions
+#' changed_functions <- parse_gitlog_entity(git_repo_path,
+#'                                         utags_path,
+#'                                         project_git_log,
+#'                                         kinds)
+#'}
+#' @export
+parse_gitlog_entity <- function(git_repo_path,utags_path,project_git_log,kinds){
+  blamed_git_log <- function(git_repo_path,utags_path,git_log_commit_hash,git_log_file_path){
+    #git_log_commit <- project_git_log[572,.(file,data.commit)]
+    #git_log_commit <- project_git_log[1872,.(file,data.commit)]
+    blamed_file <- parse_git_blame(git_repo_path,
+                                   git_log_commit_hash,
+                                   git_log_file_path)
+    # Some commit hashes, like APR's project git 572
+    # throws error 128 from git
+    # 6154ab7b1e862927c90ae6afa4dc6c57ee657ceb
+
+    # This example changes function signature and a line inside
+    # https://github.com/apache/apr/commit/ffdad353ac4b4bc2868603338e8ca50db90923a8
+    if (any(is.null(blamed_file))){return(NULL)}
+
+    line_changes <- blamed_file[commit_hash == git_log_commit_hash]
+    line_changes[,line_n_final_file:= as.integer(line_n_final_file)]
+
+    extension <- stri_trans_tolower(last(stri_split_regex(git_log_file_path,"\\.")[[1]]))
+    file_path <- make_temporary_file(blamed_file$content,extension = stri_c(".",extension,collapse=""))
+    tags <- parse_line_type_file(utags_path,file_path,kinds)
+    tags <- tags[complete.cases(tags)]
+    unlink(file_path)
+
+    tags[,c("line_start", "line_end") :=
+           list(as.integer(line_start), as.integer(line_end))]
+    setkeyv(tags,c("line_start","line_end"))
+    # Which changed lines modified a line within an entity of interest?
+    # Filter line changes unrelated and join the columns.
+    line_changes_tagged <- line_changes[tags,
+                                        .(x.commit_hash,
+                                          i.entity_name,
+                                          i.entity_type,
+                                          x.line_n_final_file,
+                                          i.line_start,
+                                          i.line_end,
+                                          author_name,
+                                          author_email,
+                                          author_timestamp,
+                                          author_tz,
+                                          committer_name,
+                                          committer_email,
+                                          committer_timestamp,
+                                          committer_tz,
+                                          committer_summary
+                                        ),
+                                        on = .(line_n_final_file >= line_start,
+                                               line_n_final_file <= line_end),
+                                        allow.cartesian=TRUE
+    ][!is.na(x.commit_hash) & !duplicated(x.line_n_final_file)]
+    setnames(line_changes_tagged,
+             old=c("x.commit_hash",
+                   "i.entity_name",
+                   "i.entity_type",
+                   "x.line_n_final_file",
+                   "i.line_start",
+                   "i.line_end"),
+             new=c("commit_hash",
+                   "entity_definition_name",
+                   "entity_type",
+                   "changed_line_number",
+                   "entity_definition_line_start",
+                   "entity_definition_line_end"))
+    # At line granularity, a lot of data is generated.
+    # We are only concerned if authors changed an entity of interest.
+    # Hence we capture the n_lines_changed for an entity by the author
+    # in a single commit in `n_lines_changed` and simplify the table:
+    entity_changes <- line_changes_tagged[,.(n_lines_changed = length(changed_line_number))
+                                          ,by=c("commit_hash",
+                                                "entity_definition_name",
+                                                "entity_type",
+                                                "entity_definition_line_start",
+                                                "entity_definition_line_end",
+                                                "author_name",
+                                                "author_email",
+                                                "author_timestamp",
+                                                "author_tz",
+                                                "committer_name",
+                                                "committer_email",
+                                                "committer_timestamp",
+                                                "committer_tz",
+                                                "committer_summary")]
+    return(entity_changes)
+  }
+  project_git_log[,row_id := seq_len(nrow(project_git_log))]
+  setkey(project_git_log,row_id)
+  #project_git_log[,git_repo_path:=git_repo_path]
+  # git_repo_path <- "rawdata/git_repo/APR/.git"
+  #changed_entities <-
+  #17000:18000 has a weird case of empty git blame
+  # problem exist on row 17530 # cartesian product problem
+  # project_git_log[17488] NA problem is a case when the file is deleted
+  # see https://github.com/apache/apr/commit/cf9339bca711318261641ed70c6ee2543659b71b
+  changed_entities <- project_git_log[,
+                                      blamed_git_log(git_repo_path,
+                                                     utags_path,
+                                                     git_log_commit_hash=data.commit,
+                                                     git_log_file_path=file),
+                                      by = row_id]
+  return(changed_entities)
 }
 # Various imports
 utils::globalVariables(c("."))

@@ -70,17 +70,35 @@ git_log <- function(git_repo_path,flags,save_path){
 #' @param file_path The file we will blame
 #' @export
 git_blame <- function(git_repo_path,flags,commit_hash,file_path){
-  system2(
-    "git",
-    args = c(
-      '--git-dir',
-      git_repo_path,
-      'blame',
-      flags,
-      commit_hash,
-      file_path
-    ),
-    stdout = TRUE,
-    stderr = FALSE
-  )
+
+  # Some commit hashes, like APR's project git 572
+  # throws error 128 from git
+  # 6154ab7b1e862927c90ae6afa4dc6c57ee657ceb
+
+  # This example changes function signature and a line inside
+  # https://github.com/apache/apr/commit/ffdad353ac4b4bc2868603338e8ca50db90923a8
+  blamed_file <- tryCatch({
+    system2(
+      "git",
+      args = c(
+        '--git-dir',
+        git_repo_path,
+        'blame',
+        flags,
+        commit_hash,
+        file_path
+      ),
+      stdout = TRUE,
+      stderr = FALSE
+    )
+  },
+  warning = function(e) {
+    #message(e)
+    return(NULL)
+  })
+  # Blamed file was deleted by the commit
+  if(is.character(blamed_file) & length(blamed_file) == 0){return(NULL)}
+  return(blamed_file)
+
+
 }

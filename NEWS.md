@@ -2,6 +2,8 @@ kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (in developm
 =========================
 
 ### NEW FEATURES
+  * added git log parser at lower granularity, entity (e.g. function git log parser) `parse_gitlog_entity()`, and associated network 
+  functions to visualize both author-entity bipartite network `parse_gitlog_entity_network()` and temporal `parse_gitlog_entity_temporal_network()`. It is therefore now possible to compare networks at file or any type of entity of interest, with different network construction methods. See vignettes/gitlog_entity_showcase.Rmd for details. [#79](https://github.com/sailuh/kaiaulu/issues/79)
   * added a new `parse_gitlog_temporal_network()` which provides a directed network for collaboration at file level. [#78](https://github.com/sailuh/kaiaulu/issues/78)
   * modify `parse_line_type()` to `parse_line_type_file()` to take as input information from git history instead of a local computer file, so it can be used to analyze git log changes. [#2](https://github.com/sailuh/kaiaulu/issues/2)
   * add `git_blame()` wrapper and parser. [#68](https://github.com/sailuh/kaiaulu/issues/68)
