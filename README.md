@@ -52,6 +52,11 @@ Dependencies in this package are modular. Depending on what you seek, you may on
  2. `cd` to Refactoring Miner folder and type `./gradlew distZip`
  3. Extract the file under `build/distribution/RefactoringMiner.zip` in the desired location
  4. In the extracted folder, locate `/bin/RefactoringMiner`, and note its path on Kaiaulu `tools.yml`.
+ 5. See vignettes/refactoringminer_showcase.Rmd for details.
+ 
+ ### OSLOM Community Detection 
+ 1. Download [OSLOM code (last tested on beta version 2.4)](http://oslom.org/)
+ 2. Use `./compile_all.sh`, as the manual suggests, to obtain `./oslom_undir` and `/oslom_dir`, and note its path on Kaiaulu `tools.yml`. See vignettes/community_detection_showcase.Rmd for details.
 
 ## Usage 
 

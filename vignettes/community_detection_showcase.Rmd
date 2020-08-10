@@ -28,6 +28,8 @@ require(stringi)
 require(knitr)
 ```
 
+# Project Configuration File 
+
 Load config file.
 
 ```{r}
@@ -37,6 +39,8 @@ conf <- yaml::read_yaml("../conf/apr.yml")
 # 3rd Party Tools
 perceval_path <- tool[["perceval"]]
 utags_path <- tool[["utags"]]
+oslom_dir_path <- tool[["oslom_dir"]]
+oslom_undir_path <- tool[["oslom_undir"]]
 
 # Ctags Line Types
 kinds <- conf[["tool"]][["uctags"]][["keep_lines_type"]]
@@ -49,6 +53,7 @@ file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
 substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
 ```
 
+# Parse Git Log
 
 ```{r}
 project_git <- parse_gitlog(perceval_path,git_repo_path)
@@ -78,15 +83,20 @@ project_git_slice[,data.Author:=identity_id]
 #project_git_slice[,data.Author:=raw_name]
 ```
 
+# Create Network
 
 ```{r}
 project_collaboration_network <- parse_gitlog_network(project_git_slice,mode="author")
 ```
 
+# Community Detection
+
+Use `oslom_dir_path` or `oslom_undir_path` as preferred for directed or undirected
+ community detection.
 
 ```{r}
-oslom_bin <- "/Users/cvp/Downloads/OSLOM2/oslom_undir"
-community <- community_oslom(oslom_bin,
+ 
+community <- community_oslom(oslom_undir_path,
               project_collaboration_network[["edgelist"]],
               seed=seed,
               n_runs = 100,

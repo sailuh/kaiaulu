@@ -46,10 +46,11 @@ model_directed_graph <- function(edgelist,is_bipartite,color){
 #' S. Fortunato PLoS ONE 6, e18961 (2011).
 #' @export
 community_oslom <- function(oslom_bin_dir_undir_path,edgelist,seed,n_runs,is_weighted){
+  oslom_bin_dir_undir_path <- path.expand(oslom_bin_dir_undir_path)
   mapping_names <- unique(c(as.character(edgelist$from),edgelist$to))
   mapping_ids <- 1:length(mapping_names)
   names(mapping_ids) <- mapping_names
-  weight_flag <- ''
+  weight_flag <- ""
 
   if(is_weighted){
     oslom_edgelist <- data.table(mapping_ids[edgelist$from],
