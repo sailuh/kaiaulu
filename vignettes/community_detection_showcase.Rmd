@@ -1,0 +1,105 @@
+---
+title: "Community Detection Showcase"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Community Detection Showcase}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(visNetwork)
+require(reactable)
+require(data.table)
+require(igraph)
+require(yaml)
+require(stringi)
+require(knitr)
+```
+
+Load config file.
+
+```{r}
+tool <- yaml::read_yaml("../tools.yml")
+conf <- yaml::read_yaml("../conf/apr.yml")
+
+# 3rd Party Tools
+perceval_path <- tool[["perceval"]]
+utags_path <- tool[["utags"]]
+
+# Ctags Line Types
+kinds <- conf[["tool"]][["uctags"]][["keep_lines_type"]]
+
+# Local Git Repo Folder Path
+git_repo_path <- conf[["data_path"]][["git"]]
+
+# File Filters
+file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
+substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+```
+
+
+```{r}
+project_git <- parse_gitlog(perceval_path,git_repo_path)
+project_git <- project_git  %>%
+  filter_by_file_extension(file_extensions,"file")  %>% 
+  filter_by_filepath_substring(substring_filepath,"file")
+```
+
+```{r}
+project_git_slice <- project_git[data.AuthorDate >= as.POSIXct("2015-03-01", format = "%Y-%m-%d",tz = "UTC") & data.AuthorDate < as.POSIXct("2015-03-31", format = "%Y-%m-%d",tz = "UTC")]
+```
+
+# Identity Matching 
+
+```{r}
+all_name_emails <- unique(project_git_slice$data.Author)
+name_mapping <- data.table(raw_name=all_name_emails,
+                           identity_id=assign_exact_identity(all_name_emails,
+                                                             use_name_only = FALSE))
+project_git_slice <- merge(project_git_slice,name_mapping,
+                            by.x="data.Author",by.y="raw_name",all.x = TRUE)
+name_mapping <- name_mapping[,.(raw_name = stri_c(raw_name,collapse = " | ")),
+             by="identity_id"]
+project_git_slice <- merge(project_git_slice,name_mapping,
+                            by.x="identity_id",by.y="identity_id",all.x = TRUE)
+project_git_slice[,data.Author:=identity_id]
+#project_git_slice[,data.Author:=raw_name]
+```
+
+
+```{r}
+project_collaboration_network <- parse_gitlog_network(project_git_slice,mode="author")
+```
+
+
+```{r}
+oslom_bin <- "/Users/cvp/Downloads/OSLOM2/oslom_undir"
+community <- community_oslom(oslom_bin,
+              project_collaboration_network[["edgelist"]],
+              seed=seed,
+              n_runs = 100,
+              is_weighted = TRUE)
+community
+```
+
+
+```{r}
+temporal_network_igraph <- igraph::graph_from_data_frame(
+  d=project_collaboration_network[["edgelist"]], 
+                      directed = FALSE, 
+                      vertices = project_collaboration_network[["nodes"]])
+visIgraph(temporal_network_igraph,randomSeed = seed)
+```
+

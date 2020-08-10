@@ -2,6 +2,7 @@ kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (in developm
 =========================
 
 ### NEW FEATURES
+  * added an interface to OSLOM community detection algorithm. [#81](https://github.com/sailuh/kaiaulu/issues/81)
   * added git log parser at lower granularity, entity (e.g. function git log parser) `parse_gitlog_entity()`, and associated network 
   functions to visualize both author-entity bipartite network `parse_gitlog_entity_network()` and temporal `parse_gitlog_entity_temporal_network()`. It is therefore now possible to compare networks at file or any type of entity of interest, with different network construction methods. See vignettes/gitlog_entity_showcase.Rmd for details. [#79](https://github.com/sailuh/kaiaulu/issues/79)
   * added a new `parse_gitlog_temporal_network()` which provides a directed network for collaboration at file level. [#78](https://github.com/sailuh/kaiaulu/issues/78)
@@ -35,6 +36,7 @@ kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (in developm
 
 ### MINOR IMPROVEMENTS
 
+  * heavily refactored R/network.R API into R/graph.R to separate graph representation and algorithms from various types of networks that can be constructed from git logs, mailing lists, etc. [#81](https://github.com/sailuh/kaiaulu/issues/81)
   * refactored git_log() from parse_gilog and parse_commit_message_id() from R/parsers.R. [#74](https://github.com/sailuh/kaiaulu/issues/74)
   * various functions were moved to different files to clarify the API. [#73](https://github.com/sailuh/kaiaulu/issues/73)
   * config files were refactored for clarity and to accomodate dv8 wrapper. [#50](https://github.com/sailuh/kaiaulu/issues/50)

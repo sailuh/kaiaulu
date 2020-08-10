@@ -4,7 +4,13 @@
 \alias{parse_gitlog_entity}
 \title{Parse Git log entities by line additions}
 \usage{
-parse_gitlog_entity(git_repo_path, utags_path, project_git_log, kinds)
+parse_gitlog_entity(
+  git_repo_path,
+  utags_path,
+  project_git_log,
+  kinds,
+  progress_bar = FALSE
+)
 }
 \arguments{
 \item{git_repo_path}{path to git repo (ends in .git)}
@@ -16,6 +22,8 @@ parse_gitlog_entity(git_repo_path, utags_path, project_git_log, kinds)
 \item{kinds}{A named list of character vectors of the form:
 list(extension_1 = c('type_i','type_j',...),
 extension_2 = c('type_i','type_k')). See examples.}
+
+\item{progress_bar}{a boolean specifying if a progress bar should be shown.}
 }
 \description{
 Refines the parsed git log to include

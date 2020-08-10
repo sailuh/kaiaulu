@@ -4,10 +4,11 @@
 \alias{parse_gitlog_temporal_network}
 \title{Create time-ordered contribution network}
 \usage{
-parse_gitlog_temporal_network(project_git, mode = c("author", "identity"))
+parse_gitlog_temporal_network(project_git)
 }
 \arguments{
-\item{project_git}{A parsed git project by \code{parse_gitlog}.}
+\item{project_git}{A parsed git project by \code{parse_gitlog}. The
+name column will be used to label nodes.}
 }
 \description{
 Create a collaboration network as described by Joblin et al.

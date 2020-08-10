@@ -186,9 +186,9 @@ assign_network_identity <- function(project_git,project_mbox,assign_identity_fun
                                                      ,by="name"]
   # Edgelists of previous 2 different authors may now be the same, sum weights up.
   project_git[["edgelist"]] <- project_git[["edgelist"]][,.(weight=sum(weight)),
-                                                         by=c("author","file")]
+                                                         by=c("from","to")]
   project_mbox[["edgelist"]] <- project_mbox[["edgelist"]][,.(weight=sum(weight)),
-                                                           by=c("author","thread")]
+                                                           by=c("from","to")]
 
   projects <- list()
   projects[["project_git"]] <- project_git

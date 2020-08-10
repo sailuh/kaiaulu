@@ -26,13 +26,18 @@ reference:
   desc:  Transforms parsed data into a format suitable to network libraries
 - contents:
   - parse_gitlog_network
+  - parse_gitlog_temporal_network
+  - parse_gitlog_entity_network
+  - parse_gitlog_entity_temporal_network
   - parse_mbox_network
   - parse_dependencies_network
   - parse_commit_message_id_network
   - parse_cve_cwe_file_network
-  - parse_gitlog_temporal_network
-  - parse_gitlog_entity_network
-  - parse_gitlog_entity_temporal_network
+- title: Graph
+  desc:  Provide graph models to construct networks and algorithms for graph analysis
+- contents:
+  - model_directed_graph
+  - community_oslom
 - title: Identity
   desc:  Provide the same id to authors who use variations of names or emails.
 - contents:

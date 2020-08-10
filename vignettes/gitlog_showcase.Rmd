@@ -23,13 +23,14 @@ require(reactable)
 require(data.table)
 require(igraph)
 require(yaml)
+require(stringi)
 ```
 
 Load config file.
 
 ```{r}
 tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/openssl.yml")
+conf <- yaml::read_yaml("../conf/apr.yml")
 perceval_path <- tool[["perceval"]]
 git_repo_path <- conf[["data_path"]][["git"]]
 nvdfeed_folder_path <- conf[["data_path"]][["nvd_feed"]]
@@ -56,16 +57,32 @@ project_git <- project_git  %>%
   filter_by_filepath_substring(substring_filepath,"file")
 ```
 
+# Identity
 
 ```{r}
-project_git_slice <- project_git[data.AuthorDate >= as.POSIXct("2019-01-01", format = "%Y-%m-%d",tz = "UTC") & data.AuthorDate < as.POSIXct("2019-01-31", format = "%Y-%m-%d",tz = "UTC")]
+project_git[,c("name","raw_name"):=list(assign_exact_identity(data.Author),data.Author)]
+```
 
 
-project_contribution_network <- parse_gitlog_network(project_git_slice,mode="author")
+```{r}
+project_git_slice <- project_git[data.AuthorDate >= as.POSIXct("2019-01-01", format = "%Y-%m-%d",tz = "UTC") & data.AuthorDate < as.POSIXct("2019-12-31", format = "%Y-%m-%d",tz = "UTC")]
+
+
+project_contribution_network <- parse_gitlog_network(project_git_slice,mode="author-committer")
 project_contribution_network <- igraph::graph_from_data_frame(d=project_contribution_network[["edgelist"]], 
                       directed = TRUE, 
                       vertices = project_contribution_network[["nodes"]])
 visIgraph(project_contribution_network,randomSeed = 1)
+```
+
+# Parse Gitlog Temporal Network
+
+```{r}
+project_temporal_collaboration_network <- parse_gitlog_temporal_network(project_git_slice)
+project_temporal_collaboration_network <- igraph::graph_from_data_frame(d=project_temporal_collaboration_network[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_temporal_collaboration_network[["nodes"]])
+visIgraph(project_temporal_collaboration_network,randomSeed = 1)
 ```
 
 

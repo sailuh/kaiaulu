@@ -4,10 +4,7 @@
 \alias{parse_gitlog_entity_temporal_network}
 \title{Create time-ordered contribution network}
 \usage{
-parse_gitlog_entity_temporal_network(
-  project_git_entity,
-  mode = c("author", "identity")
-)
+parse_gitlog_entity_temporal_network(project_git_entity)
 }
 \arguments{
 \item{project_git_entity}{A parsed git project by \code{parse_gitlog_entity}.}
