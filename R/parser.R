@@ -642,6 +642,45 @@ parse_gitlog_entity <- function(git_repo_path,utags_path,project_git_log,kinds,p
 
   return(changed_entities)
 }
+#' Parse R File and Function Dependencies
+#'
+#' @param folder_path The path to an R folder path
+#' @export
+parse_r_dependencies <- function(folder_path){
+
+  all_filepaths <- list.files(file.path(path.expand(folder_path)),recursive=TRUE,pattern="R",full.names=TRUE)
+  parsed_r_files <- lapply(all_filepaths,parse_rfile_ast)
+
+
+  parsed_r_files <- lapply(parsed_r_files,function(x)
+    x[,filepath:= stri_replace_first(filepath,regex = stri_c(folder_path,"/"),replacement = "")])
+
+  definitions <- lapply(parsed_r_files,parse_r_function_definition)
+  definitions <- rbindlist(definitions)
+  unique_definitions <- unique(definitions)
+
+
+  parse_r_network <- function(parsed_r_file,unique_definitions){
+    function_edgelist <- parse_r_function_dependencies(parsed_r_file,unique_definitions)
+    return(function_edgelist)
+  }
+
+  edgelists <- lapply(parsed_r_files,parse_r_network,unique_definitions)
+
+  filter_by_ownership <- function(edgelist,unique_definitions){
+    edgelist <- edgelist[src_functions_call_name %in% unique_definitions$src_functions_name &
+                           src_functions_caller_name %in% unique_definitions$src_functions_name]
+    return(edgelist)
+  }
+
+  edgelists <- lapply(edgelists,filter_by_ownership,unique_definitions)
+  edgelists <- rbindlist(edgelists)
+
+  names(parsed_r_files) <- sapply(stri_split_regex(all_filepaths,"/"),data.table::last)
+
+  return(edgelists)
+}
+
 # Various imports
 utils::globalVariables(c("."))
 #' @importFrom magrittr %>%

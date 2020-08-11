@@ -2,6 +2,7 @@ kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (in developm
 =========================
 
 ### NEW FEATURES
+  * added a dependencies parser for R using utils abstract syntax tree parser, and API functions. Kaiaulu architecture is used for showcase, which should facilitate understanding new functions being added and their dependencies. See kaiaulu_architecture.Rmd for details. [#84](https://github.com/sailuh/kaiaulu/issues/84)
   * added an interface to OSLOM community detection algorithm. [#81](https://github.com/sailuh/kaiaulu/issues/81)
   * added git log parser at lower granularity, entity (e.g. function git log parser) `parse_gitlog_entity()`, and associated network 
   functions to visualize both author-entity bipartite network `parse_gitlog_entity_network()` and temporal `parse_gitlog_entity_temporal_network()`. It is therefore now possible to compare networks at file or any type of entity of interest, with different network construction methods. See vignettes/gitlog_entity_showcase.Rmd for details. [#79](https://github.com/sailuh/kaiaulu/issues/79)

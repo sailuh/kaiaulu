@@ -11,6 +11,7 @@ reference:
   - parse_gitlog_entity
   - parse_mbox
   - parse_dependencies
+  - parse_r_dependencies
   - parse_java_code_refactoring_json
   - parse_nvdfeed
   - parse_line_metrics
@@ -31,6 +32,7 @@ reference:
   - parse_gitlog_entity_temporal_network
   - parse_mbox_network
   - parse_dependencies_network
+  - parse_r_dependencies_network
   - parse_commit_message_id_network
   - parse_cve_cwe_file_network
 - title: Graph

@@ -1,0 +1,57 @@
+---
+title: "Kaiāulu Architecture"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Kaiāulu Architecture}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r warning = FALSE, message = FALSE}
+rm(list = ls())
+require(kaiaulu)
+require(stringi)
+require(visNetwork)
+require(igraph)
+require(data.table)
+require(knitr)
+```
+
+
+# Parse R Package 
+
+```{r}
+folder_path <- "../R"
+```
+
+# Dependencies
+
+```{r}
+dependencies <- parse_r_dependencies(folder_path)
+head(dependencies)
+```
+
+
+## Function
+
+```{r}
+file_graph <- parse_r_dependencies_network(dependencies,dependency_type="file")
+project_function_network <- igraph::graph_from_data_frame(d=file_graph[["edgelist"]], 
+                      directed = TRUE,
+                      vertices = file_graph[["nodes"]])
+visIgraph(project_function_network,randomSeed = 1)
+```
+
+## File
+
+```{r}
+function_graph <- parse_r_dependencies_network(dependencies,dependency_type="function")
+project_function_network <- igraph::graph_from_data_frame(d=function_graph[["edgelist"]], 
+                      directed = TRUE,
+                      vertices = function_graph[["nodes"]])
+visIgraph(project_function_network,randomSeed = 1)
+```
+

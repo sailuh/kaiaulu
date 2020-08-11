@@ -254,3 +254,23 @@ parse_dependencies_network <- function(depends_parsed,weight_types=NA){
   file_network[["edgelist"]] <- dependency_edgelist
   return(file_network)
 }
+#' Transform parsed R dependencies into a graph
+#' @param r_dependencies_edgelist A parsed R folder by \code{parse_r_dependencies}.
+#' @param dependency_type The type of dependency to be parsed: Function or File
+#' @export
+parse_r_dependencies_network <- function(r_dependencies_edgelist,dependency_type=c("function","file")){
+  mode <- match.arg(dependency_type)
+  if(mode == "function"){
+    graph <-  model_directed_graph(r_dependencies_edgelist[,.(from=src_functions_call_name,
+                                                              to=src_functions_caller_name)],
+                                   is_bipartite = FALSE,
+                                   color = c("#fafad2"))
+  }else if(mode == "file"){
+    graph <-  model_directed_graph(r_dependencies_edgelist[,.(from=src_functions_call_filename,
+                                                              to=src_functions_caller_filename)],
+                                   is_bipartite = FALSE,
+                                   color = c("#f4dbb5"))
+
+  }
+  return(graph)
+}
