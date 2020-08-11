@@ -508,7 +508,7 @@ parse_line_type_file <- function(utags_path,filepath,kinds){
 #' @param kinds A named list of character vectors of the form:
 #' list(extension_1 = c('type_i','type_j',...),
 #' extension_2 = c('type_i','type_k')). See examples.
-#'
+#' @param progress_bar a boolean specifying if a progress bar should be shown.
 #'
 #' @references Mitchell Joblin (2017). Structural
 #' and Evolutionary Analysis of Developer Networks.
@@ -535,19 +535,13 @@ parse_line_type_file <- function(utags_path,filepath,kinds){
 #'                                         kinds)
 #'}
 #' @export
-parse_gitlog_entity <- function(git_repo_path,utags_path,project_git_log,kinds){
+parse_gitlog_entity <- function(git_repo_path,utags_path,project_git_log,kinds,progress_bar = FALSE){
   blamed_git_log <- function(git_repo_path,utags_path,git_log_commit_hash,git_log_file_path){
-    #git_log_commit <- project_git_log[572,.(file,data.commit)]
-    #git_log_commit <- project_git_log[1872,.(file,data.commit)]
     blamed_file <- parse_git_blame(git_repo_path,
                                    git_log_commit_hash,
                                    git_log_file_path)
-    # Some commit hashes, like APR's project git 572
-    # throws error 128 from git
-    # 6154ab7b1e862927c90ae6afa4dc6c57ee657ceb
 
-    # This example changes function signature and a line inside
-    # https://github.com/apache/apr/commit/ffdad353ac4b4bc2868603338e8ca50db90923a8
+
     if (any(is.null(blamed_file))){return(NULL)}
 
     line_changes <- blamed_file[commit_hash == git_log_commit_hash]
@@ -619,21 +613,34 @@ parse_gitlog_entity <- function(git_repo_path,utags_path,project_git_log,kinds){
                                                 "committer_summary")]
     return(entity_changes)
   }
-  project_git_log[,row_id := seq_len(nrow(project_git_log))]
+  nrow_project_git_log <- nrow(project_git_log)
+  project_git_log[,row_id := seq_len(nrow_project_git_log)]
   setkey(project_git_log,row_id)
-  #project_git_log[,git_repo_path:=git_repo_path]
-  # git_repo_path <- "rawdata/git_repo/APR/.git"
-  #changed_entities <-
-  #17000:18000 has a weird case of empty git blame
-  # problem exist on row 17530 # cartesian product problem
-  # project_git_log[17488] NA problem is a case when the file is deleted
-  # see https://github.com/apache/apr/commit/cf9339bca711318261641ed70c6ee2543659b71b
-  changed_entities <- project_git_log[,
-                                      blamed_git_log(git_repo_path,
-                                                     utags_path,
-                                                     git_log_commit_hash=data.commit,
-                                                     git_log_file_path=file),
-                                      by = row_id]
+
+  if(progress_bar){
+    progress_bar <- txtProgressBar(min = 0,
+                                   max = nrow_project_git_log,
+                                   style = 3)
+
+    changed_entities <- project_git_log[,
+                                        blamed_git_log(git_repo_path,
+                                                       utags_path,
+                                                       {
+                                                         setTxtProgressBar(progress_bar, .GRP);
+                                                         git_log_commit_hash=data.commit
+                                                       },
+                                                       git_log_file_path=file),
+                                        by = row_id]
+
+  }else{
+    changed_entities <- project_git_log[,
+                                        blamed_git_log(git_repo_path,
+                                                       utags_path,
+                                                         git_log_commit_hash=data.commit,
+                                                       git_log_file_path=file),
+                                        by = row_id]
+  }
+
   return(changed_entities)
 }
 # Various imports
