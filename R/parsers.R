@@ -34,8 +34,7 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA,perl_regex=NA)
       '--topo-order',
       '-M',
       '-C',
-      '-c',
-      '--remotes=origin'
+      '-c'
     )
   # Execute shell command to extract gitlog using Percerval recommended format (See it's README.md.
   if(!is.na(perl_regex)){
@@ -46,7 +45,7 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA,perl_regex=NA)
                perceval_flags)
     gitlog_call_message <- git_log(git_repo_path,flags,gitlog_path)
   }else{
-    flags <- c(perceval_flags,'--all')
+    flags <- perceval_flags
     gitlog_call_message <- git_log(git_repo_path,flags,gitlog_path)
   }
 
