@@ -407,6 +407,7 @@ parse_line_metrics <- function(scc_path,git_repo_path){
 #' @param utags_path The path to utags binary.
 #'  See \url{https://github.com/universal-ctags/ctags}
 #' @param filepath path to file
+#' @param kinds the entity kinds utags should identify per line.
 #' @export
 parse_line_type_file <- function(utags_path,filepath,kinds){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")

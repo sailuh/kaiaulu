@@ -54,3 +54,18 @@ filter_by_commit_interval <- function(git_log,start_commit,end_commit){
   git_log <- git_log[data.AuthorDate >= start_date & data.AuthorDate <= end_date]
   return(git_log)
 }
+
+#' Filter Git Log by all last files changes in snapshot
+#'
+#' @description Filter a git log to show the last commit change made
+#' to a file since the start of the project.
+#'
+#' @param git_log A parsed git project by \code{parse_gitlog}.
+#' @param commit_hash A commit hash from git_log
+#' @export
+filter_by_last_files_change <- function(git_log,commit_hash){
+  timestamp <- first(git_log[data.commit == commit_hash])$data.AuthorDate
+  git_log <- git_log[data.AuthorDate <= timestamp]
+  last_changes_per_file <- git_log[,last(.SD),by=file]
+  return(last_changes_per_file)
+}
