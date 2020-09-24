@@ -1,0 +1,73 @@
+# -*- yaml -*-
+# https://github.com/sailuh/kaiaulu
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+#
+# Please comment unused parameters for clarity
+data_path:
+  project_website: https://storm.apache.org/
+  git_url: https://github.com/apache/storm
+  git: ../rawdata/git_repo/storm/.git
+  mbox_url: http://mail-archives.apache.org/mod_mbox/storm-dev/
+  mbox: ../rawdata/mbox/storm-dev_15_18.mbox
+  openhub: https://www.openhub.net/p/apache-storm
+  # Provide a folder path containing nvd cve feeds (e.g. nvdcve-1.1-2018.json)
+  # You can obtain them freely at: https://nvd.nist.gov/vuln/data-feeds
+  #nvd_feed: rawdata/nvdfeed
+issue_tracker:
+  url: http://mail-archives.apache.org/mod_mbox/storm-issues/
+  # types: bugzilla, jira, other
+  type: jira
+interval:
+  # You can specify the intervals in 2 ways: window, or enumeration
+  window:
+    # If using gitlog, use start_commit and end_commit. Timestamp is inferred from gitlog
+#     start_commit: 
+#    end_commit: 
+    # Use datetime only if no gitlog is used in the analysis.
+    start_datetime: 2015-01-01 00:00:00
+    end_datetime: 2018-01-01 00:00:00
+    size_days: 90
+#  enumeration:
+#     # If using gitlog, specify the commits
+#    commit:
+
+     # Use datetime only if no gitlog is used in the analysis. Timestamp is inferred from gitlog
+#    datetime:
+
+tool:
+  depends:
+    # accepts cpp, java, ruby, python, pom
+    code_language: java
+    # Specify which types of Dependencies to keep - see Depends README.md for details.
+    keep_dependencies_type:
+      - Cast
+      - Call
+      - Import
+      - Return
+      - Set
+      - Use
+      - Implement
+      - ImplLink
+      - Extend
+      - Create
+      - Throw
+      - Parameter
+      - Contain
+filter:
+  keep_filepaths_ending_with:
+    - cpp
+    - c
+    - h
+    - java
+    - js
+    - py
+    - cc
+  remove_filepaths_containing:
+    - test
+commit_message_id_regex:
+  issue_id: STORM-#\d+
+  cve_id: CVE-#\d+-#\d+
