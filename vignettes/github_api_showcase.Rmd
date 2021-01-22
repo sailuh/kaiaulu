@@ -1,0 +1,33 @@
+---
+title: "GitHub API Showcase"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{GitHub API Showcase}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Introduction
+
+
+Kaiaulu interface to GitHub API heavily relies on [gh](https://github.com/r-lib/gh), a minimalistic client to access GitHub’s REST and GraphQL APIs. In essence, Kaiaulu only defines a few API endpoints of interest where the tool is currently used, and parses the returned JSON output into a table keeping only fields of interest. But more can be added later. Please see Kaiaulu's Docs Function API to see what is currently available. 
+
+In this Vignette, I will show how to replicate [Aleksander Konnerup data acquisition pipeline](https://github.com/AleksanderKonnerup/AleksanderKonnerup_akon223_projectZ).
+
+## Create a Personal Token 
+
+GitHub limits the number of API calls per IP to only 60 attempts **every hour** at the time this vignette was created. You can check the current rates at [its website](https://docs.github.com/en/free-pro-team@latest/rest/overview/resources-in-the-rest-api#rate-limiting).
+
+If using a personal account token from a free GitHub account, the number of API calls per hour increases to 5000 **per hour**. Therefore, it is recommended you create a personal token by following the [GitHub Documentation instructions](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token#:~:text=Creating%20a%20token.%201%20Verify%20your%20email%20address%2C,able%20to%20see%20the%20token%20again.%20More%20items). The process should not take more than 2 minutes.
+
+The functions in Kaiaulu will assume you have a token available, which can be passed as parameter. 
+
+```{r}
+
+```
+
+
+

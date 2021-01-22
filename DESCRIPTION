@@ -23,7 +23,6 @@ Suggests:
     knitr (>= 1.26),
     reactable (>= 0.1.0),
     igraph (>= 1.2.5),
-    gh (>= 1.1.0),
     yaml (>= 2.2.1),
     testthat (>= 2.3.1)
 Depends:
@@ -32,7 +31,8 @@ Imports:
     data.table (>= 1.12.8),
     stringi (>= 1.4.6),
     jsonlite (>= 1.6),
-    magrittr (>= 1.5)
+    magrittr (>= 1.5),
+    gh (>= 1.2.0)
 VignetteBuilder: knitr
 URL: https://github.com/sailuh/kaiaulu
 BugReports: https://github.com/sailuh/kaiaulu/issues
