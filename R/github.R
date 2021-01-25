@@ -27,7 +27,7 @@ github_api_project_contributor <- function(owner,repo,token){
 # https://docs.github.com/en/free-pro-team@latest/rest/overview/resources-in-the-rest-api#rate-limiting
 #' @export
 github_api_rate_limit <- function(token){
-  gh_rate_limit(
+  gh::gh_rate_limit(
     response = NULL,
     .token = token,
     .api_url = NULL,
@@ -37,20 +37,20 @@ github_api_rate_limit <- function(token){
 
 #' @export
 github_api_page_next <- function(gh_response){
-  gh_next(gh_response)
+  gh::gh_next(gh_response)
 }
 
 #' @export
 github_api_page_prev <- function(gh_response){
-  gh_prev(gh_response)
+  gh::gh_prev(gh_response)
 }
 
 #' @export
 github_api_page_first <- function(gh_response){
-  gh_first(gh_response)
+  gh::gh_first(gh_response)
 }
 
 #' @export
 github_api_page_last <- function(gh_response){
-  gh_last(gh_response)
+  gh::gh_last(gh_response)
 }
