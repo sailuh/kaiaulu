@@ -22,7 +22,9 @@ github_parse_project_issue <- function(api_responses){
     parsed_response <- list()
     parsed_response[["id"]] <- api_response[["id"]]
     parsed_response[["created_at"]] <- api_response[["created_at"]]
-    parsed_response[["commit_id"]] <- api_response[["commit_id"]]
+    parsed_response[["commit_id"]] <- ifelse(length(api_response[["commit_id"]]) == 0,
+                                             NA,
+                                             api_response[["commit_id"]])
     parsed_response[["event"]] <- api_response[["event"]]
     parsed_response[["actor_login"]] <- api_response[["actor"]][["login"]]
     parsed_response[["actor_id"]] <- api_response[["actor"]][["id"]]
@@ -46,7 +48,10 @@ github_parse_project_issue <- function(api_responses){
     assignees_list <- rbindlist(assignees_list,fill=TRUE)
     parsed_response[["issue_assignees_login"]] <- stringi::stri_c(assignees_list$issue_assignees_login,collapse = ";")
     parsed_response[["issue_assignees_id"]] <- stringi::stri_c(assignees_list$issue_assignees_id,collapse = ";")
-    return(data.table(data.frame(parsed_response)))
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
   }
   rbindlist(lapply(api_responses,parse_response),fill=TRUE)
 }
@@ -73,7 +78,10 @@ github_parse_project_commits <- function(api_responses){
     parsed_response[["commit_committer_name"]] <- api_response[["commit"]][["committer"]][["name"]]
     parsed_response[["commit_committer_email"]] <- api_response[["commit"]][["committer"]][["email"]]
     parsed_response[["commit_message"]] <- api_response[["commit"]][["message"]]
-    return(data.table(data.frame(parsed_response)))
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
   }
   rbindlist(lapply(api_responses,parse_response),fill=TRUE)
 }
@@ -117,4 +125,28 @@ github_api_page_first <- function(gh_response){
 #' @export
 github_api_page_last <- function(gh_response){
   gh::gh_last(gh_response)
+}
+
+#' @export
+github_api_iterate_pages <- function(gh_response,save_path,prefix=NA,max_pages=NA){
+  page_number <- 1
+
+  if(is.na(max_pages)){
+    max_pages <- github_api_rate_limit(token)$remaining
+  }
+
+  while(!is.null(gh_response) & page_number < max_pages){
+    write_json(gh_response,paste0(save_path,
+                                  owner,"_",repo,"_",prefix,"_","p_",page_number,
+                                  ".json"),
+               pretty=TRUE,auto_unbox=TRUE)
+    page_number <- page_number + 1
+    res <- try(
+      {
+        gh_response <- github_api_page_next(gh_response)
+      },silent=TRUE)
+    if(inherits(res,"try-error")) {
+      gh_response <- NULL
+    }
+  }
 }

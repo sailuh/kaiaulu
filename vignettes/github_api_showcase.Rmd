@@ -25,9 +25,94 @@ If using a personal account token from a free GitHub account, the number of API 
 
 The functions in Kaiaulu will assume you have a token available, which can be passed as parameter. 
 
-```{r}
-
+```{r warning=FALSE,message=FALSE}
+rm(list = ls())
+require(kaiaulu)
+require(data.table)
+require(jsonlite)
+require(knitr)
 ```
 
 
+# GitHub Feature: Assign Issue to Issue Commenters
+
+The feature of interest in this notebook is the introduced capability for project owners to assign issue to issue commenters (i.e. those without merge access), as discussed in the following blog post: https://github.blog/2019-06-25-assign-issues-to-issue-commenters. 
+
+The goal of the following steps is to obtain the data when a project started assigning issues to issue commenters without merge access. 
+
+# Necessary Parameters
+
+To use the pipeline, you must specify the organization and project of interest, and your token.
+
+```{r}
+owner <- "sailuh" # Has to match github organization (e.g. github.com/sailuh)
+repo <- "perceive" # Has to match github repository (e.g. github.com/sailuh/perceive)
+save_path <- "~/Desktop/" # Path you wish to save all raw data. A folder with the repo name and sub-folders will be created.
+# your file github_token contains the GitHub token API obtained in the steps above
+token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
+```
+
+# Collecting Data via GitHub API
+
+In this section we obtain the raw data (.json) containing all information the GitHub API endpoint provides. We parse the information of interest in the subsequent section.  
+
+```{r}
+dir.create(paste0(save_path,repo))
+```
+
+
+## Issue Events
+
+First we obtain all issue events of the project, so we may later subset issue assignments. 
+
+```{r Collect all issue events}
+gh_response <- github_api_project_issue(owner,repo,token)
+save_path_issue_event <- paste0(save_path,repo,"/issue_event/")
+dir.create(save_path_issue_event)
+github_api_iterate_pages(gh_response,save_path_issue_event,prefix="issue_event")
+```
+
+## Commits
+
+Next we download commit data from GitHub API. This will be used to know which users in the issue events have or not merge permissions.
+
+```{r Collect all project commit messages}
+gh_response <- github_api_project_commits(owner,repo,token)
+save_path_commit <- paste0(save_path,repo,"/commit/")
+dir.create(save_path_commit)
+github_api_iterate_pages(gh_response,save_path_commit,prefix="commit")
+```
+
+# Parsing Raw Data to Csv
+
+To parse raw data, we use the associated endpoint parser functions. Keep in mind these functions only parse a subset of all the information in the json ("column wise"). Please consult with the GitHub API or inspect the raw data directly to see all information which is available. 
+
+```{r}
+all_issue_event <- lapply(list.files(save_path_issue_event,full.names = TRUE),read_json)
+all_issue_event <- lapply(all_issue_event,github_parse_project_issue)
+all_issue_event <- rbindlist(all_issue_event,fill=TRUE)
+all_issue_event[,issue_body:=NULL] # removing column just to prevent html rendering error
+kable(head(all_issue_event))
+```
+
+```{r}
+all_commit <- lapply(list.files(save_path_commit,full.names = TRUE),read_json)
+all_commit <- lapply(all_commit,github_parse_project_commits)
+all_commit <- rbindlist(all_commit,fill=TRUE)
+all_commit[,commit_message:=NULL] # removing column just to prevent html rendering error
+
+kable(head(all_commit))
+```
+
+# Obtaining Issue Assignments from Non-Committers
+
+With the two tables above, the list of all issue events are calculated and shown below.
+
+```{r}
+all_issue_event_assigned <- all_issue_event[event == "assigned"]
+assigned_users_without_merge_access <-which(!(all_issue_event_assigned$issue_assignee_login %in%
+                                                unique(all_commit$committer_login)))
+
+kable(all_issue_event_assigned[assigned_users_without_merge_access])
+```
 
