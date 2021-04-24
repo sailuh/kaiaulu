@@ -6,7 +6,7 @@ output:
     number_sections: true
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{Dv8 Showcase}
+  %\VignetteIndexEntry{Social Smells Showcase}
   %\VignetteEncoding{UTF-8}
 ---
 
@@ -124,7 +124,7 @@ Within a slice we do the following:
  
 There is a large variety of customization in the above 5 steps. We will discuss them briefly here, as they directly impact the quality of your results. 
 
-### Identity Matching
+## Identity Matching
 
 It is very common authors have multiple names and e-mails within and across git log, mailing lists, issue trackers etc. There is no perfect way to identify all identities of an individual, only heuristics. Kaiaulu has a large number of unit tests, each capturing a different example of how people use their e-mails. However, this is not magic. It is possible, and it has been encountered before, cases where a software is used in an open source project that may entirely compromise the analysis if done blind. For example, a common heuristic used for identity matching is to consider two accounts to have the same identity if either the First+Last name OR E-mail have an exact match. In one open source project we analyzed, we found a software was being used that masked all users with commit access as "admin@project.org". Using this heuristic would have, therefore, compromised the entire data.
 
@@ -132,7 +132,7 @@ Using the code below, you can store the various `project_git_slice` and `project
 
 Remember: Social smells rely heavily on patterns of collaboration and communication. If the identities are poorly assigned, the social smells will **not** reflect correctly the project status (since in essence several people considered to be communicating with one another, are the same individual!).
 
-### Constructing a Network Representation
+## Constructing a Network Representation
 
 As mentioned in the introduction, there are multiple types of mailing list archives out there, and it may be more sensible to use an issue tracker instead of a mailing list, or a combination of both depending on the project. Besides data types, there are also different types of transformations that can be done, when we transform the data in networks. This notebook implements the bipartite transformation (see `parse_gitlog_network()`). It is also possible to use a temporal transformation (see `parse_gitlog_temporal_network()`). The choice of transformation impacts the direction and overall type of network that will be generated, so it is important you understand how this impact your research conclusions. A similar transformation could be applied to mailing lists, but it is not yet implemented. Because we use bipartite in the code block below, we also perform a bipartite projection. These are well known operations in graph theory which also impact the interpretability of the results.
 
@@ -140,7 +140,7 @@ Another transformation that you can choose is whether the analysis should be don
 
 A third choice we make here is whether the collaboration being analyzed is done by authors or committers. Normally a open source project has both. In the code block below, we analyze authors. If you are interested in committers, or potentially their interaction, see the available parameters of `parse_gitlog()`. 
 
-### Community Detection
+## Community Detection
 
 For some social smells, such as radio silence and primma donna, community detection is required to be applied to the constructed networks. Do consider the implications of the one chosen below in your results.
 
@@ -324,7 +324,7 @@ for(j in 2:length(time_window)){
   j_commit_hash <- last(project_git_slice)$data.commit
   # Checkout to commit of interest
   git_checkout(j_commit_hash, git_repo_path)
-  # Run dv8 against the checkedout commit
+  # Run line metrics against the checkedout commit
   commit_interval <- stri_c(i_commit_hash,"-",j_commit_hash)
   line_metrics[[commit_interval]] <- parse_line_metrics(scc_path,git_repo_path)
   line_metrics[[commit_interval]]$commit_interval <- commit_interval
