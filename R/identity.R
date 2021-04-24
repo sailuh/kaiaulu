@@ -48,11 +48,11 @@ split_name_email <- function(name_email){ # rename parameter to format_name_emai
     name_email_split[["email"]] <- words[email_index]
     name_email_split[["name"]] <- stri_c(words[!(1:n_words %in% email_index)],
                                          collapse=" ")
-   # Only name or email exist -- which?
+    # Only name or email exist -- which?
   }else if(n_words <= 1 & contains_email){
-      name_email_split[["email"]] <- words[email_index]
+    name_email_split[["email"]] <- words[email_index]
   }else{
-      name_email_split[["name"]] <- stri_c(words,collapse=" ")
+    name_email_split[["name"]] <- stri_c(words,collapse=" ")
   }
   return(name_email_split)
 }
@@ -115,7 +115,7 @@ assign_exact_identity <- function(unique_name_email,use_name_only=FALSE){
     if(j == 1){
       A[[i]]$id <- id
       id <- id + 1
-    # a match was found
+      # a match was found
     }else{
       A[[i]]$id <- A[[j-1]]$id
     }
@@ -125,76 +125,54 @@ assign_exact_identity <- function(unique_name_email,use_name_only=FALSE){
   return(ids)
 }
 #' Assign Common Id to Nodes and Edgelists to Git and Mbox
-#' @param project_git the parsed mbox file from \code{\link{parse_gitlog}}
-#' @param project_mbox the parsed mbox file from \code{\link{parse_mbox}}
+#' @param project_log A list which can be any number of tables from \code{\link{parse_gitlog}}
+#' or \code{\link{parse_mbox}}
+#' @param name_column A string or vector of strings containing the column names
+#' which identity match should apply. One column name should provided for each
+#' table in the `project_log` list.
 #' @param assign_identity_function The heuristic function which decides common IDs
 #' (currently only available: \code{\link{assign_network_identity}})
+#' @param label Wether to replace the original non matched name with the
+#' collection of all names (label = raw_name), or an id (label = identity_id)
+#' @return Returns `project_log`, with two added columns, `raw_name` and
+#' `identity_id`. `raw_name` contains all names matched to the user, while
+#' `identity_id` provides a unique identifier, starting at 1, for all names
+#' passed in `project_log` across all tables of the list.
 #' @export
-assign_network_identity <- function(project_git,project_mbox,assign_identity_function,use_name_only=FALSE){
-  # git_author_network type == TRUE if node is author, else is file
-  git_authors <- project_git[["nodes"]]$name[project_git[["nodes"]]$type]
-  git_files <- project_git[["nodes"]]$name[!project_git[["nodes"]]$type]
+identity_match <- function(project_log,name_column,assign_identity_function,
+                           use_name_only=FALSE,
+                           label){
+  all_name_emails <- c()
+  for(i in 1:length(project_log)){
+    all_name_emails <- c(all_name_emails,project_log[[i]][[name_column[i]]])
+  }
+  all_name_emails <- unique(all_name_emails)
 
-  # mbox_network type == TRUE if node is author, else is thread
-  mbox_authors <- project_mbox[["nodes"]]$name[project_mbox[["nodes"]]$type]
-  mbox_threads <- project_mbox[["nodes"]]$name[!project_mbox[["nodes"]]$type]
+  name_mapping <- data.table(raw_name=all_name_emails,
+                             identity_id=assign_identity_function(all_name_emails,
+                                                                  use_name_only))
+  name_mapping_collapsed <- name_mapping[,.(raw_name = stri_c(raw_name,collapse = " | ")),
+                                         by=identity_id]
 
-  all_name_emails <- unique(c(git_authors,mbox_authors))
-  name_mapping <- data.table(raw_name=all_name_emails,id=assign_identity_function(all_name_emails,use_name_only))
+  for(i in 1:length(project_log)){
 
-  # Map the ids to git_authors vertices from the graph
-  author_v_ids <- merge(data.table(raw_name=git_authors),
-                        name_mapping,
-                        by="raw_name",all.x=TRUE,sort=FALSE)$id
-  #Suplement the remaining node ids, i.e. files, with NA
-  project_git[["nodes"]]$id <- c(author_v_ids,git_files)
+    project_log[[i]] <- merge(project_log[[i]],
+                              name_mapping,by.x=name_column[i],by.y="raw_name")
 
-  # Similarly, map the ids to the ids of mbox_authors
-  mbox_v_ids <- merge(data.table(raw_name=mbox_authors),
-                      name_mapping,
-                      by="raw_name",all.x=TRUE,sort=FALSE)$id
-  #Suplement the remaining node ids, i.e. files, with NA
-  project_mbox[["nodes"]]$id <- c(mbox_v_ids,mbox_threads)
 
-  # Swap name attribute and id attribute to simplify usage by igraph
-  # Node
-  project_git[["nodes"]]$raw_name <- project_git[["nodes"]]$name
-  project_mbox[["nodes"]]$raw_name <- project_mbox[["nodes"]]$name
-  project_git[["nodes"]]$name <- project_git[["nodes"]]$id
-  project_mbox[["nodes"]]$name <- project_mbox[["nodes"]]$id
-  # Edgelist
-  name_id_mapping <- project_git[["nodes"]]$id
-  names(name_id_mapping) <- project_git[["nodes"]]$raw_name
-  project_git[["edgelist"]]$author <- name_id_mapping[project_git[["edgelist"]]$author]
-
-  name_id_mapping <- project_mbox[["nodes"]]$id
-  names(name_id_mapping) <- project_mbox[["nodes"]]$raw_name
-  project_mbox[["edgelist"]]$author <- name_id_mapping[project_mbox[["edgelist"]]$author]
-
-  # Node list must not occur twice, collapse raw_names
-  project_git[["nodes"]] <- project_git[["nodes"]][,.(color=color[1],
-                                                      type=type[1],
-                                                      id=id[1],
-                                                      raw_name=stri_c(raw_name,
-                                                                      collapse=" | "))
-                                                   ,by="name"]
-  project_mbox[["nodes"]] <- project_mbox[["nodes"]][,.(color=color[1],
-                                                        type=type[1],
-                                                        id=id[1],
-                                                        raw_name=stri_c(raw_name,
-                                                                        collapse=" | "))
-                                                     ,by="name"]
-  # Edgelists of previous 2 different authors may now be the same, sum weights up.
-  project_git[["edgelist"]] <- project_git[["edgelist"]][,.(weight=sum(weight)),
-                                                         by=c("from","to")]
-  project_mbox[["edgelist"]] <- project_mbox[["edgelist"]][,.(weight=sum(weight)),
-                                                           by=c("from","to")]
-
-  projects <- list()
-  projects[["project_git"]] <- project_git
-  projects[["project_mbox"]] <- project_mbox
-
-  return(projects)
+    project_log[[i]] <- merge(project_log[[i]],
+                              name_mapping_collapsed,
+                              by.x="identity_id",
+                              by.y="identity_id",all.x = TRUE)
+    if(label == "raw_name"){
+      project_log[[i]][[name_column[i]]] <- project_log[[i]][["raw_name"]]
+    }else if (label == "identity_id"){
+      project_log[[i]][[name_column[i]]] <- project_log[[i]][["identity_id"]]
+    }else{
+      stop(stri_c("Unknown label: ",label))
+    }
+  }
+  return(project_log)
 }
 
 

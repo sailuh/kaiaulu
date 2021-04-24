@@ -47,7 +47,7 @@ reference:
   - split_name_email
   - is_same_identity
   - assign_exact_identity
-  - assign_network_identity
+  - identity_match
 - title: Interval
   desc:  Provides different types of interval windows (e.g. release) for metric functions.
 - contents:
@@ -71,3 +71,16 @@ reference:
   - git_head
   - git_log
   - git_blame
+- title: Social Smells
+  desc:  Functions to compute social smells.
+- contents:
+  - community_smell_missing_links
+  - community_smell_organizational_silo
+  - community_smell_radio_silence
+  - community_smell_potential_black_cloud
+  - community_smell_primadonnas
+- title: Quality Framework Metrics
+  desc:  Functions to compute quality framework metrics.
+- contents:
+  - community_metric_sociotechnical_congruence
+  - community_metric_mean_communicability
