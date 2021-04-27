@@ -5,32 +5,38 @@
 #' Transform parsed git repo into an edgelist
 #'
 #' @param project_git A parsed git project by \code{parse_gitlog}.
-#' @param mode The network of interest: author-file, commit-file, or author-comitter
+#' @param mode The network of interest: author-entity, committer-entity, commit-entity, author-committer
 #' @export
 #' @family edgelists
-parse_gitlog_network <- function(project_git, mode = c("author","commit",'author-committer')){
-  data.Author <- data.AuthorDate <- data.commit <- data.Commit <- data.CommitDate <- added <- removed <- NULL # due to NSE notes in R CMD check
+transform_gitlog_to_bipartite_network <- function(project_git, mode = c("author-file","committer-file","commit-file",'author-committer')){
+  author_name_email <- author_datetimetz <- commit_hash <- committer_name_email <- committer_datetimetz <- lines_added <- lines_removed <- NULL # due to NSE notes in R CMD check
   # Check user did not specify a mode that does not exist
   mode <- match.arg(mode)
   # Select and rename relevant columns. Key = commit_hash.
-  project_git <- project_git[,.(author=data.Author,
-                                author_date=data.AuthorDate,
-                                commit_hash=data.commit,
-                                committer=data.Commit,
-                                committer_date = data.CommitDate,
-                                file,added,removed)]
-  if(mode == "author"){
+  project_git <- project_git[,.(author=author_name_email,
+                                author_date=author_datetimetz,
+                                commit_hash=commit_hash,
+                                committer=committer_name_email,
+                                committer_date = committer_datetimetz,
+                                file = file_pathname,
+                                added = lines_added,
+                                removed = lines_removed)]
+  if(mode == "author-file"){
     git_graph <- model_directed_graph(project_git[,.(from=author,to=file)],
                                       is_bipartite=TRUE,
                                       color=c("black","#f4dbb5"))
-  }else if(mode == "commit"){
+  }else if(mode == "committer-file"){
+    git_graph <- model_directed_graph(project_git[,.(from=committer,to=file)],
+                                      is_bipartite=TRUE,
+                                      color=c("#bed7be","#f4dbb5"))
+  }else if(mode == "commit-file"){
     git_graph <- model_directed_graph(project_git[,.(from=commit_hash,to=file)],
                                       is_bipartite=TRUE,
                                       color=c("#afe569","#f4dbb5"))
   }else if(mode == "author-committer"){
     git_graph <- model_directed_graph(project_git[,.(from=author,to=committer)],
                                       is_bipartite=TRUE,
-                                      color=c("#bed7be","black"))
+                                      color=c("black","#bed7be"))
   }
   return(git_graph)
 
@@ -45,6 +51,7 @@ parse_gitlog_network <- function(project_git, mode = c("author","commit",'author
 #'
 #' @param project_git A parsed git project by \code{parse_gitlog}. The
 #' name column will be used to label nodes.
+#' @param mode author, committer
 #' @export
 #' @family edgelists
 #' @references M. Joblin, W. Mauerer, S. Apel,
@@ -53,50 +60,91 @@ parse_gitlog_network <- function(project_git, mode = c("author","commit",'author
 #' 2015 IEEE/ACM 37th IEEE International Conference on
 #' Software Engineering, Florence, 2015, pp. 563-573,
 #' doi: 10.1109/ICSE.2015.73.
-parse_gitlog_temporal_network <- function(project_git){
+transform_gitlog_to_temporal_network <- function(project_git,mode = c("author","committer")){
   # The code from developer A was modified by developer B
   # from A to B
-  get_consecutive_authors <- function(author_commit_date){
-    dt <- author_commit_date[order(data.AuthorDate)]
-    author <- dt$name
-    consecutive_authors <- data.table(from = author[1:(length(author) - 1)],
-                                      to = author[2:(length(author))])
-    return(consecutive_authors)
+  get_consecutive_identity_id <- function(identity_id_commit_date){
+    dt <- identity_id_commit_date[order(datetimetz)]
+    identity_id <- dt$identity_id
+    consecutive_identity_id <- data.table(from = identity_id[1:(length(identity_id) - 1)],
+                                      to = identity_id[2:(length(identity_id))])
+    return(consecutive_identity_id)
   }
-  # Create edgelists
-  git_edgelist <- project_git[, get_consecutive_authors(.SD),
-                              by = c("file"),
-                              .SDcols = c("data.AuthorDate", "name")]
-  # Filter cases where no second change was made to a given file in git log
-  git_edgelist <- git_edgelist[complete.cases(git_edgelist)]
-  # Select relevant columns for edgelist, grouping repeated rows as the edgelist weights
-  graph <- model_directed_graph(git_edgelist,FALSE,color="black")
+
+  # Check user did not specify a mode that does not exist
+  mode <- match.arg(mode)
+
+
+
+  if(mode == "author"){
+
+    project_git <- project_git[,.(identity_id=author_name_email,
+                                  datetimetz=author_datetimetz,
+                                  file_pathname)]
+
+    # Create edgelists
+    git_edgelist <- project_git[, get_consecutive_identity_id(.SD),
+                                by = c("file_pathname"),
+                                .SDcols = c("datetimetz", "identity_id")]
+
+    # Filter cases where no second change was made to a given file in git log
+    git_edgelist <- git_edgelist[complete.cases(git_edgelist)]
+
+    # Select relevant columns for edgelist, grouping repeated rows as the edgelist weights
+    graph <- model_directed_graph(git_edgelist,FALSE,color="black")
+
+
+  }else if(mode == "committer"){
+
+    project_git <- project_git[,.(identity_id = committer_name_email,
+                                  datetimetz=committer_datetimetz,
+                                  file_pathname)]
+
+    # Create edgelists
+    git_edgelist <- project_git[, get_consecutive_identity_id(.SD),
+                                by = c("file_pathname"),
+                                .SDcols = c("datetimetz", "identity_id")]
+
+    # Filter cases where no second change was made to a given file in git log
+    git_edgelist <- git_edgelist[complete.cases(git_edgelist)]
+
+    # Select relevant columns for edgelist, grouping repeated rows as the edgelist weights
+    graph <- model_directed_graph(git_edgelist,FALSE,color="#bed7be")
+  }
+
+
   return(graph)
 }
 #' Transform parsed git repo into an edgelist
 #'
 #' @param project_git_entity A parsed git project by \code{parse_gitlog_entity}.
-#' @param mode The network of interest: author-file, commit-file, or author-comitter
+#' @param mode The network of interest: author-entity, committer-entity, commit-entity, author-committer
 #' @export
 #' @family edgelists
-parse_gitlog_entity_network <- function(project_git_entity, mode = c("author","commit",'author-committer')){
-  data.Author <- data.AuthorDate <- data.commit <- data.Commit <- data.CommitDate <- added <- removed <- NULL # due to NSE notes in R CMD check
+transform_gitlog_to_entity_bipartite_network <- function(project_git_entity, mode = c("author-entity","committer-entity","commit-entity",'author-committer')){
+  author_name_email <- author_datetimetz <- commit_hash <- committer_name_email <- committer_datetimetz <- lines_added <- lines_removed <- NULL # due to NSE notes in R CMD check
   # Check user did not specify a mode that does not exist
   mode <- match.arg(mode)
   # Select and rename relevant columns. Key = commit_hash.
-  project_git_entity <- project_git_entity[,.(author=data.Author,
-                                author_date=data.AuthorDate,
-                                commit_hash=data.commit,
-                                committer=data.Commit,
-                                committer_date = data.CommitDate,
+  project_git_entity <- project_git_entity[,.(author=author_name_email,
+                                author_date=author_datetimetz,
+                                commit_hash=commit_hash,
+                                committer=committer_name_email,
+                                committer_date = committer_datetimetz,
                                 entity,
                                 weight)]
-  if(mode == "author"){
+
+  if(mode == "author-entity"){
     # Select relevant columns for nodes
     git_graph <- model_directed_graph(project_git_entity[,.(from=author,to=entity)],
                                       is_bipartite=TRUE,
                                       color=c("black","#fafad2"))
-  }else if(mode == "commit"){
+  }else if(mode == "committer-entity"){
+    # Select relevant columns for nodes
+    git_graph <- model_directed_graph(project_git_entity[,.(from=author,to=entity)],
+                                      is_bipartite=TRUE,
+                                      color=c("#bed7be","#fafad2"))
+  }else if(mode == "commit-entity"){
     git_graph <- model_directed_graph(project_git_entity[,.(from=commit_hash,to=entity)],
                                       is_bipartite=TRUE,
                                       color=c("#afe569","#fafad2"))
@@ -115,6 +163,7 @@ parse_gitlog_entity_network <- function(project_git_entity, mode = c("author","c
 #' matches the one defined by Joblin et al.
 #'
 #' @param project_git_entity A parsed git project by \code{parse_gitlog_entity}.
+#' @param mode author, committer
 #' @export
 #' @family edgelists
 #' @references M. Joblin, W. Mauerer, S. Apel,
@@ -123,39 +172,68 @@ parse_gitlog_entity_network <- function(project_git_entity, mode = c("author","c
 #' 2015 IEEE/ACM 37th IEEE International Conference on
 #' Software Engineering, Florence, 2015, pp. 563-573,
 #' doi: 10.1109/ICSE.2015.73.
-parse_gitlog_entity_temporal_network <- function(project_git_entity){
+transform_gitlog_to_entity_temporal_network <- function(project_git_entity,mode = c("author","committer")){
   # The code from developer A was modified by developer B
   # from A to B
-  get_consecutive_authors <- function(author_commit_date){
-    dt <- author_commit_date[order(data.AuthorDate)]
-    author <- dt$name
+  get_consecutive_authors <- function(identity_id_commit_date){
+    dt <- identity_id_commit_date[order(datetimetz)]
+    identity_id <- dt$identity_id
     n_lines_changed <- dt$n_lines_changed
-    consecutive_authors <- data.table(from = author[1:(length(author) - 1)],
-                                      to = author[2:(length(author))],
+    consecutive_identity_id <- data.table(from = identity_id[1:(length(identity_id) - 1)],
+                                      to = identity_id[2:(length(identity_id))],
                                       n_lines_changed =
-                                        n_lines_changed[1:(length(author) - 1)] +
-                                        n_lines_changed[2:(length(author))]
+                                        n_lines_changed[1:(length(identity_id) - 1)] +
+                                        n_lines_changed[2:(length(identity_id))]
                                       )
-    return(consecutive_authors)
+    return(consecutive_identity_id)
   }
-  # Create edgelists
-  git_edgelist <- project_git_entity[, get_consecutive_authors(.SD),
-                              by = c("entity_definition_name"),
-                              .SDcols = c("data.AuthorDate", "name","n_lines_changed")]
-  # Filter cases where no second change was made to a given file in git log
-  git_edgelist <- git_edgelist[complete.cases(git_edgelist)]
 
-  graph <- model_directed_graph(git_edgelist,FALSE,color="black")
+  # Check user did not specify a mode that does not exist
+  mode <- match.arg(mode)
+
+  if(mode == "author"){
+
+    data.table::setnames(project_git_entity,
+            c("author_datetimetz"),
+            c("datetimetz"))
+    project_git_entity[,identity_id := author_name_email]
+
+    # Create edgelists
+    git_edgelist <- project_git_entity[, get_consecutive_authors(.SD),
+                                       by = c("entity_definition_name"),
+                                       .SDcols = c("datetimetz", "identity_id","n_lines_changed")]
+    # Filter cases where no second change was made to a given file in git log
+    git_edgelist <- git_edgelist[complete.cases(git_edgelist)]
+
+    graph <- model_directed_graph(git_edgelist,FALSE,color="black")
+
+  }else if(mode == "committer"){
+
+    data.table::setnames(project_git_entity,
+                         c("committer_datetimetz"),
+                         c("datetimetz"))
+    project_git_entity[,identity_id := committer_name_email]
+
+    # Create edgelists
+    git_edgelist <- project_git_entity[, get_consecutive_authors(.SD),
+                                       by = c("entity_definition_name"),
+                                       .SDcols = c("datetimetz", "identity_id","n_lines_changed")]
+    # Filter cases where no second change was made to a given file in git log
+    git_edgelist <- git_edgelist[complete.cases(git_edgelist)]
+
+    graph <- model_directed_graph(git_edgelist,FALSE,color="#bed7be")
+
+  }
 
   return(graph)
 }
 #' Transform parsed cveid and nvdfeed into a network
 #'
-#' @param project_cve A parsed cve edgelist by \code{\link{parse_commit_message_id_network}}.
+#' @param project_cve A parsed cve edgelist by \code{\link{transform_commit_message_id_to_network}}.
 #' @param nvd_feed  Parsed  nvdfeed by \code{\link{parse_nvdfeed}}.
 #' @export
 #' @family edgelists
-parse_cve_cwe_file_network <- function(project_cve,nvd_feed){
+transform_cve_cwe_file_to_network <- function(project_cve,nvd_feed){
   commit_message_id <- cwe_id <- name <- color <- src <- dest <- weight <- NULL # due to NSE notes in R CMD check
 
   cve_nodes <- project_cve[["nodes"]]
@@ -194,10 +272,10 @@ parse_cve_cwe_file_network <- function(project_cve,nvd_feed){
 #' @param project_mbox A parsed mbox by \code{parse_mbox}.
 #' @export
 #' @family edgelists
-parse_mbox_network <- function(project_mbox){
+transform_mbox_to_bipartite_network <- function(project_mbox){
   data.From <- data.Subject <- data.Date <- NULL # due to NSE notes in R CMD check
 
-  git_graph <- model_directed_graph(project_mbox[,.(from=data.From,to=data.Subject)],
+  git_graph <- model_directed_graph(project_mbox[,.(from=reply_from,to=reply_subject)],
                                     is_bipartite=TRUE,
                                     color=c("black","lightblue"))
   return(git_graph)
@@ -208,18 +286,18 @@ parse_mbox_network <- function(project_mbox){
 #' @param commit_message_id_regex the regex to extract the id from the commit message
 #' @export
 #' @family edgelists
-parse_commit_message_id_network <- function(project_git, commit_message_id_regex){
+transform_commit_message_id_to_network <- function(project_git, commit_message_id_regex){
   commit_message_id <- NULL # due to NSE notes in R CMD check
   # Extract the id according to the parameter regex
-  project_git$commit_message_id <- data.table(stringi::stri_match_first_regex(project_git$data.message,
+  project_git$commit_message_id <- data.table(stringi::stri_match_first_regex(project_git$commit_message,
                                                                               pattern = commit_message_id_regex))
 
   # Keep only the edges which contain the commit message id
 
   project_git <- project_git[!is.na(commit_message_id),.(commit_message_id,
-                                                         file)]
+                                                         file_pathname)]
 
-  git_graph <- model_directed_graph(project_git[,.(from=commit_message_id,to=file)],
+  git_graph <- model_directed_graph(project_git[,.(from=commit_message_id,to=file_pathname)],
                                     is_bipartite=TRUE,
                                     color=c("#0052cc","#f4dbb5"))
   return(git_graph)
@@ -232,7 +310,7 @@ parse_commit_message_id_network <- function(project_git, commit_message_id_regex
 #'
 #' @export
 #' @family edgelists
-parse_dependencies_network <- function(depends_parsed,weight_types=NA){
+transform_dependencies_to_network <- function(depends_parsed,weight_types=NA){
   src <- dest <- weight <- NULL # due to NSE notes in R CMD check
   # Can only include types user wants if Depends found them at least once on codebase
   weight_types <- intersect(names(depends_parsed)[3:ncol(depends_parsed)],weight_types)
@@ -258,7 +336,7 @@ parse_dependencies_network <- function(depends_parsed,weight_types=NA){
 #' @param r_dependencies_edgelist A parsed R folder by \code{parse_r_dependencies}.
 #' @param dependency_type The type of dependency to be parsed: Function or File
 #' @export
-parse_r_dependencies_network <- function(r_dependencies_edgelist,dependency_type=c("function","file")){
+transform_r_dependencies_to_network <- function(r_dependencies_edgelist,dependency_type=c("function","file")){
   mode <- match.arg(dependency_type)
   if(mode == "function"){
     graph <-  model_directed_graph(r_dependencies_edgelist[,.(from=src_functions_call_name,
@@ -274,3 +352,9 @@ parse_r_dependencies_network <- function(r_dependencies_edgelist,dependency_type
   }
   return(graph)
 }
+
+# Various imports
+utils::globalVariables(c("."))
+#' @importFrom data.table :=
+#' @importFrom data.table setnames
+NULL

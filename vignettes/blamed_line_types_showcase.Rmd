@@ -111,21 +111,21 @@ What file changes have been made which we can blame? We can find this informatio
 ```{r}
 project_git <- parse_gitlog(perceval_path,git_repo_path)
 project_git <- project_git  %>%
-  filter_by_file_extension(file_extensions,"file")  %>% 
-  filter_by_filepath_substring(substring_filepath,"file")
+  filter_by_file_extension(file_extensions,"file_pathname")  %>% 
+  filter_by_filepath_substring(substring_filepath,"file_pathname")
 ```
 
 To keep the example short, let's use a small file change made to APR's [groupinfo.c](https://github.com/apache/apr/blob/trunk/user/unix/groupinfo.c). We can queue the changes made to this file using Kaiaulu API as follows:
 
 ```{r}
 file_path <- "user/unix/groupinfo.c"
-formattable(head(project_git[file == file_path]))
+formattable(head(project_git[file_pathname == file_path]))
 ```
 The 5th change looks non-trivial, 19 lines were changed. Let's consider this change commit hash for the remainder of this example:
 
 ```{r}
-commit_hash <- head(project_git[file == file_path])[5]$data.commit
-formattable(head(project_git[file == file_path])[5])
+commit_hash <- head(project_git[file_pathname == file_path])[5]$commit_hash
+formattable(head(project_git[file_pathname == file_path])[5])
 ```
 
 Note while in this vignette we manually chose a small file for clarity, we could have iterated over the `parse_gitlog()` table to obtain the necessary information for the subsequent analysis presented in this vignette. 

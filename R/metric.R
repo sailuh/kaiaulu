@@ -34,7 +34,7 @@ metric_churn_per_commit_interval <- function(git_log){
   git_log <- metric_churn_per_commit_per_file(git_log)
 
   # Calculate Churn per Commit
-  git_log <- git_log[,.(commit_churn=sum(churn)),by=c("data.commit","data.Author")]
+  git_log <- git_log[,.(commit_churn=sum(churn)),by=c("commit_hash","author_datetimetz")]
 
   # Calculate the sum churn of the time interval
   commit_interval_churn <- sum(git_log$commit_churn)
@@ -50,13 +50,13 @@ metric_churn_per_commit_interval <- function(git_log){
 #' @seealso \code{\link{parse_gitlog}} to obtain `git_log`
 #' @export
 metric_churn_per_commit_per_file <- function(git_log){
-  added <- removed <- NULL # due to NSE notes in R CMD check
+  lines_added <- lines_removed <- NULL # due to NSE notes in R CMD check
   # Filter files which do not contain added or removed lines specified (i.e. value is "-")
-  git_log <- git_log[added != "-" & removed != "-"]
+  git_log <- git_log[lines_added != "-" & lines_removed != "-"]
 
   # Calculate Churn per Commit per File
-  git_log$churn <- metric_churn(as.numeric(git_log$added),
-                                as.numeric(git_log$removed))
+  git_log$churn <- metric_churn(as.numeric(git_log$lines_added),
+                                as.numeric(git_log$lines_removed))
   return(git_log)
 }
 #' Commit Message Id Coverage Metric
@@ -71,9 +71,9 @@ metric_churn_per_commit_per_file <- function(git_log){
 #' @family {metrics}
 #' @seealso \code{\link{parse_gitlog}} to obtain additions and deletions from gitlog
 commit_message_id_coverage <- function(git_log,commit_message_id_regex){
-  data.commit <- data.message <- NULL
-  git_log <- unique(git_log[,.(data.commit,data.message)])
-  is_match <- stringi::stri_detect_regex(git_log$data.message,
+  commit_hash <- commit_message <- NULL
+  git_log <- unique(git_log[,.(commit_hash,commit_message)])
+  is_match <- stringi::stri_detect_regex(git_log$commit_message,
                                          pattern = commit_message_id_regex)
   return(length(is_match[is_match]))
 }

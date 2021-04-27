@@ -85,9 +85,9 @@ To get started, we use the `parse_gitlog` function to extract a table from the g
 ```{r}
 project_git <- parse_gitlog(perceval_path,git_repo_path)
 project_git <- project_git  %>%
-  filter_by_file_extension(file_extensions,"file")  %>% 
-  filter_by_filepath_substring(substring_filepath,"file")
-project_git <- project_git[order(data.AuthorDate)]
+  filter_by_file_extension(file_extensions,"file_pathname")  %>% 
+  filter_by_filepath_substring(substring_filepath,"file_pathname")
+project_git <- project_git[order(author_datetimetz)]
 ```
 
 ## Parse Mbox
@@ -96,8 +96,33 @@ Next, we parse the .mbox data using the `parse_mbox` function. Similarly to `par
 
 ```{r}
 project_mbox <- parse_mbox(perceval_path,mbox_path)
-project_mbox <- project_mbox[order(data.Date)]
-#project_mbox <- project_mbox[data.Date >= start_date & data.Date <= end_date]
+project_mbox <- project_mbox[order(reply_datetimetz)]
+```
+
+## Timezone Adjustment
+
+We also have to parse and normalize the timezone across the different projects. Since one of the social metrics in the quality framework is the count of different timezones, we separate the timezone information before normalizing them.
+
+```{r}
+# Parse Timezones
+project_git$author_tz <- sapply(stringi::stri_split(project_git$author_datetimetz,
+                                                            regex=" "),"[[",6)
+project_git$committer_tz <- sapply(stringi::stri_split(project_git$committer_datetimetz,
+                                                            regex=" "),"[[",6)
+project_mbox$reply_tz <- sapply(stringi::stri_split(project_git$reply_datetimetz,
+                                                            regex=" "),"[[",6)
+```
+
+
+```{r}
+project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
+                                              format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
+project_git$author_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
+                                              format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
+project_mbox$reply_datetimetz <- as.POSIXct(project_mbox$reply_datetimetz,
+                                        format = "%a, %d %b %Y %H:%M:%S %z", tz = "UTC")
+
+#project_mbox <- project_mbox[reply_datetimetz >= start_date & reply_datetimetz <= end_date]
 ```
 
 # Smells
@@ -152,8 +177,8 @@ For some social smells, such as radio silence and primma donna, community detect
 # Transform commit hashes into datetime so window_size can be used
 start_date <- get_date_from_commit_hash(project_git,start_commit)
 end_date <- get_date_from_commit_hash(project_git,end_commit)
-datetimes <- project_git$data.AuthorDate
-mbox_datetimes <- project_mbox$data.Date
+datetimes <- project_git$author_datetimetz
+mbox_datetimes <- project_mbox$reply_datetimetz
 
 # Format time window for posixT
 window_size_f <- stringi::stri_c(window_size," day")
@@ -182,20 +207,20 @@ for(j in 2:size_time_window){
   
   
   # Obtain all commits from the gitlog which are within a particular window_size
-  project_git_slice <- project_git[(data.AuthorDate >= start_day) & 
-                     (data.AuthorDate < end_day)]
+  project_git_slice <- project_git[(author_datetimetz >= start_day) & 
+                     (author_datetimetz < end_day)]
   
   # Obtain all email posts from the mbox which are within a particular window_size
-  project_mbox_slice <- project_mbox[(data.Date >= start_day) & 
-                       (data.Date < end_day)]
+  project_mbox_slice <- project_mbox[(reply_datetimetz >= start_day) & 
+                       (reply_datetimetz < end_day)]
   
-  i_commit_hash <- first(project_git_slice)$data.commit
-  j_commit_hash <- last(project_git_slice)$data.commit
+  i_commit_hash <- first(project_git_slice)$commit_hash
+  j_commit_hash <- last(project_git_slice)$commit_hash
   
   # Identity Matching
   project_log <- list(project_git_slice=project_git_slice,project_mbox_slice=project_mbox_slice)
   project_log <- identity_match(project_log,
-                                name_column = c("data.Author","data.From"),
+                                name_column = c("author_name_email","reply_from"),
                                 assign_exact_identity,
                                 use_name_only=TRUE,
                                 label = "raw_name"
@@ -204,23 +229,24 @@ for(j in 2:size_time_window){
   project_mbox_slice <- project_log[["project_mbox_slice"]]
       
   # Parse networks edgelist from extracted data
-  project_git_slice <- parse_gitlog_network(project_git_slice,mode="author")
-  project_mbox_slice <- parse_mbox_network(project_mbox_slice)
+  network_git_slice <- transform_gitlog_to_bipartite_network(project_git_slice,
+                                                             mode="author-file")
+  network_mbox_slice <- transform_mbox_to_bipartite_network(project_mbox_slice)
   
   # Load networks in igraph
-  git_network <- igraph::graph_from_data_frame(d=project_git_slice[["edgelist"]], 
+  igraph_network_git_slice <- igraph::graph_from_data_frame(d=network_git_slice[["edgelist"]], 
                       directed = TRUE, 
-                      vertices = project_git_slice[["nodes"]])
-  mbox_network <- igraph::graph_from_data_frame(d=project_mbox_slice[["edgelist"]], 
+                      vertices = network_git_slice[["nodes"]])
+  igraph_network_mbox_slice <- igraph::graph_from_data_frame(d=network_mbox_slice[["edgelist"]], 
                       directed = TRUE, 
-                      vertices = project_mbox_slice[["nodes"]])
+                      vertices = network_mbox_slice[["nodes"]])
   
   # Community Smells functions are defined base of the projection networks of 
   # dev-thread => dev-dev, and dev-file => dev-dev. This creates both dev-dev via graph projections
-  git_network_authors <- igraph::bipartite_projection(git_network,
+  git_network_authors <- igraph::bipartite_projection(igraph_network_git_slice,
                                           multiplicity = TRUE,
                                           which = TRUE) # FALSE is the thread projection
-  mbox_network_authors <- igraph::bipartite_projection(mbox_network,
+  mbox_network_authors <- igraph::bipartite_projection(igraph_network_mbox_slice,
                                           multiplicity = TRUE,
                                           which = TRUE) # FALSE is the thread projection
   # Community Detection
@@ -236,9 +262,23 @@ for(j in 2:size_time_window){
                             mail.clusters,
                             git_network_authors))
   
-  # Calculate Quality Framework Metrics
+  
+  # Social Technical Metrics
   st_congruence <- community_metric_sociotechnical_congruence(mbox_network_authors,git_network_authors)
   communicability <- community_metric_mean_communicability(mbox_network_authors,git_network_authors)
+  num_tz <- length(unique(c(project_git_slice$author_tz,
+                            project_git_slice$committer_tz,
+                            project_mbox_slice$reply_tz)))
+  
+  
+  # Developer Social Network Metrics 
+  code_only_devs <- length(unique(project_git_slice$identity_id))
+  code_files <- length(unique(project_git_slice$file_pathname))
+  
+  ml_only_devs <- length(unique(project_mbox_slice$identity_id))
+  ml_threads <- length(unique(project_mbox_slice$reply_subject))
+
+  code_ml_both_devs <- length(intersect(unique(project_git_slice$identity_id),unique(project_mbox_slice$identity_id)))
   
   commit_interval <- stri_c(i_commit_hash,"-",j_commit_hash)
   smells[[commit_interval]] <- data.table(commit_interval,
@@ -247,7 +287,13 @@ for(j in 2:size_time_window){
                                           radio_silence,
                                           primma_donna,
                                           st_congruence,
-                                          communicability)
+                                          communicability,
+                                          num_tz,
+                                          code_only_devs,
+                                          code_files,
+                                          ml_only_devs,
+                                          ml_threads,
+                                          code_ml_both_devs)
 }
 smells_interval <- rbindlist(smells)
 ```
@@ -275,22 +321,23 @@ for(j in 2:length(time_window)){
   }
   
   # Obtain all commits from the gitlog which are within a particular window_size
-  project_git_slice <- project_git[(data.AuthorDate >= start_day) & 
-                     (data.AuthorDate < end_day)]
+  project_git_slice <- project_git[(author_datetimetz >= start_day) & 
+                     (author_datetimetz < end_day)]
   
   # The start and end commit
-  i_commit_hash <- first(project_git_slice)$data.commit
-  j_commit_hash <- last(project_git_slice)$data.commit
+  i_commit_hash <- first(project_git_slice)$commit_hash
+  j_commit_hash <- last(project_git_slice)$commit_hash
   
   # The start and end datetime
-  start_datetime <- first(project_git_slice)$data.AuthorDate
-  end_datetime <- last(project_git_slice)$data.AuthorDate
+  start_datetime <- first(project_git_slice)$author_datetimetz
+  end_datetime <- last(project_git_slice)$author_datetimetz
   
   commit_interval <- stri_c(i_commit_hash,"-",j_commit_hash)
   churn[[commit_interval]] <- data.table(commit_interval,
                                          start_datetime,
                                          end_datetime,
-                                         churn=metric_churn_per_commit_interval(project_git_slice))
+                                         churn=metric_churn_per_commit_interval(project_git_slice),
+                                         n_commits = length(unique(project_git_slice$commit_hash)))
 }
 churn_interval <- rbindlist(churn)
 ```
@@ -316,12 +363,12 @@ for(j in 2:length(time_window)){
   }
   
   # Obtain all commits from the gitlog which are within a particular window_size
-  project_git_slice <- project_git[(data.AuthorDate >= start_day) & 
-                     (data.AuthorDate < end_day)]
+  project_git_slice <- project_git[(author_datetimetz >= start_day) & 
+                     (author_datetimetz < end_day)]
   
-  i_commit_hash <- first(project_git_slice)$data.commit
+  i_commit_hash <- first(project_git_slice)$commit_hash
   # Use the ending hash of that window_size to calculate the flaws
-  j_commit_hash <- last(project_git_slice)$data.commit
+  j_commit_hash <- last(project_git_slice)$commit_hash
   # Checkout to commit of interest
   git_checkout(j_commit_hash, git_repo_path)
   # Run line metrics against the checkedout commit

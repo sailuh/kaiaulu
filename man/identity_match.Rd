@@ -21,10 +21,12 @@ which identity match should apply. One column name should provided for each
 table in the `project_log` list.}
 
 \item{assign_identity_function}{The heuristic function which decides common IDs
-(currently only available: \code{\link{assign_network_identity}})}
+(currently only available: \code{\link{assign_exact_identity}})}
 
-\item{label}{Wether to replace the original non matched name with the
-collection of all names (label = raw_name), or an id (label = identity_id)}
+\item{use_name_only}{Uses only the name field (i.e. disregard the e-mail field)}
+
+\item{label}{Whether to replace the original non matched name with the
+collection of all names (label == raw_name), or an id (label == identity_id)}
 }
 \value{
 Returns `project_log`, with two added columns, `raw_name` and

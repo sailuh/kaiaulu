@@ -60,6 +60,7 @@ split_name_email <- function(name_email){ # rename parameter to format_name_emai
 #' @param i Index of the first identity
 #' @param j Index of the second identity
 #' @param parsed_name_email The list of name and email identities
+#' @param use_name_only Uses only the name field (i.e. disregard the e-mail field)
 #' @export
 is_same_identity <- function(i,j,parsed_name_email,use_name_only=FALSE){
   # R does not stop on first false condition on AND like C.
@@ -98,6 +99,7 @@ is_same_identity <- function(i,j,parsed_name_email,use_name_only=FALSE){
 #' Identify authors with different names and emails
 #'
 #' @param unique_name_email A single string containing name and email as used in git and mailinglists.
+#' @param use_name_only Uses only the name field (i.e. disregard the e-mail field)
 #' @export
 assign_exact_identity <- function(unique_name_email,use_name_only=FALSE){
   formatted_name_email <- format_name_email(unique_name_email)
@@ -131,9 +133,10 @@ assign_exact_identity <- function(unique_name_email,use_name_only=FALSE){
 #' which identity match should apply. One column name should provided for each
 #' table in the `project_log` list.
 #' @param assign_identity_function The heuristic function which decides common IDs
-#' (currently only available: \code{\link{assign_network_identity}})
-#' @param label Wether to replace the original non matched name with the
-#' collection of all names (label = raw_name), or an id (label = identity_id)
+#' (currently only available: \code{\link{assign_exact_identity}})
+#' @param use_name_only Uses only the name field (i.e. disregard the e-mail field)
+#' @param label Whether to replace the original non matched name with the
+#' collection of all names (label == raw_name), or an id (label == identity_id)
 #' @return Returns `project_log`, with two added columns, `raw_name` and
 #' `identity_id`. `raw_name` contains all names matched to the user, while
 #' `identity_id` provides a unique identifier, starting at 1, for all names

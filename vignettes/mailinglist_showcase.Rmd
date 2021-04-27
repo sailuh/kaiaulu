@@ -34,11 +34,24 @@ perceval_path <- tool[["perceval"]]
 mbox_path <- conf[["data_path"]][["mbox"]]
 ```
 
-# Construct Communication Network
 
 ```{r}
 project_mbox <- parse_mbox(perceval_path,mbox_path)
-project_communication_network <- parse_mbox_network(project_mbox)
+```
+
+
+```{r}
+# Parse timestamps and convert to UTC
+project_mbox$reply_datetimetz <- as.POSIXct(project_mbox$reply_datetimetz,
+                                        format = "%a, %d %b %Y %H:%M:%S %z", tz = "UTC")
+
+project_mbox_slice <- project_mbox[reply_datetimetz >= as.POSIXct("2019-01-01", format = "%Y-%m-%d",tz = "UTC") & reply_datetimetz < as.POSIXct("2019-12-31", format = "%Y-%m-%d",tz = "UTC")]
+```
+
+# Construct Communication Network
+
+```{r}
+project_communication_network <- transform_mbox_to_bipartite_network(project_mbox_slice)
 project_communication_network <- igraph::graph_from_data_frame(d=project_communication_network[["edgelist"]], 
                       directed = TRUE, 
                       vertices = project_communication_network[["nodes"]])

@@ -39,13 +39,13 @@ interval_commit_metric <- function(project_git,dt_range,metric_function,
 #' Locates the commit hash in `git_log` and obtains the timestamp. Assumes `git_log` contains a `data.AuthorDate``
 #' column.
 #' @param git_log a data.table where the key is commit+file
-#' @param commit_hash a string character with the commit hash we want to obtain the datetime from
+#' @param p_commit_hash a string character with the commit hash we want to obtain the datetime from
 #' commit interval on the form `commitsha1-commitsha2`
 #' @return a numeric vector of `metric_function` values for each commit interval specified in `dt_range`
 #' @export
-get_date_from_commit_hash <- function(git_log,commit_hash){
-  data.commit <- NULL # due to NSE notes in R CMD check
-  return(git_log[data.commit == commit_hash]$data.AuthorDate[1])
+get_date_from_commit_hash <- function(git_log,p_commit_hash){
+  commit_hash <- NULL # due to NSE notes in R CMD check
+  return(git_log[commit_hash == p_commit_hash]$author_datetimetz[1])
 }
 
 #' @importFrom magrittr %>%

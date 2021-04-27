@@ -12,6 +12,8 @@ is_same_identity(i, j, parsed_name_email, use_name_only = FALSE)
 \item{j}{Index of the second identity}
 
 \item{parsed_name_email}{The list of name and email identities}
+
+\item{use_name_only}{Uses only the name field (i.e. disregard the e-mail field)}
 }
 \description{
 Compares identities in a list by index

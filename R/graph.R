@@ -39,8 +39,8 @@ model_directed_graph <- function(edgelist,is_bipartite,color){
 #' @param oslom_bin_dir_undir_path The path to oslom dirrected or undirected network binary
 #' @param edgelist An igraph edgelist object
 #' @param seed An integer specifying the seed to replicate the result
-#' @param n_runs the number of runs for the ﬁrst hierarchical level
-#' @param is_weighted a boolean indicating wether a weight column is available in the data.table
+#' @param n_runs the number of runs for the first hierarchical level
+#' @param is_weighted a boolean indicating whether a weight column is available in the data.table
 #' @references Finding statistically significant communities in networks
 #' A. Lancichinetti, F. Radicchi, J.J. Ramasco and
 #' S. Fortunato PLoS ONE 6, e18961 (2011).

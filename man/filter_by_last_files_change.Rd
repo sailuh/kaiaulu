@@ -4,12 +4,12 @@
 \alias{filter_by_last_files_change}
 \title{Filter Git Log by all last files changes in snapshot}
 \usage{
-filter_by_last_files_change(git_log, commit_hash)
+filter_by_last_files_change(git_log, p_commit_hash)
 }
 \arguments{
 \item{git_log}{A parsed git project by \code{parse_gitlog}.}
 
-\item{commit_hash}{A commit hash from git_log}
+\item{p_commit_hash}{A commit hash from git_log}
 }
 \description{
 Filter a git log to show the last commit change made

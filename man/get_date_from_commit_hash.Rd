@@ -4,12 +4,12 @@
 \alias{get_date_from_commit_hash}
 \title{Get datetime from commit hash in a git log}
 \usage{
-get_date_from_commit_hash(git_log, commit_hash)
+get_date_from_commit_hash(git_log, p_commit_hash)
 }
 \arguments{
 \item{git_log}{a data.table where the key is commit+file}
 
-\item{commit_hash}{a string character with the commit hash we want to obtain the datetime from
+\item{p_commit_hash}{a string character with the commit hash we want to obtain the datetime from
 commit interval on the form `commitsha1-commitsha2`}
 }
 \value{

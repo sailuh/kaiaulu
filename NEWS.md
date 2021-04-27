@@ -1,4 +1,24 @@
-kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (in development)
+kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) (in development)
+=========================
+
+### NEW FEATURES
+
+  * `parser.R` and `network.R` API now abide by a standardized nomenclature for the data columns, instead of using third party software nomenclature, which led to multiple names when data overlapped among third party software. The Network module function prefix was also replaced from parse_\*_network to transform_\*_network. Various transformation functions were also renamed to explicitly indicate it generates bipartite networks (previously it did not), instead of temporal. The network functions to transform git logs, be it bipartite or temporal now account for all types of networks (i.e. author-file, author-entity, committer-file, committer-entity, etc). The "mode" parameter is also more explicit on what types of functions it can create. [#43](https://github.com/sailuh/kaiaulu/issues/43)
+
+  * Parser functions no longer normalize the timezone to UTC. This is now exemplified in all Notebooks instead for when time slices are needed. Therefore, it is now possible to implement the socio-technical metric `num.tz`. To minimize risk timestamps are no longer aligned, datetimes are left as strings instead of parsed as posix.ct objects. [#89](https://github.com/sailuh/kaiaulu/issues/89) 
+
+### MINOR IMPROVEMENTS
+
+ * All notebooks now use the new identity match interface from [#56](https://github.com/sailuh/kaiaulu/issues/56), consequently users can now choose to display to either bipartite or temporal transformations whether to display the nodes with the project's name and e-mail or their id, if publishing information online to protect the project's developers privacy. [#90](https://github.com/sailuh/kaiaulu/issues/90)
+
+### BUG FIXES
+
+### DOCUMENTATION FIXES
+
+ * the gitlog_showcase Notebook was renamed to "Explore Git Log", and now contains extensive textual documentation explaining all the file functions, both bipartite and temporal. It also briefly introduces the information used from the project configuration file. Some notebooks which had redundant content were also deleted and re-organized on this one. The software vulnerabilities notebook was also renamed to "Issues, Software Vulnerabilities and Weaknesses", and now focuses on commit log message parsing only. The notebook which presents the method to parse git log entities was renamed to "Extending Git Logs from Files to Entities", it was also reorganized so as to not depend on a saved local rds file. It now loads a very small amount of data so the documentation generation does not take too long as the processing of a full log takes awhile. [#91](https://github.com/sailuh/kaiaulu/issues/91)
+
+
+kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (04/24/2021)
 =========================
 
 ### NEW FEATURES

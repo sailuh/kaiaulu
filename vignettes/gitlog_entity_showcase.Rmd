@@ -1,14 +1,16 @@
 ---
-title: "Git Log Entity vs File Network Showcase"
+title: "Extending Git Logs from Files to Entities"
 output: 
   html_document:
     toc: true
     number_sections: true
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{Git Log Entity vs File Network Showcase}
+  %\VignetteIndexEntry{Extending Git Logs from Files to Entities}
   %\VignetteEncoding{UTF-8}
 ---
+
+# Introduction
 
 ```{r}
 rm(list = ls())
@@ -27,11 +29,11 @@ require(stringi)
 require(knitr)
 ```
 
-Load config file.
+# Project Configuration File
 
 ```{r}
 tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/openssl.yml")
+conf <- yaml::read_yaml("../conf/apr.yml")
 
 # 3rd Party Tools
 perceval_path <- tool[["perceval"]]
@@ -50,8 +52,7 @@ substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
 
 # Construct Collaboration Network
 
-```{r eval = FALSE}
-#save_path <- "/Users/cvp/Desktop/kaiaulu_project_input/rds/APR_git.rds"
+```{r}
 project_git <- parse_gitlog(perceval_path,git_repo_path)
 #project_git <- parse_gitlog(perceval_path,git_repo_path,save_path)
 #project_git <- readRDS(save_path)
@@ -59,93 +60,137 @@ project_git <- parse_gitlog(perceval_path,git_repo_path)
 
 # Filter files
 
-```{r eval = FALSE}
+```{r}
 project_git <- project_git  %>%
-  filter_by_file_extension(file_extensions,"file")  %>% 
-  filter_by_filepath_substring(substring_filepath,"file")
-```
-
-```{r eval = FALSE}
-window_size <- stringi::stri_c(90," day")
-start_date <- min(project_git$data.AuthorDate)
-end_date <- max(project_git$data.AuthorDate)
-time_window <- seq.POSIXt(from=start_date,to=end_date,by=window_size)
-  
-git_log_folders <- list()
-for(i in 1:length(time_window)){
-  commit <- last(project_git[data.AuthorDate <= time_window[i]])$data.commit
-  git_log_folders[[i]]  <- filter_by_last_files_change(project_git,commit)
-    
-}
-project_git_slice <- unique(rbindlist(git_log_folders))
+  filter_by_file_extension(file_extensions,"file_pathname")  %>% 
+  filter_by_filepath_substring(substring_filepath,"file_pathname")
 ```
 
 ```{r}
-#changed_entities <- parse_gitlog_entity(git_repo_path,utags_path,project_git_slice,kinds,progress_bar = TRUE)
-changed_entities <- readRDS("~/Desktop/openssl_full_gitlog_filtered_by_last_file_change.rds")
-#kable(head(changed_entities))
+project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
+                                              format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
+project_git$author_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
+                                              format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
 ```
 
-# Naming
+
+Entity analysis requires a much longer time to process than file analysis, and reason why the associated function provides a progress bar. In the interest of this demo, we use only 500 changes of the git log, but time slices could also be used. 
 
 ```{r}
-changed_entities[,c("data.Author",
-                    "data.AuthorDate",
-                    "data.commit",
-                    "data.Commit",
-                    "data.CommitDate",
+#project_git_slice <- project_git[author_datetimetz >= as.POSIXct("2019-01-01", format = "%Y-%m-%d",tz = "UTC") & author_datetimetz < as.POSIXct("2019-12-31", format = "%Y-%m-%d",tz = "UTC")]
+project_git_slice <- head(project_git,500)
+```
+
+```{r}
+changed_entities <- parse_gitlog_entity(git_repo_path,utags_path,project_git_slice,kinds,progress_bar = TRUE)
+##changed_entities <- readRDS("~/Desktop/apr_full_gitlog_filtered_by_last_file_change.rds")
+kable(head(changed_entities))
+```
+
+Naming.
+
+```{r}
+changed_entities[,c("author_name_email",
+                    "author_datetimetz",
+                    "committer_name_email",
+                    "commit_hash",
+                    "committer_datetimetz",
                     "entity",
-                    "weight"):=list(stri_c(committer_name,committer_email,sep= " "),
-                                    author_timestamp,
+                    "weight"):=list(stri_c(author_name,author_email,sep= " "),
+                                    as.POSIXct(as.integer(author_timestamp),
+                                               origin="1970-01-01",tz = "UTC"),
                                     stri_c(committer_name,committer_email,sep= " "),
                                     commit_hash,
-                                    committer_timestamp,
+                                    as.POSIXct(as.integer(committer_timestamp),
+                                               origin="1970-01-01",tz = "UTC"),
                                     entity_definition_name,
                                     n_lines_changed
                                     )]
-
-#changed_entities[,c("name","raw_name"):=list(assign_exact_identity(data.Author),data.Author)]
 ```
 
-# Identity 
+# Identity Match
+
 
 ```{r}
-all_name_emails <- unique(changed_entities$data.Author)
-name_mapping <- data.table(raw_name=all_name_emails,
-                           identity_id=assign_exact_identity(all_name_emails,
-                                                             use_name_only = FALSE))
-changed_entities <- merge(changed_entities,name_mapping,
-                            by.x="data.Author",by.y="raw_name",all.x = TRUE)
-name_mapping <- name_mapping[,.(raw_name = stri_c(raw_name,collapse = " | ")),
-             by="identity_id"]
-changed_entities <- merge(changed_entities,name_mapping,
-                            by.x="identity_id",by.y="identity_id",all.x = TRUE)
-#changed_entities[,name:=identity_id]
-changed_entities[,name:=raw_name]
+project_log <- list(project_git=changed_entities)
+project_log <- identity_match(project_log,
+                              name_column = c("author_name_email"),
+                              assign_exact_identity,
+                              use_name_only=TRUE,
+                              label = "raw_name"
+                              )
+id_project_git <- project_log[["project_git"]]
+```
+
+# Visualizing the Git Log 
+
+## Authors, Committers, *Entities* and Commits
+
+Author-Entity Network
+
+```{r}
+project_collaboration_network <- transform_gitlog_to_entity_bipartite_network(last(id_project_git,
+                                                                                   1000),
+                                                                              mode = "author-entity")
+
+project_collaboration_network <- igraph::graph_from_data_frame(d=project_collaboration_network[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_collaboration_network[["nodes"]])
+
+visIgraph(project_collaboration_network,randomSeed = 1)
+```
+
+```{r}
+project_commit_network <- transform_gitlog_to_entity_bipartite_network(last(id_project_git,
+                                                                                   1000),
+                                                                              mode ="commit-entity")
+project_commit_network <- igraph::graph_from_data_frame(d=project_commit_network[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_commit_network[["nodes"]])
+visIgraph(project_commit_network,randomSeed = 1)
+```
+
+### Bipartite Projections
+
+```{r}
+co_change_network <- igraph::bipartite_projection(project_commit_network,
+                                          multiplicity = TRUE,
+                                          which = FALSE) # FALSE is the file projection
+visIgraph(co_change_network,randomSeed = 1)
+```
+
+```{r}
+## Co-Change adjacency matrix 
+co_change_matrix <- as_adjacency_matrix(co_change_network,attr = "weight",sparse = F)
+kable(co_change_matrix[1:10,1:10])
 ```
 
 
-# Entity Networks
+```{r}
+project_collaboration_network <- transform_gitlog_to_entity_bipartite_network(last(id_project_git,
+                                                                                   1000),
+                                                                              mode = "author-entity")
 
-## Parse Gitlog Entity Temporal Network
+project_collaboration_network <- igraph::graph_from_data_frame(d=project_collaboration_network[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_collaboration_network[["nodes"]])
+
+author_network <- igraph::bipartite_projection(project_collaboration_network,
+                                          multiplicity = TRUE,
+                                          which = TRUE) # FALSE is the file projection
+visIgraph(author_network,randomSeed = 1)
+```
+
+
+# Temporal Networks 
+
+
+
 
 ```{r}
-project_temporal_collaboration_network <- parse_gitlog_entity_temporal_network(last(changed_entities,1000))
+project_temporal_collaboration_network <- transform_gitlog_to_entity_temporal_network(last(id_project_git,1000))
 project_temporal_collaboration_network <- igraph::graph_from_data_frame(d=project_temporal_collaboration_network[["edgelist"]], 
                       directed = TRUE, 
                       vertices = project_temporal_collaboration_network[["nodes"]])
 visIgraph(project_temporal_collaboration_network,randomSeed = 1)
-```
-
-
-## Parse Git Log Author - Entity Network
-
-A sample of files 
-
-```{r}
-project_collaboration_network <- parse_gitlog_entity_network(last(changed_entities,1000))
-project_collaboration_network <- igraph::graph_from_data_frame(d=project_collaboration_network[["edgelist"]], 
-                      directed = TRUE, 
-                      vertices = project_collaboration_network[["nodes"]])
-visIgraph(project_collaboration_network,randomSeed = 1)
 ```

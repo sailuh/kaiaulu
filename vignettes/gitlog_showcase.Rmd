@@ -1,14 +1,18 @@
 ---
-title: "Collaboration Network Parser"
+title: "Exploring Git Log"
 output: 
   html_document:
     toc: true
     number_sections: true
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{Collaboration Network Parser}
+  %\VignetteIndexEntry{Exploring Git Logs}
   %\VignetteEncoding{UTF-8}
 ---
+
+# Introduction
+
+This notebook presents some of the functionality of the **Parser** and **Network** modules in Kaiaulu. 
 
 ```{r}
 rm(list = ls())
@@ -24,9 +28,41 @@ require(data.table)
 require(igraph)
 require(yaml)
 require(stringi)
+require(knitr)
 ```
 
-Load config file.
+# Project Configuration File
+
+Analyzing open source projects often requires some manual work on your part to find where the open source project hosts its codebase and mailing list. Instead of hard-coding this on Notebooks, we keep this information in a project configuration file. Here's the minimal information this Notebook requires in a project configuration file:
+
+```
+data_path:
+  project_website: https://apr.apache.org/
+  git_url: https://github.com/apache/apr
+  git: ../rawdata/git_repo/APR/.git
+  
+filter:
+  keep_filepaths_ending_with:
+    - cpp
+    - c
+    - h
+    - java
+    - js
+    - py
+    - cc
+  remove_filepaths_containing:
+    - test
+```
+
+As you can see, the project configuration file is a simple bullet list. This is by design: We want the files to be human readable, so you can share by e-mail, include as appendix, or even attach as supplemental material in a conference. To facilitate formatting and commenting on files, we use .YAML, instead of plain .txt or markdown. 
+
+What this file tells the R Notebook is where to find the git log on your computer, and where you got it from in the first place. Currently we don't really use `project_website` nor `git_url` but it is strongly encouraged, as we have encountered in the past projects with multiple mirrors where the git log contained **discrepancies**, making reproducing prior analysis much harder.
+
+In the project configuration file we also specify filters. They tell this notebook what to keep after the `.` in a filename (i.e. what it ends with), and what it should **not** keep based on any word wthin the entire filepath name. For example, in APR unit tests are prefix with the word `_test`. In trying to reproduce related work, we found neglecting file filters led metrics such as `churn` blow out of proportion, for it include many nonsensical file changes.
+
+The file makes all assumptions explicit to you when using the code. Note these assumptions are not universal: They are particular to this project alone. This is why this lives in a project configuration file, instead of the codebase. Kaiaulu git repository `/conf` folder includes a few existing projects with that information. The idea is that we save time on the long run without having to look again on the project website manually.
+
+The following code block reads the information explained just now:
 
 ```{r}
 tool <- yaml::read_yaml("../tools.yml")
@@ -40,63 +76,112 @@ file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
 substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
 ```
 
-# Construct Contribution Network
+This is all the project configuration files are used for. If you inspect the variables above, you will see they are just strings. As a reminder, the tools.yml is where you store the filepaths to third party software in your computer. Please see Kaiaulu's README.md for details. As a rule of thumb, any R Notebooks in Kaiaulu load the project configuration file at the start, much like you would normally initialize variables at the start of your source code.
+
+# Construct Collaboration Network
+
+Our first step is to parse the git log. Many of the variables in Kaiaulu are tables, which makes it easier to export and manually inspect the data at any step of the analysis.
 
 ```{r}
-#save_path <- "/Users/cvp/Desktop/kaiaulu_project_input/rds/APR_git.rds"
 project_git <- parse_gitlog(perceval_path,git_repo_path)
 #project_git <- parse_gitlog(perceval_path,git_repo_path,save_path)
 #project_git <- readRDS(save_path)
 ```
 
+
 # Filter files
+
+We may also want to filter files, to include only source code and exclude test files for example. 
 
 ```{r}
 project_git <- project_git  %>%
-  filter_by_file_extension(file_extensions,"file")  %>% 
-  filter_by_filepath_substring(substring_filepath,"file")
+  filter_by_file_extension(file_extensions,"file_pathname")  %>% 
+  filter_by_filepath_substring(substring_filepath,"file_pathname")
 ```
 
-# Identity
+# Identity Match
+
+It is common for developers to use multiple user ids and e-mails even within the same data source. The identity match adds one column, `identity_id` to our project git log table, which is required by various functions in the API. You may choose to display the identity_id with one of the author's name, using label = "raw_name", or just an id (to protect the developer's privacy if publishing results online), using label = "identity_id". You can see other parameters name on the function documentation.
 
 ```{r}
-project_git[,c("name","raw_name"):=list(assign_exact_identity(data.Author),data.Author)]
+project_log <- list(project_git=project_git)
+project_log <- identity_match(project_log,
+                              name_column = c("author_name_email"),
+                              assign_exact_identity,
+                              use_name_only=TRUE,
+                              label = "raw_name"
+                              )
+project_git <- project_log[["project_git"]]
 ```
 
+# Visualizing the Git Log 
+
+Git Logs contain a myriad of information, and we offer different ways to explore the data. Here, we will use graph representations to do so. Since these networks can get very large, it is useful to explore them in smaller time slices. 
+
+In order to slice a portion of the data for visualization, we must first convert all timestamps to the same timezone. Here we use UTC, and focus on the changes made to APR files in 2019. 
 
 ```{r}
-project_git_slice <- project_git[data.AuthorDate >= as.POSIXct("2019-01-01", format = "%Y-%m-%d",tz = "UTC") & data.AuthorDate < as.POSIXct("2019-12-31", format = "%Y-%m-%d",tz = "UTC")]
+project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
+                                              format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
+project_git$author_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
+                                              format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
 
+project_git_slice <- project_git[author_datetimetz >= as.POSIXct("2019-01-01", format = "%Y-%m-%d",tz = "UTC") & author_datetimetz < as.POSIXct("2019-12-31", format = "%Y-%m-%d",tz = "UTC")]
+```
 
-project_contribution_network <- parse_gitlog_network(project_git_slice,mode="author-committer")
+## Authors, Committers, Files and Commits
+
+Git differentiates developers who have permission to modify the code base (committers), from those who don't (authors). It is common for authors to contribute source code (by modifying source code files), which are then reviewed by committers, and pushed to the code base. Contributions are captured in Commits. 
+
+A few simple exploratory questions surrounding this data could be:
+
+ 1. What authors modified what files?
+ 2. What committers modified or reviewed what files?
+ 3. What authors contributed with what committers?
+ 4. What files were modified together in the same commit?
+ 
+The first two questions help us understand what developers are involved in what parts of the system. We may for example find external contributions are only associated to a certain module of the project of interest, or that few committers are in charge of too much or too little of the codebase. 
+
+The third question helps understand how committers engage with authors in the code review process. Are, for example, only a small percent of the core developers involved in this process?
+
+Finally, the fourth question help us understand co-change, or evolutionary code dependency, a popular metric in software engineering. For example, we may believe from the software architecture that a system has well defined modules, but if developers continue having to change two supposedly separate modules every time they make changes, then the architecture may in fact be diferent.
+ 
+To inspect question 1, we simply transform our parsed git log into a bipartite network, and specify we are interested in the author-file relationship:
+
+```{r}
+project_contribution_network <- transform_gitlog_to_bipartite_network(project_git_slice,
+                                                                      mode="author-file")
+```
+
+And then we plot it! Try moving the mouse cursor over the image, and then zooming in or dragging by hold the left mouse button. When zoomed in sufficiently, the labels will be displayed on the nodes.
+
+```{r}
 project_contribution_network <- igraph::graph_from_data_frame(d=project_contribution_network[["edgelist"]], 
                       directed = TRUE, 
                       vertices = project_contribution_network[["nodes"]])
 visIgraph(project_contribution_network,randomSeed = 1)
 ```
 
-# Parse Gitlog Temporal Network
+Let's consider one more example with question 4 on co-change. First, we change the mode accordingly: 
 
 ```{r}
-project_temporal_collaboration_network <- parse_gitlog_temporal_network(project_git_slice)
-project_temporal_collaboration_network <- igraph::graph_from_data_frame(d=project_temporal_collaboration_network[["edgelist"]], 
-                      directed = TRUE, 
-                      vertices = project_temporal_collaboration_network[["nodes"]])
-visIgraph(project_temporal_collaboration_network,randomSeed = 1)
+project_commit_network <- transform_gitlog_to_bipartite_network(project_git_slice,
+                                                                mode="commit-file")
 ```
 
-
-# Construct a Commit-File Network
+And then plot it again:
 
 ```{r}
-project_commit_network <- parse_gitlog_network(project_git_slice,mode="commit")
+
 project_commit_network <- igraph::graph_from_data_frame(d=project_commit_network[["edgelist"]], 
                       directed = TRUE, 
                       vertices = project_commit_network[["nodes"]])
 visIgraph(project_commit_network,randomSeed = 1)
 ```
 
-# Co-Change Network
+### Bipartite Projections
+
+For all the bipartite networks generated, we can apply a [bipartite projection](https://en.wikipedia.org/wiki/Bipartite_network_projection). For example, by applying it on the network above we can identify which files are often changed together:
 
 ```{r}
 co_change_network <- igraph::bipartite_projection(project_commit_network,
@@ -105,7 +190,68 @@ co_change_network <- igraph::bipartite_projection(project_commit_network,
 visIgraph(co_change_network,randomSeed = 1)
 ```
 
-```{r eval = FALSE,include=FALSE}
+Because nodes are placed closed to one another based on their number of edges, and edge weights, you can visually observe partitions in the files. You can also export the associated projection as a co-change matrix. A small part of which is displayed below:
+
+```{r}
 ## Co-Change adjacency matrix 
-reactable(as_adjacency_matrix(co_change_network,attr = "weight",sparse = F))
+co_change_matrix <- as_adjacency_matrix(co_change_network,attr = "weight",sparse = F)
+kable(co_change_matrix[1:10,1:10])
 ```
+
+# Bipartite Networks vs Temporal Networks
+
+## Bipartite Networks and Projections
+
+Bipartite networks provide a useful representation to understand relationship between two types of nodes. Projections, in turn, as shown above, are useful to easily identify groupings of one of the two entities based on who is connected with who. Let's consider once more the bipartite network of authors and files, but this time after applying a bipartite projection.
+
+First we specity the author-file mode:
+
+```{r}
+project_contribution_network <- transform_gitlog_to_bipartite_network(project_git_slice,
+                                                                      mode="author-file")
+project_contribution_network <- igraph::graph_from_data_frame(d=project_contribution_network[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_contribution_network[["nodes"]])
+```
+
+Then, we apply a bipartite projection, similar to how we did with to the commit-file network in the previous section, and plot it:
+
+```{r}
+author_network <- igraph::bipartite_projection(project_contribution_network,
+                                          multiplicity = TRUE,
+                                          which = TRUE) # FALSE is the file projection
+visIgraph(author_network,randomSeed = 1)
+```
+
+If we compare this network to its bipartite, we will see the authors who changed the same file are now connected. Although not displayed in the visualization, the graph does account for the number of files that developers had in common. For example, if two developers had modified 10 files in common, then they will visually appear closer than two developers who modified 2 files in common. 
+
+Remember that earlier in this Notebook we sliced the full project git log to display a single year. What would happen if we consider less or more time in the context of the visualization above? If we had considered, say, 3 years, then the chances another developer touched the same file increases. That means in the visualization above the network's developers would be connected, **even if they changed the files 3 years apart**. If you are using the network above as a proxy of indirect collaboration between developers, and need to consider large time windows, then the transformation above may not make sense. This is where temporal networks come into play. 
+
+## Temporal Networks
+
+Let's now consider an alternative way to transform the git log into a network, using a temporal network. Note the function changed from `_bipartite_` to `_temporal_`:
+
+```{r}
+project_temporal_collaboration_network <- transform_gitlog_to_temporal_network(project_git_slice, mode="author")
+```
+
+Before we go into details, let's visualize it:
+
+```{r}
+project_temporal_collaboration_network <- igraph::graph_from_data_frame(d=project_temporal_collaboration_network[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_temporal_collaboration_network[["nodes"]])
+visIgraph(project_temporal_collaboration_network,randomSeed = 1)
+```
+
+In this transformation, we can see the same authors again appearing, **but the edges now have directions**. What do they mean? Suppose 3 developers (A,B and C) and a single file, still in the same one year slice we used in the previous visualization. Say that developer A modified the file at time "t", developer B at time "t+1", and developer C at time "t+2". Then, in a temporal transformation, we would have the graph A->B->C. The edges, therefore, capture the indirect temporal colaboration made among the developers. 
+
+This is different than the bipartite transformation: In the same example, a bipartite projection would yield a complete graph, i.e. A,B,C are all inter-connected, because "the developers changed the same file". 
+
+This means a temporal network is not subject to the size of the time window as the bipartite projection is, and more specifically the bipartite network connections is an upper bound over the temporal network. You should consider the more appropriate representation for your particular interests.
+
+# Other types of Git Log Networks
+
+In this notebook, we examined how git log can be explored when represented as graphs. The transformation function parameter allows us to choose what vertices are of interest, and the function type what connections should be established. 
+
+For the examined networks, we considered source code only as "files". However, this needs not be the case. See the "Extending Git Logs from Files to Entities" if you are interested in performing the analysis above using a finer granularity (functions, classes, etc).

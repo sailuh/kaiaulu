@@ -61,11 +61,11 @@ filter_by_commit_interval <- function(git_log,start_commit,end_commit){
 #' to a file since the start of the project.
 #'
 #' @param git_log A parsed git project by \code{parse_gitlog}.
-#' @param commit_hash A commit hash from git_log
+#' @param p_commit_hash A commit hash from git_log
 #' @export
-filter_by_last_files_change <- function(git_log,commit_hash){
-  timestamp <- first(git_log[data.commit == commit_hash])$data.AuthorDate
-  git_log <- git_log[data.AuthorDate <= timestamp]
-  last_changes_per_file <- git_log[,last(.SD),by=file]
+filter_by_last_files_change <- function(git_log,p_commit_hash){
+  timestamp <- first(git_log[commit_hash == p_commit_hash])$author_datetimetz
+  git_log <- git_log[author_datetimetz <= timestamp]
+  last_changes_per_file <- git_log[,last(.SD),by=file_pathname]
   return(last_changes_per_file)
 }

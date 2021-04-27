@@ -1,12 +1,12 @@
 ---
-title: "Collaboration Network Parser with Vulnerabilities"
+title: "Issue, Vulnerability and Weakness Networks"
 output: 
   html_document:
     toc: true
     number_sections: true
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{Collaboration Network Parser with Vulnerabilities}
+  %\VignetteIndexEntry{Issue, Vulnerability and Weakness Networks}
   %\VignetteEncoding{UTF-8}
 ---
 
@@ -43,7 +43,6 @@ substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
 # Construct Contribution Network
 
 ```{r}
-#save_path <- "/Users/cvp/Desktop/kaiaulu_project_input/rds/APR_git.rds"
 project_git <- parse_gitlog(perceval_path,git_repo_path,perl_regex = cveid_regex)
 #project_git <- parse_gitlog(perceval_path,git_repo_path,save_path)
 #project_git <- readRDS(save_path)
@@ -53,39 +52,13 @@ project_git <- parse_gitlog(perceval_path,git_repo_path,perl_regex = cveid_regex
 
 ```{r}
 project_git <- project_git  %>%
-  filter_by_file_extension(file_extensions,"file")  %>% 
-  filter_by_filepath_substring(substring_filepath,"file")
+  filter_by_file_extension(file_extensions,"file_pathname")  %>% 
+  filter_by_filepath_substring(substring_filepath,"file_pathname")
 ```
 
 
 ```{r}
 project_git_slice <- project_git
-
-project_contribution_network <- parse_gitlog_network(project_git_slice,mode="author")
-project_contribution_network <- igraph::graph_from_data_frame(d=project_contribution_network[["edgelist"]], 
-                      directed = TRUE, 
-                      vertices = project_contribution_network[["nodes"]])
-visIgraph(project_contribution_network,randomSeed = 1)
-```
-
-
-# Construct a Commit-File Network
-
-```{r}
-project_commit_network <- parse_gitlog_network(project_git_slice,mode="commit")
-project_commit_network <- igraph::graph_from_data_frame(d=project_commit_network[["edgelist"]], 
-                      directed = TRUE, 
-                      vertices = project_commit_network[["nodes"]])
-visIgraph(project_commit_network,randomSeed = 1)
-```
-
-# Co-Change Network
-
-```{r}
-co_change_network <- igraph::bipartite_projection(project_commit_network,
-                                          multiplicity = TRUE,
-                                          which = FALSE) # FALSE is the file projection
-visIgraph(co_change_network,randomSeed = 1)
 ```
 
 ## Issue Networks
@@ -99,7 +72,7 @@ coverage
 
 
 ```{r}
-project_commit_message_id_edgelist <- parse_commit_message_id_network(project_git,commit_message_id_regex = cveid_regex)
+project_commit_message_id_edgelist <- transform_commit_message_id_to_network(project_git,commit_message_id_regex = cveid_regex)
 
 project_commit_message_id_network <- igraph::graph_from_data_frame(d=project_commit_message_id_edgelist[["edgelist"]], 
                       directed = TRUE, 
@@ -111,8 +84,12 @@ If the chosen commit message label is associated to CVEs, one additional metadat
 ```{r}
 # This can take a few minutes!
 cve_cwe_mapping <- parse_nvdfeed(nvdfeed_folder_path)
-cve_cwe_file_network <- parse_cve_cwe_file_network(project_commit_message_id_edgelist,cve_cwe_mapping)
 ```
+
+```{r}
+cve_cwe_file_network <- transform_cve_cwe_file_to_network(project_commit_message_id_edgelist,cve_cwe_mapping)
+```
+
 
 ```{r}
 project_commit_message_id_network <- igraph::graph_from_data_frame(d=cve_cwe_file_network[["edgelist"]], 
@@ -121,9 +98,3 @@ project_commit_message_id_network <- igraph::graph_from_data_frame(d=cve_cwe_fil
 visIgraph(project_commit_message_id_network,randomSeed = 1)
 ```
 
-
-
-```{r eval = FALSE,include=FALSE}
-## Co-Change adjacency matrix 
-reactable(as_adjacency_matrix(co_change_network,attr = "weight",sparse = F))
-```
