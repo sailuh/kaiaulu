@@ -8,6 +8,8 @@ assign_exact_identity(unique_name_email, use_name_only = FALSE)
 }
 \arguments{
 \item{unique_name_email}{A single string containing name and email as used in git and mailinglists.}
+
+\item{use_name_only}{Uses only the name field (i.e. disregard the e-mail field)}
 }
 \description{
 Identify authors with different names and emails

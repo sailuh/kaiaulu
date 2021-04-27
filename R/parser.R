@@ -7,8 +7,7 @@
 #' @param perceval_path path to perceval binary
 #' @param git_repo_path path to git repo (ends in .git)
 #' @param save_path optional save path for .rds object
-#' @param from_date a string of the form "YYYY-MM-DD"
-#' @param to_date a string of the form "YYYY-MM-DD"
+#' @param perl_regex a regex to filter git log entries using git's algorithm (efficient to return small datasets from large projects such as commit annotated issues)
 #' @export
 #' @family parsers
 parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA,perl_regex=NA){
@@ -36,7 +35,7 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA,perl_regex=NA)
       '-C',
       '-c'
     )
-  # Execute shell command to extract gitlog using Percerval recommended format (See it's README.md.
+  # Execute shell command to extract gitlog using Percerval recommended format (See it's README.md).
   if(!is.na(perl_regex)){
     flags <- c('--no-merges',
                'master',
@@ -57,12 +56,6 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA,perl_regex=NA)
 
   perceval_parsed <- data.table(jsonlite::stream_in(textConnection(perceval_output),verbose = FALSE))
 
-  # Parse timestamps and convert to UTC
-  perceval_parsed$data.AuthorDate <- as.POSIXct(perceval_parsed$data.AuthorDate,
-                                                format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
-  perceval_parsed$data.CommitDate <- as.POSIXct(perceval_parsed$data.CommitDate,
-                                                format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
-
   # APR very first commit is a weird single case of commit without files. We filter them here.
   is_commit_with_files <- !!sapply(perceval_parsed$data.files,length)
   perceval_parsed <- perceval_parsed[is_commit_with_files]
@@ -75,6 +68,13 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA,perl_regex=NA)
                                                                                               data.Commit,
                                                                                               data.CommitDate,
                                                                                               data.message)]
+
+  setnames(perceval_parsed,
+           c("data.Author","data.AuthorDate","data.commit","data.Commit","data.CommitDate","data.message",
+             "file","added","removed"),
+           c("author_name_email","author_datetimetz","commit_hash","committer_name_email","committer_datetimetz",
+             "commit_message","file_pathname","lines_added","lines_removed"))
+
   # Parsing gitlog can take awhile, save if a path is provided
   if(!is.na(save_path)){
     saveRDS(perceval_parsed,save_path)
@@ -90,7 +90,7 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA,perl_regex=NA)
 parse_commit_message_id <- function(project_git, commit_message_id_regex){
   commit_message_id <- NULL # due to NSE notes in R CMD check
   # Extract the id according to the parameter regex
-  project_git$commit_message_id$commit_message_id <- stringi::stri_match_first_regex(project_git$data.message,
+  project_git$commit_message_id$commit_message_id <- stringi::stri_match_first_regex(project_git$commit_message,
                                                                                      pattern = commit_message_id_regex)
 
   return(project_git)
@@ -251,9 +251,20 @@ parse_mbox <- function(perceval_path,mbox_path){
                              stderr = FALSE)
   # Parsed JSON output as a data.table.
   perceval_parsed <- data.table(jsonlite::stream_in(textConnection(perceval_output),verbose=FALSE))
-  # Parse timestamps and convert to UTC
-  perceval_parsed$data.Date <- as.POSIXct(perceval_parsed$data.Date,
-                                          format = "%a, %d %b %Y %H:%M:%S %z", tz = "UTC")
+
+  data.table::setnames(perceval_parsed,
+           c("data.Date","data.To","data.From","data.Subject","data.body.plain","data.Cc","data.Message.ID","data.In.Reply.To"),
+           c("reply_datetimetz","reply_to","reply_from","reply_subject","reply_body","reply_cc","reply_id","in_reply_to_id"))
+
+  perceval_parsed <- perceval_parsed[,.(reply_id,
+                                          in_reply_to_id,
+                                          reply_datetimetz,
+                                          reply_from,
+                                          reply_to,
+                                          reply_cc,
+                                          reply_subject,
+                                          reply_body)]
+
   return(perceval_parsed)
 }
 #' Parse dependencies from Depends
@@ -627,17 +638,17 @@ parse_gitlog_entity <- function(git_repo_path,utags_path,project_git_log,kinds,p
                                                        utags_path,
                                                        {
                                                          setTxtProgressBar(progress_bar, .GRP);
-                                                         git_log_commit_hash=data.commit
+                                                         git_log_commit_hash=commit_hash
                                                        },
-                                                       git_log_file_path=file),
+                                                       git_log_file_path=file_pathname),
                                         by = row_id]
 
   }else{
     changed_entities <- project_git_log[,
                                         blamed_git_log(git_repo_path,
                                                        utags_path,
-                                                         git_log_commit_hash=data.commit,
-                                                       git_log_file_path=file),
+                                                         git_log_commit_hash=commit_hash,
+                                                       git_log_file_path=file_pathname),
                                         by = row_id]
   }
 

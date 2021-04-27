@@ -13,9 +13,7 @@ parse_gitlog(perceval_path, git_repo_path, save_path = NA, perl_regex = NA)
 
 \item{save_path}{optional save path for .rds object}
 
-\item{from_date}{a string of the form "YYYY-MM-DD"}
-
-\item{to_date}{a string of the form "YYYY-MM-DD"}
+\item{perl_regex}{a regex to filter git log entries using git's algorithm (efficient to return small datasets from large projects such as commit annotated issues)}
 }
 \description{
 Parse gitlog from Perceval

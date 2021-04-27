@@ -26,15 +26,15 @@ reference:
 - title: Networks
   desc:  Transforms parsed data into a format suitable to network libraries
 - contents:
-  - parse_gitlog_network
-  - parse_gitlog_temporal_network
-  - parse_gitlog_entity_network
-  - parse_gitlog_entity_temporal_network
-  - parse_mbox_network
-  - parse_dependencies_network
-  - parse_r_dependencies_network
-  - parse_commit_message_id_network
-  - parse_cve_cwe_file_network
+  - transform_gitlog_to_bipartite_network
+  - transform_gitlog_to_temporal_network
+  - transform_gitlog_to_entity_bipartite_network
+  - transform_gitlog_to_entity_temporal_network
+  - transform_mbox_to_bipartite_network
+  - transform_dependencies_to_network
+  - transform_r_dependencies_to_network
+  - transform_commit_message_id_to_network
+  - transform_cve_cwe_to_file_network
 - title: Graph
   desc:  Provide graph models to construct networks and algorithms for graph analysis
 - contents:
@@ -47,7 +47,7 @@ reference:
   - split_name_email
   - is_same_identity
   - assign_exact_identity
-  - assign_network_identity
+  - identity_match
 - title: Interval
   desc:  Provides different types of interval windows (e.g. release) for metric functions.
 - contents:

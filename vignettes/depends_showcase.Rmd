@@ -48,7 +48,7 @@ substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
 
 We can use the `gh` package with the language endpoint from Github to figure out what language a project has. Paste the project url below and run the code block.
 
-```{r}
+```{r eval = FALSE}
 project_github_url <- "https://github.com/apache/apr"
 
 
@@ -84,7 +84,7 @@ project_dependencies <- project_dependencies  %>%
 project_dependencies_slice <- project_dependencies
 
 
-project_file_network <- parse_dependencies_network(project_dependencies_slice,
+project_file_network <- transform_dependencies_to_network(project_dependencies_slice,
                                                    weight_types = keep_dependencies_type)
 project_file_network <- igraph::graph_from_data_frame(d=project_file_network[["edgelist"]], 
                       directed = TRUE, 

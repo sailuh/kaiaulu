@@ -13,9 +13,9 @@ community_oslom(oslom_bin_dir_undir_path, edgelist, seed, n_runs, is_weighted)
 
 \item{seed}{An integer specifying the seed to replicate the result}
 
-\item{n_runs}{the number of runs for the ﬁrst hierarchical level}
+\item{n_runs}{the number of runs for the first hierarchical level}
 
-\item{is_weighted}{a boolean indicating wether a weight column is available in the data.table}
+\item{is_weighted}{a boolean indicating whether a weight column is available in the data.table}
 }
 \description{
 Wrapper for OSLOM Community Detection \url{http://oslom.org/}
