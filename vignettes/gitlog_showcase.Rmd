@@ -149,17 +149,17 @@ Finally, the fourth question help us understand co-change, or evolutionary code 
 To inspect question 1, we simply transform our parsed git log into a bipartite network, and specify we are interested in the author-file relationship:
 
 ```{r}
-project_contribution_network <- transform_gitlog_to_bipartite_network(project_git_slice,
+project_collaboration_network <- transform_gitlog_to_bipartite_network(project_git_slice,
                                                                       mode="author-file")
 ```
 
 And then we plot it! Try moving the mouse cursor over the image, and then zooming in or dragging by hold the left mouse button. When zoomed in sufficiently, the labels will be displayed on the nodes.
 
 ```{r}
-project_contribution_network <- igraph::graph_from_data_frame(d=project_contribution_network[["edgelist"]], 
+plot_project_collaboration_network <- igraph::graph_from_data_frame(d=project_collaboration_network[["edgelist"]], 
                       directed = TRUE, 
-                      vertices = project_contribution_network[["nodes"]])
-visIgraph(project_contribution_network,randomSeed = 1)
+                      vertices = project_collaboration_network[["nodes"]])
+visIgraph(plot_project_collaboration_network,randomSeed = 1)
 ```
 
 Let's consider one more example with question 4 on co-change. First, we change the mode accordingly: 
@@ -173,10 +173,10 @@ And then plot it again:
 
 ```{r}
 
-project_commit_network <- igraph::graph_from_data_frame(d=project_commit_network[["edgelist"]], 
+plot_project_commit_network <- igraph::graph_from_data_frame(d=project_commit_network[["edgelist"]], 
                       directed = TRUE, 
                       vertices = project_commit_network[["nodes"]])
-visIgraph(project_commit_network,randomSeed = 1)
+visIgraph(plot_project_commit_network,randomSeed = 1)
 ```
 
 ### Bipartite Projections
@@ -184,17 +184,33 @@ visIgraph(project_commit_network,randomSeed = 1)
 For all the bipartite networks generated, we can apply a [bipartite projection](https://en.wikipedia.org/wiki/Bipartite_network_projection). For example, by applying it on the network above we can identify which files are often changed together:
 
 ```{r}
-co_change_network <- igraph::bipartite_projection(project_commit_network,
-                                          multiplicity = TRUE,
-                                          which = FALSE) # FALSE is the file projection
-visIgraph(co_change_network,randomSeed = 1)
+co_change_network <- bipartite_graph_projection(project_commit_network,
+                                                is_intermediate_projection = FALSE,
+                                                mode = FALSE)
+
+plot_co_change_network <- igraph::graph_from_data_frame(d=co_change_network[["edgelist"]], 
+                      directed = FALSE, 
+                      vertices = co_change_network[["nodes"]])
+
+
+
+#plot_co_change_network <- igraph::bipartite_projection(plot_project_commit_network,
+#                                          multiplicity = TRUE,
+#                                          which = FALSE) # FALSE is the file projection
+
+visIgraph(plot_co_change_network,randomSeed = 1)
 ```
 
 Because nodes are placed closed to one another based on their number of edges, and edge weights, you can visually observe partitions in the files. You can also export the associated projection as a co-change matrix. A small part of which is displayed below:
 
 ```{r}
 ## Co-Change adjacency matrix 
-co_change_matrix <- as_adjacency_matrix(co_change_network,attr = "weight",sparse = F)
+
+table_co_change_network <- igraph::bipartite_projection(plot_project_commit_network,
+                                          multiplicity = TRUE,
+                                          which = FALSE) # FALSE is the file projection
+
+co_change_matrix <- as_adjacency_matrix(table_co_change_network,attr = "weight",sparse = F)
 kable(co_change_matrix[1:10,1:10])
 ```
 
@@ -207,20 +223,28 @@ Bipartite networks provide a useful representation to understand relationship be
 First we specity the author-file mode:
 
 ```{r}
-project_contribution_network <- transform_gitlog_to_bipartite_network(project_git_slice,
+project_collaboration_network <- transform_gitlog_to_bipartite_network(project_git_slice,
                                                                       mode="author-file")
-project_contribution_network <- igraph::graph_from_data_frame(d=project_contribution_network[["edgelist"]], 
-                      directed = TRUE, 
-                      vertices = project_contribution_network[["nodes"]])
+#project_collaboration_network <- igraph::graph_from_data_frame(d=project_collaboration_network[["edgelist"]], 
+#                      directed = TRUE, 
+#                      vertices = project_collaboration_network[["nodes"]])
 ```
 
 Then, we apply a bipartite projection, similar to how we did with to the commit-file network in the previous section, and plot it:
 
 ```{r}
-author_network <- igraph::bipartite_projection(project_contribution_network,
-                                          multiplicity = TRUE,
-                                          which = TRUE) # FALSE is the file projection
-visIgraph(author_network,randomSeed = 1)
+author_network <- bipartite_graph_projection(project_collaboration_network,
+                                                is_intermediate_projection = FALSE,
+                                                mode = TRUE)
+
+plot_author_network <- igraph::graph_from_data_frame(d=author_network[["edgelist"]], 
+                      directed = FALSE, 
+                      vertices = author_network[["nodes"]])
+
+#plot_author_network <- igraph::bipartite_projection(plot_project_collaboration_network,
+#                                          multiplicity = TRUE,
+#                                          which = TRUE) # FALSE is the file projection
+visIgraph(plot_author_network,randomSeed = 1)
 ```
 
 If we compare this network to its bipartite, we will see the authors who changed the same file are now connected. Although not displayed in the visualization, the graph does account for the number of files that developers had in common. For example, if two developers had modified 10 files in common, then they will visually appear closer than two developers who modified 2 files in common. 

@@ -33,6 +33,92 @@ model_directed_graph <- function(edgelist,is_bipartite,color){
   return(graph)
 }
 
+#' Apply a bipartite graph projection
+#'
+#' @param graph A bipartite network (see transform_*_bipartite functions).
+#' @param is_intermediate_projection If true, displays the eliminated nodes by the projection. TRUE or FALSE.
+#' @param mode Which of the two nodes the projection should be applied to. TRUE or FALSE
+#' @return A graph projection.
+#' @export
+bipartite_graph_projection <- function(graph,mode, is_intermediate_projection = FALSE){
+
+  get_combinations <- function(edgelist){
+    dt <- edgelist
+
+#    print(colnames(dt))
+    # Decide projection base on column available
+    if("from" %in% colnames(dt)){
+      #from <- unique(dt$from)
+    }else{
+      setnames(dt,
+               c("to"),
+               c("from"))
+      #from <- unique(dt$to)
+    }
+    from <- unique(dt$from)
+    # If projection of isolated node, there is nothing to connect it to
+    if(length(from) < 2){
+      combinations <- data.table(NA_character_,NA_character_)
+    }else{
+      combinations <- transpose(as.data.table(combn(from,
+                                                    2,
+                                                    simplify=FALSE)))
+    }
+
+    setnames(combinations,
+             old = c("V1","V2"),
+             new = c("from_projection","to_projection"))
+
+    # add the weight contributions before the projection deletes the node
+    combinations <- merge(combinations,dt,all.x=TRUE,by.x = "from_projection", by.y="from")
+    setnames(combinations,
+             c("weight"),
+             c("from_weight"))
+    combinations <- merge(combinations,dt,all.x=TRUE,by.x = "to_projection", by.y="from")
+    setnames(combinations,
+             c("weight"),
+             c("to_weight"))
+
+    combinations$weight <- combinations$from_weight + combinations$to_weight
+
+    return(combinations)
+  }
+
+  graph[["nodes"]] <- graph[["nodes"]][type == mode]
+
+  if(mode){
+
+    graph[["edgelist"]] <- graph[["edgelist"]][, get_combinations(.SD),
+                                          by = c("to"),
+                                          .SDcols = c("from","weight")]
+    graph[["edgelist"]] <- graph[["edgelist"]][,.(eliminated_node = to,
+                                                  from=from_projection,
+                                                  to=to_projection,weight)]
+
+
+
+  }else{
+
+    graph[["edgelist"]] <- graph[["edgelist"]][, get_combinations(.SD),
+                                          by = c("from"),
+                                          .SDcols = c("to","weight")]
+    graph[["edgelist"]] <- graph[["edgelist"]][,.(eliminated_node = from,
+                                                  from=from_projection,
+                                                  to=to_projection,weight)]
+
+  }
+  graph[["edgelist"]] <- graph[["edgelist"]][complete.cases(graph[["edgelist"]])]
+
+  if(is_intermediate_projection){
+    return(graph)
+  }else{
+    graph[["edgelist"]] <- graph[["edgelist"]][,.(weight=sum(weight)),by=c("from","to")]
+    return(graph)
+  }
+
+
+}
+
 #' OSLOM Community Detection
 #'
 #' @description Wrapper for OSLOM Community Detection \url{http://oslom.org/}
