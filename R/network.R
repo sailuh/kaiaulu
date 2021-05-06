@@ -322,8 +322,11 @@ transform_dependencies_to_network <- function(depends_parsed,weight_types=NA){
   }
   # Remove dependencies not chosen by user
   dependency_edgelist <- dependency_edgelist[weight != 0]
+  setnames(dependency_edgelist,
+           old=c("src","dest"),
+           new=c("from","to"))
   # Select relevant columns for nodes
-  dependency_nodes <- unique(c(dependency_edgelist$src,dependency_edgelist$dest))
+  dependency_nodes <- unique(c(dependency_edgelist$from,dependency_edgelist$to))
   # Color files yellow
   dependency_nodes <- data.table(name=dependency_nodes,color="#f4dbb5")
   # Return the parsed JSON output as nodes and edgelist.

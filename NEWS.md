@@ -11,6 +11,8 @@ kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 ### MINOR IMPROVEMENTS
 
  * All notebooks now use the new identity match interface from [#56](https://github.com/sailuh/kaiaulu/issues/56), consequently users can now choose to display to either bipartite or temporal transformations whether to display the nodes with the project's name and e-mail or their id, if publishing information online to protect the project's developers privacy. [#90](https://github.com/sailuh/kaiaulu/issues/90)
+ 
+ * Fixes the column naming for the `parse_dependencies()`. Previously `src` and `dest`, and now `from` and `to`, consistent to other networks derived from `graph.R`. [#75](https://github.com/sailuh/kaiaulu/issues/75)
 
 ### BUG FIXES
 
