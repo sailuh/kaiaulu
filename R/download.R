@@ -69,11 +69,12 @@ convert_pipermail_to_mbox <- function(filelist) {
   
   
   #Read lines from downloaded files and write them to mbox file
-  for (i in filelist[]){
+  for (filename in filelist[]){
     
-    readCon <- file(i, "r")
-  
-    data <- readLines(i)
+    #Open read connection
+    readCon <- file(filename, "r")
+    
+    data <- readLines(filename)
     
     #Find email headers to send to 'at' to @ replacer
     for (i in 1:length(data)) {
@@ -89,7 +90,7 @@ convert_pipermail_to_mbox <- function(filelist) {
     close(readCon)
     
     #Delete the file
-    unlink(i)
+    unlink(filename, force = TRUE)
   }
   
   #Close connection to mbox file
