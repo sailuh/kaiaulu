@@ -1,4 +1,7 @@
-# Scrape the urls from a web page and return a list of downloadable urls
+#' Download all pipermail files in an archive
+#' @param url An url pointing to a pipermail archive
+#' @return Returns `destination`, a vector of the downloaded files in the current working directory
+#' @export 
 download_pipermail <- function(url) {
 
   #Parse html file into object
@@ -41,7 +44,11 @@ download_pipermail <- function(url) {
   
 }
 
-#Convert files to mbox format
+
+#' Convert pipermail archive files (.txt and .txt.gz) into an mbox format for use with \code{\link{parse_mbox}}
+#' @param filelist A vector of pipermail archive files from \code{\link{download_pipermail}}
+#' @return Returns `output`, the name of the resulting .mbox file in the current working directory
+#' @export 
 convert_pipermail_to_mbox <- function(filelist) {
   
   
@@ -83,7 +90,6 @@ convert_pipermail_to_mbox <- function(filelist) {
     
     #Delete the file
     unlink(i)
-    
   }
   
   #Close connection to mbox file
@@ -91,5 +97,4 @@ convert_pipermail_to_mbox <- function(filelist) {
   
   #return output location
   return(output)
-
 }
