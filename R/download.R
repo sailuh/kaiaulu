@@ -1,6 +1,6 @@
 
 # Scrape the urls from a web page and return a list of downloadable urls
-get_pipermail_archives <- function(url) {
+download_pipermail <- function(url) {
 
   #Parse html file into object
   tbls_xml <- XML::htmlParse(url)
@@ -42,17 +42,18 @@ get_pipermail_archives <- function(url) {
   
 }
 
-#at to @ replace function
-pipermail_atreplacer <- function(string) {
-  
-  rstring <- sub(" at ", "@", string)
-  
-  return(rstring)
-  
-}
-
 #Convert files to mbox format
-pipermail_mbox_conversion <- function(filelist) {
+convert_pipermail_to_mbox <- function(filelist) {
+  
+  
+  #at to @ replace function
+  pipermail_atreplacer <- function(string) {
+    
+    rstring <- sub(" at ", "@", string)
+    
+    return(rstring)
+    
+  }
   
   output <- "output.mbox"
   
