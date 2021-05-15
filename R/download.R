@@ -1,4 +1,3 @@
-
 # Scrape the urls from a web page and return a list of downloadable urls
 download_pipermail <- function(url) {
 
@@ -94,22 +93,3 @@ convert_pipermail_to_mbox <- function(filelist) {
   return(output)
 
 }
-
-
-
-pipermail_to_mbox <- function(url) {
-  
-  files <- get_pipermail_archives(url)
-  
-  output <- pipermail_mbox_conversion(files)
-  
-  return(output)
-  
-}
-
-
-
-pipermail_to_mbox("http://lists.openstack.org/pipermail/openstack-announce/")
-
-
-
