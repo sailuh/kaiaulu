@@ -1,16 +1,12 @@
-library(httr)
-library(utils)
-library(stringi)
-library(XML)
 
 # Scrape the urls from a web page and return a list of downloadable urls
 get_pipermail_archives <- function(url) {
 
   #Parse html file into object
-  tbls_xml <- htmlParse(url)
+  tbls_xml <- XML::htmlParse(url)
   
   #Exctract href tablenodes from html table
-  tableNodes <- getNodeSet(tbls_xml, "//td/a[@href]")
+  tableNodes <- XML::getNodeSet(tbls_xml, "//td/a[@href]")
   
   #Exctract filenames from tablenode content with xmlGetAtrr
   hrefs <- sapply(tableNodes, xmlGetAttr, 'href')
@@ -34,11 +30,11 @@ get_pipermail_archives <- function(url) {
   for (i in files){
     
     #split filename from url and create download destination out of it
-    splits <- stri_split_fixed(i, "/")
-    destination[[i]] <- paste0( splits[[1]][[length(splits[[1]])]])
+    splits <- stringi::stri_split_fixed(i, "/")
+    destination[[i]] <- paste0(splits[[1]][[length(splits[[1]])]])
     
     #download file and place it at the destination
-    download.file(i, destination[[i]])
+    httr::GET(i, write_disk(destination[[i]], overwrite=TRUE))
   }
   
   #Return filenames
