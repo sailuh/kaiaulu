@@ -1,6 +1,6 @@
 library(httr)
 library(utils)
-library(stringr)
+library(stringi)
 library(XML)
 
 # Scrape the urls from a web page and return a list of downloadable urls
@@ -34,7 +34,7 @@ get_pipermail_archives <- function(url) {
   for (i in files){
     
     #split filename from url and create download destination out of it
-    splits <- str_split(i, "/")
+    splits <- stri_split_fixed(i, "/")
     destination[[i]] <- paste0( splits[[1]][[length(splits[[1]])]])
     
     #download file and place it at the destination
