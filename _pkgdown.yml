@@ -72,3 +72,8 @@ reference:
   - git_head
   - git_log
   - git_blame
+- title: Download
+  desc:  Functions to download data from various websites and convert to formats used in Kaiaulu.
+- contents:
+  - download_pipermail
+  - convert_pipermail_to_mbox
