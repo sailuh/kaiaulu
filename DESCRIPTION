@@ -9,7 +9,7 @@ Authors@R: c(
       comment = c(ORCID = "0000-0002-3062-7547")),
     person('Rick', 'Kazman', role = c('ths'),
     comment = c(ORCID = "0000-0003-0392-2783")),
-    person('Massimo', 'Manca', role = c('ctb'),
+    person('Massimo', 'Manca', role = c('ctb')),
     person('Corné', 'Broere', role = c('ctb'))
     )
 Maintainer: Carlos Paradis <cvas@hawaii.edu>
