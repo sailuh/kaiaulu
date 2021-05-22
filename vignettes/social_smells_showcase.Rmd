@@ -169,7 +169,6 @@ A third choice we make here is whether the collaboration being analyzed is done 
 
 For some social smells, such as radio silence and primma donna, community detection is required to be applied to the constructed networks. Do consider the implications of the one chosen below in your results.
 
-
 ```{r}
 # Define all timestamp in number of days since the very first commit of the repo 
 # Note here the start_date and end_date are in respect to the git log.
@@ -187,6 +186,17 @@ window_size_f <- stringi::stri_c(window_size," day")
 # then the ending incomplete window is discarded so the metrics are not calculated 
 # in a smaller interval
 time_window <- seq.POSIXt(from=start_date,to=end_date,by=window_size_f)
+
+#Identity matching
+project_log <- list(project_git=project_git,project_mbox=project_mbox)
+project_log <- identity_match(project_log,
+                                name_column = c("author_name_email","reply_from"),
+                                assign_exact_identity,
+                                use_name_only=TRUE,
+                                label = "raw_name")
+
+project_git <- project_log[["project_git"]]
+project_mbox <- project_log[["project_mbox"]]
 
 # Create a list where each element is the social smells calculated for a given commit hash
 smells <- list()
@@ -217,17 +227,6 @@ for(j in 2:size_time_window){
   i_commit_hash <- first(project_git_slice)$commit_hash
   j_commit_hash <- last(project_git_slice)$commit_hash
   
-  # Identity Matching
-  project_log <- list(project_git_slice=project_git_slice,project_mbox_slice=project_mbox_slice)
-  project_log <- identity_match(project_log,
-                                name_column = c("author_name_email","reply_from"),
-                                assign_exact_identity,
-                                use_name_only=TRUE,
-                                label = "raw_name"
-                                )
-  project_git_slice <- project_log[["project_git_slice"]]
-  project_mbox_slice <- project_log[["project_mbox_slice"]]
-      
   # Parse networks edgelist from extracted data
   network_git_slice <- transform_gitlog_to_bipartite_network(project_git_slice,
                                                              mode="author-file")
