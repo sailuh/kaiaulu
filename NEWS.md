@@ -3,6 +3,7 @@ kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### NEW FEATURES
 
+  * adds built-in bipartite graph projection transformation to `graph.R` `bipartite_graph_projection()` [#75](https://github.com/sailuh/kaiaulu/issues/75). 
   * `parser.R` and `network.R` API now abide by a standardized nomenclature for the data columns, instead of using third party software nomenclature, which led to multiple names when data overlapped among third party software. The Network module function prefix was also replaced from parse_\*_network to transform_\*_network. Various transformation functions were also renamed to explicitly indicate it generates bipartite networks (previously it did not), instead of temporal. The network functions to transform git logs, be it bipartite or temporal now account for all types of networks (i.e. author-file, author-entity, committer-file, committer-entity, etc). The "mode" parameter is also more explicit on what types of functions it can create. [#43](https://github.com/sailuh/kaiaulu/issues/43)
 
   * Parser functions no longer normalize the timezone to UTC. This is now exemplified in all Notebooks instead for when time slices are needed. Therefore, it is now possible to implement the socio-technical metric `num.tz`. To minimize risk timestamps are no longer aligned, datetimes are left as strings instead of parsed as posix.ct objects. [#89](https://github.com/sailuh/kaiaulu/issues/89) 
@@ -10,6 +11,10 @@ kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 ### MINOR IMPROVEMENTS
 
  * All notebooks now use the new identity match interface from [#56](https://github.com/sailuh/kaiaulu/issues/56), consequently users can now choose to display to either bipartite or temporal transformations whether to display the nodes with the project's name and e-mail or their id, if publishing information online to protect the project's developers privacy. [#90](https://github.com/sailuh/kaiaulu/issues/90)
+ 
+ * Fixes the column naming for the `parse_dependencies()`. Previously `src` and `dest`, and now `from` and `to`, consistent to other networks derived from `graph.R`. [#75](https://github.com/sailuh/kaiaulu/issues/75)
+ 
+ * Fixes tools.yml to use the correct `undir` and `dir` of OSLOM (previously the paths were inverted). [#75](https://github.com/sailuh/kaiaulu/issues/75)
 
 ### BUG FIXES
 

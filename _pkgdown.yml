@@ -40,6 +40,7 @@ reference:
 - contents:
   - model_directed_graph
   - community_oslom
+  - bipartite_graph_projection
 - title: Identity
   desc:  Provide the same id to authors who use variations of names or emails.
 - contents:

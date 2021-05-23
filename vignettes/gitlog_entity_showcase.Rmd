@@ -144,25 +144,43 @@ visIgraph(project_collaboration_network,randomSeed = 1)
 project_commit_network <- transform_gitlog_to_entity_bipartite_network(last(id_project_git,
                                                                                    1000),
                                                                               mode ="commit-entity")
-project_commit_network <- igraph::graph_from_data_frame(d=project_commit_network[["edgelist"]], 
+plot_project_commit_network <- igraph::graph_from_data_frame(d=project_commit_network[["edgelist"]], 
                       directed = TRUE, 
                       vertices = project_commit_network[["nodes"]])
-visIgraph(project_commit_network,randomSeed = 1)
+visIgraph(plot_project_commit_network,randomSeed = 1)
 ```
 
 ### Bipartite Projections
 
 ```{r}
-co_change_network <- igraph::bipartite_projection(project_commit_network,
-                                          multiplicity = TRUE,
-                                          which = FALSE) # FALSE is the file projection
-visIgraph(co_change_network,randomSeed = 1)
+
+co_change_network <- bipartite_graph_projection(project_commit_network,
+                                                is_intermediate_projection = FALSE,
+                                                mode = FALSE)
+
+plot_co_change_network <- igraph::graph_from_data_frame(d=co_change_network[["edgelist"]], 
+                      directed = FALSE, 
+                      vertices = co_change_network[["nodes"]])
+
+#co_change_network <- igraph::bipartite_projection(project_commit_network,
+#                                          multiplicity = TRUE,
+#                                          which = FALSE) # FALSE is the file projection
+visIgraph(plot_co_change_network,randomSeed = 1)
 ```
 
 ```{r}
 ## Co-Change adjacency matrix 
-co_change_matrix <- as_adjacency_matrix(co_change_network,attr = "weight",sparse = F)
+
+
+table_co_change_network <- igraph::bipartite_projection(plot_project_commit_network,
+                                          multiplicity = TRUE,
+                                          which = FALSE) # FALSE is the file projection
+
+co_change_matrix <- as_adjacency_matrix(table_co_change_network,attr = "weight",sparse = F)
 kable(co_change_matrix[1:10,1:10])
+
+#co_change_matrix <- as_adjacency_matrix(co_change_network,attr = "weight",sparse = F)
+#kable(co_change_matrix[1:10,1:10])
 ```
 
 
@@ -171,14 +189,23 @@ project_collaboration_network <- transform_gitlog_to_entity_bipartite_network(la
                                                                                    1000),
                                                                               mode = "author-entity")
 
-project_collaboration_network <- igraph::graph_from_data_frame(d=project_collaboration_network[["edgelist"]], 
-                      directed = TRUE, 
-                      vertices = project_collaboration_network[["nodes"]])
+#plot_project_collaboration_network <- igraph::graph_from_data_frame(d=project_collaboration_network[["edgelist"]], 
+#                      directed = TRUE, 
+#                      vertices = project_collaboration_network[["nodes"]])
 
-author_network <- igraph::bipartite_projection(project_collaboration_network,
-                                          multiplicity = TRUE,
-                                          which = TRUE) # FALSE is the file projection
-visIgraph(author_network,randomSeed = 1)
+#author_network <- igraph::bipartite_projection(project_collaboration_network,
+#                                          multiplicity = TRUE,
+#                                          which = TRUE) # FALSE is the file projection
+
+author_network <- bipartite_graph_projection(project_collaboration_network,
+                                                is_intermediate_projection = FALSE,
+                                                mode = TRUE)
+
+plot_author_network <- igraph::graph_from_data_frame(d=author_network[["edgelist"]], 
+                      directed = FALSE, 
+                      vertices = author_network[["nodes"]])
+
+visIgraph(plot_author_network,randomSeed = 1)
 ```
 
 

@@ -11,5 +11,5 @@ utags: /usr/local/Cellar/universal-ctags/HEAD-62f0144/bin/ctags
 # https://archdia.com/
 dv8: /Applications/dv8/bin/dv8-console
 # OSLOM: http://oslom.org/
-oslom_dir: ~/OSLOM2/oslom_undir
-oslom_undir: ~/OSLOM2/oslom_dir
+oslom_dir: ~/OSLOM2/oslom_dir
+oslom_undir: ~/OSLOM2/oslom_undir
