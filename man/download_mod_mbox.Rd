@@ -7,13 +7,13 @@
 download_mod_mbox(base_url, mailinglist, from, to)
 }
 \arguments{
+\item{base_url}{An url pointing to the mod_mbox directory (e.g. "http://mail-archives.apache.org/mod_mbox") without trailing slashes}
+
 \item{mailinglist}{Name of the project mailing list (e.g. apr-dev) in the mod_mbox directory}
 
 \item{from}{First year in the range to be downloaded}
 
 \item{to}{Last year in the range to be downloaded}
-
-\item{url}{An url pointing to the mod_mbox directory (e.g. "http://mail-archives.apache.org/mod_mbox") without trailing slashes}
 }
 \value{
 Returns `output`, the name of the resulting .mbox file in the current working directory
