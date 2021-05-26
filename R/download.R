@@ -103,7 +103,7 @@ convert_pipermail_to_mbox <- function(filelist) {
 }
 
 #' Compose mod_mbox archives (.mbox) into a single mbox file for use with \code{\link{parse_mbox}}
-#' @param url An url pointing to the mod_mbox directory (e.g. "http://mail-archives.apache.org/mod_mbox") without trailing slashes
+#' @param base_url An url pointing to the mod_mbox directory (e.g. "http://mail-archives.apache.org/mod_mbox") without trailing slashes
 #' @param mailinglist Name of the project mailing list (e.g. apr-dev) in the mod_mbox directory
 #' @param from First year in the range to be downloaded
 #' @param to Last year in the range to be downloaded
