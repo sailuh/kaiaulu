@@ -102,11 +102,20 @@ convert_pipermail_to_mbox <- function(filelist) {
   return(output)
 }
 
+#' Compose mod_mbox archives (.mbox) into a single mbox file for use with \code{\link{parse_mbox}}
+#' @param url An url pointing to the mod_mbox directory (e.g. "http://mail-archives.apache.org/mod_mbox") without trailing slashes
+#' @param mailinglist Name of the project mailing list (e.g. apr-dev) in the mod_mbox directory
+#' @param from First year in the range to be downloaded
+#' @param to Last year in the range to be downloaded
+#' @return Returns `output`, the name of the resulting .mbox file in the current working directory
+#' @export
 download_mod_mbox <- function(base_url, mailinglist, from, to) {
 
+  #Initialize variables
   counter <- 0
   destination <- list()
 
+  #Open file handle to output file
   output <- sprintf("%s.mbox", mailinglist)
   fileConn <- file(output, "w+")
 
@@ -140,15 +149,13 @@ download_mod_mbox <- function(base_url, mailinglist, from, to) {
       #Delete the file
       unlink(destination[[counter]], force = TRUE)
 
-      print(paste(base_url, destination, sep = ""))
     }
 
   }
 
-  #Close connection to mbox file
+  #Close connection to target mbox file
   close(fileConn)
 
   #return output location
   return(output)
-
 }
