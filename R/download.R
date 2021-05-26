@@ -101,3 +101,54 @@ convert_pipermail_to_mbox <- function(filelist) {
   #return output location
   return(output)
 }
+
+download_mod_mbox <- function(base_url, mailinglist, from, to) {
+
+  counter <- 0
+  destination <- list()
+
+  output <- sprintf("%s.mbox", mailinglist)
+  fileConn <- file(output, "w+")
+
+  #Loop through time and compose the mbox file
+  for (year in (from:to)) {
+
+    for (month in 1:12) {
+      counter <- counter + 1
+
+      #Generate file destinations
+      destination[[counter]] <- sprintf("%d%d.mbox", year, month)
+
+      #Try file download and save result
+      x <- httr::GET(paste(base_url, mailinglist, destination[[counter]], sep = "/"), httr::write_disk(destination[[counter]], overwrite=TRUE))
+
+      #If download was successful, write to mbox file, if not, delete file
+      if (httr::http_error(x) == FALSE) {
+
+        #Open read connection
+        readCon <- file(destination[[counter]], "r")
+
+        data <- readLines(destination[[counter]])
+
+        #Write data to output
+        writeLines(data, fileConn)
+
+        #Close read connection
+        close(readCon)
+      }
+
+      #Delete the file
+      unlink(destination[[counter]], force = TRUE)
+
+      print(paste(base_url, destination, sep = ""))
+    }
+
+  }
+
+  #Close connection to mbox file
+  close(fileConn)
+
+  #return output location
+  return(output)
+
+}
