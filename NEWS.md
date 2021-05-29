@@ -2,6 +2,7 @@ kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 =========================
 
 ### NEW FEATURES
+  * Added `download_mod_mbox()` function to download.R module, allowing the composition of .mbox files from Apache mod\_mbox archives. [#99](https://github.com/sailuh/kaiaulu/issues/93).
   * Added download.R module enabling downloading and conversion of pipermail archives into the .mbox format using the `download_pipermail()` and `convert_pipermail_to_mbox` functions [#93](https://github.com/sailuh/kaiaulu/issues/93).
   * adds built-in bipartite graph projection transformation to `graph.R` `bipartite_graph_projection()` [#75](https://github.com/sailuh/kaiaulu/issues/75). 
   * `parser.R` and `network.R` API now abide by a standardized nomenclature for the data columns, instead of using third party software nomenclature, which led to multiple names when data overlapped among third party software. The Network module function prefix was also replaced from parse_\*_network to transform_\*_network. Various transformation functions were also renamed to explicitly indicate it generates bipartite networks (previously it did not), instead of temporal. The network functions to transform git logs, be it bipartite or temporal now account for all types of networks (i.e. author-file, author-entity, committer-file, committer-entity, etc). The "mode" parameter is also more explicit on what types of functions it can create. [#43](https://github.com/sailuh/kaiaulu/issues/43)

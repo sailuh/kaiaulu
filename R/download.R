@@ -101,3 +101,61 @@ convert_pipermail_to_mbox <- function(filelist) {
   #return output location
   return(output)
 }
+
+#' Compose mod_mbox archives (.mbox) into a single mbox file for use with \code{\link{parse_mbox}}
+#' @param base_url An url pointing to the mod_mbox directory (e.g. "http://mail-archives.apache.org/mod_mbox") without trailing slashes
+#' @param mailinglist Name of the project mailing list (e.g. apr-dev) in the mod_mbox directory
+#' @param from First year in the range to be downloaded
+#' @param to Last year in the range to be downloaded
+#' @return Returns `output`, the name of the resulting .mbox file in the current working directory
+#' @export
+download_mod_mbox <- function(base_url, mailinglist, from, to) {
+
+  #Initialize variables
+  counter <- 0
+  destination <- list()
+
+  #Open file handle to output file
+  output <- sprintf("%s.mbox", mailinglist)
+  fileConn <- file(output, "w+")
+
+  #Loop through time and compose the mbox file
+  for (year in (from:to)) {
+
+    for (month in 1:12) {
+      counter <- counter + 1
+
+      #Generate file destinations
+      destination[[counter]] <- sprintf("%d%d.mbox", year, month)
+
+      #Try file download and save result
+      x <- httr::GET(paste(base_url, mailinglist, destination[[counter]], sep = "/"), httr::write_disk(destination[[counter]], overwrite=TRUE))
+
+      #If download was successful, write to mbox file, if not, delete file
+      if (httr::http_error(x) == FALSE) {
+
+        #Open read connection
+        readCon <- file(destination[[counter]], "r")
+
+        data <- readLines(destination[[counter]])
+
+        #Write data to output
+        writeLines(data, fileConn)
+
+        #Close read connection
+        close(readCon)
+      }
+
+      #Delete the file
+      unlink(destination[[counter]], force = TRUE)
+
+    }
+
+  }
+
+  #Close connection to target mbox file
+  close(fileConn)
+
+  #return output location
+  return(output)
+}
