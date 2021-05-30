@@ -202,6 +202,24 @@ project_mbox <- project_log[["project_mbox"]]
 smells <- list()
 size_time_window <- length(time_window)
 for(j in 2:size_time_window){
+  
+   # Initialize
+  commit_interval <- NA
+  start_day <- NA
+  end_day <- NA
+  org_silo <- NA
+  missing_links <- NA
+  radio_silence <- NA
+  primma_donna <- NA
+  st_congruence <- NA
+  communicability <- NA
+  num_tz <- NA
+  code_only_devs <- NA
+  code_files <- NA
+  ml_only_devs <- NA
+  ml_threads <- NA
+  code_ml_both_devs <- NA
+  
   i <- j - 1
 
   # If the time window is of size 1, then there has been less than "window_size_f"
@@ -224,63 +242,88 @@ for(j in 2:size_time_window){
   project_mbox_slice <- project_mbox[(reply_datetimetz >= start_day) & 
                        (reply_datetimetz < end_day)]
   
-  i_commit_hash <- first(project_git_slice)$commit_hash
-  j_commit_hash <- last(project_git_slice)$commit_hash
+  # Check if slices contain data
+  gitlog_exist <- (nrow(project_git_slice) != 0)
+  ml_exist <- (nrow(project_mbox_slice) != 0)
   
-  # Parse networks edgelist from extracted data
-  network_git_slice <- transform_gitlog_to_bipartite_network(project_git_slice,
-                                                             mode="author-file")
-  network_mbox_slice <- transform_mbox_to_bipartite_network(project_mbox_slice)
-  
-  # Load networks in igraph
-  igraph_network_git_slice <- igraph::graph_from_data_frame(d=network_git_slice[["edgelist"]], 
-                      directed = TRUE, 
-                      vertices = network_git_slice[["nodes"]])
-  igraph_network_mbox_slice <- igraph::graph_from_data_frame(d=network_mbox_slice[["edgelist"]], 
-                      directed = TRUE, 
-                      vertices = network_mbox_slice[["nodes"]])
-  
-  # Community Smells functions are defined base of the projection networks of 
-  # dev-thread => dev-dev, and dev-file => dev-dev. This creates both dev-dev via graph projections
-  git_network_authors <- igraph::bipartite_projection(igraph_network_git_slice,
+ 
+  # Create Networks 
+  if(gitlog_exist){
+    i_commit_hash <- first(project_git_slice)$commit_hash
+    j_commit_hash <- last(project_git_slice)$commit_hash
+    
+    # Parse networks edgelist from extracted data
+    network_git_slice <- transform_gitlog_to_bipartite_network(project_git_slice,
+                                                               mode="author-file")
+    
+    # Load networks in igraph
+    igraph_network_git_slice <- igraph::graph_from_data_frame(d=network_git_slice[["edgelist"]], 
+                        directed = TRUE, 
+                        vertices = network_git_slice[["nodes"]])
+    
+    # Community Smells functions are defined base of the projection networks of 
+    # dev-thread => dev-dev, and dev-file => dev-dev. This creates both dev-dev via graph projections
+    git_network_authors <- igraph::bipartite_projection(igraph_network_git_slice,
+                                            multiplicity = TRUE,
+                                            which = TRUE) # FALSE is the thread projection
+    
+    code.clusters <- walktrap.community(git_network_authors,
+                                  weights=E(git_network_authors)$weight)
+    
+  }
+  if(ml_exist){
+    network_mbox_slice <- transform_mbox_to_bipartite_network(project_mbox_slice)
+    
+    igraph_network_mbox_slice <- igraph::graph_from_data_frame(d=network_mbox_slice[["edgelist"]], 
+                    directed = TRUE, 
+                    vertices = network_mbox_slice[["nodes"]])
+    
+    mbox_network_authors <- igraph::bipartite_projection(igraph_network_mbox_slice,
                                           multiplicity = TRUE,
                                           which = TRUE) # FALSE is the thread projection
-  mbox_network_authors <- igraph::bipartite_projection(igraph_network_mbox_slice,
-                                          multiplicity = TRUE,
-                                          which = TRUE) # FALSE is the thread projection
-  # Community Detection
-  mail.clusters <- walktrap.community(mbox_network_authors,
-                                    weights=E(mbox_network_authors)$weight)
-  code.clusters <- walktrap.community(git_network_authors,
-                                    weights=E(git_network_authors)$weight)
-  # Calculate Smells 
-  org_silo <- length(community_smell_organizational_silo(mbox_network_authors,git_network_authors))
-  missing_links <- length(community_smell_missing_links(mbox_network_authors,git_network_authors))
-  radio_silence <- length(community_smell_radio_silence(mbox_network_authors, mail.clusters))
-  primma_donna <- length(community_smell_primadonnas(mbox_network_authors,
-                            mail.clusters,
-                            git_network_authors))
+    # Community Detection
+    mail.clusters <- walktrap.community(mbox_network_authors,
+                                      weights=E(mbox_network_authors)$weight)
+      
+  }
+  # Metrics #
   
-  
-  # Social Technical Metrics
-  st_congruence <- community_metric_sociotechnical_congruence(mbox_network_authors,git_network_authors)
-  communicability <- community_metric_mean_communicability(mbox_network_authors,git_network_authors)
-  num_tz <- length(unique(c(project_git_slice$author_tz,
-                            project_git_slice$committer_tz,
-                            project_mbox_slice$reply_tz)))
-  
-  
-  # Developer Social Network Metrics 
-  code_only_devs <- length(unique(project_git_slice$identity_id))
-  code_files <- length(unique(project_git_slice$file_pathname))
-  
-  ml_only_devs <- length(unique(project_mbox_slice$identity_id))
-  ml_threads <- length(unique(project_mbox_slice$reply_subject))
+  if(gitlog_exist){
+    commit_interval <- stri_c(i_commit_hash,"-",j_commit_hash)
+    # Social Network Metrics 
+    code_only_devs <- length(unique(project_git_slice$identity_id))
+    code_files <- length(unique(project_git_slice$file_pathname))
+    
+  }  
+  if(ml_exist){
+    # Smell
+    radio_silence <- length(community_smell_radio_silence(mbox_network_authors, mail.clusters))
+    # Social Technical Metrics
+    ml_only_devs <- length(unique(project_mbox_slice$identity_id))
+    ml_threads <- length(unique(project_mbox_slice$reply_subject))
+  }
+  if (ml_exist & gitlog_exist){
+    # Smells 
+    org_silo <- length(community_smell_organizational_silo(mbox_network_authors,git_network_authors))
+    missing_links <- length(community_smell_missing_links(mbox_network_authors,git_network_authors))
+    primma_donna <- length(community_smell_primadonnas(mbox_network_authors,
+                              mail.clusters,
+                              git_network_authors))
+    # Social Technical Metrics
+    st_congruence <- community_metric_sociotechnical_congruence(mbox_network_authors,git_network_authors)
+    communicability <- community_metric_mean_communicability(mbox_network_authors,git_network_authors)
+    num_tz <- length(unique(c(project_git_slice$author_tz,
+                              project_git_slice$committer_tz,
+                              project_mbox_slice$reply_tz)))
+    code_ml_both_devs <- length(intersect(unique(project_git_slice$identity_id),
+                                          unique(project_mbox_slice$identity_id)))
+    
+  }
 
-  code_ml_both_devs <- length(intersect(unique(project_git_slice$identity_id),unique(project_mbox_slice$identity_id)))
-  
-  commit_interval <- stri_c(i_commit_hash,"-",j_commit_hash)
+  # Aggregate Metrics
   smells[[commit_interval]] <- data.table(commit_interval,
+                                          start_datetime = start_day,
+                                          end_datetime = end_day,
                                           org_silo,
                                           missing_links,
                                           radio_silence,
@@ -303,8 +346,9 @@ The remainder of this notebook does not compute any social smells. It provide so
 
 ## Churn
 
-```{r}
+```{r Churn Metric}
 churn <- list()
+
 for(j in 2:length(time_window)){
   i <- j - 1
   
@@ -323,27 +367,30 @@ for(j in 2:length(time_window)){
   project_git_slice <- project_git[(author_datetimetz >= start_day) & 
                      (author_datetimetz < end_day)]
   
-  # The start and end commit
-  i_commit_hash <- first(project_git_slice)$commit_hash
-  j_commit_hash <- last(project_git_slice)$commit_hash
-  
-  # The start and end datetime
-  start_datetime <- first(project_git_slice)$author_datetimetz
-  end_datetime <- last(project_git_slice)$author_datetimetz
-  
-  commit_interval <- stri_c(i_commit_hash,"-",j_commit_hash)
-  churn[[commit_interval]] <- data.table(commit_interval,
-                                         start_datetime,
-                                         end_datetime,
-                                         churn=metric_churn_per_commit_interval(project_git_slice),
-                                         n_commits = length(unique(project_git_slice$commit_hash)))
+  gitlog_exist <- (nrow(project_git_slice) != 0)
+  if(gitlog_exist){
+    # The start and end commit
+    i_commit_hash <- first(project_git_slice)$commit_hash
+    j_commit_hash <- last(project_git_slice)$commit_hash
+    
+    # The start and end datetime
+    #start_datetime <- first(project_git_slice)$author_datetimetz
+    #end_datetime <- last(project_git_slice)$author_datetimetz
+    
+    commit_interval <- stri_c(i_commit_hash,"-",j_commit_hash)
+    churn[[commit_interval]] <- data.table(commit_interval,
+                                #           start_datetime,
+                                #           end_datetime,
+                                           churn=metric_churn_per_commit_interval(project_git_slice),
+                                           n_commits = length(unique(project_git_slice$commit_hash)))  
+  }
 }
 churn_interval <- rbindlist(churn)
 ```
 
 ## Line Metrics
 
-```{r}
+```{r Line Metric}
 time_window <- seq.POSIXt(from=start_date,to=end_date,by=window_size_f)
 #time_window <- seq(from=start_daydiff,to=end_daydiff,by=window_size)
 line_metrics <- list()
@@ -365,29 +412,33 @@ for(j in 2:length(time_window)){
   project_git_slice <- project_git[(author_datetimetz >= start_day) & 
                      (author_datetimetz < end_day)]
   
-  i_commit_hash <- first(project_git_slice)$commit_hash
-  # Use the ending hash of that window_size to calculate the flaws
-  j_commit_hash <- last(project_git_slice)$commit_hash
-  # Checkout to commit of interest
-  git_checkout(j_commit_hash, git_repo_path)
-  # Run line metrics against the checkedout commit
-  commit_interval <- stri_c(i_commit_hash,"-",j_commit_hash)
-  line_metrics[[commit_interval]] <- parse_line_metrics(scc_path,git_repo_path)
-  line_metrics[[commit_interval]]$commit_interval <- commit_interval
-  line_metrics[[commit_interval]]$git_checkout <- j_commit_hash
-  line_metrics[[commit_interval]] <- line_metrics[[commit_interval]][,.(commit_interval,
-                                                                        git_checkout,
-                                                                        Location,
-                                                                        Lines,
-                                                                        Code,
-                                                                        Comments,
-                                                                        Blanks,
-                                                                        Complexity)]
+  gitlog_exist <- (nrow(project_git_slice) != 0)
+  if(gitlog_exist){
   
-  # Filter Files
-  line_metrics[[commit_interval]] <- line_metrics[[commit_interval]]  %>%
-  filter_by_file_extension(file_extensions,"Location")  %>% 
-  filter_by_filepath_substring(substring_filepath,"Location")
+    i_commit_hash <- first(project_git_slice)$commit_hash
+    # Use the ending hash of that window_size to calculate the flaws
+    j_commit_hash <- last(project_git_slice)$commit_hash
+    # Checkout to commit of interest
+    git_checkout(j_commit_hash, git_repo_path)
+    # Run line metrics against the checkedout commit
+    commit_interval <- stri_c(i_commit_hash,"-",j_commit_hash)
+    line_metrics[[commit_interval]] <- parse_line_metrics(scc_path,git_repo_path)
+    line_metrics[[commit_interval]]$commit_interval <- commit_interval
+    line_metrics[[commit_interval]]$git_checkout <- j_commit_hash
+    line_metrics[[commit_interval]] <- line_metrics[[commit_interval]][,.(commit_interval,
+                                                                          git_checkout,
+                                                                          Location,
+                                                                          Lines,
+                                                                          Code,
+                                                                          Comments,
+                                                                          Blanks,
+                                                                          Complexity)]
+    
+    # Filter Files
+    line_metrics[[commit_interval]] <- line_metrics[[commit_interval]]  %>%
+    filter_by_file_extension(file_extensions,"Location")  %>% 
+    filter_by_filepath_substring(substring_filepath,"Location")
+  }
 }
 # Reset Repo to HEAD
 git_checkout("trunk",git_repo_path)
@@ -405,7 +456,7 @@ line_metrics_interval <- line_metrics_file[,.(Lines = sum(Lines),
 # Merge Churn, Smells, and Line Metrics
 
 ```{r}
-dt <- merge(churn_interval,smells_interval,by="commit_interval")
+dt <- merge(smells_interval,churn_interval,by="commit_interval")
 dt <- merge(dt,line_metrics_interval,by="commit_interval")
 kable(dt)
 ```
@@ -413,5 +464,5 @@ kable(dt)
 # Write Files
 
 ```{r eval = FALSE}
-fwrite(dt,"~/Desktop/results_kaiaulu.csv")
+fwrite(dt,"~/Desktop/results_kaiaulu_tomcat.csv")
 ```

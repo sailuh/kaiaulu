@@ -18,6 +18,8 @@ kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### BUG FIXES
 
+* When using the social smells notebook, it may be possible the git log and mailing lists slices may not contain any data. The notebook now handles these cases. [#103](https://github.com/sailuh/kaiaulu/issues/103)
+
 * `identity_match()` was performed on the slice level, resulting in non-congruent identity_id's across slices. Using the mail-adresses and names in the slices introduces the noise that `identity_match()` normally solves. Identity match is now performed across all git log and mbox instead of slices. [#97](https://github.com/sailuh/kaiaulu/issues/97)
 
 ### DOCUMENTATION FIXES
