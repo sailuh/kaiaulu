@@ -34,7 +34,10 @@ Imports:
     data.table (>= 1.12.8),
     stringi (>= 1.4.6),
     jsonlite (>= 1.6),
-    magrittr (>= 1.5)
+    magrittr (>= 1.5),
+    httr (>= 1.4.1),
+    curl (>= 4.3),
+    XML (>= 3.98-1.20)
 VignetteBuilder: knitr
 URL: https://github.com/sailuh/kaiaulu
 BugReports: https://github.com/sailuh/kaiaulu/issues

@@ -72,6 +72,7 @@ reference:
   - git_head
   - git_log
   - git_blame
+<<<<<<< HEAD
 - title: Social Smells
   desc:  Functions to compute social smells.
 - contents:
@@ -85,3 +86,9 @@ reference:
 - contents:
   - community_metric_sociotechnical_congruence
   - community_metric_mean_communicability
+- title: Download
+  desc:  Functions to download data from various websites and convert to formats used in Kaiaulu.
+- contents:
+  - download_pipermail
+  - convert_pipermail_to_mbox
+  - download_mod_mbox
