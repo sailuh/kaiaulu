@@ -45,7 +45,7 @@ interval_commit_metric <- function(project_git,dt_range,metric_function,
 #' @export
 get_date_from_commit_hash <- function(git_log,p_commit_hash){
   #data.commit <- NULL # due to NSE notes in R CMD check
-  return(git_log[data.commit == commit_hash]$data.AuthorDate[1])
+  return(git_log[commit_hash == p_commit_hash]$author_datetimetz[1])
 }
 
 #' @importFrom magrittr %>%
