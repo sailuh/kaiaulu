@@ -73,7 +73,6 @@ reference:
   - git_head
   - git_log
   - git_blame
-<<<<<<< HEAD
 - title: Social Smells
   desc:  Functions to compute social smells.
 - contents:
