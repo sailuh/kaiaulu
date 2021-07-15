@@ -2,6 +2,8 @@ kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 =========================
 
 ### NEW FEATURES
+
+  * Existing network visualizations can now be re-colored using `recolor_network_by_community`. [#94](https://github.com/sailuh/kaiaulu/issues/94)
   * Added `download_mod_mbox()` function to download.R module, allowing the composition of .mbox files from Apache mod\_mbox archives. [#99](https://github.com/sailuh/kaiaulu/issues/93).
   * Added download.R module enabling downloading and conversion of pipermail archives into the .mbox format using the `download_pipermail()` and `convert_pipermail_to_mbox` functions [#93](https://github.com/sailuh/kaiaulu/issues/93).
   * adds built-in bipartite graph projection transformation to `graph.R` `bipartite_graph_projection()` [#75](https://github.com/sailuh/kaiaulu/issues/75). 

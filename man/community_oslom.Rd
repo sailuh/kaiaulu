@@ -25,3 +25,8 @@ Finding statistically significant communities in networks
 A. Lancichinetti, F. Radicchi, J.J. Ramasco and
 S. Fortunato PLoS ONE 6, e18961 (2011).
 }
+\seealso{
+Other community: 
+\code{\link{recolor_network_by_community}()}
+}
+\concept{community}

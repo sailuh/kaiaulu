@@ -39,8 +39,9 @@ reference:
   desc:  Provide graph models to construct networks and algorithms for graph analysis
 - contents:
   - model_directed_graph
-  - community_oslom
   - bipartite_graph_projection
+  - community_oslom
+  - recolor_network_by_community
 - title: Identity
   desc:  Provide the same id to authors who use variations of names or emails.
 - contents:

@@ -36,7 +36,8 @@ Imports:
     magrittr (>= 1.5),
     httr (>= 1.4.2),
     curl (>= 4.3.1),
-    XML (>= 3.99-0.6)
+    XML (>= 3.99-0.6),
+    RColorBrewer (>= 1.1-2)
 VignetteBuilder: knitr
 URL: https://github.com/sailuh/kaiaulu
 BugReports: https://github.com/sailuh/kaiaulu/issues
