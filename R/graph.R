@@ -131,6 +131,7 @@ bipartite_graph_projection <- function(graph,mode, is_intermediate_projection = 
 #' A. Lancichinetti, F. Radicchi, J.J. Ramasco and
 #' S. Fortunato PLoS ONE 6, e18961 (2011).
 #' @export
+#' @family community
 community_oslom <- function(oslom_bin_dir_undir_path,edgelist,seed,n_runs,is_weighted){
   oslom_bin_dir_undir_path <- path.expand(oslom_bin_dir_undir_path)
   mapping_names <- unique(c(as.character(edgelist$from),edgelist$to))
@@ -192,4 +193,55 @@ community_oslom <- function(oslom_bin_dir_undir_path,edgelist,seed,n_runs,is_wei
   cluster[["assignment"]] <- cluster_assignment
   cluster[["info"]] <- data.table(cluster_id,cluster_size,cluster_pvalue)
   return(cluster)
+}
+
+#' Re-color OSLOM Community IDs
+#'
+#' @description Re-color a graph color column using the OSLOM communities
+#' @param network A network returned by transform_to_network_* functions.
+#' @param community A community detection returned by \code{community_oslom}.
+#' @references Finding statistically significant communities in networks
+#' A. Lancichinetti, F. Radicchi, J.J. Ramasco and
+#' S. Fortunato PLoS ONE 6, e18961 (2011).
+#' @export
+#' @family community
+recolor_network_by_community <- function(network,community){
+
+  # If node is repeated, it is a boundary community node, color it a unique color
+  assign_boundary_color <- function(x){
+    ifelse(length(x) > 1,"black",x)
+  }
+
+  color_pallete <- RColorBrewer::brewer.pal(n = 12,name = "Paired")
+
+  node_cid_mapping <- community[["assignment"]]
+  node_cid_mapping$color_community <- color_pallete[as.integer(node_cid_mapping$cluster_id) + 1]
+  # Cluster IDs begin at index 0. R starts at index 1. Use cluster id + 1 as index to
+  # choose color
+  metadata_nodes_cid <- merge(network[["nodes"]],
+                              node_cid_mapping,
+                              by.x = "name",
+                              by.y ="node_id",
+                              all.x = TRUE) # there should be no node not assigned a cluster
+
+
+  if(!is.null(metadata_nodes_cid[["type"]])){
+
+    # Choose color of clustering instead of previous scheme
+    metadata_nodes_cid <- metadata_nodes_cid[,.(name,color=color_community,type)]
+    metadata_nodes_cid <- metadata_nodes_cid[,.(color=assign_boundary_color(color),type),
+                                             ,by=c("name")]
+  }else{
+    metadata_nodes_cid <- metadata_nodes_cid[,.(name,color=color_community)]
+    metadata_nodes_cid <- metadata_nodes_cid[,.(color=assign_boundary_color(color)),
+                                             ,by=c("name")]
+  }
+
+
+  metadata_nodes_cid <- unique(metadata_nodes_cid)
+
+  network[["nodes"]] <- metadata_nodes_cid
+
+  return(network)
+
 }
