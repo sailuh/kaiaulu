@@ -1,12 +1,12 @@
 ---
-title: "Community Detection Showcase"
+title: "OSLOM Community Detection Showcase"
 output: 
   html_document:
     toc: true
     number_sections: true
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{Community Detection Showcase}
+  %\VignetteIndexEntry{OSLOM Community Detection Showcase}
   %\VignetteEncoding{UTF-8}
 ---
 
@@ -26,11 +26,26 @@ require(igraph)
 require(yaml)
 require(stringi)
 require(knitr)
+require(RColorBrewer)
 ```
 
-# Project Configuration File 
+# Introduction
 
-Load config file.
+This notebook showcases the use of community detection using OSLOM [1], which requires a separate installation to obtain the binary (see Kaiaulu README.md for details). OSLOM differs from other community detection algorithms in that its algorithm can account for directed and weighted graphs. In addition, OSLOM will also identify nodes that belong to multiple communities and automatically verify how statistically significant the identified communities are. 
+
+[1] Finding statistically significant communities in networks. A. Lancichinetti, F. Radicchi, J.J. Ramasco and S. Fortunato PLoS ONE 6, e18961 (2011).
+
+To facilitate the usage of the OSLOM algorithm, Kaiaulu currently provides two interface functions to its two binaries: `community_oslom` and `recolor_network_by_community`. The former requires the binary path to OSLOM to be provided and parses OSLOM outputs into R memory as a list of tables closest to the raw output. The later leverages said list of tables to re-color a network by its assigned community up to 12 different communities (the limitation is only on color, the OSLOM output will give as many communities as detected). Nodes that are assigned to more than one community are colored black. 
+
+`recolor_network_by_community` leverages the existing visualization library in Kaiaulu, which means communities can be explored interactively. This is of particular interest to some of the social smells, where community detection is a required step, and therefore a poor community detection would lead to erroneous results. 
+
+Despite the algorithm being commonly named community detection, any graph can be used for the algorithm. Therefore, any network obtained by the family of `transform_to_network_*` functions can be used as input for community detection. For example, while applying the algorithm to a network obtained from `transform_mbox_to_bipartite_network()` would lead to the community of developers based on their e-mail exchange, `transform_dependencies_to_network()` would identify groups of files that contain several static dependencies to one another (e.g. function calls, class inheritance, etc). Applying community detection to a co-change network could identify files co-changed across multiple commits, etc.
+
+The remainder of this Notebook illustrates two functions for some of Kaiaulu networks for the APR project.    
+
+## Project Configuration File 
+
+As usual, the first step is to load the project configuration file. 
 
 ```{r}
 tool <- yaml::read_yaml("../tools.yml")
@@ -68,7 +83,7 @@ project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
 project_git$author_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
                                               format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
 
-project_git_slice <- project_git[author_datetimetz >= as.POSIXct("2015-03-01", format = "%Y-%m-%d",tz = "UTC") & author_datetimetz < as.POSIXct("2015-03-31", format = "%Y-%m-%d",tz = "UTC")]
+#project_git_slice <- project_git[author_datetimetz >= as.POSIXct("2015-01-01", format = "%Y-%m-%d",tz = "UTC") & author_datetimetz < as.POSIXct("2015-12-31", format = "%Y-%m-%d",tz = "UTC")]
 ```
 
 # Identity Matching 
@@ -84,25 +99,20 @@ project_log <- identity_match(project_log,
 project_git <- project_log[["project_git"]]
 ```
 
-```{r eval = FALSE}
-all_name_emails <- unique(project_git_slice$data.Author)
-name_mapping <- data.table(raw_name=all_name_emails,
-                           identity_id=assign_exact_identity(all_name_emails,
-                                                             use_name_only = FALSE))
-project_git_slice <- merge(project_git_slice,name_mapping,
-                            by.x="data.Author",by.y="raw_name",all.x = TRUE)
-name_mapping <- name_mapping[,.(raw_name = stri_c(raw_name,collapse = " | ")),
-             by="identity_id"]
-project_git_slice <- merge(project_git_slice,name_mapping,
-                            by.x="identity_id",by.y="identity_id",all.x = TRUE)
-project_git_slice[,data.Author:=identity_id]
-#project_git_slice[,data.Author:=raw_name]
-```
-
-# Create Network
+# Create Temporal Network
 
 ```{r}
-project_collaboration_network <- transform_gitlog_to_bipartite_network(project_git_slice,mode="author-file")
+project_collaboration_network <- transform_gitlog_to_temporal_network(project_git,mode="author")
+```
+
+# Plot Network
+
+```{r}
+
+i_project_temporal_collaboration_network <- igraph::graph_from_data_frame(d=project_collaboration_network[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_collaboration_network[["nodes"]])
+visIgraph(i_project_temporal_collaboration_network,randomSeed = 1)
 ```
 
 # Community Detection
@@ -112,7 +122,7 @@ Use `oslom_dir_path` or `oslom_undir_path` as preferred for directed or undirect
 
 ```{r}
  
-community <- community_oslom(oslom_undir_path,
+community <- community_oslom(oslom_dir_path,
               project_collaboration_network[["edgelist"]],
               seed=seed,
               n_runs = 100,
@@ -120,3 +130,95 @@ community <- community_oslom(oslom_undir_path,
 community
 ```
 
+```{r}
+project_collaboration_network <- recolor_network_by_community(project_collaboration_network,community)
+
+gcid <- igraph::graph_from_data_frame(d=project_collaboration_network[["edgelist"]], 
+                      directed = TRUE,
+                      vertices = project_collaboration_network[["nodes"]])
+
+visIgraph(gcid,randomSeed = 1)
+```
+
+
+
+
+# Dependency Modules
+
+```{r}
+# Depends parameters
+depends_jar_path <- tool[["depends"]]
+language <- conf[["tool"]][["depends"]][["code_language"]]
+keep_dependencies_type <- conf[["tool"]][["depends"]][["keep_dependencies_type"]]
+```
+
+```{r}
+project_dependencies <- parse_dependencies(depends_jar_path,git_repo_path,language=language)
+```
+
+```{r}
+project_dependencies <- project_dependencies  %>%
+  filter_by_file_extension(file_extensions,"src")  %>% 
+  filter_by_file_extension(file_extensions,"dest")  %>% 
+  filter_by_filepath_substring(substring_filepath,"src") %>%
+  filter_by_filepath_substring(substring_filepath,"dest")
+```
+
+```{r}
+project_file_network <- transform_dependencies_to_network(project_dependencies,
+                                                   weight_types = keep_dependencies_type)
+```
+
+```{r}
+module <- community_oslom(oslom_undir_path,
+              project_file_network[["edgelist"]],
+              seed=seed,
+              n_runs = 100,
+              is_weighted = TRUE)
+module
+```
+
+```{r}
+project_file_network <- recolor_network_by_community(project_file_network,module)
+
+gcid <- igraph::graph_from_data_frame(d=project_file_network[["edgelist"]], 
+                      directed = FALSE,
+                      vertices = project_file_network[["nodes"]])
+
+visIgraph(gcid,randomSeed = 1)
+```
+
+# Co-Change Community Detection
+
+```{r}
+
+project_git_slice <- project_git[author_datetimetz >= as.POSIXct("2015-01-01", format = "%Y-%m-%d",tz = "UTC") & author_datetimetz < as.POSIXct("2019-12-31", format = "%Y-%m-%d",tz = "UTC")]
+
+project_commit_network <- transform_gitlog_to_bipartite_network(project_git_slice,
+                                                                mode="commit-file")
+
+```
+
+```{r}
+co_change_network <- bipartite_graph_projection(project_commit_network,
+                                                is_intermediate_projection = FALSE,
+                                                mode = FALSE)
+```
+
+```{r}
+co_change_module <- community_oslom(oslom_undir_path,
+              co_change_network[["edgelist"]],
+              seed=seed,
+              n_runs = 5,
+              is_weighted = TRUE)
+co_change_module
+```
+
+```{r}
+co_change_network <- recolor_network_by_community(co_change_network,co_change_module)
+
+gcid <- igraph::graph_from_data_frame(d=co_change_network[["edgelist"]], 
+                      directed = FALSE,
+                      vertices = co_change_network[["nodes"]])
+visIgraph(gcid,randomSeed = 1)
+```
