@@ -25,7 +25,7 @@ Example of mailing list archive types are [GNU Mailing List Manager](http://www.
 Examples of issue tracker types include [JIRA](https://www.atlassian.com/software/jira), GitHub's built-in Issue Tracker, GitLab's Issue Tracker, Monorail (used in Google's Chromium), [Trac](https://trac.edgewall.org/), etc. You may also be interested in including discussion that occurs in GitHub's pull requests / GitLab merge requests. Issue tracker communication is currently **not** supported in Kaiaulu, but we plan to support GitHub Issue Tracker, Github Pull Requests, and JIRA in the future. 
 
 
-It is of course not viable for Kaiaulu to implement interfaces to every single archive type out there. Therefore, to calculate social smells, we expect **you** can obtain a **.mbox** representation of the mailing list of interest. This may be available from the open source project directly (e.g. Apache projects mod_mbox interface makes it easier to crawl mbox files, which we have available a crawler for them), or via a crawler someone already made. For example, [gg_scraper](https://gitlab.com/mcepl/gg_scraper) outputs a mbox file from Google Group mailing lists (although it can only obtain partial information of the e-mails, as Google Groups truncate them, which may pose limitations to some steps of the analysis of the identity matching discussed below). In the future, we plan to also support pipermail, the archive type for GNU Mailing List Manager. 
+It is of course not viable for Kaiaulu to implement interfaces to every single archive type out there. Therefore, to calculate social smells, we expect **you** can obtain a **.mbox** representation of the mailing list of interest. This may be available from the open source project directly (e.g. Apache projects mod_mbox -- For mod_mbox and pipermail, see the R/download.R functions), or via a crawler someone already made. For example, [gg_scraper](https://gitlab.com/mcepl/gg_scraper) outputs a mbox file from Google Group mailing lists (although it can only obtain partial information of the e-mails, as Google Groups truncate them, which may pose limitations to some steps of the analysis of the identity matching discussed below). In the future, we plan to also support pipermail, the archive type for GNU Mailing List Manager. 
 
 The bottom line is, the required effort to obtain the mailing list data will vary depending on the open source project of interest, as open source projects may even transition over time through different archive types. Once you have available in your computer both git log, and an .mbox file, you are ready to proceed with the social smells analysis of this notebook. 
 
@@ -117,7 +117,7 @@ project_mbox$reply_tz <- sapply(stringi::stri_split(project_git$reply_datetimetz
 ```{r}
 project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
                                               format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
-project_git$author_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
+project_git$committer_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
                                               format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
 project_mbox$reply_datetimetz <- as.POSIXct(project_mbox$reply_datetimetz,
                                         format = "%a, %d %b %Y %H:%M:%S %z", tz = "UTC")
@@ -153,7 +153,21 @@ There is a large variety of customization in the above 5 steps. We will discuss 
 
 It is very common authors have multiple names and e-mails within and across git log, mailing lists, issue trackers etc. There is no perfect way to identify all identities of an individual, only heuristics. Kaiaulu has a large number of unit tests, each capturing a different example of how people use their e-mails. However, this is not magic. It is possible, and it has been encountered before, cases where a software is used in an open source project that may entirely compromise the analysis if done blind. For example, a common heuristic used for identity matching is to consider two accounts to have the same identity if either the First+Last name OR E-mail have an exact match. In one open source project we analyzed, we found a software was being used that masked all users with commit access as "admin@project.org". Using this heuristic would have, therefore, compromised the entire data.
 
-Using the code below, you can store the various `project_git_slice` and `project_mbox_slice` to manually inspect in R the identity assigned to the various users. **I strongly encourage you to do so**. It is also possible to specify the `identity_match()` function to consider only names, instead of name and e-mails, to avert the example above. If you find a edge case where the identity is incorrectly assigned, please open an issue so we can add the edge case. You may also manually correct the identity numbers, before executing the remaining code blocks, to improve the accuracy of the results. 
+Using the code below, you can manually inspect `project_git` and `project_mbox` in R the assigned identity to the various users. **I strongly encourage you to do so**. It is also possible to specify the `identity_match()` function to consider only names, instead of name and e-mails, to avert the example above. If you find a edge case where the identity is incorrectly assigned, please open an issue so we can add the edge case. You may also manually correct the identity numbers, before executing the remaining code blocks, to improve the accuracy of the results. 
+
+```{r}
+#Identity matching
+project_log <- list(project_git=project_git,project_mbox=project_mbox)
+project_log <- identity_match(project_log,
+                                name_column = c("author_name_email","reply_from"),
+                                assign_exact_identity,
+                                use_name_only=TRUE,
+                                label = "raw_name")
+
+project_git <- project_log[["project_git"]]
+project_mbox <- project_log[["project_mbox"]]
+```
+
 
 Remember: Social smells rely heavily on patterns of collaboration and communication. If the identities are poorly assigned, the social smells will **not** reflect correctly the project status (since in essence several people considered to be communicating with one another, are the same individual!).
 
@@ -186,17 +200,6 @@ window_size_f <- stringi::stri_c(window_size," day")
 # then the ending incomplete window is discarded so the metrics are not calculated 
 # in a smaller interval
 time_window <- seq.POSIXt(from=start_date,to=end_date,by=window_size_f)
-
-#Identity matching
-project_log <- list(project_git=project_git,project_mbox=project_mbox)
-project_log <- identity_match(project_log,
-                                name_column = c("author_name_email","reply_from"),
-                                assign_exact_identity,
-                                use_name_only=TRUE,
-                                label = "raw_name")
-
-project_git <- project_log[["project_git"]]
-project_mbox <- project_log[["project_mbox"]]
 
 # Create a list where each element is the social smells calculated for a given commit hash
 smells <- list()
