@@ -11,7 +11,9 @@ Authors@R: c(
     comment = c(ORCID = "0000-0003-0392-2783")),
     person('Damian', 'Tamburri', role = c('ths'),
     comment = c(ORCID = "0000-0003-1230-8961")),
-    person('Massimo', 'Manca', role = c('ctb'))
+    person('Massimo', 'Manca', role = c('ctb')),
+    person('Corné', 'Broere', role = c('ctb')),
+    person('Jari van', 'Meijel', role = c('ctb'))
     )
 Maintainer: Carlos Paradis <cvas@hawaii.edu>
 License: MPL-2.0 | file LICENSE

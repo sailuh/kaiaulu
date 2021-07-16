@@ -126,7 +126,7 @@ download_mod_mbox <- function(base_url, mailinglist, from, to) {
       counter <- counter + 1
 
       #Generate file destinations
-      destination[[counter]] <- sprintf("%d%d.mbox", year, month)
+      destination[[counter]] <- sprintf("%d%02d.mbox", year, month)
 
       #Try file download and save result
       x <- httr::GET(paste(base_url, mailinglist, destination[[counter]], sep = "/"), httr::write_disk(destination[[counter]], overwrite=TRUE))
