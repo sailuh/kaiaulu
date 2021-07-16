@@ -10,7 +10,8 @@ Authors@R: c(
     person('Rick', 'Kazman', role = c('ths'),
     comment = c(ORCID = "0000-0003-0392-2783")),
     person('Massimo', 'Manca', role = c('ctb')),
-    person('Corné', 'Broere', role = c('ctb'))
+    person('Corné', 'Broere', role = c('ctb')),
+    person('Jari van', 'Meijel', role = c('ctb'))
     )
 Maintainer: Carlos Paradis <cvas@hawaii.edu>
 License: MPL-2.0 | file LICENSE
@@ -34,11 +35,11 @@ Imports:
     stringi (>= 1.4.6),
     jsonlite (>= 1.6),
     magrittr (>= 1.5),
-    httr (>= 1.4.2),
-    curl (>= 4.3.1),
-    XML (>= 3.99-0.6),
+    httr (>= 1.4.1),
+    curl (>= 4.3),
+    XML (>= 3.99-0),
     RColorBrewer (>= 1.1-2)
 VignetteBuilder: knitr
 URL: https://github.com/sailuh/kaiaulu
 BugReports: https://github.com/sailuh/kaiaulu/issues
-RoxygenNote: 7.1.1
+RoxygenNote: 7.0.2

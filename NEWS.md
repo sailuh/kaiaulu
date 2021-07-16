@@ -21,8 +21,11 @@ kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### BUG FIXES
 
+ * Fixes `download_mod_mbox` missing leading zeros. [#107](https://github.com/sailuh/kaiaulu/issues/107)
+
 ### DOCUMENTATION FIXES
 
+ * CONTRIBUTING.md now contains details on how to contribute code to Kaiaulu. [#102](https://github.com/sailuh/kaiaulu/issues/102) 
  * README.md has been updated to reflect current functionality, examples and how to cite. A pointer to this NEWS.md file has also been added. [#105](https://github.com/sailuh/kaiaulu/issues/105)
  * the gitlog_showcase Notebook was renamed to "Explore Git Log", and now contains extensive textual documentation explaining all the file functions, both bipartite and temporal. It also briefly introduces the information used from the project configuration file. Some notebooks which had redundant content were also deleted and re-organized on this one. The software vulnerabilities notebook was also renamed to "Issues, Software Vulnerabilities and Weaknesses", and now focuses on commit log message parsing only. The notebook which presents the method to parse git log entities was renamed to "Extending Git Logs from Files to Entities", it was also reorganized so as to not depend on a saved local rds file. It now loads a very small amount of data so the documentation generation does not take too long as the processing of a full log takes awhile. [#91](https://github.com/sailuh/kaiaulu/issues/91)
 
