@@ -1,0 +1,126 @@
+---
+title: "Download JIRA Issues and Comments"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Download JIRA Issues and Commentss}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(data.table)
+require(JirAgileR)
+require(knitr, quietly = T)
+require(dplyr, quietly = T)
+```
+
+# Introduction
+
+This example is adapted from the JirAgileR package [README.md](https://github.com/matbmeijer/JirAgileR). 
+
+## Project Configuration File 
+
+As usual, the first step is to load the project configuration file. 
+
+# Project Configuration File
+
+```{r}
+conf <- yaml::read_yaml("../conf/geronimo.yml")
+issue_tracker_domain <- conf[["issue_tracker"]][["domain"]]
+issue_tracker_project_key <- conf[["issue_tracker"]][["project_key"]]
+issue_tracker_type <- conf[["issue_tracker"]][["type"]]
+save_path_issue_tracker_issues <- conf[["issue_tracker"]][["issues"]]
+save_path_issue_tracker_issue_comments <- conf[["issue_tracker"]][["issue_comments"]]
+
+```
+
+# Specifying the JIRA credentials
+
+In the project configuration file, we define the domain which JIRA is hosted. The example configuration file uses the domain for Apache Software Foundation. We can use this information to queue the domain to identify all project keys available in its JIRA:
+
+```{r eval = FALSE}
+# Save credentials to pass them only one time
+save_jira_credentials(domain = issue_tracker_domain)
+
+# Get full list of projects in domain
+apache_jira_projects <- data.table(get_jira_projects()) #%>% 
+    #select(key, name) 
+
+```
+
+```{r echo = FALSE}
+# Only here to avoid stressing the end server with API calls when package compiles. Please delete this code block if executing the notebook. 
+apache_jira_projects <- fread("~/Desktop/apache_jira_projects.csv")
+```
+
+```{r}
+kable(head(apache_jira_projects))
+```
+
+```{r eval = FALSE}
+fwrite(apache_jira_projects,"~/Desktop/apache_jira_projects.csv")
+```
+
+
+# Download Issues (Without Comments)
+
+In the project configuration file, we also specify the project configuration key (you can also type it directly for the function call). Here, we used the key GERONIMO. You can also manually explore the existing issues from a given project by visiting it [on your browser](https://issues.apache.org/jira/projects/GERONIMO/issues/GERONIMO-734?filter=allopenissues). Please see the function documentation warning on respecting the number of function calls to the server to avoid being IP blocked. 
+
+The following function will download all the available issues. For more details, see the associated package documentation. This data can be used to obtain the `bug_count` metric. See the associated R notebook `bug_count.Rmd` for details.
+
+```{r eval = FALSE}
+# Retrieve the issues from a single project - in this case the project QTWB from bugreports.qt.io. See documentation to define which fields to see
+issues <- get_jira_issues(jql_query = paste0("project='",issue_tracker_project_key,"'"),
+                fields = c("summary","created", "status","issuetype","issuetype"))
+  
+```
+
+
+```{r echo = FALSE}
+# Only here to avoid stressing the end server with API calls when package compiles. Please delete this code block if executing the notebook.
+issues <- fread("../rawdata/issue_tracker/geronimo_issues.csv")
+```
+
+```{r}
+kable(head(issues))
+```
+
+
+```{r eval = FALSE}
+fwrite(issues,save_path_issue_tracker_issues)
+```
+
+# Download Issue Comments
+
+In the same manner as before, we can perform the same function call, but including the field `comment`. This will result in the same table being generated but with the additional comment information per issue (if an issue has more than one comment, the issue id is repeated for each different comment). The comment is shown on the column `comment_comments_id`. 
+
+The data of this table can be used to calculate `social smell metrics`, as it represents a form of developer communication. A notebook discussing how to use JIRA data as communication network and/or combining to mailing list data will be made available in the future. 
+
+```{r eval = FALSE}
+issue_comments <- get_jira_issues(jql_query = paste0("project='",issue_tracker_project_key,"'"),
+                fields = c("summary","created", "status","issuetype","issuetype","comment"))
+```
+
+```{r echo = FALSE}
+# Only here to avoid stressing the end server with API calls when package compiles. Please delete this code block if executing the notebook. 
+issue_comments <- fread("../rawdata/issue_tracker/geronimo_issue_comments.csv")
+```
+
+```{r}
+kable(head(issue_comments[5:7]))
+```
+
+```{r eval = FALSE}
+fwrite(issue_comments,save_path_issue_tracker_issue_comments)
+```

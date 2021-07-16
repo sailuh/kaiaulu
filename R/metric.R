@@ -71,9 +71,9 @@ metric_churn_per_commit_per_file <- function(git_log){
 #' @family {metrics}
 #' @seealso \code{\link{parse_gitlog}} to obtain additions and deletions from gitlog
 commit_message_id_coverage <- function(git_log,commit_message_id_regex){
-  data.commit <- data.message <- NULL
-  git_log <- unique(git_log[,.(data.commit,data.message)])
-  is_match <- stringi::stri_detect_regex(git_log$data.message,
+  #data.commit <- data.message <- NULL
+  git_log <- unique(git_log[,.(commit_hash,commit_message)])
+  is_match <- stringi::stri_detect_regex(git_log$commit_message,
                                          pattern = commit_message_id_regex)
   return(length(is_match[is_match]))
 }
