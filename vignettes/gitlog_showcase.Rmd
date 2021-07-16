@@ -123,7 +123,7 @@ In order to slice a portion of the data for visualization, we must first convert
 ```{r}
 project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
                                               format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
-project_git$author_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
+project_git$committer_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
                                               format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
 
 project_git_slice <- project_git[author_datetimetz >= as.POSIXct("2019-01-01", format = "%Y-%m-%d",tz = "UTC") & author_datetimetz < as.POSIXct("2019-12-31", format = "%Y-%m-%d",tz = "UTC")]

@@ -1,0 +1,149 @@
+---
+title: "Bug Count"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Bug Count}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(data.table)
+require(stringi)
+require(knitr)
+require(yaml)
+require(magrittr)
+require(visNetwork)
+```
+
+# Introduction
+
+This notebook leverages the JIRA issues data collected from the R Notebook `download_jira_data.Rmd` to calculate bug counts. 
+
+## Project Configuration File 
+
+As usual, the first step is to load the project configuration file. 
+
+```{r}
+tool <- yaml::read_yaml("../tools.yml")
+conf <- yaml::read_yaml("../conf/geronimo.yml")
+perceval_path <- tool[["perceval"]]
+git_repo_path <- conf[["data_path"]][["git"]]
+
+# Issue ID Regex on Commit Messages
+issue_id_regex <- conf[["commit_message_id_regex"]][["issue_id"]]
+# Path to Jira Issues (obtained using `download_jira_data Notebook`)
+save_path_issue_tracker_issues <- conf[["issue_tracker"]][["issues"]]
+
+# Filters
+file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
+substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+```
+
+To establish bug count, we must map each file to its associated issue. In general (but not always), an open source project will adopt a commit message convention to label issue ids. For example, Kaiaulu uses `i #<issue number>`. JIRA dictates issue ids in the format PROJECT-<issue-number>. We can capitalize on this assumption to detect which issue commits in the git log are trying to fix. You can create your own regular expression by manually inspecting some of the commit messages (for example, compare the regular expression from the geronimo project used here against [its commit message](https://github.com/apache/geronimo/commits/trunk)).
+
+Since commits are in turn associated to files, we can establish a map from file to issue. Additionally, projects which use JIRA commonly annotate on their issue type whether the issue is a feature or bug. 
+
+By connecting both git log and JIRA information, therefore, we can count the number of bugs per file. 
+
+# Parse Git Log 
+
+After specifying the necessary configuration file, we first parse the project git log:
+
+```{r}
+project_git <- parse_gitlog(perceval_path,git_repo_path)
+```
+
+We then removed test files:
+
+```{r}
+project_git <- project_git  %>%
+  filter_by_file_extension(file_extensions,"file_pathname")  %>% 
+  filter_by_filepath_substring(substring_filepath,"file_pathname")
+```
+
+Timezones are standardized so we can explore a slice of the data for visualization:
+
+```{r}
+project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
+                                              format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
+project_git$committer_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
+                                              format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
+
+project_git_slice <- project_git[author_datetimetz >= as.POSIXct("2012-01-01", format = "%Y-%m-%d",tz = "UTC") & author_datetimetz < as.POSIXct("2012-12-31", format = "%Y-%m-%d",tz = "UTC")]
+```
+
+# Identifying Issue IDs in Commit Messages 
+
+We can use a built-in Kaiaulu function to search for a regular expression (regex) of the issue id. First we use the regex to calculate how many commits contain issue ids. Ideally, you should consider projects with a high enough coverage, or the results may not be representative.
+
+The total number of commits with issue ids in the chosen git slice is:
+
+```{r}
+commit_message_id_coverage(project_git_slice,issue_id_regex)
+```
+
+Proportion of commit messages containing issue ids relative to all commits in the slice:
+
+```{r}
+normalized_coverage <- commit_message_id_coverage(project_git_slice,issue_id_regex)/length(unique(project_git_slice$commit_hash))
+normalized_coverage
+```
+
+
+# Issue - File Network
+
+To get a better idea of the mapping, we can also visualize the issue-file network we just established using the regex as follows:
+
+```{r}
+project_commit_message_id_edgelist <- transform_commit_message_id_to_network(project_git_slice,commit_message_id_regex = issue_id_regex)
+
+project_commit_message_id_network <- igraph::graph_from_data_frame(d=project_commit_message_id_edgelist[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_commit_message_id_edgelist[["nodes"]])
+visIgraph(project_commit_message_id_network,randomSeed = 1)
+```
+
+As the network shows, visual inspection can identify interesting outliers in the data mapping. Remember you can zoom in to see both issue id and file paths details to look for details.
+
+# Calculating Bug Count per File
+
+Now that we explored the file to issue mapping, let's focus on calculating the total bug count per file for the entire git log. 
+
+First, we can extract only the detected issue id from the commit message, and add it in a separate column: 
+
+```{r}
+project_git <- parse_commit_message_id(project_git, issue_id_regex)
+```
+
+Now we know each commit's ID, we can add the issue_type information obtained directly from JIRA, so we can know which files were involved in a bug, hence obtaining file bug count.
+
+```{r}
+issues <- fread(save_path_issue_tracker_issues)
+kable(head(issues[,.(key,issuetype_name,summary)]))
+```
+
+We can then perform a left joim using the extracted key of the git log against the issue key from the issue data:
+
+```{r}
+project_git <- merge(project_git,issues,all.x=TRUE,by.x="commit_message_id",by.y="key")
+```
+
+With the added information per commit per file of which commits were associated to issues which were bugs, we can then group by filepath, the number of issues which the type is bug. The following show the top 20 buggiest files:
+
+```{r}
+file_bug_count <- project_git[issuetype_name == "Bug"][,.(bug_count=.N),by = "file_pathname"]
+kable(head(file_bug_count[order(-bug_count)],20))
+```
+

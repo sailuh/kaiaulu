@@ -3,6 +3,7 @@ kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### NEW FEATURES
 
+  * Two new R notebooks, `download_jira_data.Rmd` and `bug_count.Rmd`, and one project configuration file, `geronimo.yml` now demonstrate how JIRA issue data can be downloaded and used to calculate file bug count using existing Kaiaulu functionality and an external JIRA API R package. In combination with the existing `gitlog_vulnerabilities_showcase.Rmd`, Kaiaulu can now download and parse both software vulnerabilities (CVEs) and issue IDs. The `download_jira_data.Rmd` can also be used to obtain issue comment data, which may be used to construct communication networks in combination to mailing list data. [#110](https://github.com/sailuh/kaiaulu/issues/110)
   * Existing network visualizations can now be re-colored using `recolor_network_by_community`. [#94](https://github.com/sailuh/kaiaulu/issues/94)
   * Added `download_mod_mbox()` function to download.R module, allowing the composition of .mbox files from Apache mod\_mbox archives. [#99](https://github.com/sailuh/kaiaulu/issues/93).
   * Added download.R module enabling downloading and conversion of pipermail archives into the .mbox format using the `download_pipermail()` and `convert_pipermail_to_mbox` functions [#93](https://github.com/sailuh/kaiaulu/issues/93).
@@ -23,13 +24,17 @@ kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### BUG FIXES
 
-* Fixes `download_mod_mbox` missing leading zeros. [#107](https://github.com/sailuh/kaiaulu/issues/107)
+ * Fixes incorrect datetime assignment from committer to author in `gitlog_showcase.Rmd`. [#110](https://github.com/sailuh/kaiaulu/issues/110)
+
+ * Fixes outdated column names in `commit_message_id_coverage`. [#110](https://github.com/sailuh/kaiaulu/issues/110)
  
-* Fixes incorrect assignment of committer timestamps to authors during timezone conversion. [#106](https://github.com/sailuh/kaiaulu/issues/106)
+ * Fixes `download_mod_mbox` missing leading zeros. [#107](https://github.com/sailuh/kaiaulu/issues/107)
+ 
+ * Fixes incorrect assignment of committer timestamps to authors during timezone conversion. [#106](https://github.com/sailuh/kaiaulu/issues/106)
 
 * When using the social smells notebook, it may be possible the git log and mailing lists slices may not contain any data. The notebook now handles these cases. [#103](https://github.com/sailuh/kaiaulu/issues/103)
 
-* `identity_match()` was performed on the slice level, resulting in non-congruent identity_id's across slices. Using the mail-adresses and names in the slices introduces the noise that `identity_match()` normally solves. Identity match is now performed across all git log and mbox instead of slices. [#97](https://github.com/sailuh/kaiaulu/issues/97)
+ * `identity_match()` was performed on the slice level, resulting in non-congruent identity_id's across slices. Using the mail-adresses and names in the slices introduces the noise that `identity_match()` normally solves. Identity match is now performed across all git log and mbox instead of slices. [#97](https://github.com/sailuh/kaiaulu/issues/97)
 
 ### DOCUMENTATION FIXES
 
