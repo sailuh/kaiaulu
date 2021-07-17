@@ -3,6 +3,7 @@ kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### NEW FEATURES
 
+  * mod_mbox_downloader now accepts a save_path compatible with the project configuration file instead of saving to working directory, and has a verbose mode to display progress. [#112](https://github.com/sailuh/kaiaulu/issues/112)
   * Two new R notebooks, `download_jira_data.Rmd` and `bug_count.Rmd`, and one project configuration file, `geronimo.yml` now demonstrate how JIRA issue data can be downloaded and used to calculate file bug count using existing Kaiaulu functionality and an external JIRA API R package. In combination with the existing `gitlog_vulnerabilities_showcase.Rmd`, Kaiaulu can now download and parse both software vulnerabilities (CVEs) and issue IDs. The `download_jira_data.Rmd` can also be used to obtain issue comment data, which may be used to construct communication networks in combination to mailing list data. [#110](https://github.com/sailuh/kaiaulu/issues/110)
   * Existing network visualizations can now be re-colored using `recolor_network_by_community`. [#94](https://github.com/sailuh/kaiaulu/issues/94)
   * Added `download_mod_mbox()` function to download.R module, allowing the composition of .mbox files from Apache mod\_mbox archives. [#99](https://github.com/sailuh/kaiaulu/issues/93).

@@ -4,19 +4,30 @@
 \alias{download_mod_mbox}
 \title{Compose mod_mbox archives (.mbox) into a single mbox file for use with \code{\link{parse_mbox}}}
 \usage{
-download_mod_mbox(base_url, mailinglist, from, to)
+download_mod_mbox(
+  base_url,
+  mailing_list,
+  from_year,
+  to_year,
+  save_file_path,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{base_url}{An url pointing to the mod_mbox directory (e.g. "http://mail-archives.apache.org/mod_mbox") without trailing slashes}
 
-\item{mailinglist}{Name of the project mailing list (e.g. apr-dev) in the mod_mbox directory}
+\item{mailing_list}{Name of the project mailing list (e.g. apr-dev) in the mod_mbox directory}
 
-\item{from}{First year in the range to be downloaded}
+\item{from_year}{First year in the range to be downloaded}
 
-\item{to}{Last year in the range to be downloaded}
+\item{to_year}{Last year in the range to be downloaded}
+
+\item{save_file_path}{the full path, including file name and extension to save the file}
+
+\item{verbose}{Prints progress during execution}
 }
 \value{
-Returns `output`, the name of the resulting .mbox file in the current working directory
+Returns the path of the downloaded mbox file.
 }
 \description{
 Compose mod_mbox archives (.mbox) into a single mbox file for use with \code{\link{parse_mbox}}
