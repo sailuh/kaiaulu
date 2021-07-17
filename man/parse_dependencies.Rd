@@ -20,6 +20,7 @@ Parse dependencies from Depends
 Other parsers: 
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_gitlog}()},
+\code{\link{parse_jira_comments}()},
 \code{\link{parse_mbox}()},
 \code{\link{parse_nvdfeed}()}
 }

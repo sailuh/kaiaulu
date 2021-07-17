@@ -11,7 +11,8 @@ data_path:
   project_website: http://geronimo.apache.org
   git_url: https://github.com/apache/geronimo
   git: ../rawdata/git_repo/geronimo/.git
-  mbox_url: http://mail-archives.apache.org/mod_mbox/geronimo-user
+  mbox_url: http://mail-archives.apache.org/mod_mbox
+  mailing_list: geronimo-dev
   mbox: ../rawdata/mbox/geronimo-dev.mbox
   openhub: https://www.openhub.net/p/geronimo
   # Provide a folder path containing nvd cve feeds (e.g. nvdcve-1.1-2018.json)

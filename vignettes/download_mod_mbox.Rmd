@@ -1,0 +1,52 @@
+---
+title: "Download Mod Mbox Mailing List Archives"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Download Mod Mbox Mailing List Archives}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(data.table)
+```
+
+# Introduction
+
+Mailing list data is stored in a variety of archives (e.g. see [Apache Geronimo](https://geronimo.apache.org/mailing-lists.html)). This notebook showcases how to obtain data from mod_mbox archives, which is adopted by the Apache Software Foundation.
+
+## Project Configuration File 
+
+As usual, the first step is to load the project configuration file. 
+
+# Project Configuration File
+
+```{r}
+conf <- yaml::read_yaml("../conf/geronimo.yml")
+mod_mbox_url <- conf[["data_path"]][["mbox_url"]]
+save_path_mbox <- conf[["data_path"]][["mbox"]]
+mailing_list <- 'geronimo-dev'
+start_year <- 2004
+end_year <- 2004
+```
+
+```{r eval = FALSE}
+mbox <- download_mod_mbox(base_url = mod_mbox_url, 
+                          mailing_list = mailing_list,
+                          from_year=start_year,
+                          to_year=end_year,
+                          save_file_path = save_path_mbox,
+                          verbose = TRUE)
+```
+

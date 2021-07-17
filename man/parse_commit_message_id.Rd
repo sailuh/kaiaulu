@@ -18,6 +18,7 @@ Adds a column commit_message_id containing the parsed commit message
 Other parsers: 
 \code{\link{parse_dependencies}()},
 \code{\link{parse_gitlog}()},
+\code{\link{parse_jira_comments}()},
 \code{\link{parse_mbox}()},
 \code{\link{parse_nvdfeed}()}
 }

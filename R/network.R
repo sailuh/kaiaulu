@@ -267,15 +267,15 @@ transform_cve_cwe_file_to_network <- function(project_cve,nvd_feed){
   cve_cwe_file_network[["edgelist"]] <- cve_cwe_file_edgelist
   return(cve_cwe_file_network)
 }
-#' Transform parsed mbox into a network
+#' Transform parsed mbox or parsed jira replies into a network
 #'
-#' @param project_mbox A parsed mbox by \code{parse_mbox}.
+#' @param project_reply A parsed mbox by \code{parse_mbox} or \code{parse_jira_comments}.
 #' @export
 #' @family edgelists
-transform_mbox_to_bipartite_network <- function(project_mbox){
+transform_reply_to_bipartite_network <- function(project_reply){
   data.From <- data.Subject <- data.Date <- NULL # due to NSE notes in R CMD check
 
-  git_graph <- model_directed_graph(project_mbox[,.(from=reply_from,to=reply_subject)],
+  git_graph <- model_directed_graph(project_reply[,.(from=reply_from,to=reply_subject)],
                                     is_bipartite=TRUE,
                                     color=c("black","lightblue"))
   return(git_graph)

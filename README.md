@@ -16,8 +16,9 @@ Most functions will return standardized tables which makes it easier to inspect 
 
  * [Filepath Filters](http://itm0.shidler.hawaii.edu/kaiaulu/reference/index.html#section-filters)
  * Standardized table interface for [built-in and wrapper to parsers](http://itm0.shidler.hawaii.edu/kaiaulu/reference/index.html#section-parsers): 
-    * GitLog (File, function, class and language-specific entities) + Churn
+    * GitLog (File, function, class and language-specific entities) + Bug Count + Churn
     * Mailing List .mbox + Apache, Mailman and Google Groups Mailing List Crawlers
+    * JIRA Issues and Issue Comments 
     * Static Dependencies (File and function)
     * Line Metrics (e.g. LOC, Comment Lines)
     * Refactorings (Java only)
@@ -77,7 +78,7 @@ The following is optional depending on the functionality you seek:
  4. In the extracted folder, locate `/bin/RefactoringMiner`, and note its path on Kaiaulu `tools.yml`.
  5. See vignettes/refactoringminer_showcase.Rmd for details.
  
- ### OSLOM Community Detection 
+### OSLOM Community Detection 
  1. Download [OSLOM code (last tested on beta version 2.4)](http://oslom.org/)
  2. Use `./compile_all.sh`, as the manual suggests, to obtain `./oslom_undir` and `/oslom_dir`, and note its path on Kaiaulu `tools.yml`. See vignettes/community_detection_showcase.Rmd for details.
 
@@ -85,14 +86,18 @@ The following is optional depending on the functionality you seek:
 
  * Parsing and Visualizing
     * [Git Logs](http://itm0.shidler.hawaii.edu/kaiaulu/articles/gitlog_showcase.html)
-    * [Mailing Lists](http://itm0.shidler.hawaii.edu/kaiaulu/articles/mailinglist_showcase.html)
+    * [Mailing Lists and JIRA Issues](http://itm0.shidler.hawaii.edu/kaiaulu/articles/reply_communication_showcase.html)
     * [File Dependencies](http://itm0.shidler.hawaii.edu/kaiaulu/articles/depends_showcase.html)
     * [Software Vulnerabilities](http://itm0.shidler.hawaii.edu/kaiaulu/articles/gitlog_vulnerabilities_showcase.html)
     * [GitHub API Interface](https://github.com/sailuh/kaiaulu/blob/86-add-github-api/vignettes/github_api_showcase.Rmd) (See 86-add-github-api branch)
- * Calculating 
-    * [Social Smells](http://itm0.shidler.hawaii.edu/kaiaulu/articles/social_smells_showcase.html) (See 88-add-social-smells branch)
-    * [Line Metrics](http://itm0.shidler.hawaii.edu/kaiaulu/articles/line_metrics_showcase.html)
+    * [Network Community Detection](http://itm0.shidler.hawaii.edu/kaiaulu/articles/community_detection_showcase.html)
  * [Kaiaulu File and Function Architecture](http://itm0.shidler.hawaii.edu/kaiaulu/articles/kaiaulu_architecture.html)
+ * Metrics
+    * [Bug Count](http://itm0.shidler.hawaii.edu/kaiaulu/articles/bug_count.html)
+    * [Social Smells](http://itm0.shidler.hawaii.edu/kaiaulu/articles/social_smells_showcase.html) (See 88-add-social-smells branch)
+    * [Line Metrics](http://itm0.shidler.hawaii.edu/kaiaulu/articles/line_metrics_showcase.html)    
+ * Downloaders
+    * [Apache's Mod Mbox](http://itm0.shidler.hawaii.edu/kaiaulu/articles/reply_communication_showcase.html)
 
 
 ## Stay up-to-date
