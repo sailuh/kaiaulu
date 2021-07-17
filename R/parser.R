@@ -267,6 +267,28 @@ parse_mbox <- function(perceval_path,mbox_path){
 
   return(perceval_parsed)
 }
+#' Parse jira comments
+#'
+#' @param jira_comments_csv_path path to jira comments obtained using `download_jira_data.Rmd`.
+#' @export
+#' @family parsers
+parse_jira_comments <- function(jira_comments_csv_path){
+  # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
+  jira_comments_path <- path.expand(jira_comments_csv_path)
+  comments <- fread(jira_comments_path)
+  # Since JIRA is already a .csv, and no external tools are required,
+  # this function merely rename the raw columns to match the nomenclature
+  # of mbox columns adopted in Kaiaulu. Extra columns are also removed.
+  comments <- comments[,.(reply_id=key,
+                          in_reply_to_id=NA_character_,
+                          reply_datetimetz=comment_comments_updated,
+                          reply_from=comment_comments_author_timezone,#comment_comments_author_name?
+                          reply_to=NA_character_,
+                          reply_cc=NA_character_,
+                          reply_subject=summary,
+                          reply_body=comment_comments_id)]
+  return(comments)
+}
 #' Parse dependencies from Depends
 #'
 #' @param depends_jar_path path to depends jar

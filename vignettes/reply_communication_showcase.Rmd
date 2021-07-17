@@ -1,0 +1,153 @@
+---
+title: "Mailing List and Issue Tracker Reply Showcase"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Mailing List and Issue Tracker Reply Showcase}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(visNetwork)
+require(reactable)
+require(data.table)
+require(stringi)
+require(igraph)
+require(yaml)
+```
+
+Load config file.
+
+```{r}
+tool <- yaml::read_yaml("../tools.yml")
+conf <- yaml::read_yaml("../conf/geronimo.yml")
+perceval_path <- tool[["perceval"]]
+
+mbox_path <- conf[["data_path"]][["mbox"]]
+issue_comments <- conf[["issue_tracker"]][["issue_comments"]]
+```
+
+
+```{r}
+project_mbox <- parse_mbox(perceval_path,mbox_path)
+project_jira <- parse_jira_comments(issue_comments)
+```
+
+# Identity Matching
+
+```{r}
+#Identity matching
+project_log <- list(project_mbox=project_mbox,project_jira=project_jira)
+project_log <- identity_match(project_log,
+                                name_column = c("reply_from","reply_from"),
+                                assign_exact_identity,
+                                use_name_only=TRUE,
+                                label = "raw_name")
+project_mbox <- project_log[["project_mbox"]]
+project_jira <- project_log[["project_jira"]]
+```
+
+```{r}
+intersect(project_mbox$identity_id,project_jira$identity_id)
+```
+
+# Datetime Parsing
+
+```{r}
+# Parse timestamps and convert to UTC
+project_mbox$reply_datetimetz <- as.POSIXct(project_mbox$reply_datetimetz,
+                                        format = "%a, %d %b %Y %H:%M:%S %z", tz = "UTC")
+
+project_jira$reply_datetimetz <- as.POSIXct(project_jira$reply_datetimetz,
+                                        format = "%Y-%m-%dT%H:%M:%S Z", tz = "UTC")
+
+# Remove comments without timestamp
+project_mbox <- project_mbox[!is.na(reply_datetimetz)]
+project_jira <- project_jira[!is.na(reply_datetimetz)]
+
+
+project_mbox_slice <- project_mbox[reply_datetimetz >= as.POSIXct("2005-08-01", format = "%Y-%m-%d",tz = "UTC") & reply_datetimetz < as.POSIXct("2005-08-30", format = "%Y-%m-%d",tz = "UTC")]
+
+project_jira_slice <- project_jira[reply_datetimetz >= as.POSIXct("2005-08-01", format = "%Y-%m-%d",tz = "UTC") & reply_datetimetz < as.POSIXct("2005-08-30", format = "%Y-%m-%d",tz = "UTC")]
+```
+
+# Mailing List
+
+## Construct Mailing List Communication Network
+
+```{r}
+project_mbox_network <- transform_reply_to_bipartite_network(project_mbox_slice)
+
+project_mbox_network <- igraph::graph_from_data_frame(d=project_mbox_network[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_mbox_network[["nodes"]])
+
+visIgraph(project_mbox_network,randomSeed = 1)
+```
+
+## Construct Issue Communication Network
+
+```{r}
+project_jira_network <- transform_reply_to_bipartite_network(project_jira_slice)
+
+project_jira_network[["nodes"]][type == FALSE]$color <- '#3895D3'
+
+project_jira_network <- igraph::graph_from_data_frame(d=project_jira_network[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_jira_network[["nodes"]])
+
+visIgraph(project_jira_network,randomSeed = 1)
+```
+
+# Merging Communication Networks
+
+```{r}
+both_mediums_authors <- intersect(project_mbox_slice$identity_id,project_jira_slice$identity_id)
+both_mediums_authors
+```
+
+
+Recall each row obtained from `parse_mbox` and `parse_jira_comments` represent a comment from an author. Moreover, because we performed identity match, all comments are identified by a common id. Therefore, all is needed to combine the data is combine them row-wise as we would any other table in R: 
+
+```{r}
+project_jira_slice$reply_subject <- stringi::stri_c('#3895D3',project_jira_slice$reply_subject,sep = " ")
+```
+
+
+```{r}
+project_communication <- rbind(project_mbox_slice,project_jira_slice)
+```
+
+Since the set union of the tables maintain the same format, we can use the same previous code to transform the data in a graph and visualize it: 
+
+```{r}
+project_communication_network <- transform_reply_to_bipartite_network(project_communication)
+
+both_mediums_authors <- intersect(project_mbox_slice$raw_name,project_jira_slice$raw_name)
+
+
+# Distinguish JIRA comments with a slightly darker tone of blue
+subject_node_names <- project_communication_network[["nodes"]][type == FALSE]$name
+is_jira_node <- stringi::stri_detect_regex(subject_node_names,pattern='#3895D3')
+project_communication_network[["nodes"]][type == 'FALSE'][is_jira_node]$color <- '#3895D3'
+
+# Distinguish Authors who use both JIRA and Mailing list in red 
+project_communication_network[["nodes"]][type == TRUE & (name %in% both_mediums_authors)]$color <- 'red'
+
+project_communication_network <- igraph::graph_from_data_frame(d=project_communication_network[["edgelist"]], 
+                      directed = TRUE, 
+                      vertices = project_communication_network[["nodes"]])
+
+visIgraph(project_communication_network,randomSeed = 1)
+```
+
