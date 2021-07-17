@@ -275,7 +275,7 @@ for(j in 2:size_time_window){
     
   }
   if(ml_exist){
-    network_mbox_slice <- transform_mbox_to_bipartite_network(project_mbox_slice)
+    network_mbox_slice <- transform_reply_to_bipartite_network(project_mbox_slice)
     
     igraph_network_mbox_slice <- igraph::graph_from_data_frame(d=network_mbox_slice[["edgelist"]], 
                     directed = TRUE, 
