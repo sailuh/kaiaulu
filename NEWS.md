@@ -1,4 +1,19 @@
-kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) (in development)
+kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in development)
+=========================
+
+### NEW FEATURES
+
+ * With version 0.0.0.9600, Three social smells (org silo, missing link, and radio silence) are refactored to the master branch. The social smells no longer have a dependency to igraph, and OSLOM is used for community detection instead of igraph's random walk. Because of the closer integration to source, the social smell notebook includes a new section where any time slice can be explored to assess the social metrics, including coloring by community. A separate branch will contain a notebook comparing the re-implementation to the existing metric. While org silo and missing link should result in the same metric value, radio silence results will be different due to the use of a different community detection algorithm. [#114](https://github.com/sailuh/kaiaulu/issues/114).
+
+### MINOR IMPROVEMENTS
+
+### BUG FIXES
+
+ * OSLOM now assign cluster ids to isolated nodes for consistency [#115](https://github.com/sailuh/kaiaulu/issues/115)
+
+### DOCUMENTATION FIXES
+
+kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) 
 =========================
 
 ### NEW FEATURES

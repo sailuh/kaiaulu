@@ -123,7 +123,7 @@ Use `oslom_dir_path` or `oslom_undir_path` as preferred for directed or undirect
 ```{r}
  
 community <- community_oslom(oslom_dir_path,
-              project_collaboration_network[["edgelist"]],
+              project_collaboration_network,
               seed=seed,
               n_runs = 100,
               is_weighted = TRUE)
@@ -171,7 +171,7 @@ project_file_network <- transform_dependencies_to_network(project_dependencies,
 
 ```{r}
 module <- community_oslom(oslom_undir_path,
-              project_file_network[["edgelist"]],
+              project_file_network,
               seed=seed,
               n_runs = 100,
               is_weighted = TRUE)
@@ -207,7 +207,7 @@ co_change_network <- bipartite_graph_projection(project_commit_network,
 
 ```{r}
 co_change_module <- community_oslom(oslom_undir_path,
-              co_change_network[["edgelist"]],
+              co_change_network,
               seed=seed,
               n_runs = 5,
               is_weighted = TRUE)

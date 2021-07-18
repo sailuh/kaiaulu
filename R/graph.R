@@ -122,8 +122,8 @@ bipartite_graph_projection <- function(graph,mode, is_intermediate_projection = 
 #' OSLOM Community Detection
 #'
 #' @description Wrapper for OSLOM Community Detection \url{http://oslom.org/}
-#' @param oslom_bin_dir_undir_path The path to oslom dirrected or undirected network binary
-#' @param edgelist An igraph edgelist object
+#' @param oslom_bin_dir_undir_path The path to oslom directed or undirected network binary
+#' @param graph The graph to be clustered obtained from transform_* functions
 #' @param seed An integer specifying the seed to replicate the result
 #' @param n_runs the number of runs for the first hierarchical level
 #' @param is_weighted a boolean indicating whether a weight column is available in the data.table
@@ -132,7 +132,10 @@ bipartite_graph_projection <- function(graph,mode, is_intermediate_projection = 
 #' S. Fortunato PLoS ONE 6, e18961 (2011).
 #' @export
 #' @family community
-community_oslom <- function(oslom_bin_dir_undir_path,edgelist,seed,n_runs,is_weighted){
+community_oslom <- function(oslom_bin_dir_undir_path,graph,seed,n_runs,is_weighted){
+
+  edgelist <- graph[["edgelist"]]
+
   oslom_bin_dir_undir_path <- path.expand(oslom_bin_dir_undir_path)
   mapping_names <- unique(c(as.character(edgelist$from),edgelist$to))
   mapping_ids <- 1:length(mapping_names)
@@ -192,6 +195,32 @@ community_oslom <- function(oslom_bin_dir_undir_path,edgelist,seed,n_runs,is_wei
   cluster <- list()
   cluster[["assignment"]] <- cluster_assignment
   cluster[["info"]] <- data.table(cluster_id,cluster_size,cluster_pvalue)
+
+  # assign a unique and different from existing cluster id to all nodes which have no neighbors
+  isolated_node_ids <- setdiff(graph[["nodes"]]$name,cluster[["assignment"]]$node_id)
+
+  if(length(isolated_node_ids) > 0){
+    isolated_nodes_cluster_ids <- max(as.numeric(cluster[["assignment"]]$cluster_id)) + 1
+    isolated_nodes_cluster_ids <- as.character(seq.int(from=isolated_nodes_cluster_ids,
+                                                       length.out = length(isolated_node_ids)))
+    isolated_cluster_assignments <- data.table(node_id=isolated_node_ids,
+                                               cluster_id=isolated_nodes_cluster_ids)
+
+    cluster[["assignment"]] <- rbind(cluster[["assignment"]],
+                                     isolated_cluster_assignments)
+
+    isolated_cluster_infos <- data.table(cluster_id=isolated_nodes_cluster_ids,
+                                         cluster_size=1,
+                                         cluster_pvalue=NA)
+
+    cluster[["info"]] <- rbind(cluster[["info"]],
+                               isolated_cluster_infos)
+  }
+
+  # Indexes starting cluster id to 1 instead of 0 to align with R indexes
+  cluster[["assignment"]]$cluster_id <- as.character(as.numeric(cluster[["assignment"]]$cluster_id) + 1)
+  cluster[["info"]]$cluster_id <- as.character(as.numeric(cluster[["info"]]$cluster_id) + 1)
+
   return(cluster)
 }
 
@@ -215,9 +244,8 @@ recolor_network_by_community <- function(network,community){
   color_pallete <- RColorBrewer::brewer.pal(n = 12,name = "Paired")
 
   node_cid_mapping <- community[["assignment"]]
-  node_cid_mapping$color_community <- color_pallete[as.integer(node_cid_mapping$cluster_id) + 1]
-  # Cluster IDs begin at index 0. R starts at index 1. Use cluster id + 1 as index to
-  # choose color
+  node_cid_mapping$color_community <- color_pallete[as.integer(node_cid_mapping$cluster_id)]
+  # Use cluster id as index to choose color
   metadata_nodes_cid <- merge(network[["nodes"]],
                               node_cid_mapping,
                               by.x = "name",

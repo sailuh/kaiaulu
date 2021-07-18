@@ -74,6 +74,12 @@ reference:
   - git_head
   - git_log
   - git_blame
+- title: Social Smells
+  desc:  Functions to compute social smells.
+- contents:
+  - smell_missing_links
+  - smell_organizational_silo
+  - smell_radio_silence
 - title: Download
   desc:  Functions to download data from various websites and convert to formats used in Kaiaulu.
 - contents:

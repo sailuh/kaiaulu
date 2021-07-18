@@ -4,7 +4,7 @@
 \alias{get_date_from_commit_hash}
 \title{Get datetime from commit hash in a git log}
 \usage{
-get_date_from_commit_hash(git_log, commit_hash)
+get_date_from_commit_hash(git_log, p_commit_hash)
 }
 \arguments{
 \item{git_log}{a data.table where the key is commit+file}

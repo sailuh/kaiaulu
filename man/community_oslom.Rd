@@ -4,12 +4,12 @@
 \alias{community_oslom}
 \title{OSLOM Community Detection}
 \usage{
-community_oslom(oslom_bin_dir_undir_path, edgelist, seed, n_runs, is_weighted)
+community_oslom(oslom_bin_dir_undir_path, graph, seed, n_runs, is_weighted)
 }
 \arguments{
-\item{oslom_bin_dir_undir_path}{The path to oslom dirrected or undirected network binary}
+\item{oslom_bin_dir_undir_path}{The path to oslom directed or undirected network binary}
 
-\item{edgelist}{An igraph edgelist object}
+\item{graph}{The graph to be clustered obtained from transform_* functions}
 
 \item{seed}{An integer specifying the seed to replicate the result}
 

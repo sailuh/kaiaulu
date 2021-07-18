@@ -34,7 +34,7 @@ metric_churn_per_commit_interval <- function(git_log){
   git_log <- metric_churn_per_commit_per_file(git_log)
 
   # Calculate Churn per Commit
-  git_log <- git_log[,.(commit_churn=sum(churn)),by=c("data.commit","data.Author")]
+  git_log <- git_log[,.(commit_churn=sum(churn)),by=c("commit_hash","author_datetimetz")]
 
   # Calculate the sum churn of the time interval
   commit_interval_churn <- sum(git_log$commit_churn)

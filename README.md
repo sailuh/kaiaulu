@@ -26,7 +26,7 @@ Most functions will return standardized tables which makes it easier to inspect 
     * Name and E-mail Identity Matching (For identifying same users inter and intra GitLog, Mailing List, etc.)
  * [Parser to Network Transformations](http://itm0.shidler.hawaii.edu/kaiaulu/reference/index.html#section-networks) + Interactive visualizations (See Getting Started below)
     * Graph representation uses node + edge format, making easier to extend analysis in popular graph tools such as Gephi and igraph library. 
- * Social Smells (Organizational Silos, Missing Links, Radio Silence, Primma Donna)
+ * Social Smells (Organizational Silos, Missing Links, Radio Silence)
  * Quality Framework Metrics (N. Timezones, Authors on GitLog, Authors on Mailing List, N. Files changed, etc).
  * And more! 
 
@@ -94,7 +94,7 @@ The following is optional depending on the functionality you seek:
  * [Kaiaulu File and Function Architecture](http://itm0.shidler.hawaii.edu/kaiaulu/articles/kaiaulu_architecture.html)
  * Metrics
     * [Bug Count](http://itm0.shidler.hawaii.edu/kaiaulu/articles/bug_count.html)
-    * [Social Smells](http://itm0.shidler.hawaii.edu/kaiaulu/articles/social_smells_showcase.html) (See 88-add-social-smells branch)
+    * [Social Smells](http://itm0.shidler.hawaii.edu/kaiaulu/articles/social_smells_showcase.html)
     * [Line Metrics](http://itm0.shidler.hawaii.edu/kaiaulu/articles/line_metrics_showcase.html)    
  * Downloaders
     * [Apache's Mod Mbox](http://itm0.shidler.hawaii.edu/kaiaulu/articles/reply_communication_showcase.html)
