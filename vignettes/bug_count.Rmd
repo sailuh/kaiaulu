@@ -44,7 +44,7 @@ git_repo_path <- conf[["data_path"]][["git"]]
 # Issue ID Regex on Commit Messages
 issue_id_regex <- conf[["commit_message_id_regex"]][["issue_id"]]
 # Path to Jira Issues (obtained using `download_jira_data Notebook`)
-save_path_issue_tracker_issues <- conf[["issue_tracker"]][["issues"]]
+jira_issues_path <- conf[["issue_tracker"]][["issues"]]
 
 # Filters
 file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
@@ -106,6 +106,7 @@ normalized_coverage
 
 To get a better idea of the mapping, we can also visualize the issue-file network we just established using the regex as follows:
 
+
 ```{r}
 project_commit_message_id_edgelist <- transform_commit_message_id_to_network(project_git_slice,commit_message_id_regex = issue_id_regex)
 
@@ -127,23 +128,28 @@ First, we can extract only the detected issue id from the commit message, and ad
 project_git <- parse_commit_message_id(project_git, issue_id_regex)
 ```
 
-Now we know each commit's ID, we can add the issue_type information obtained directly from JIRA, so we can know which files were involved in a bug, hence obtaining file bug count.
+Now we know each commit's ID, we can add the issue_type information obtained directly from JIRA, so we can know which files were involved in a bug, hence obtaining file bug count. We will also consider only issues that are already `closed`, in case the bug is later found to be invalid. 
+
+The jira table contains many fields (see `download_jira_data.Rmd` for all columns), here we show a sample of the relevant fields for bug count:
 
 ```{r}
-issues <- fread(save_path_issue_tracker_issues)
-kable(head(issues[,.(key,issuetype_name,summary)]))
+jira_issues <- parse_jira(jira_issues_path)[["issues"]]
+jira_issues <- jira_issues[issue_status == "Closed" & issue_type == "Bug"]
+
+kable(head(jira_issues[,.(issue_key,issue_type,issue_status,issue_summary)]))
 ```
 
-We can then perform a left joim using the extracted key of the git log against the issue key from the issue data:
+We can then perform a left join using the extracted key of the git log against the issue key from the issue data:
 
 ```{r}
-project_git <- merge(project_git,issues,all.x=TRUE,by.x="commit_message_id",by.y="key")
+project_git <- merge(project_git,jira_issues,all.x=TRUE,by.x="commit_message_id",
+                     by.y="issue_key")
 ```
 
 With the added information per commit per file of which commits were associated to issues which were bugs, we can then group by filepath, the number of issues which the type is bug. The following show the top 20 buggiest files:
 
 ```{r}
-file_bug_count <- project_git[issuetype_name == "Bug"][,.(bug_count=.N),by = "file_pathname"]
+file_bug_count <- project_git[,.(bug_count=.N),by = "file_pathname"]
 kable(head(file_bug_count[order(-bug_count)],20))
 ```
 

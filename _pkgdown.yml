@@ -10,7 +10,7 @@ reference:
   - parse_git_blame
   - parse_gitlog_entity
   - parse_mbox
-  - parse_jira_comments
+  - parse_jira
   - parse_dependencies
   - parse_r_dependencies
   - parse_java_code_refactoring_json

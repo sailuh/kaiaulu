@@ -23,13 +23,12 @@ require(data.table)
 require(JirAgileR)
 require(knitr, quietly = T)
 require(dplyr, quietly = T)
+require(jsonlite)
 ```
 
 # Introduction
 
 This example is adapted from the JirAgileR package [README.md](https://github.com/matbmeijer/JirAgileR). 
-
-## Project Configuration File 
 
 As usual, the first step is to load the project configuration file. 
 
@@ -59,68 +58,78 @@ apache_jira_projects <- data.table(get_jira_projects()) #%>%
 
 ```
 
-```{r echo = FALSE}
-# Only here to avoid stressing the end server with API calls when package compiles. Please delete this code block if executing the notebook. 
-apache_jira_projects <- fread("~/Desktop/apache_jira_projects.csv")
-```
-
-```{r}
-kable(head(apache_jira_projects))
-```
-
-```{r eval = FALSE}
-fwrite(apache_jira_projects,"~/Desktop/apache_jira_projects.csv")
-```
-
+You can load `apache_jira_projects` for the list of projects available. However, this step is optional.
 
 # Download Issues (Without Comments)
 
-In the project configuration file, we also specify the project configuration key (you can also type it directly for the function call). Here, we used the key GERONIMO. You can also manually explore the existing issues from a given project by visiting it [on your browser](https://issues.apache.org/jira/projects/GERONIMO/issues/GERONIMO-734?filter=allopenissues). Please see the function documentation warning on respecting the number of function calls to the server to avoid being IP blocked. 
+In the project configuration file, we also specify the project configuration key (you can also type it directly for the function call). Here, we used the key `GERONIMO`. You can also manually explore the existing issues from a given project by visiting it [on your browser](https://issues.apache.org/jira/projects/GERONIMO/issues/GERONIMO-734?filter=allopenissues). Please see the function documentation warning for `get_jira_issues` on respecting the number of function calls to the server to avoid being IP blocked. 
 
 The following function will download all the available issues. For more details, see the associated package documentation. This data can be used to obtain the `bug_count` metric. See the associated R notebook `bug_count.Rmd` for details.
 
+We will download the data on `verbose`, and as json (`as.data.frame = FALSE`), as the turning the later appears to cause column names to not match values, ignores the requested fields, and gives inconsistent column names. Kaiaulu implements its own parser for the json file, so you will still be able to obtain a table in the end without the associated issues. 
+
 ```{r eval = FALSE}
 # Retrieve the issues from a single project - in this case the project QTWB from bugreports.qt.io. See documentation to define which fields to see
-issues <- get_jira_issues(jql_query = paste0("project='",issue_tracker_project_key,"'"),
-                fields = c("summary","created", "status","issuetype","issuetype"))
-  
+json_issues <- get_jira_issues(jql_query = paste0("project='",issue_tracker_project_key,"'"),
+                fields = c("summary",
+                           "description",
+                           "creator",
+                           "assignee",
+                           "reporter",
+                           "issuetype",
+                           "status",
+                           "resolution",
+                           "components",
+                           "created",
+                           "updated",
+                           "resolutiondate"),
+                verbose=TRUE,
+                as.data.frame = FALSE)
+
+jsonlite::write_json(json_issues,save_path_issue_tracker_issues)
 ```
 
-
-```{r echo = FALSE}
-# Only here to avoid stressing the end server with API calls when package compiles. Please delete this code block if executing the notebook.
-issues <- fread("../rawdata/issue_tracker/geronimo_issues.csv")
-```
+The json will be downloaded on the path specified in the project configuration file, which by default is `kaiaulu/kaiaulu/rawdata/issue_tracker`. We can then use Kaiaulu's function to parse the data into a tabular format. Since our request did not include the  `comment` field, only the issues table will be available. A few rows of the json issues is shown next:
 
 ```{r}
-kable(head(issues))
+jira_issues_list <- parse_jira(save_path_issue_tracker_issues)
+jira_issues <- jira_issues_list[["issues"]]
+jira_comments <- jira_issues_list[["comments"]]
+kable(jira_issues[7:8])
 ```
 
-
-```{r eval = FALSE}
-fwrite(issues,save_path_issue_tracker_issues)
-```
-
-# Download Issue Comments
+# Download Issue with Comments
 
 In the same manner as before, we can perform the same function call, but including the field `comment`. This will result in the same table being generated but with the additional comment information per issue (if an issue has more than one comment, the issue id is repeated for each different comment). The comment is shown on the column `comment_comments_id`. 
 
 The data of this table can be used to calculate `social smell metrics`, as it represents a form of developer communication. A notebook discussing how to use JIRA data as communication network and/or combining to mailing list data will be made available in the future. 
 
 ```{r eval = FALSE}
-issue_comments <- get_jira_issues(jql_query = paste0("project='",issue_tracker_project_key,"'"),
-                fields = c("summary","created", "status","issuetype","issuetype","comment"))
+json_issue_comments <- get_jira_issues(jql_query = paste0("project='",issue_tracker_project_key,"'"),
+                fields = c("summary",
+                           "description",
+                           "creator",
+                           "assignee",
+                           "reporter",
+                           "issuetype",
+                           "status",
+                           "resolution",
+                           "components",
+                           "created",
+                           "updated",
+                           "resolutiondate",
+                           "comment"),
+                verbose=TRUE,
+                as.data.frame = FALSE)
+jsonlite::write_json(json_issue_comments,save_path_issue_tracker_issue_comments)
 ```
 
-```{r echo = FALSE}
-# Only here to avoid stressing the end server with API calls when package compiles. Please delete this code block if executing the notebook. 
-issue_comments <- fread("../rawdata/issue_tracker/geronimo_issue_comments.csv")
-```
+Since this time around we requested the issue data and comments, when using the `parse_jira` function, both the issues and comments table will be available from the parser. Since the issue table was already displayed, the following show a few rows of the issue comments table:
 
 ```{r}
-kable(head(issue_comments[5:7]))
-```
+jira_issue_comments <- parse_jira(save_path_issue_tracker_issue_comments)
+jira_issues <- jira_issue_comments[["issues"]]
+jira_comments <- jira_issue_comments[["comments"]]
 
-```{r eval = FALSE}
-fwrite(issue_comments,save_path_issue_tracker_issue_comments)
+kable(jira_comments[55:56])
 ```

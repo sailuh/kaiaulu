@@ -9,6 +9,7 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### BUG FIXES
 
+ * In `download_jira_data.Rmd`, the jira issue downloader's output contained a mismatch between column names and values when converting the json to table. The conversion is now done in Kaiaulu instead of the external package, and the external package is only used to obtain the json. In addition, `parse_jira_comments()` has been refactored into `parse_jira()`, which handles both issues and/or comments jsons obtained from the external package. [#120](https://github.com/sailuh/kaiaulu/issues/120)
  * OSLOM now assign cluster ids to isolated nodes for consistency [#115](https://github.com/sailuh/kaiaulu/issues/115)
 
 ### DOCUMENTATION FIXES

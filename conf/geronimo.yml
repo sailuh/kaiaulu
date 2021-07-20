@@ -19,8 +19,8 @@ data_path:
   # You can obtain them freely at: https://nvd.nist.gov/vuln/data-feeds
   #nvd_feed: rawdata/nvdfeed
 issue_tracker:
-  issues: ../rawdata/issue_tracker/geronimo_issues.csv
-  issue_comments: ../rawdata/issue_tracker/geronimo_issue_comments.csv
+  issues: ../rawdata/issue_tracker/geronimo_issues.json
+  issue_comments: ../rawdata/issue_tracker/geronimo_issue_comments.json
   domain: https://issues.apache.org/jira
   project_key: GERONIMO
   # types: bugzilla, jira, other

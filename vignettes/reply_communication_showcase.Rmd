@@ -34,14 +34,28 @@ conf <- yaml::read_yaml("../conf/geronimo.yml")
 perceval_path <- tool[["perceval"]]
 
 mbox_path <- conf[["data_path"]][["mbox"]]
-issue_comments <- conf[["issue_tracker"]][["issue_comments"]]
+jira_issue_comments_path <- conf[["issue_tracker"]][["issue_comments"]]
 ```
 
 
 ```{r}
 project_mbox <- parse_mbox(perceval_path,mbox_path)
-project_jira <- parse_jira_comments(issue_comments)
+project_jira <- parse_jira(jira_issue_comments_path)[["comments"]]
 ```
+
+Since Jira comments can be understood as e-wail relies, we can rename the specific columns of the comments table to conform it to project_mbox table. 
+
+```{r}
+project_jira <- project_jira[,.(reply_id=comment_id,
+                          in_reply_to_id=NA_character_,
+                          reply_datetimetz=comment_created_datetimetz,
+                          reply_from=comment_author_name,
+                          reply_to=NA_character_,
+                          reply_cc=NA_character_,
+                          reply_subject=issue_key,
+                          reply_body=comment_body)]
+```
+
 
 # Identity Matching
 
@@ -50,7 +64,7 @@ project_jira <- parse_jira_comments(issue_comments)
 project_log <- list(project_mbox=project_mbox,project_jira=project_jira)
 project_log <- identity_match(project_log,
                                 name_column = c("reply_from","reply_from"),
-                                assign_exact_identity,
+                                assign_identity_function = assign_exact_identity,
                                 use_name_only=TRUE,
                                 label = "raw_name")
 project_mbox <- project_log[["project_mbox"]]
@@ -69,7 +83,7 @@ project_mbox$reply_datetimetz <- as.POSIXct(project_mbox$reply_datetimetz,
                                         format = "%a, %d %b %Y %H:%M:%S %z", tz = "UTC")
 
 project_jira$reply_datetimetz <- as.POSIXct(project_jira$reply_datetimetz,
-                                        format = "%Y-%m-%dT%H:%M:%S Z", tz = "UTC")
+                                        format = "%Y-%m-%dT%H:%M:%S.000+0000", tz = "UTC")
 
 # Remove comments without timestamp
 project_mbox <- project_mbox[!is.na(reply_datetimetz)]
