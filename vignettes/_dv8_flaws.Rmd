@@ -1,0 +1,94 @@
+---
+title: "Dv8 Showcase"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Dv8 Showcase}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r warning = FALSE, message = FALSE}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+
+require(kaiaulu)
+require(rstudioapi)
+require(stringi)
+require(data.table)
+require(knitr)
+```
+
+This vignette [can't be generated via Knit HTML in RStudio](https://github.com/rstudio/rstudioapi/issues/7). Please use `rmarkdown::render("vignettes/_dv8.Rmd")` instead. This is because rstudioapi is required to run dv8. 
+
+Because of dv8 terminal being interactive mode, it is not possible to execute dv8 from R Studio, only via terminal. We use a workaround with `rstudioapi` R package: 
+
+A self contained bash script takes the config files, and generates the gitlog, depends file, dv8 config files, and execute dv8. A file on /tmp/dv8.csv will be generated. This vignette uses `rstudioapi` to defer the call of the script to the terminal, instead of the R Console, blocks the R Console until the file is generated, and then continue the analysis. 
+
+This workaround is only necessary in order to use dv8 in an Vignette. The dv8.R bash script can be executed without any workarounds directly from a terminal interface.
+
+```{r}
+
+dv8_flaws <- function(script_path,tools_path,conf_path){
+  cmd <- stri_c("Rscript ", script_path, " ", tools_path, " ", conf_path)
+  termId <- rstudioapi::terminalExecute(cmd)
+  while (is.null(rstudioapi::terminalExitCode(termId))) {
+    Sys.sleep(0.1)
+  }
+  dv8_flaws <- data.table::fread("/tmp/dv8_flaws.csv")
+  #result <- rstudioapi::terminalBuffer(termId)
+  #rstudioapi::terminalKill(termId)
+ return(dv8_flaws)
+}
+```
+
+Here we specify the config files.
+
+```{r}
+script_path <- "../exec/dv8.R"
+tools_path <- "../tools.yml"
+conf_path <- "../conf/tomcat.yml"
+
+conf <- yaml::read_yaml(conf_path)
+git_repo_path <- conf[["data_path"]][["git"]]
+start_commit <- conf[["interval"]][["window"]][["start_commit"]]
+
+# Branch of Analysis
+branch <- "trunk"
+```
+
+Next, we use Kaiaulu git API to checkout the git repo to the commit of interest specified on the config file.
+
+```{r eval = FALSE}
+#git_checkout(start_commit,git_repo_path)
+
+# Examples of checkout to commit of interest in OpenSSL
+
+#OpenSSL first release
+#git_checkout("320a14cb5b12cbdd2ff4d81c1e9a2ea7a139a038",git_repo_path)
+# openssl introduce heartbleed
+#git_checkout("bd6941cfaa31ee8a3f8661cb98227a5cbcc0f9f3",git_repo_path)
+# openssl fix heartbleed
+#git_checkout("731f431497f463f3a2a97236fe0187b11c44aead",git_repo_path)
+```
+
+We then execute dv8 against the git repo checked out on the files of interest, obtaining the flaws .csv.
+
+```{r}
+# Run dv8 against the checkedout commit
+dv8_flaws <- dv8_flaws(script_path,tools_path,conf_path)
+```
+
+Finally, we reset the git repo to HEAD. This can be acomplished by doing a checkout on the branch name. Normally the branch name is `master`, but if the project comes from svn it may be `trunk`, or use other convention. You can also collect the original commit before doing a `git_checkout` using the function `git_head()`.
+
+```{r eval = FALSE}
+# Reset Repo to HEAD
+git_checkout(branch,git_repo_path)
+```
+
+```{r}
+kable(dv8_flaws)
+```

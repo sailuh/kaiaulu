@@ -29,12 +29,12 @@ interval:
   # You can specify the intervals in 2 ways: window, or enumeration
   window:
     # If using gitlog, use start_commit and end_commit. Timestamp is inferred from gitlog
-    #start_commit: 9eae9e96f15e1f216162810cef4271a439a74223
-    #end_commit: f8f9ec1f249dd552065aa37c983bed4d4d869bb0
+    start_commit: a0137cdd9cf2547d2270f4105a09e432ea01e8c0
+    end_commit: 83581f9835fac87961d4e80501afec5b5463749c
     # Use datetime only if no gitlog is used in the analysis.
     #start_datetime: 2013-05-01 00:00:00
     #end_datetime: 2013-11-01 00:00:00
-   # size_days: 90
+    size_days: 90
 #  enumeration:
      # If using gitlog, specify the commits
 #    commit:
