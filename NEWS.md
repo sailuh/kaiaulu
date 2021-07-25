@@ -3,6 +3,7 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### NEW FEATURES
 
+ * A CLI has been added using Kaiaulu API. With this, users can use some of Kaiaulu features directly, without requiring knowledge of R. Available functionality is currently limited, and more will be added in the future based on user preference. [#123](https://github.com/sailuh/kaiaulu/issues/123)
  * With version 0.0.0.9600, Three social smells (org silo, missing link, and radio silence) are refactored to the master branch. The social smells no longer have a dependency to igraph, and OSLOM is used for community detection instead of igraph's random walk. Because of the closer integration to source, the social smell notebook includes a new section where any time slice can be explored to assess the social metrics, including coloring by community. A separate branch will contain a notebook comparing the re-implementation to the existing metric. While org silo and missing link should result in the same metric value, radio silence results will be different due to the use of a different community detection algorithm. [#114](https://github.com/sailuh/kaiaulu/issues/114).
 
 ### MINOR IMPROVEMENTS

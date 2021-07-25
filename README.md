@@ -12,6 +12,8 @@ Kaiaulu is an R package, and as such adheres closely to how R packages are struc
 
 Most functions will return standardized tables which makes it easier to inspect intermediate steps and combine to other tables. This is done to encourage assessment and understanding of the built-in pipelines with minimal effort.
 
+If you are not familiar with R, you can find command line interface scripts in the `exec/` folder. Please create an issue if you would like a feature you do not see there.
+
 ## Features 
 
  * [Filepath Filters](http://itm0.shidler.hawaii.edu/kaiaulu/reference/index.html#section-filters)
