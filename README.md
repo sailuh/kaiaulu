@@ -115,11 +115,17 @@ The following is optional depending on the functionality you seek:
 If you are using Kaiaulu in your research, please cite the following work: 
 
 ```
-@phdthesis{Paradis:2021,
-  author  = "Carlos Paradis",
-  title   = "PERCEIVE: Proactive Exploration of Risky Concept Emergence for Identifying Vulnerabilities \& Exposures",
-  school  = "University of Hawaii at Manoa",
-  year    = "2021",
-  month = "May"
-}
+@inproceedings{Paradis:2021,
+  author    = {Carlos Paradis and
+               Rick Kazman},
+  editor    = {Mohamed Soliman and
+               Ivano Malavolta and 
+               Mehdi Mirakhorli},
+  title     = {Design Choices in Building an MSR Tool: The Case of Kaiaulu},
+  booktitle = {1st International Workshop on Mining Software Repositories for Software Architecture, {MSR4SA} 2021 at ECSA (15th European Conference on Software Architecture) 2021}, 
+year      = {2021}
 ```
+
+## Studies using Kaiaulu
+
+If you used Kaiaulu in your paper or thesis, please consider adding your work details. You can do it by making a pull request adding a Bibtex record in [references.bib](https://github.com/sailuh/kaiaulu/blob/master/references.md) on this project GitHub using [CONTRIBUTING file](https://github.com/sailuh/kaiaulu/blob/master/CONTRIBUTING.md) guidelines. If you need assistance, please open an issue.
