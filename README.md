@@ -128,4 +128,4 @@ year      = {2021}
 
 ## Studies using Kaiaulu
 
-If you used Kaiaulu in your paper or thesis, please consider adding your work details. You can do it by making a pull request adding a Bibtex record in [references.bib](https://github.com/sailuh/kaiaulu/blob/master/references.md) on this project GitHub using [CONTRIBUTING file](https://github.com/sailuh/kaiaulu/blob/master/CONTRIBUTING.md) guidelines. If you need assistance, please open an issue.
+If you used Kaiaulu in your paper or thesis, please consider adding your work details. You can do it by making a pull request adding a Bibtex record in [references.bib](https://github.com/sailuh/kaiaulu/blob/master/references.bib) on this project GitHub using [CONTRIBUTING file](https://github.com/sailuh/kaiaulu/blob/master/CONTRIBUTING.md) guidelines. If you need assistance, please open an issue.
