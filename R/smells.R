@@ -40,7 +40,7 @@ smell_organizational_silo <- function (mail.graph, code.graph) {
   mail_dev <- name_to_id[mail.graph[["nodes"]]$name]
 
   code.graph[["edgelist"]]$from <- name_to_id[code.graph[["edgelist"]]$from]
-  mail.graph[["edgelist"]]$to <- name_to_id[mail.graph[["edgelist"]]$to]
+  code.graph[["edgelist"]]$to <- name_to_id[code.graph[["edgelist"]]$to]
 
   # git developers not subscribed to the mailing list
   non.communicative.ids <- setdiff(code_dev, mail_dev)
@@ -97,6 +97,12 @@ smell_missing_links <- function (mail.graph, code.graph, precomputed.silo=NA) {
   #code_dev <- V(code.graph)$name
   code_dev <- name_to_id[code.graph[["nodes"]]$name]
   mail_dev <- name_to_id[mail.graph[["nodes"]]$name]
+
+  code.graph[["edgelist"]]$from <- name_to_id[code.graph[["edgelist"]]$from]
+  code.graph[["edgelist"]]$to <- name_to_id[code.graph[["edgelist"]]$to]
+
+  mail.graph[["edgelist"]]$from <- name_to_id[mail.graph[["edgelist"]]$from]
+  mail.graph[["edgelist"]]$to <- name_to_id[mail.graph[["edgelist"]]$to]
 
   missing <- list()
   for (vert in code_dev) {
@@ -160,10 +166,26 @@ smell_missing_links <- function (mail.graph, code.graph, precomputed.silo=NA) {
 #' @references Simone Magnoni (2016). An approach to measure Community
 #' Smells in software development communities. (Doctoral dissertation, Politecnico Milano).
 smell_radio_silence <- function (mail.graph, clusters) {
+
+  # To simplify operations, map all names to id to process
+  id_to_name <- as.character(unique(mail.graph[["nodes"]]$name))
+  name_to_id <- 1:length(id_to_name)
+  names(name_to_id) <- id_to_name
+
+  #code_dev <- V(code.graph)$name
+  mail_dev <- name_to_id[mail.graph[["nodes"]]$name]
+
+  # Map names to ids within function scope
+  mail.graph[["edgelist"]]$from <- name_to_id[mail.graph[["edgelist"]]$from]
+  mail.graph[["edgelist"]]$to <- name_to_id[mail.graph[["edgelist"]]$to]
+  clusters[["assignment"]]$node_id <- name_to_id[clusters[["assignment"]]$node_id]
+
+
   brockers <- c()
   #memships <- membership(clusters)
   clusters_list <- clusters
 
+  # Ensure numeric cluster id are treatred as numeric
   clusters_list[["assignment"]]$cluster_id <- as.numeric(clusters_list[["assignment"]]$cluster_id)
   clusters_list[["info"]]$cluster_id <- as.numeric(clusters_list[["info"]]$cluster_id)
 
@@ -183,7 +205,7 @@ smell_radio_silence <- function (mail.graph, clusters) {
     if (clust_size == 1) {
       # clust_name <- V(mail.graph)[memships == clust]$name
       clust_name <- clusters_list[["assignment"]][cluster_id == clust]$node_id
-      brockers[length(brockers) + 1] <- clust_name
+      brockers[length(brockers) + 1] <- id_to_name[clust_name]
       next()
     }
     # broker's next() not triggered, then clust_size > 1
@@ -213,7 +235,7 @@ smell_radio_silence <- function (mail.graph, clusters) {
         from.dev <- which(extra.clust.links[, 2] == outClust)
         if (length(from.dev) == 1) {
           ## radio silence community smell detected
-          brockers[length(brockers) + 1] <- extra.clust.links[from.dev, 1]
+          brockers[length(brockers) + 1] <- id_to_name[extra.clust.links[from.dev, 1]]
         }
       }
     }

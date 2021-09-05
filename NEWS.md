@@ -9,8 +9,14 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### MINOR IMPROVEMENTS
 
+
+
 ### BUG FIXES
 
+
+ * The ordering of rows was currently done alphabetically over the date. It is now correctly done based on time. [#126](https://github.com/sailuh/kaiaulu/issues/126)
+ * In `social_smell_showcase.Rmd`, the variables `i_commit_hash` and `j_commit_hash` were subject to the ordering of the rows as input. The code now correctly chooses the earliest date and latest date within a time window, instead of assuming the first row and last row are such. In turn, this now reflects in the correct commit hash interval being reported in the final table, and the correct git checkouts being applied to line metrics. [#126](https://github.com/sailuh/kaiaulu/issues/126)
+ * In `smells.R`, used by `social_smell_showcase.Rmd`, smell_organizational_silo, smell_missing_links, and smell_radio_silence mapping of text to numerical identities was incorrect or missing. One side effect of this error as reported in the issue, is that different orderings of the rows provided as input to the function caused different metric values. However, the metric should be independent of the ordering regardless. This issue address the ordering side effect and corrects the metric value. [#126](https://github.com/sailuh/kaiaulu/issues/126)
  * In `download_jira_data.Rmd`, the jira issue downloader's output contained a mismatch between column names and values when converting the json to table. The conversion is now done in Kaiaulu instead of the external package, and the external package is only used to obtain the json. In addition, `parse_jira_comments()` has been refactored into `parse_jira()`, which handles both issues and/or comments jsons obtained from the external package. [#120](https://github.com/sailuh/kaiaulu/issues/120)
  * OSLOM now assign cluster ids to isolated nodes for consistency [#115](https://github.com/sailuh/kaiaulu/issues/115)
 

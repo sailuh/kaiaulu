@@ -52,6 +52,7 @@ bipartite_graph_projection <- function(graph,mode, is_intermediate_projection = 
     if("from" %in% colnames(dt)){
       #from <- unique(dt$from)
     }else{
+      # since in the projection only either "to" or "from" connections will exist, relabel both as "from"
       setnames(dt,
                c("to"),
                c("from"))
@@ -86,19 +87,20 @@ bipartite_graph_projection <- function(graph,mode, is_intermediate_projection = 
     return(combinations)
   }
 
+
+  # Filter the nodes we wish to keep in the projection
   graph[["nodes"]] <- graph[["nodes"]][type == mode]
+
 
   if(mode){
 
     graph[["edgelist"]] <- graph[["edgelist"]][, get_combinations(.SD),
                                           by = c("to"),
                                           .SDcols = c("from","weight")]
+
     graph[["edgelist"]] <- graph[["edgelist"]][,.(eliminated_node = to,
                                                   from=from_projection,
                                                   to=to_projection,weight)]
-
-
-
   }else{
 
     graph[["edgelist"]] <- graph[["edgelist"]][, get_combinations(.SD),
@@ -109,8 +111,12 @@ bipartite_graph_projection <- function(graph,mode, is_intermediate_projection = 
                                                   to=to_projection,weight)]
 
   }
+
+  #
   graph[["edgelist"]] <- graph[["edgelist"]][complete.cases(graph[["edgelist"]])]
 
+
+  # Do not aggregate weights if intermediate projection is chosen
   if(is_intermediate_projection){
     return(graph)
   }else{

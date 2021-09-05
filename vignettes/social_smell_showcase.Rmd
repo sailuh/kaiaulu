@@ -93,7 +93,6 @@ project_git <- parse_gitlog(perceval_path,git_repo_path)
 project_git <- project_git  %>%
   filter_by_file_extension(file_extensions,"file_pathname")  %>% 
   filter_by_filepath_substring(substring_filepath,"file_pathname")
-project_git <- project_git[order(author_datetimetz)]
 ```
 
 ## Parse Mbox
@@ -102,7 +101,6 @@ Next, we parse the .mbox data using the `parse_mbox` function. Similarly to `par
 
 ```{r}
 project_mbox <- parse_mbox(perceval_path,mbox_path)
-project_mbox <- project_mbox[order(reply_datetimetz)]
 ```
 
 ## Timezone Adjustment
@@ -127,6 +125,9 @@ project_git$committer_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
                                               format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
 project_mbox$reply_datetimetz <- as.POSIXct(project_mbox$reply_datetimetz,
                                         format = "%a, %d %b %Y %H:%M:%S %z", tz = "UTC")
+
+project_git <- project_git[order(author_datetimetz)]
+project_mbox <- project_mbox[order(reply_datetimetz)]
 
 #project_mbox <- project_mbox[reply_datetimetz >= start_date & reply_datetimetz <= end_date]
 ```
@@ -258,8 +259,9 @@ for(j in 2:size_time_window){
  
   # Create Networks 
   if(gitlog_exist){
-    i_commit_hash <- data.table::first(project_git_slice)$commit_hash
-    j_commit_hash <- data.table::last(project_git_slice)$commit_hash
+    i_commit_hash <- data.table::first(project_git_slice[author_datetimetz == min(project_git_slice$author_datetimetz,na.rm=TRUE)])$commit_hash
+
+    j_commit_hash <- data.table::first(project_git_slice[author_datetimetz == max(project_git_slice$author_datetimetz,na.rm=TRUE)])$commit_hash
     
     # Parse networks edgelist from extracted data
     network_git_slice <- transform_gitlog_to_bipartite_network(project_git_slice,
@@ -412,8 +414,9 @@ for(j in 2:length(time_window)){
   gitlog_exist <- (nrow(project_git_slice) != 0)
   if(gitlog_exist){
     # The start and end commit
-    i_commit_hash <- data.table::first(project_git_slice)$commit_hash
-    j_commit_hash <- data.table::last(project_git_slice)$commit_hash
+    i_commit_hash <- data.table::first(project_git_slice[author_datetimetz == min(project_git_slice$author_datetimetz,na.rm=TRUE)])$commit_hash
+    j_commit_hash <- data.table::first(project_git_slice[author_datetimetz == max(project_git_slice$author_datetimetz,na.rm=TRUE)])$commit_hash
+
     
     # The start and end datetime
     #start_datetime <- first(project_git_slice)$author_datetimetz
@@ -457,9 +460,10 @@ for(j in 2:length(time_window)){
   gitlog_exist <- (nrow(project_git_slice) != 0)
   if(gitlog_exist){
   
-    i_commit_hash <- data.table::first(project_git_slice)$commit_hash
+    i_commit_hash <- data.table::first(project_git_slice[author_datetimetz == min(project_git_slice$author_datetimetz,na.rm=TRUE)])$commit_hash
     # Use the ending hash of that window_size to calculate the flaws
-    j_commit_hash <- data.table::last(project_git_slice)$commit_hash
+    j_commit_hash <- data.table::first(project_git_slice[author_datetimetz == max(project_git_slice$author_datetimetz,na.rm=TRUE)])$commit_hash
+
     # Checkout to commit of interest
     git_checkout(j_commit_hash, git_repo_path)
     # Run line metrics against the checkedout commit
