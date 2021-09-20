@@ -14,7 +14,7 @@ github_api_project_commits(owner, repo, token)
 \item{token}{Your GitHub API token}
 }
 \description{
-Download Commits from "GET /repos/{owner}/{repo}/issues/events" endpoint.
+Download Commits from "GET /repos/{owner}/{repo}/commits" endpoint.
 Differently from parsing commits by git cloning the repository, this JSON provides
 the GitHub user id, which allows for linking file changes and issue events by the
 same author without relying on identity matching heuristics.

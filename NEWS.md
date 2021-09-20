@@ -3,6 +3,7 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### NEW FEATURES
 
+ * Kaiaulu can now download project's communication from GitHub issue comments and GitHub pull request comments. See the new notebook `download_github_comments.Rmd` for example usage. [#130](https://github.com/sailuh/kaiaulu/issues/130)
  * A module to use the GitHub API has been added, built on top of the gh library. Three types of functions were added on as need basis: Functions to obtain an end point response, functions to iterate over the pages of the responses, and functions to parse the raw data format (json) into tables. The iterator function also provides an optional parameter to save the raw data. Note while the json data is provided "as-is", the parser functions only tabulates a portion of the data in the interest of time. If additional columns are needed for your particular, please open an issue.  [#86](https://github.com/sailuh/kaiaulu/issues/86)
  * Kaiaulu is now public. [#124](https://github.com/sailuh/kaiaulu/issues/124) 
  * A CLI has been added using Kaiaulu API. With this, users can use some of Kaiaulu features directly, without requiring knowledge of R. Available functionality is currently limited, and more will be added in the future based on user preference. [#123](https://github.com/sailuh/kaiaulu/issues/123)

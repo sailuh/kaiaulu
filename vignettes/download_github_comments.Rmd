@@ -1,0 +1,171 @@
+---
+title: "Download GitHub Project Issue and Pull Request Comments via API"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Download GitHub Project Issue and Pull Request Comments via API}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Introduction
+
+
+In this Vignette, I will show how to download GitHub comments from both Issue and Pull Requests. This data may be useful if development communication occurs through issues or pull requests in GitHub in addition or instead of mailing lists. For details on how to merge various communication sources, see the `reply_communication_showcase.Rmd` notebook. The parsed communication table from GitHub comments by `parse_github_comments` has the same format as the mailing list and JIRA comments tables. In turn, the function expects as input the table generated at the end of this notebook.
+
+This notebook assumes you are familiar with obtaining a GitHub token. For details, see the `github_api_showcase.Rmd` notebook. The functions in Kaiaulu will assume you have a token available, which can be passed as parameter. 
+
+```{r warning=FALSE,message=FALSE}
+rm(list = ls())
+require(kaiaulu)
+require(data.table)
+require(jsonlite)
+require(knitr)
+```
+
+
+# GitHub Project's Comments
+
+In this notebook, we are interested in obtaining comment data from the GitHub API. Development communication may occur in either issues or pull requests. [The GitHub API Pulls documentation](https://docs.github.com/en/rest/reference/pulls) states that _'Comments on pull requests can be managed via the Issue Comments API. Every pull request is an issue, but not every issue is a pull request. For this reason, "shared" actions for both features, like manipulating assignees, labels and milestones, are provided within the Issues API.'_
+
+Further details are noted on the issue endpoint: _'Note: GitHub's REST API v3 considers every pull request an issue, but not every issue is a pull request. For this reason, "Issues" endpoints may return both issues and pull requests in the response. You can identify pull requests by the pull_request key. Be aware that the id of a pull request returned from "Issues" endpoints will be an issue id. To find out the pull request id, use the "List pull requests" endpoint.'_
+
+While the above is true for **comments**, the first message of every issue and every pull request (which also include a title) is not regarded by GitHub as a comment. For example, suppose one issue was opened by Author A, and contain only one reply by Author B. In this case, A and B established communication, and we would like this interaction to be reflected in the final table. However, if we were to only use the **comments** endpoint, we would only obtain Author's B comment, and not Author's A. The same is true in Pull Requests.
+
+Therefore, in this Notebook we have to rely on three endpoints from the GitHub API: The `Issue endpoint` to obtain the "first comment" of every issue, the `Pull Request endpoint` to obtain the "first comment" of every pull request, then finally the `Issue and Pull Request Comment endpoint`, which provides comments for both issue and pull requests together.
+
+
+# Necessary Parameters
+
+To use the pipeline, you must specify the organization and project of interest, and your token.
+
+```{r}
+owner <- "sailuh" # Has to match github organization (e.g. github.com/sailuh)
+repo <- "kaiaulu" # Has to match github repository (e.g. github.com/sailuh/perceive)
+save_path <- "~/Desktop/kaiaulu/kaiaulu/rawdata/github/" # Path you wish to save all raw data. A folder with the repo name and sub-folders will be created.
+# your file github_token contains the GitHub token API 
+token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
+```
+
+# Collecting Data via GitHub API
+
+In this section we obtain the raw data (.json) containing all information the GitHub API endpoint provides. We parse the information of interest in the subsequent section.  
+
+```{r eval = FALSE}
+dir.create(paste0(save_path,repo))
+```
+
+## Issues
+
+First we will obtain all the issues (i.e. "first comments"). 
+
+```{r}
+save_path_issue <- paste0(save_path,repo,"/issue/")
+```
+
+
+```{r Collect all issues, eval = FALSE}
+gh_response <- github_api_project_issue(owner,repo,token)
+dir.create(save_path_issue)
+github_api_iterate_pages(token,gh_response,
+                         save_path_issue,
+                         prefix="issue")
+```
+
+## Pull Requests
+
+Next we obtain the "first comment" of every pull request.
+
+```{r}
+save_path_pull_request <- paste0(save_path,repo,"/pull_request/")
+```
+
+
+```{r Collect all pull requests, eval = FALSE}
+gh_response <- github_api_project_pull_request(owner,repo,token)
+dir.create(save_path_pull_request)
+github_api_iterate_pages(token,gh_response,
+                         save_path_pull_request,
+                         prefix="pull_request")
+```
+
+## Issues and Pull Requests Comments
+
+Finally we obtain the comments of both issue and pull requests (which does not contain the data obtained in the prior two endpoints).
+
+```{r}
+save_path_issue_or_pr_comments <- paste0(save_path,repo,"/issue_or_pr_comment/")
+```
+
+
+```{r Collect all issue and pull request comments, eval = FALSE}
+gh_response <- github_api_project_issue_or_pr_comments(owner,repo,token)
+dir.create(save_path_issue_or_pr_comments)
+github_api_iterate_pages(token,gh_response,
+                         save_path_issue_or_pr_comments,
+                         prefix="issue_or_pr_comment")
+```
+
+
+# Parsing Raw Data to Csv
+
+To parse raw data, we use the associated endpoint parser functions. Keep in mind these functions only parse a subset of all the information in the json ("column wise"). Please consult with the GitHub API or inspect the raw data directly to see all information which is available. 
+
+Note the parsed data will include the **body** column, but it is not shown in the Notebook as it breaks the table formatting due to commas in the text when rendered in HTML.
+
+## Issues 
+
+```{r}
+all_issue <- lapply(list.files(save_path_issue,
+                                     full.names = TRUE),read_json)
+all_issue <- lapply(all_issue,
+                                   github_parse_project_issue)
+all_issue <- rbindlist(all_issue,fill=TRUE)
+
+all_issue_display <- all_issue
+all_issue_display[,body:=NULL]
+kable(head(all_issue_display))
+```
+
+## Pull Requests
+
+```{r}
+all_pr <- lapply(list.files(save_path_pull_request,
+                                     full.names = TRUE),read_json)
+all_pr <- lapply(all_pr,
+                                   github_parse_project_pull_request)
+all_pr <- rbindlist(all_pr,fill=TRUE)
+
+all_pr_display <- all_pr 
+all_pr_display[,body:=NULL]
+kable(head(all_pr_display))
+```
+
+## Issue or PR Comments
+
+```{r}
+all_issue_or_pr_comments <- lapply(list.files(save_path_issue_or_pr_comments,
+                                     full.names = TRUE),read_json)
+all_issue_or_pr_comments <- lapply(all_issue_or_pr_comments,
+                                   github_parse_project_issue_or_pr_comments)
+all_issue_or_pr_comments <- rbindlist(all_issue_or_pr_comments,fill=TRUE)
+
+all_issue_or_pr_comments_display <- all_issue_or_pr_comments
+all_issue_or_pr_comments_display[,body:=NULL]
+kable(head(all_issue_or_pr_comments_display))
+```
+
+
+# Combining Issue and Pull Request communication
+
+If our interest is to observe all the development communication, we may regard both the opening issue, pull request and comments as simply "replies" in a single table. Below we show the result of such merge. As before, we do not display the body column to prevent breaking the HTML format. 
+
+
+```{r}
+replies <- parse_github_replies(save_path_issue,save_path_pull_request,save_path_issue_or_pr_comments)
+replies_display <- replies
+replies_display[,reply_body:=NULL]
+kable(head(replies_display,10))
+```

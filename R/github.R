@@ -26,7 +26,11 @@ github_api_project_issue_events <- function(owner,repo,token){
 }
 
 
-# Parser
+#' Parse Issue Events JSON to Table
+#'
+#' Note not all columns available in the downloaded json are parsed.
+#'
+#' @param api_responses API response obtained from github_api_* function.
 #' @export
 github_parse_project_issue_events <- function(api_responses){
   parse_response <- function(api_response){
@@ -67,9 +71,143 @@ github_parse_project_issue_events <- function(api_responses){
   rbindlist(lapply(api_responses,parse_response),fill=TRUE)
 }
 
+#' Download Project Issues
+#'
+#' Download  Issues from "GET /repos/{owner}/{repo}/issues" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
+github_api_project_issue <- function(owner,repo,token){
+  gh::gh("GET /repos/{owner}/{repo}/issues",
+         owner=owner,
+         repo=repo,
+         state="all",
+         page=1,
+         per_page=100,
+         .token=token)
+}
+#' Parse Issues JSON to Table
+#'
+#' Note not all columns available in the downloaded json are parsed.
+#'
+#' @param api_responses API response obtained from github_api_* function.
+#' @export
+github_parse_project_issue <- function(api_responses){
+  parse_response <- function(api_response){
+    parsed_response <- list()
+    parsed_response[["issue_id"]] <- api_response[["id"]]
+    parsed_response[["issue_number"]] <- api_response[["number"]]
+    parsed_response[["html_url"]] <- api_response[["html_url"]]
+    parsed_response[["url"]] <- api_response[["url"]]
+    parsed_response[["created_at"]] <- api_response[["created_at"]]
+    parsed_response[["updated_at"]] <- api_response[["updated_at"]]
+    parsed_response[["state"]] <- api_response[["state"]]
+    parsed_response[["issue_user_login"]] <- api_response[["user"]][["login"]]
+    parsed_response[["author_association"]] <- api_response[["author_association"]]
+    parsed_response[["title"]] <- api_response[["title"]]
+    parsed_response[["body"]] <- api_response[["body"]]
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+  rbindlist(lapply(api_responses,parse_response),fill=TRUE)
+}
+
+#' Download Project Pull Requests
+#'
+#' Download  Pull Requests from "GET /repos/{owner}/{repo}/pulls" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @references For details, see \url{https://docs.github.com/en/rest/reference/pulls#list-pull-requests}.
+github_api_project_pull_request <- function(owner,repo,token){
+  gh::gh("GET /repos/{owner}/{repo}/pulls",
+         owner=owner,
+         repo=repo,
+         state="all",
+         page=1,
+         per_page=100,
+         .token=token)
+}
+
+#' Parse Pull Requests JSON to Table
+#'
+#' Note not all columns available in the downloaded json are parsed.
+#'
+#' @param api_responses API response obtained from github_api_* function.
+#' @export
+github_parse_project_pull_request <- function(api_responses){
+  parse_response <- function(api_response){
+    parsed_response <- list()
+    parsed_response[["pr_id"]] <- api_response[["id"]]
+    parsed_response[["pr_number"]] <- api_response[["number"]]
+    parsed_response[["html_url"]] <- api_response[["html_url"]]
+    parsed_response[["url"]] <- api_response[["url"]]
+    parsed_response[["created_at"]] <- api_response[["created_at"]]
+    parsed_response[["updated_at"]] <- api_response[["updated_at"]]
+    parsed_response[["state"]] <- api_response[["state"]]
+    parsed_response[["pr_user_login"]] <- api_response[["user"]][["login"]]
+    parsed_response[["author_association"]] <- api_response[["author_association"]]
+    parsed_response[["title"]] <- api_response[["title"]]
+    parsed_response[["body"]] <- api_response[["body"]]
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+  rbindlist(lapply(api_responses,parse_response),fill=TRUE)
+}
+
+#' Download Project Issue's or Pull Request's Comments
+#'
+#' Download Issues' or Pull Request's Comments from "GET /repos/{owner}/{repo}/issues/comments" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @param include_pr Include Pull Request comments if TRUE. Otherwise, only Issue comments will be included.
+#' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-issue-comments-for-a-repository} and
+#' \url{https://docs.github.com/en/rest/guides/working-with-comments#pull-request-comments}.
+#' @export
+github_api_project_issue_or_pr_comments <- function(owner,repo,token){
+  gh::gh("GET /repos/{owner}/{repo}/issues/comments",
+         owner=owner,
+         repo=repo,
+         page=1,
+         per_page=100,
+         .token=token)
+}
+#' Parse Issues' or Pull Requests' Comments JSON to Table
+#'
+#' Note not all columns available in the downloaded json are parsed.
+#'
+#' @param api_responses API response obtained from github_api_* function.
+#' @export
+github_parse_project_issue_or_pr_comments <- function(api_responses){
+  parse_response <- function(api_response){
+    parsed_response <- list()
+    parsed_response[["comment_id"]] <- api_response[["id"]]
+    parsed_response[["html_url"]] <- api_response[["html_url"]]
+    parsed_response[["issue_url"]] <- api_response[["issue_url"]]
+    parsed_response[["created_at"]] <- api_response[["created_at"]]
+    parsed_response[["updated_at"]] <- api_response[["updated_at"]]
+    parsed_response[["comment_user_login"]] <- api_response[["user"]][["login"]]
+    parsed_response[["author_association"]] <- api_response[["author_association"]]
+    parsed_response[["body"]] <- api_response[["body"]]
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+  rbindlist(lapply(api_responses,parse_response),fill=TRUE)
+}
 #' Download Project Commits
 #'
-#' Download Commits from "GET /repos/{owner}/{repo}/issues/events" endpoint.
+#' Download Commits from "GET /repos/{owner}/{repo}/commits" endpoint.
 #' Differently from parsing commits by git cloning the repository, this JSON provides
 #' the GitHub user id, which allows for linking file changes and issue events by the
 #' same author without relying on identity matching heuristics.
@@ -87,6 +225,11 @@ github_api_project_commits <- function(owner,repo,token){
          per_page=100,
          .token=token)
 }
+#' Parse Commits JSON to Table
+#'
+#' Note not all columns available in the downloaded json are parsed.
+#'
+#' @param api_responses API response obtained from github_api_* function.
 #' @export
 github_parse_project_commits <- function(api_responses){
   parse_response <- function(api_response){

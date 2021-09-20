@@ -374,6 +374,77 @@ parse_jira <- function(json_path){
 
   return(parsed_issues_comments)
 }
+#' Parse GitHub Issue and Pull Request Comments
+#'
+#' Parses Issue, Pull Request, and Comments Endpoints into a reply table.
+#' See example usage in the download_github_comments.Rmd vignette.
+#'
+#' @param issues_json_folder_path The folder path to the issues json obtained from \code{\link{github_api_project_issue}}.
+#' @param pull_requests_json_folder_path The folder path to the pull requests json obtained from \code{\link{github_api_project_pull_request}}.
+#' @param comments_json_folder_path The folder path to the comments json obtained from \code{\link{github_api_project_issue_or_pr_comments}}.
+#' @return A single reply table which combines the communication from the three jsons.
+#' @export
+parse_github_replies <- function(issues_json_folder_path,pull_requests_json_folder_path,comments_json_folder_path){
+
+  # Tabulate Issues
+  all_issue <- lapply(list.files(issues_json_folder_path,
+                                 full.names = TRUE),read_json)
+  all_issue <- lapply(all_issue,
+                      github_parse_project_issue)
+  all_issue <- rbindlist(all_issue,fill=TRUE)
+
+  # Tabulate PRs
+  all_pr <- lapply(list.files(pull_requests_json_folder_path,
+                              full.names = TRUE),read_json)
+  all_pr <- lapply(all_pr,
+                   github_parse_project_pull_request)
+  all_pr <- rbindlist(all_pr,fill=TRUE)
+
+  # Tabulate Comments
+  all_issue_or_pr_comments <- lapply(list.files(comments_json_folder_path,
+                                                full.names = TRUE),read_json)
+  all_issue_or_pr_comments <- lapply(all_issue_or_pr_comments,
+                                     github_parse_project_issue_or_pr_comments)
+  all_issue_or_pr_comments <- rbindlist(all_issue_or_pr_comments,fill=TRUE)
+
+
+  all_issue <- all_issue[,.(reply_id=issue_number,
+                            in_reply_to_id=NA_character_,
+                            reply_datetimetz=created_at,
+                            reply_from=issue_user_login,
+                            reply_to=NA_character_,
+                            reply_cc=NA_character_,
+                            reply_subject=title,
+                            reply_body=body)]
+
+  # Note because GitHub API treats PRs as Issues, then pr_number <=> issue_number
+  all_pr <- all_pr[,.(reply_id=pr_number,
+                      in_reply_to_id=NA_character_,
+                      reply_datetimetz=created_at,
+                      reply_from=pr_user_login,
+                      reply_to=NA_character_,
+                      reply_cc=NA_character_,
+                      reply_subject=title,
+                      reply_body=body)]
+
+  all_issue_or_pr_comments <- all_issue_or_pr_comments[,.(reply_id=issue_url,
+                                                          in_reply_to_id=NA_character_,
+                                                          reply_datetimetz=created_at,
+                                                          reply_from=comment_user_login,
+                                                          reply_to=NA_character_,
+                                                          reply_cc=NA_character_,
+                                                          reply_subject=NA_character_,
+                                                          reply_body=body)]
+
+  issue_or_pr_comments_reply_id <- stringi::stri_split_regex(all_issue_or_pr_comments$reply_id,"/")
+  all_issue_or_pr_comments$reply_id <- sapply(issue_or_pr_comments_reply_id,"[[",8)
+
+  replies <- rbind(all_issue,
+                   all_pr,
+                   all_issue_or_pr_comments)
+
+  return(replies)
+}
 #' Parse dependencies from Depends
 #'
 #' @param depends_jar_path path to depends jar
