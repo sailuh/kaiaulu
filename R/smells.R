@@ -219,7 +219,7 @@ smell_radio_silence <- function (mail.graph, clusters) {
       for (neigh in vert_neighbors) {
         ## Note: neigh is the local graph vertex id, not the developer id
         #neigh_membership <- memships[neigh]
-        neigh_membership <- memships[node_id == neigh]$cluster_id
+        neigh_membership <- memships[node_id == neigh]$cluster_id[1]
         if (clust != neigh_membership) {
           ## for each outgoing edge, save the cluster developer id and the destination
           ## sub-community id
