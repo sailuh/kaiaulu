@@ -15,6 +15,7 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### BUG FIXES
 
+ * Fixes incorrect column name usage when calculating churn, which resulted in churn returning 0 as metric. [#135](https://github.com/sailuh/kaiaulu/issues/135)
  * If OSLOM detected developers to belong to more than one community, the radio silence function would throw warnings when said developer was a neighboor of others, choosing the first of the available groups. This is because the original smell function used a community detection algorithm which did not assign multiple groups. The warning is fixed by implementing what it did by default, i.e. choosing the first group of those assigned. In the future, the smell function can be improved to account for more than one group. [#134](https://github.com/sailuh/kaiaulu/issues/134)
  * The ordering of rows was currently done alphabetically over the date. It is now correctly done based on time. [#126](https://github.com/sailuh/kaiaulu/issues/126)
  * In `social_smell_showcase.Rmd`, the variables `i_commit_hash` and `j_commit_hash` were subject to the ordering of the rows as input. The code now correctly chooses the earliest date and latest date within a time window, instead of assuming the first row and last row are such. In turn, this now reflects in the correct commit hash interval being reported in the final table, and the correct git checkouts being applied to line metrics. [#126](https://github.com/sailuh/kaiaulu/issues/126)

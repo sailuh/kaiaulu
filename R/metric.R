@@ -54,11 +54,11 @@ metric_churn_per_commit_interval <- function(git_log){
 metric_churn_per_commit_per_file <- function(git_log){
   added <- removed <- NULL # due to NSE notes in R CMD check
   # Filter files which do not contain added or removed lines specified (i.e. value is "-")
-  git_log <- git_log[added != "-" & removed != "-"]
+  git_log <- git_log[lines_added != "-" & lines_removed != "-"]
 
   # Calculate Churn per Commit per File
-  git_log$churn <- metric_churn(as.numeric(git_log$added),
-                                as.numeric(git_log$removed))
+  git_log$churn <- metric_churn(as.numeric(git_log$lines_added),
+                                as.numeric(git_log$lines_removed))
   return(git_log)
 }
 #' Commit Message Id Coverage Metric
