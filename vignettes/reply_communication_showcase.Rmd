@@ -38,24 +38,13 @@ jira_issue_comments_path <- conf[["issue_tracker"]][["issue_comments"]]
 ```
 
 
+Since Jira issue creators and the issue description, and the comment creator and the comment body can be understood as e-mail relies, we can format the issue data into the same reply format as mailing lists:
+
+
 ```{r}
 project_mbox <- parse_mbox(perceval_path,mbox_path)
-project_jira <- parse_jira(jira_issue_comments_path)[["comments"]]
+project_jira <- parse_jira_replies(parse_jira(jira_issue_comments_path))
 ```
-
-Since Jira comments can be understood as e-wail relies, we can rename the specific columns of the comments table to conform it to project_mbox table. 
-
-```{r}
-project_jira <- project_jira[,.(reply_id=comment_id,
-                          in_reply_to_id=NA_character_,
-                          reply_datetimetz=comment_created_datetimetz,
-                          reply_from=comment_author_name,
-                          reply_to=NA_character_,
-                          reply_cc=NA_character_,
-                          reply_subject=issue_key,
-                          reply_body=comment_body)]
-```
-
 
 # Identity Matching
 

@@ -1,0 +1,82 @@
+# -*- yaml -*-
+# https://github.com/sailuh/kaiaulu
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+#
+# Please comment unused parameters for clarity
+data_path:
+  project_website: https://helix.apache.org/
+  git_url: https://github.com/apache/helix
+  git: ../rawdata/git_repo/helix/.git
+  mbox_url: http://mail-archives.apache.org/mod_mbox/helix-dev/
+  mbox: ../rawdata/mbox/helix-dev.mbox
+  openhub: https://www.openhub.net/p/apachehelix
+  # Provide a folder path containing nvd cve feeds (e.g. nvdcve-1.1-2018.json)
+  # You can obtain them freely at: https://nvd.nist.gov/vuln/data-feeds
+  #nvd_feed: rawdata/nvdfeed
+git:
+  branch: master
+github:
+  replies: ../rawdata/github/helix/
+  owner: apache
+  repo: helix
+issue_tracker:
+  issues: ../rawdata/issue_tracker/helix_issues.json
+  issue_comments: ../rawdata/issue_tracker/helix_issue_comments.json
+  domain: https://issues.apache.org/jira
+  project_key: HELIX
+  # types: bugzilla, jira, other
+  type: jira
+interval:
+  # You can specify the intervals in 2 ways: window, or enumeration
+  window:
+    # If using gitlog, use start_commit and end_commit. Timestamp is inferred from gitlog
+    start_commit: 060ef363dbe28df326b377d5844a84459cf7aae4
+    end_commit: 156013074b67632459215e0044d1da395ef5438e
+    # Use datetime only if no gitlog is used in the analysis.
+    #start_datetime: 2015-01-01 00:00:00
+    #end_datetime: 2018-01-01 00:00:00
+    size_days: 90
+#  enumeration:
+#     # If using gitlog, specify the commits
+#    commit:
+
+     # Use datetime only if no gitlog is used in the analysis. Timestamp is inferred from gitlog
+#    datetime:
+
+tool:
+  depends:
+    # accepts cpp, java, ruby, python, pom
+    code_language: java
+    # Specify which types of Dependencies to keep - see Depends README.md for details.
+    keep_dependencies_type:
+      - Cast
+      - Call
+      - Import
+      - Return
+      - Set
+      - Use
+      - Implement
+      - ImplLink
+      - Extend
+      - Create
+      - Throw
+      - Parameter
+      - Contain
+filter:
+  keep_filepaths_ending_with:
+    - cpp
+    - c
+    - h
+    - java
+    - js
+    - py
+    - cc
+  remove_filepaths_containing:
+    - test
+commit_message_id_regex:
+  #issue_id: HELIX-#\d+
+  #cve_id: CVE-#\d+-#\d+

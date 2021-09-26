@@ -11,6 +11,7 @@ reference:
   - parse_gitlog_entity
   - parse_mbox
   - parse_jira
+  - parse_jira_replies
   - parse_github_replies
   - parse_dependencies
   - parse_r_dependencies

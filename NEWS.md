@@ -3,6 +3,9 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### NEW FEATURES
 
+ * `download_github_comments.Rmd` now include author and committer name and e-mail to support identity matching. [#133](https://github.com/sailuh/kaiaulu/issues/133)
+ * The social smell notebook now performs git checkout before `parse_gitlog`. The branch parameter, which is also used later in the notebook to reset the branch after performing git checkout to calculate line metrics, is now a project configuration file parameter. [#132](https://github.com/sailuh/kaiaulu/issues/132)
+ * Combining JIRA Issue Comments, GitHub Issue Comments, GitHub Pull Request Comments, and Mailing Lists is now possible and showcased on the `social_smell_showcase.Rmd` Notebook. Moreover, both `download_jira_data.Rmd` and `download_github_comments.Rmd` have been standardized to provide the raw json data, whereas `parse_jira_replies()` and `parse_github_replies()` provide the same formatted `reply` table as `parse_mbox()`, which allows combining the various sources simply by using native `rbind()` function.  [#133](https://github.com/sailuh/kaiaulu/issues/133). 
  * Kaiaulu can now download project's communication from GitHub issue comments and GitHub pull request comments. See the new notebook `download_github_comments.Rmd` for example usage. [#130](https://github.com/sailuh/kaiaulu/issues/130)
  * A module to use the GitHub API has been added, built on top of the gh library. Three types of functions were added on as need basis: Functions to obtain an end point response, functions to iterate over the pages of the responses, and functions to parse the raw data format (json) into tables. The iterator function also provides an optional parameter to save the raw data. Note while the json data is provided "as-is", the parser functions only tabulates a portion of the data in the interest of time. If additional columns are needed for your particular, please open an issue.  [#86](https://github.com/sailuh/kaiaulu/issues/86)
  * Kaiaulu is now public. [#124](https://github.com/sailuh/kaiaulu/issues/124) 
@@ -11,7 +14,8 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### MINOR IMPROVEMENTS
 
-
+ * a kaiaulu.conf has been added. Now that GitHub API is available, we can measure the social smells of the tool via the `social_smell_showcase.Rmd`. [#133](https://github.com/sailuh/kaiaulu/issues/133)
+ * Sometimes, mbox files contain the e-mail body under the `body.plain` or `body.plain.simple`. The `parse_mbox()` function now handles both cases. [#133](https://github.com/sailuh/kaiaulu/issues/133)
 
 ### BUG FIXES
 

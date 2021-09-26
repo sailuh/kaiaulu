@@ -42,9 +42,11 @@ Therefore, in this Notebook we have to rely on three endpoints from the GitHub A
 To use the pipeline, you must specify the organization and project of interest, and your token.
 
 ```{r}
-owner <- "sailuh" # Has to match github organization (e.g. github.com/sailuh)
-repo <- "kaiaulu" # Has to match github repository (e.g. github.com/sailuh/perceive)
-save_path <- "~/Desktop/kaiaulu/kaiaulu/rawdata/github/" # Path you wish to save all raw data. A folder with the repo name and sub-folders will be created.
+conf_path <- "../conf/helix.yml"
+conf <- yaml::read_yaml(conf_path)
+save_path <- path.expand(conf[["github"]][["replies"]]) # Path you wish to save all raw data. A folder with the repo name and sub-folders will be created.
+owner <- conf[["github"]][["owner"]] # Has to match github organization (e.g. github.com/sailuh)
+repo <- conf[["github"]][["repo"]] # Has to match github repository (e.g. github.com/sailuh/perceive)
 # your file github_token contains the GitHub token API 
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 ```
@@ -54,7 +56,7 @@ token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 In this section we obtain the raw data (.json) containing all information the GitHub API endpoint provides. We parse the information of interest in the subsequent section.  
 
 ```{r eval = FALSE}
-dir.create(paste0(save_path,repo))
+dir.create(paste0(save_path))
 ```
 
 ## Issues
@@ -62,7 +64,7 @@ dir.create(paste0(save_path,repo))
 First we will obtain all the issues (i.e. "first comments"). 
 
 ```{r}
-save_path_issue <- paste0(save_path,repo,"/issue/")
+save_path_issue <- paste0(save_path,"/issue/")
 ```
 
 
@@ -79,7 +81,7 @@ github_api_iterate_pages(token,gh_response,
 Next we obtain the "first comment" of every pull request.
 
 ```{r}
-save_path_pull_request <- paste0(save_path,repo,"/pull_request/")
+save_path_pull_request <- paste0(save_path,"/pull_request/")
 ```
 
 
@@ -96,7 +98,7 @@ github_api_iterate_pages(token,gh_response,
 Finally we obtain the comments of both issue and pull requests (which does not contain the data obtained in the prior two endpoints).
 
 ```{r}
-save_path_issue_or_pr_comments <- paste0(save_path,repo,"/issue_or_pr_comment/")
+save_path_issue_or_pr_comments <- paste0(save_path,"/issue_or_pr_comment/")
 ```
 
 
@@ -108,6 +110,23 @@ github_api_iterate_pages(token,gh_response,
                          prefix="issue_or_pr_comment")
 ```
 
+## Obtaining author's name and e-mail
+
+The three endpoints used above do not contain author and e-mail information, only the developers GitHub ids. This is a problem, if the project being studied contains communication data outside the GitHub ecosystem (e.g. uses JIRA as issue tracker). In order to link developers to other sources, we need both author and e-mail information.
+
+To do so, we can use the committer endpoint. 
+
+```{r}
+save_path_commit <- paste0(save_path,"/commit/")
+```
+
+```{r Collect all authors and committers name and e-mail, eval = FALSE}
+gh_response <- github_api_project_commits(owner,repo,token)
+dir.create(save_path_commit)
+github_api_iterate_pages(token,gh_response,
+                         save_path_commit,
+                         prefix="commit")
+```
 
 # Parsing Raw Data to Csv
 
@@ -158,14 +177,23 @@ kable(head(all_issue_or_pr_comments_display))
 ```
 
 
+
 # Combining Issue and Pull Request communication
 
-If our interest is to observe all the development communication, we may regard both the opening issue, pull request and comments as simply "replies" in a single table. Below we show the result of such merge. As before, we do not display the body column to prevent breaking the HTML format. 
+If our interest is to observe all the development communication, we may regard both the opening issue, pull request and comments as simply "replies" in a single table. 
 
+Note because we obtain the authors and committers name and e-mail, **only comments made by developers who made at least one commit will contain their name and e-mail**. That is, people who only post issues and comment will not have that information available, and instead will have their github user as part of the `reply_from` column. Therefore, identity match is likely not to work when no author name and e-mail is available. If you are analyzing social smells, this will not be a problem for org silo and missing link (as their condition require code changes). However, since radio silence only consider the mailing list network, caution must be exercised. 
+
+
+Below we show the result of such merge, including the name and e-mail fields obtained from the commit table. As before, we do not display the body column to prevent breaking the HTML format. 
 
 ```{r}
-replies <- parse_github_replies(save_path_issue,save_path_pull_request,save_path_issue_or_pr_comments)
+replies <- parse_github_replies(save_path)
 replies_display <- replies
 replies_display[,reply_body:=NULL]
 kable(head(replies_display,10))
 ```
+
+
+
+

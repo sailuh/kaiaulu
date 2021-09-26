@@ -78,6 +78,7 @@ github_parse_project_issue_events <- function(api_responses){
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
+#' @export
 #' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
 github_api_project_issue <- function(owner,repo,token){
   gh::gh("GET /repos/{owner}/{repo}/issues",
@@ -123,6 +124,7 @@ github_parse_project_issue <- function(api_responses){
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
+#' @export
 #' @references For details, see \url{https://docs.github.com/en/rest/reference/pulls#list-pull-requests}.
 github_api_project_pull_request <- function(owner,repo,token){
   gh::gh("GET /repos/{owner}/{repo}/pulls",
@@ -169,6 +171,7 @@ github_parse_project_pull_request <- function(api_responses){
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
+#' @export
 #' @param include_pr Include Pull Request comments if TRUE. Otherwise, only Issue comments will be included.
 #' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-issue-comments-for-a-repository} and
 #' \url{https://docs.github.com/en/rest/guides/working-with-comments#pull-request-comments}.

@@ -4,11 +4,7 @@
 \alias{parse_github_replies}
 \title{Parse GitHub Issue and Pull Request Comments}
 \usage{
-parse_github_replies(
-  issues_json_folder_path,
-  pull_requests_json_folder_path,
-  comments_json_folder_path
-)
+parse_github_replies(github_replies_folder_path)
 }
 \arguments{
 \item{issues_json_folder_path}{The folder path to the issues json obtained from \code{\link{github_api_project_issue}}.}

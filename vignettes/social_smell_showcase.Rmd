@@ -55,9 +55,10 @@ We also provide the path for `tools.yml`. Kaiaulu does not implement all availab
 
 ```{r}
 tools_path <- "../tools.yml"
-conf_path <- "../conf/apr.yml"
+conf_path <- "../conf/helix.yml"
 
 tool <- yaml::read_yaml(tools_path)
+scc_path <- tool[["scc"]]
 
 oslom_dir_path <- tool[["oslom_dir"]]
 oslom_undir_path <- tool[["oslom_undir"]]
@@ -69,8 +70,13 @@ git_repo_path <- conf[["data_path"]][["git"]]
 start_commit <- conf[["interval"]][["window"]][["start_commit"]]
 end_commit <- conf[["interval"]][["window"]][["end_commit"]]
 window_size <- conf[["interval"]][["window"]][["size_days"]]
+git_branch <- conf[["git"]][["branch"]]
+
 mbox_path <- conf[["data_path"]][["mbox"]]
-scc_path <- tool[["scc"]]
+github_replies_path <- path.expand(conf[["github"]][["replies"]])
+jira_issue_comments_path <- conf[["issue_tracker"]][["issue_comments"]]
+
+
 
 
 # Filters
@@ -89,18 +95,21 @@ As stated in the introduction, we need both git log and mailing list to compute 
 To get started, we use the `parse_gitlog` function to extract a table from the git log. You can inspect the `project_git` variable to inspect what information is available from the git log. 
 
 ```{r}
+git_checkout(git_branch,git_repo_path)
 project_git <- parse_gitlog(perceval_path,git_repo_path)
 project_git <- project_git  %>%
   filter_by_file_extension(file_extensions,"file_pathname")  %>% 
   filter_by_filepath_substring(substring_filepath,"file_pathname")
 ```
 
-## Parse Mbox
+## Parse Replies
 
-Next, we parse the .mbox data using the `parse_mbox` function. Similarly to `parse_gitlog`, the returned object is a table, which we can inspect directly in R to see what information is available.
+Next, we parse the various communication channels the project use. Similarly to `parse_gitlog`, the returned object is a table, which we can inspect directly in R to see what information is available.
 
 ```{r}
 project_mbox <- parse_mbox(perceval_path,mbox_path)
+project_jira <- parse_jira_replies(parse_jira(jira_issue_comments_path))
+project_github_replies <- parse_github_replies(github_replies_path)
 ```
 
 ## Timezone Adjustment
@@ -115,6 +124,12 @@ project_git$committer_tz <- sapply(stringi::stri_split(project_git$committer_dat
                                                             regex=" "),"[[",6)
 project_mbox$reply_tz <- sapply(stringi::stri_split(project_git$reply_datetimetz,
                                                             regex=" "),"[[",6)
+
+# Timezone is embedded on separated field. All times shown in UTC.
+project_jira$reply_tz <- "0000"
+# Timezone is not available on GitHub timestamp, all in UTC
+project_github_replies$reply_tz <- "0000"
+
 ```
 
 
@@ -126,10 +141,22 @@ project_git$committer_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
 project_mbox$reply_datetimetz <- as.POSIXct(project_mbox$reply_datetimetz,
                                         format = "%a, %d %b %Y %H:%M:%S %z", tz = "UTC")
 
-project_git <- project_git[order(author_datetimetz)]
-project_mbox <- project_mbox[order(reply_datetimetz)]
+project_jira$reply_datetimetz <- as.POSIXct(project_jira$reply_datetimetz,
+                                        format = "%Y-%m-%dT%H:%M:%S.000+0000", tz = "UTC")
 
-#project_mbox <- project_mbox[reply_datetimetz >= start_date & reply_datetimetz <= end_date]
+project_github_replies$reply_datetimetz <- as.POSIXct(project_github_replies$reply_datetimetz,
+                                        format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
+
+project_git <- project_git[order(author_datetimetz)]
+
+# All replies are combined into a single reply table. 
+project_reply <- rbind(project_mbox,
+                      project_jira,
+                      project_github_replies)
+ 
+project_reply <- project_reply[order(reply_datetimetz)]
+
+#project_reply <- project_reply[reply_datetimetz >= start_date & reply_datetimetz <= end_date]
 ```
 
 # Smells
@@ -160,11 +187,11 @@ There is a large variety of customization in the above 5 steps. We will discuss 
 
 It is very common authors have multiple names and e-mails within and across git log, mailing lists, issue trackers etc. There is no perfect way to identify all identities of an individual, only heuristics. Kaiaulu has a large number of unit tests, each capturing a different example of how people use their e-mails. However, this is not magic. It is possible, and it has been encountered before, cases where a software is used in an open source project that may entirely compromise the analysis if done blind. For example, a common heuristic used for identity matching is to consider two accounts to have the same identity if either the First+Last name OR E-mail have an exact match. In one open source project we analyzed, we found a software was being used that masked all users with commit access as "admin@project.org". Using this heuristic would have, therefore, compromised the entire data.
 
-Using the code below, you can manually inspect `project_git` and `project_mbox` in R the assigned identity to the various users. **I strongly encourage you to do so**. It is also possible to specify the `identity_match()` function to consider only names, instead of name and e-mails, to avert the example above. If you find a edge case where the identity is incorrectly assigned, please open an issue so we can add the edge case. You may also manually correct the identity numbers, before executing the remaining code blocks, to improve the accuracy of the results. 
+Using the code below, you can manually inspect `project_git` and `project_reply` in R the assigned identity to the various users. **I strongly encourage you to do so**. It is also possible to specify the `identity_match()` function to consider only names, instead of name and e-mails, to avert the example above. If you find a edge case where the identity is incorrectly assigned, please open an issue so we can add the edge case. You may also manually correct the identity numbers, before executing the remaining code blocks, to improve the accuracy of the results. 
 
 ```{r}
 #Identity matching
-project_log <- list(project_git=project_git,project_mbox=project_mbox)
+project_log <- list(project_git=project_git,project_reply=project_reply)
 project_log <- identity_match(project_log,
                                 name_column = c("author_name_email","reply_from"),
                                 assign_exact_identity,
@@ -172,7 +199,7 @@ project_log <- identity_match(project_log,
                                 label = "raw_name")
 
 project_git <- project_log[["project_git"]]
-project_mbox <- project_log[["project_mbox"]]
+project_reply <- project_log[["project_reply"]]
 ```
 
 
@@ -198,7 +225,7 @@ For some social smells, such as radio silence and primma donna, community detect
 start_date <- get_date_from_commit_hash(project_git,start_commit)
 end_date <- get_date_from_commit_hash(project_git,end_commit)
 datetimes <- project_git$author_datetimetz
-mbox_datetimes <- project_mbox$reply_datetimetz
+mbox_datetimes <- project_reply$reply_datetimetz
 
 # Format time window for posixT
 window_size_f <- stringi::stri_c(window_size," day")
@@ -249,12 +276,12 @@ for(j in 2:size_time_window){
                      (author_datetimetz < end_day)]
   
   # Obtain all email posts from the mbox which are within a particular window_size
-  project_mbox_slice <- project_mbox[(reply_datetimetz >= start_day) & 
+  project_reply_slice <- project_reply[(reply_datetimetz >= start_day) & 
                        (reply_datetimetz < end_day)]
   
   # Check if slices contain data
   gitlog_exist <- (nrow(project_git_slice) != 0)
-  ml_exist <- (nrow(project_mbox_slice) != 0)
+  ml_exist <- (nrow(project_reply_slice) != 0)
   
  
   # Create Networks 
@@ -282,10 +309,10 @@ for(j in 2:size_time_window){
     
   }
   if(ml_exist){
-    network_mbox_slice <- transform_reply_to_bipartite_network(project_mbox_slice)
+    network_reply_slice <- transform_reply_to_bipartite_network(project_reply_slice)
     
     
-    mbox_network_authors <- bipartite_graph_projection(network_mbox_slice,
+    mbox_network_authors <- bipartite_graph_projection(network_reply_slice,
                                                       is_intermediate_projection = FALSE,
                                                       mode = TRUE)    
     
@@ -314,8 +341,8 @@ for(j in 2:size_time_window){
                                                           clusters=mail_clusters))
     
     # Social Technical Metrics
-    ml_only_devs <- length(unique(project_mbox_slice$identity_id))
-    ml_threads <- length(unique(project_mbox_slice$reply_subject))
+    ml_only_devs <- length(unique(project_reply_slice$identity_id))
+    ml_threads <- length(unique(project_reply_slice$reply_subject))
   }
   if (ml_exist & gitlog_exist){
     # Smells 
@@ -329,28 +356,28 @@ for(j in 2:size_time_window){
 #    communicability <- community_metric_mean_communicability(mbox_network_authors,git_network_authors)
     num_tz <- length(unique(c(project_git_slice$author_tz,
                               project_git_slice$committer_tz,
-                              project_mbox_slice$reply_tz)))
+                              project_reply_slice$reply_tz)))
     code_ml_both_devs <- length(intersect(unique(project_git_slice$identity_id),
-                                          unique(project_mbox_slice$identity_id)))
+                                          unique(project_reply_slice$identity_id)))
     
   }
 
   # Aggregate Metrics
-  smells[[commit_interval]] <- data.table(commit_interval,
-                                          start_datetime = start_day,
-                                          end_datetime = end_day,
-                                          org_silo,
-                                          missing_links,
-                                          radio_silence,
-                                          #primma_donna,
-                                          #st_congruence,
-                                          #communicability,
-                                          num_tz,
-                                          code_only_devs,
-                                          code_files,
-                                          ml_only_devs,
-                                          ml_threads,
-                                          code_ml_both_devs)
+  smells[[stringi::stri_c(start_day,"|",end_day)]] <- data.table(commit_interval,
+                                                                 start_datetime = start_day,
+                                                                 end_datetime = end_day,
+                                                                 org_silo,
+                                                                 missing_links,
+                                                                 radio_silence,
+                                                                 #primma_donna,
+                                                                 #st_congruence,
+                                                                 #communicability,
+                                                                 num_tz,
+                                                                 code_only_devs,
+                                                                 code_files,
+                                                                 ml_only_devs,
+                                                                 ml_threads,
+                                                                 code_ml_both_devs)
 }
 smells_interval <- rbindlist(smells)
 ```
@@ -487,7 +514,7 @@ for(j in 2:length(time_window)){
   }
 }
 # Reset Repo to HEAD
-git_checkout("trunk",git_repo_path)
+git_checkout(git_branch,git_repo_path)
 
 line_metrics_file <- rbindlist(line_metrics)
 line_metrics_interval <- line_metrics_file[,.(Lines = sum(Lines),
@@ -507,8 +534,3 @@ dt <- merge(dt,line_metrics_interval,by="commit_interval")
 kable(dt)
 ```
 
-# Write Files
-
-```{r eval = FALSE}
-fwrite(dt,"~/Desktop/results_kaiaulu_tomcat.csv")
-```
