@@ -36,11 +36,10 @@ As usual, the first step is to load the project configuration file.
 
 ```{r}
 conf <- yaml::read_yaml("../conf/geronimo.yml")
-issue_tracker_domain <- conf[["issue_tracker"]][["domain"]]
-issue_tracker_project_key <- conf[["issue_tracker"]][["project_key"]]
-issue_tracker_type <- conf[["issue_tracker"]][["type"]]
-save_path_issue_tracker_issues <- conf[["issue_tracker"]][["issues"]]
-save_path_issue_tracker_issue_comments <- conf[["issue_tracker"]][["issue_comments"]]
+issue_tracker_domain <- conf[["issue_tracker"]][["jira"]][["domain"]]
+issue_tracker_project_key <- conf[["issue_tracker"]][["jira"]][["project_key"]]
+save_path_issue_tracker_issues <- conf[["issue_tracker"]][["jira"]][["issues"]]
+save_path_issue_tracker_issue_comments <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
 
 ```
 

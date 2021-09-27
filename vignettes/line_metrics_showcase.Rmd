@@ -22,7 +22,7 @@ This is a wrapper for [SCC](https://github.com/boyter/scc). See README.md for se
 tool <- yaml::read_yaml("../tools.yml")
 conf <- yaml::read_yaml("../conf/apr.yml")
 scc_path <- tool[["scc"]]
-git_repo_path <- conf[["data_path"]][["git"]]
+git_repo_path <- conf[["version_control"]][["log"]]
 ```
 
 A sample of rows is shown below: 

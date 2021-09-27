@@ -39,12 +39,12 @@ As usual, the first step is to load the project configuration file.
 tool <- yaml::read_yaml("../tools.yml")
 conf <- yaml::read_yaml("../conf/geronimo.yml")
 perceval_path <- tool[["perceval"]]
-git_repo_path <- conf[["data_path"]][["git"]]
+git_repo_path <- conf[["version_control"]][["log"]]
 
 # Issue ID Regex on Commit Messages
 issue_id_regex <- conf[["commit_message_id_regex"]][["issue_id"]]
 # Path to Jira Issues (obtained using `download_jira_data Notebook`)
-jira_issues_path <- conf[["issue_tracker"]][["issues"]]
+jira_issues_path <- conf[["issue_tracker"]][["jira"]][["issues"]]
 
 # Filters
 file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]

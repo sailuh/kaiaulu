@@ -45,9 +45,10 @@ The goal of the following steps is to obtain the data when a project started ass
 To use the pipeline, you must specify the organization and project of interest, and your token.
 
 ```{r}
-owner <- "sailuh" # Has to match github organization (e.g. github.com/sailuh)
-repo <- "kaiaulu" # Has to match github repository (e.g. github.com/sailuh/perceive)
-save_path <- "~/Desktop/kaiaulu/kaiaulu/rawdata/github/" # Path you wish to save all raw data. A folder with the repo name and sub-folders will be created.
+conf <- yaml::read_yaml("../conf/kaiaulu.yml")
+owner <- conf[["issue_tracker"]][["github"]][["owner"]] # Has to match github organization (e.g. github.com/sailuh)
+repo <- conf[["issue_tracker"]][["github"]][["repo"]] # Has to match github repository (e.g. github.com/sailuh/perceive)
+save_path <- path.expand(conf[["issue_tracker"]][["github"]][["replies"]]) # Path you wish to save all raw data. A folder with the repo name and sub-folders will be created.
 # your file github_token contains the GitHub token API obtained in the steps above
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 ```
@@ -57,7 +58,7 @@ token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 In this section we obtain the raw data (.json) containing all information the GitHub API endpoint provides. We parse the information of interest in the subsequent section.  
 
 ```{r eval = FALSE}
-dir.create(paste0(save_path,repo))
+dir.create(paste0(save_path))
 ```
 
 
@@ -66,7 +67,7 @@ dir.create(paste0(save_path,repo))
 First we obtain all issue events of the project, so we may later subset issue assignments. 
 
 ```{r}
-save_path_issue_event <- paste0(save_path,repo,"/issue_event/")
+save_path_issue_event <- paste0(save_path,"/issue_event/")
 ```
 
 
@@ -81,7 +82,7 @@ github_api_iterate_pages(token,gh_response,save_path_issue_event,prefix="issue_e
 Next we download commit data from GitHub API. This will be used to know which users in the issue events have or not merge permissions.
 
 ```{r}
-save_path_commit <- paste0(save_path,repo,"/commit/")
+save_path_commit <- paste0(save_path,"/commit/")
 ```
 
 

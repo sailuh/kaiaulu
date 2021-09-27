@@ -43,7 +43,7 @@ utags_path <- tool[["utags"]]
 kinds <- conf[["tool"]][["uctags"]][["keep_lines_type"]]
 
 # Local Git Repo Folder Path
-git_repo_path <- conf[["data_path"]][["git"]]
+git_repo_path <- conf[["version_control"]][["log"]]
 
 # File Filters
 file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]

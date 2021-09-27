@@ -42,11 +42,10 @@ Therefore, in this Notebook we have to rely on three endpoints from the GitHub A
 To use the pipeline, you must specify the organization and project of interest, and your token.
 
 ```{r}
-conf_path <- "../conf/helix.yml"
-conf <- yaml::read_yaml(conf_path)
-save_path <- path.expand(conf[["github"]][["replies"]]) # Path you wish to save all raw data. A folder with the repo name and sub-folders will be created.
-owner <- conf[["github"]][["owner"]] # Has to match github organization (e.g. github.com/sailuh)
-repo <- conf[["github"]][["repo"]] # Has to match github repository (e.g. github.com/sailuh/perceive)
+conf <- yaml::read_yaml("../conf/helix.yml")
+save_path <- path.expand(conf[["issue_tracker"]][["github"]][["replies"]]) # Path you wish to save all raw data. A folder with the repo name and sub-folders will be created.
+owner <- conf[["issue_tracker"]][["github"]][["owner"]] # Has to match github organization (e.g. github.com/sailuh)
+repo <- conf[["issue_tracker"]][["github"]][["repo"]] # Has to match github repository (e.g. github.com/sailuh/perceive)
 # your file github_token contains the GitHub token API 
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 ```

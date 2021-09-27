@@ -34,9 +34,9 @@ As usual, the first step is to load the project configuration file.
 
 ```{r}
 conf <- yaml::read_yaml("../conf/geronimo.yml")
-mod_mbox_url <- conf[["data_path"]][["mbox_url"]]
-save_path_mbox <- conf[["data_path"]][["mbox"]]
-mailing_list <- 'geronimo-dev'
+save_path_mbox <- conf[["mailing_list"]][["mbox"]]
+mod_mbox_url <- conf[["mailing_list"]][["domain"]]
+mailing_list <- conf[["mailing_list"]][["list_key"]]
 start_year <- 2004
 end_year <- 2004
 ```

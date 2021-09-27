@@ -20,9 +20,9 @@ This is a wrapper for [Refactoring Miner](https://github.com/tsantalis/Refactori
 tool <- yaml::read_yaml("../tools.yml")
 conf <- yaml::read_yaml("../conf/tomcat.yml")
 rminer_path <- tool[["refactoring_miner"]]
-git_repo_path <- conf[["data_path"]][["git"]]
-start_commit <- conf[["interval"]][["enumeration"]][["commit"]][1]
-end_commit <- conf[["interval"]][["enumeration"]][["commit"]][2]
+git_repo_path <- conf[["version_control"]][["log"]]
+start_commit <- conf[["analysis"]][["enumeration"]][["commit"]][1]
+end_commit <- conf[["analysis"]][["enumeration"]][["commit"]][2]
 
 
 ```

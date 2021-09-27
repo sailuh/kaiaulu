@@ -31,8 +31,8 @@ Load config file.
 tool <- yaml::read_yaml("../tools.yml")
 conf <- yaml::read_yaml("../conf/chromium.yml")
 perceval_path <- tool[["perceval"]]
-git_repo_path <- conf[["data_path"]][["git"]]
-nvdfeed_folder_path <- conf[["data_path"]][["nvd_feed"]]
+git_repo_path <- conf[["version_control"]][["log"]]
+nvdfeed_folder_path <- conf[["vulnerabilities"]][["nvd_feed"]]
 cveid_regex <- conf[["commit_message_id_regex"]][["cve_id"]]
 
 # Filters

@@ -33,8 +33,8 @@ tool <- yaml::read_yaml("../tools.yml")
 conf <- yaml::read_yaml("../conf/geronimo.yml")
 perceval_path <- tool[["perceval"]]
 
-mbox_path <- conf[["data_path"]][["mbox"]]
-jira_issue_comments_path <- conf[["issue_tracker"]][["issue_comments"]]
+mbox_path <- conf[["mailing_list"]][["mbox"]]
+jira_issue_comments_path <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
 ```
 
 

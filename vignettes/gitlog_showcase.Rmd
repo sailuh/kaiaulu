@@ -68,8 +68,8 @@ The following code block reads the information explained just now:
 tool <- yaml::read_yaml("../tools.yml")
 conf <- yaml::read_yaml("../conf/apr.yml")
 perceval_path <- tool[["perceval"]]
-git_repo_path <- conf[["data_path"]][["git"]]
-nvdfeed_folder_path <- conf[["data_path"]][["nvd_feed"]]
+git_repo_path <- conf[["version_control"]][["log"]]
+nvdfeed_folder_path <- conf[["vulnerabilities"]][["nvd_feed"]]
 
 # Filters
 file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]

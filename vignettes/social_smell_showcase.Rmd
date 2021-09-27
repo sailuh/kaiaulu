@@ -66,15 +66,16 @@ oslom_undir_path <- tool[["oslom_undir"]]
 conf <- yaml::read_yaml(conf_path)
 
 perceval_path <- tool[["perceval"]]
-git_repo_path <- conf[["data_path"]][["git"]]
-start_commit <- conf[["interval"]][["window"]][["start_commit"]]
-end_commit <- conf[["interval"]][["window"]][["end_commit"]]
-window_size <- conf[["interval"]][["window"]][["size_days"]]
-git_branch <- conf[["git"]][["branch"]]
+git_repo_path <- conf[["version_control"]][["log"]]
+git_branch <- conf[["version_control"]][["branch"]]
 
-mbox_path <- conf[["data_path"]][["mbox"]]
-github_replies_path <- path.expand(conf[["github"]][["replies"]])
-jira_issue_comments_path <- conf[["issue_tracker"]][["issue_comments"]]
+start_commit <- conf[["analysis"]][["window"]][["start_commit"]]
+end_commit <- conf[["analysis"]][["window"]][["end_commit"]]
+window_size <- conf[["analysis"]][["window"]][["size_days"]]
+
+mbox_path <- conf[["mailing_list"]][["mbox"]]
+github_replies_path <- path.expand(conf[["issue_tracker"]][["github"]][["replies"]])
+jira_issue_comments_path <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
 
 
 

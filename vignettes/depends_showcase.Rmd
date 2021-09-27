@@ -25,12 +25,13 @@ require(igraph)
 require(gh)
 require(yaml)
 require(magrittr)
+require(knitr)
 ```
 
 ```{r}
 tool <- yaml::read_yaml("../tools.yml")
 conf <- yaml::read_yaml("../conf/apr.yml")
-git_repo_path <- conf[["data_path"]][["git"]]
+git_repo_path <- conf[["version_control"]][["log"]]
 
 # Depends parameters
 depends_jar_path <- tool[["depends"]]
@@ -86,5 +87,7 @@ project_dependencies_slice <- project_dependencies
 
 project_file_network <- transform_dependencies_to_network(project_dependencies_slice,
                                                    weight_types = keep_dependencies_type)
+
+kable(head(project_file_network,10))
 ```
 
