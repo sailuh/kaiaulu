@@ -22,12 +22,12 @@ Broadly, open source projects use mailing lists, issue tracker (comments), or bo
 
 Example of mailing list archive types are [GNU Mailing List Manager](http://www.list.org/), [Google Groups](https://groups.google.com/), [Mail Archive](https://www.mail-archive.com/), [Apache's MOD Mbox](https://httpd.apache.org/mod_mbox/), [Free Lists](https://www.freelists.org/), [Discourse](https://www.discourse.org/), etc. On March 2021, even GitHub launched its own built-in communication medium, [Discussions](https://github.blog/2021-03-09-github-discussions-now-available-for-private-repositories/). 
 
-Examples of issue tracker types include [JIRA](https://www.atlassian.com/software/jira), GitHub's built-in Issue Tracker, GitLab's Issue Tracker, Monorail (used in Google's Chromium), [Trac](https://trac.edgewall.org/), etc. You may also be interested in including discussion that occurs in GitHub's pull requests / GitLab merge requests. Issue tracker communication is currently **not** supported in Kaiaulu, but we plan to support GitHub Issue Tracker, Github Pull Requests, and JIRA in the future. 
+Examples of issue tracker types include [JIRA](https://www.atlassian.com/software/jira), GitHub's built-in Issue Tracker, GitLab's Issue Tracker, Monorail (used in Google's Chromium), [Trac](https://trac.edgewall.org/), Bugzilla, etc. You may also be interested in including discussion that occurs in GitHub's pull requests / GitLab merge requests. Of the above, GitHub Issue Tracker comments, GitHub Pull Requests comments (`download_github_comments.Rmd`), and JIRA comments (`download_jira_data.Rmd`) are currently supported. See the associated vignettes for details on how to download the data. 
 
 
-It is of course not viable for Kaiaulu to implement interfaces to every single archive type out there. Therefore, to calculate social smells, we expect **you** can obtain a **.mbox** representation of the mailing list of interest. This may be available from the open source project directly (e.g. Apache projects mod_mbox -- For mod_mbox and pipermail, see the R/download.R functions), or via a crawler someone already made. For example, [gg_scraper](https://gitlab.com/mcepl/gg_scraper) outputs a mbox file from Google Group mailing lists (although it can only obtain partial information of the e-mails, as Google Groups truncate them, which may pose limitations to some steps of the analysis of the identity matching discussed below). In the future, we plan to also support pipermail, the archive type for GNU Mailing List Manager. 
+It is of course not viable for Kaiaulu to implement interfaces to every single archive type out there. Therefore, to calculate social smells, we expect **you** can obtain a **.mbox** representation of the mailing list of interest. This may be available from the open source project directly (e.g. Apache projects mod_mbox (see `download_mod_mbox.Rmd`) and pipermail (see the `R/download.R/download_pipermail()`), or via a crawler someone already made. For example, [gg_scraper](https://gitlab.com/mcepl/gg_scraper) outputs a mbox file from Google Group mailing lists (although it can only obtain partial information of the e-mails, as Google Groups truncate them, which may pose limitations to some steps of the analysis of the identity matching discussed below). 
 
-The bottom line is, the required effort to obtain the mailing list data will vary depending on the open source project of interest, as open source projects may even transition over time through different archive types. Once you have available in your computer both git log, and an .mbox file, you are ready to proceed with the social smells analysis of this notebook. 
+The bottom line is, the required effort to obtain the mailing list data will vary depending on the open source project of interest, as open source projects may even transition over time through different archive types. Once you have available in your computer both git log, and at least one source of communication data (e.g. mbox, jira, or github), you are ready to proceed with the social smells analysis of this notebook. 
 
 # Libraries
 
@@ -49,9 +49,11 @@ require(visNetwork)
 
 # Project Configuration File (Parameters Needed)
 
-The parameters necessary for analysis are kept in a project configuration file to ensure reproducibility. In this project, we will use the [Apache's APR open source project](https://apr.apache.org/). Refer to the `conf/` folder on Kaiaulu's git repository for APR and other project configuration files. It is in this project configuration file we specify where Kaiaulu can find the git log and .mbox file from APR. We also specify here filters of interest: For example, if Kaiaulu should ignore test files, or anything that is not source code.
+The parameters necessary for analysis are kept in a project configuration file to ensure reproducibility. In this project, we will use the [Apache's Helix open source project](https://helix.apache.org). Refer to the `conf/` folder on Kaiaulu's git repository for Helix and other project configuration files. It is in this project configuration file we specify where Kaiaulu can find the git log and communication sources from Helix. We also specify here filters of interest: For example, if Kaiaulu should ignore test files, or anything that is not source code.
 
-We also provide the path for `tools.yml`. Kaiaulu does not implement all available functionality from scratch. Conversely, it will also not expect all dependencies to be installed. Every function defined in the API expects as parameter a filepath to the external dependency binary. Tools.yml is a convenience file that stores all the binary paths, so it can be set once during setup and reused multiple times for analysis. You can find an example of tools.yml on the github repo from Kaiaulu root directory.
+At the scope of this notebook, **only the first branch** (top) specified in the project configuration file will be analyzed. Refer to the CLI interface if you are interested in executing this analysis over multiple branches.
+
+We also provide the path for `tools.yml`. Kaiaulu does not implement all available functionality from scratch. Conversely, it will also not expect all dependencies to be installed. Every function defined in the API expects as parameter a filepath to the external dependency binary. Tools.yml is a convenience file that stores all the binary paths, so it can be set once during setup and reused multiple times for analysis. You can find an example of `tools.yml` on the github repo from Kaiaulu root directory.
 
 ```{r}
 tools_path <- "../tools.yml"
@@ -67,7 +69,7 @@ conf <- yaml::read_yaml(conf_path)
 
 perceval_path <- tool[["perceval"]]
 git_repo_path <- conf[["version_control"]][["log"]]
-git_branch <- conf[["version_control"]][["branch"]]
+git_branch <- conf[["version_control"]][["branch"]][1]
 
 start_commit <- conf[["analysis"]][["window"]][["start_commit"]]
 end_commit <- conf[["analysis"]][["window"]][["end_commit"]]
@@ -85,11 +87,11 @@ file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
 substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
 ```
 
-The remainder of this notebook does not require modifications. If you encounter an error in any code block below, chances are one or more parameters above have been specified incorrectly, or the project of choice may have led to an outlier case. Please open an issue if you encounter an error, or if not sure post on discussions in Kaiaulu's GitHub. E-mailing bugs is discouraged as it is hard to track. 
+The remainder of this notebook does not require modifications. If you encounter an error in any code block below, chances are one or more parameters above have been specified incorrectly, or the project of choice may have led to an outlier case. Please open an issue if you encounter an error, or if not sure post on discussions in Kaiaulu's GitHub. **E-mailing bugs is discouraged as it is hard to track**. 
 
 # Parsing Input Data
 
-As stated in the introduction, we need both git log and mailing list to compute social smells. Therefore, the first step is to parse the raw data.
+As stated in the introduction, we need both git log and at least one communication source (here named `replies`) to compute social smells. Therefore, the first step is to parse the raw data.
 
 ## Parse Gitlog
 
@@ -107,53 +109,76 @@ project_git <- project_git  %>%
 
 Next, we parse the various communication channels the project use. Similarly to `parse_gitlog`, the returned object is a table, which we can inspect directly in R to see what information is available.
 
-```{r}
-project_mbox <- parse_mbox(perceval_path,mbox_path)
-project_jira <- parse_jira_replies(parse_jira(jira_issue_comments_path))
-project_github_replies <- parse_github_replies(github_replies_path)
-```
-
-## Timezone Adjustment
-
 We also have to parse and normalize the timezone across the different projects. Since one of the social metrics in the quality framework is the count of different timezones, we separate the timezone information before normalizing them.
 
 ```{r}
-# Parse Timezones
 project_git$author_tz <- sapply(stringi::stri_split(project_git$author_datetimetz,
-                                                            regex=" "),"[[",6)
+                                                          regex=" "),"[[",6)
+project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
+                                            format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
+
+
 project_git$committer_tz <- sapply(stringi::stri_split(project_git$committer_datetimetz,
-                                                            regex=" "),"[[",6)
-project_mbox$reply_tz <- sapply(stringi::stri_split(project_git$reply_datetimetz,
-                                                            regex=" "),"[[",6)
-
-# Timezone is embedded on separated field. All times shown in UTC.
-project_jira$reply_tz <- "0000"
-# Timezone is not available on GitHub timestamp, all in UTC
-project_github_replies$reply_tz <- "0000"
-
+                                                          regex=" "),"[[",6)
+project_git$committer_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
+                                            format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
 ```
+
+We apply the same logic above to the communication channels available. Not all of the communication channels may be in use in a given project, but you will want to ensure you accurately chose all the development communication used in a project. You can usually find a "How to contribute" page on the project website, which specifies the used sources. 
+
+Remember: Kaiaulu will not throw errors if you omit relevant sources of developer communication, instead the computed smells will be higher than what they should (as developers will deem to have not communicated because the source where they communicate was simply not included in the analysis!). 
 
 
 ```{r}
-project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
-                                              format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
-project_git$committer_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
-                                              format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
-project_mbox$reply_datetimetz <- as.POSIXct(project_mbox$reply_datetimetz,
+project_mbox <- NULL
+project_jira <- NULL
+project_github_replies <- NULL
+
+
+
+if(!is.null(mbox_path)){
+  project_mbox <- parse_mbox(perceval_path,mbox_path)  
+  
+  project_mbox$reply_tz <- sapply(stringi::stri_split(project_git$reply_datetimetz,
+                                                            regex=" "),"[[",6)
+  
+  project_mbox$reply_datetimetz <- as.POSIXct(project_mbox$reply_datetimetz,
                                         format = "%a, %d %b %Y %H:%M:%S %z", tz = "UTC")
 
-project_jira$reply_datetimetz <- as.POSIXct(project_jira$reply_datetimetz,
+  
+}
+if(!is.null(jira_issue_comments_path)){
+  project_jira <- parse_jira_replies(parse_jira(jira_issue_comments_path)) 
+  
+  # Timezone is embedded on separated field. All times shown in UTC.
+  project_jira$reply_tz <- "0000"
+  
+  project_jira$reply_datetimetz <- as.POSIXct(project_jira$reply_datetimetz,
                                         format = "%Y-%m-%dT%H:%M:%S.000+0000", tz = "UTC")
-
-project_github_replies$reply_datetimetz <- as.POSIXct(project_github_replies$reply_datetimetz,
+}
+if(!is.null(github_replies_path)){
+  project_github_replies <- parse_github_replies(github_replies_path)  
+  
+  
+  # Timezone is not available on GitHub timestamp, all in UTC
+  project_github_replies$reply_tz <- "0000"
+  
+  project_github_replies$reply_datetimetz <- as.POSIXct(project_github_replies$reply_datetimetz,
                                         format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
 
-project_git <- project_git[order(author_datetimetz)]
+}
 
+```
+
+For the included reply types, we combine them. While we sort both tables here for clarity if the tables are explored, sorting is not assumed in any of the remaining analysis. 
+
+```{r}
 # All replies are combined into a single reply table. 
 project_reply <- rbind(project_mbox,
                       project_jira,
                       project_github_replies)
+
+project_git <- project_git[order(author_datetimetz)]
  
 project_reply <- project_reply[order(reply_datetimetz)]
 
@@ -162,7 +187,7 @@ project_reply <- project_reply[order(reply_datetimetz)]
 
 # Smells
 
-Having parsed both git log and mbox, we are ready to start computing the social smells. Social smells are computed on a "time window" granularity. For example, we may ask "between January 2020 and April 2020, how many organizational silos are identified in APR?". This means we will inspect both the git log and mailing list for the associated time period, perform the necessary transformations in the data, and compute the number of organizational silos. 
+Having parsed both git log and replies, we are ready to start computing the social smells. Social smells are computed on a "time window" granularity. For example, we may ask "between January 2020 and April 2020, how many organizational silos are identified in Helix?". This means we will inspect both the git log and mailing list for the associated time period, perform the necessary transformations in the data, and compute the number of organizational silos. 
 
 So we begin by specifying how large our time window should be, in days:
 
@@ -189,6 +214,8 @@ There is a large variety of customization in the above 5 steps. We will discuss 
 It is very common authors have multiple names and e-mails within and across git log, mailing lists, issue trackers etc. There is no perfect way to identify all identities of an individual, only heuristics. Kaiaulu has a large number of unit tests, each capturing a different example of how people use their e-mails. However, this is not magic. It is possible, and it has been encountered before, cases where a software is used in an open source project that may entirely compromise the analysis if done blind. For example, a common heuristic used for identity matching is to consider two accounts to have the same identity if either the First+Last name OR E-mail have an exact match. In one open source project we analyzed, we found a software was being used that masked all users with commit access as "admin@project.org". Using this heuristic would have, therefore, compromised the entire data.
 
 Using the code below, you can manually inspect `project_git` and `project_reply` in R the assigned identity to the various users. **I strongly encourage you to do so**. It is also possible to specify the `identity_match()` function to consider only names, instead of name and e-mails, to avert the example above. If you find a edge case where the identity is incorrectly assigned, please open an issue so we can add the edge case. You may also manually correct the identity numbers, before executing the remaining code blocks, to improve the accuracy of the results. 
+
+At this point, it is also important to consider how **the author and e-mail (if available)** are obtained on the various sources. In particular, currently Kaiaulu can only obtain name data from JIRA. For GitHub and Pull Request comments, **only users who had at least one commit will contain name and e-mail (otherwise the user name will be their github ID)**. These limitations are due directly to limitations of the sources respective API. If you believe additional information can be obtained, please open an issue with suggestions! 
 
 ```{r}
 #Identity matching
@@ -226,7 +253,7 @@ For some social smells, such as radio silence and primma donna, community detect
 start_date <- get_date_from_commit_hash(project_git,start_commit)
 end_date <- get_date_from_commit_hash(project_git,end_commit)
 datetimes <- project_git$author_datetimetz
-mbox_datetimes <- project_reply$reply_datetimetz
+reply_datetimes <- project_reply$reply_datetimetz
 
 # Format time window for posixT
 window_size_f <- stringi::stri_c(window_size," day")
@@ -276,7 +303,7 @@ for(j in 2:size_time_window){
   project_git_slice <- project_git[(author_datetimetz >= start_day) & 
                      (author_datetimetz < end_day)]
   
-  # Obtain all email posts from the mbox which are within a particular window_size
+  # Obtain all email posts from the reply which are within a particular window_size
   project_reply_slice <- project_reply[(reply_datetimetz >= start_day) & 
                        (reply_datetimetz < end_day)]
   
@@ -313,14 +340,14 @@ for(j in 2:size_time_window){
     network_reply_slice <- transform_reply_to_bipartite_network(project_reply_slice)
     
     
-    mbox_network_authors <- bipartite_graph_projection(network_reply_slice,
+    reply_network_authors <- bipartite_graph_projection(network_reply_slice,
                                                       is_intermediate_projection = FALSE,
                                                       mode = TRUE)    
     
     # Community Detection
     
     mail_clusters <- community_oslom(oslom_undir_path,
-              mbox_network_authors,
+              reply_network_authors,
               seed=seed,
               n_runs = 1000,
               is_weighted = TRUE)
@@ -338,7 +365,7 @@ for(j in 2:size_time_window){
   if(ml_exist){
     # Smell
     
-    radio_silence <- length(smell_radio_silence(mail.graph=mbox_network_authors, 
+    radio_silence <- length(smell_radio_silence(mail.graph=reply_network_authors, 
                                                           clusters=mail_clusters))
     
     # Social Technical Metrics
@@ -347,14 +374,14 @@ for(j in 2:size_time_window){
   }
   if (ml_exist & gitlog_exist){
     # Smells 
-    org_silo <- length(smell_organizational_silo(mail.graph=mbox_network_authors,
+    org_silo <- length(smell_organizational_silo(mail.graph=reply_network_authors,
                                                           code.graph=git_network_authors))
 
-    missing_links <- length(smell_missing_links(mbox_network_authors,
+    missing_links <- length(smell_missing_links(reply_network_authors,
                                                 git_network_authors))
     # Social Technical Metrics
-#    st_congruence <- community_metric_sociotechnical_congruence(mbox_network_authors,git_network_authors)
-#    communicability <- community_metric_mean_communicability(mbox_network_authors,git_network_authors)
+#    st_congruence <- community_metric_sociotechnical_congruence(reply_network_authors,git_network_authors)
+#    communicability <- community_metric_mean_communicability(reply_network_authors,git_network_authors)
     num_tz <- length(unique(c(project_git_slice$author_tz,
                               project_git_slice$committer_tz,
                               project_reply_slice$reply_tz)))
@@ -402,7 +429,7 @@ It may appear counter-intuitive the 5 connected nodes are not considered a singl
 You can also observe the identity match algorihtm in action and its potential implications: Different identities matched to the same author are separated by the | ). Had it not performed as intended, single nodes would appear separately and very likely connected, thus biasing the social metrics.
 
 ```{r}
-project_collaboration_network <- recolor_network_by_community(mbox_network_authors,mail_clusters)
+project_collaboration_network <- recolor_network_by_community(reply_network_authors,mail_clusters)
 
 gcid <- igraph::graph_from_data_frame(d=project_collaboration_network[["edgelist"]], 
                       directed = FALSE,
