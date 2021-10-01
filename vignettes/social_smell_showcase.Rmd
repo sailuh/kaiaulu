@@ -42,7 +42,6 @@ require(kaiaulu)
 require(stringi)
 require(data.table)
 require(knitr)
-require(igraph)
 require(visNetwork)
 ```
 

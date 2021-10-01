@@ -40,6 +40,12 @@ version_control:
   # List of branches used for analysis
   branch:
     - master
+    - revert-1853-master
+    - release-1.0.2
+    - cluster-pause-mode
+    - cluster-pause-backup
+    - replica_level_throttle
+    - revert-1685-master
 
 mailing_list:
   # Where is the mbox located locally?
