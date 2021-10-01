@@ -101,6 +101,7 @@ reference:
 - contents:
   - smell_missing_links
   - smell_organizational_silo
+  - smell_sociotechnical_congruence
   - smell_radio_silence
 - title: Download
   desc:  Functions to download data from various websites and convert to formats used in Kaiaulu.

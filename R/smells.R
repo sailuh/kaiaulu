@@ -148,6 +148,45 @@ smell_missing_links <- function (mail.graph, code.graph, precomputed.silo=NA) {
 }
 
 
+#' Estimates Socio-Technical Congruence
+#'
+#' @description Socio-technical congruence (st.congruence) is measured as the
+#' number of development collaborations that do have a communication counterpart
+#' over the total number of collaboration links present in the collaboration
+#' Developer Social Network. Development collaborations that do have a
+#' communication counterpart are identified analysing one by one the collaboration
+#' links that connect different developers present in the collaboration Developer
+#' Social Network and check within the communication Developer Social Network if
+#' such developers are present and connected through a communication link.
+#' Therefore, socio-technical congruence can be computed using Missing Links
+#' Community Smell metric as follows:
+#'
+#' st_congruence = (n_collaborations - n_missing_links)/n_collaborations
+#'
+#' @param mail.graph A uni-modal network G = (V,E), where V are
+#' developers (authors or contributors) and E is a collaboration between developers
+#' in the mailing list
+#' @param code.graph A uni-modal network G = (V,E), where V are
+#' developers (authors or contributors) and E is a collaboration between developers
+#' in the git log.
+#' @export
+#' @references D. A. Tamburri, F. Palomba and R. Kazman,
+#' "Exploring Community Smells in Open-Source: An Automated Approach"
+#' in IEEE Transactions on Software Engineering, vol. 47, no. 3,
+#' pp. 630-652, 1 March 2021, doi: 10.1109/TSE.2019.2901490.
+#' @references Simone Magnoni (2016). An approach to measure Community
+#' Smells in software development communities. (Doctoral dissertation, Politecnico Milano).
+smell_sociotechnical_congruence <- function (mail.graph, code.graph) {
+  missing.collaborations <- length(smell_missing_links(mail.graph, code.graph))
+  #healthy.collaborations <- length(E(code.graph)) - missing.collaborations
+  healthy.collaborations <- nrow(code.graph[["edgelist"]]) - missing.collaborations
+  #congruence <- healthy.collaborations / (length(E(code.graph)))
+  congruence <- healthy.collaborations / (nrow(code.graph[["edgelist"]]))
+  if (is.na(congruence)) {
+    congruence <- 1
+  }
+  return(congruence)
+}
 
 #' Radio Silence Social Smell.
 #' @description  Given the communication graph and its sub-communities,

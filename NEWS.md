@@ -2,6 +2,8 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 =========================
 
 ### NEW FEATURES
+
+ * Re-implements the socio technical congruence metric, using the built-in graph model. [#137](https://github.com/sailuh/kaiaulu/issues/137)
  * Social smell notebook now uses the project configuration file to determine which kind of reply data (mbox, github issues and pull requests comments or jira issue comments) to use. Moreover, in case multiple branches are specified only the first (top will be executed). This fully automates the notebook based on the project configuration file. [#132](https://github.com/sailuh/kaiaulu/issues/132)
  * Kaiaulu now uses a new format for project configuration files which improves readability and account for new notebooks added during previous releases. More documentation was also added as comments to the project configuration file so it is more self contained. [#111](https://github.com/sailuh/kaiaulu/issues/111)
  * `download_github_comments.Rmd` now include author and committer name and e-mail to support identity matching. [#133](https://github.com/sailuh/kaiaulu/issues/133)
