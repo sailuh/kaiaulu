@@ -1,5 +1,11 @@
 #!/usr/local/bin/Rscript
 
+# Kaiaulu - https://github.com/sailuh/kaiaulu
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 require(yaml,quietly=TRUE)
 require(cli,quietly=TRUE)
 require(docopt,quietly=TRUE)
@@ -13,12 +19,12 @@ USAGE:
   mailinglist.R tabulate help
   mailinglist.R tabulate <tools.yml> <project_conf.yml> <save_file_name_path>
   mailinglist.R download modmbox help
-  mailinglist.R download modmbox <project_conf.yml> <mailing_list> <start_year> <end_year> <save_file_name_path>
+  mailinglist.R download modmbox <project_conf.yml> <start_year> <end_year> <save_file_name_path>
   mailinglist.R (-h | --help)
   mailinglist.R --version
 
 DESCRIPTION:
-  Provides a suite of functions to interact with Mailing Lists Please see
+  Provides a suite of functions to interact with Mailing Lists. Please see
   Kaiaulu's README.md for instructions on how to create <tool.yml>
   and <project_conf.yml>.
 
@@ -43,7 +49,7 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   conf <- yaml::read_yaml(conf_path)
 
   perceval_path <- path.expand(tool[["perceval"]])
-  mbox_path <- path.expand(conf[["data_path"]][["mbox"]])
+  mbox_path <- path.expand(conf[["mailing_list"]][["mbox"]])
 
   project_mbox <- parse_mbox(perceval_path,mbox_path)
 
@@ -60,9 +66,9 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   save_path <- arguments[["<save_file_name_path>"]]
   conf <- yaml::read_yaml(conf_path)
 
-  mod_mbox_url <- conf[["data_path"]][["mbox_url"]]
+  mod_mbox_url <- conf[["mailing_list"]][["domain"]]
+  mailing_list <- conf[["mailing_list"]][["list_key"]][1]
 
-  mailing_list <- arguments[["<mailing_list>"]]
   start_year <- arguments[["<start_year>"]]
   end_year <- arguments[["<end_year>"]]
 

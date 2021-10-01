@@ -1,5 +1,12 @@
 #!/usr/local/bin/Rscript
 
+# Kaiaulu - https://github.com/sailuh/kaiaulu
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+
 require(yaml,quietly=TRUE)
 require(cli,quietly=TRUE)
 require(docopt,quietly=TRUE)
@@ -41,7 +48,7 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   conf <- yaml::read_yaml(conf_path)
 
   perceval_path <- path.expand(tool[["perceval"]])
-  git_repo_path <- path.expand(conf[["data_path"]][["git"]])
+  git_repo_path <- path.expand(conf[["version_control"]][["log"]])
 
   project_git <- parse_gitlog(perceval_path,git_repo_path)
 

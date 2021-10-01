@@ -22,7 +22,8 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
  * Sometimes, mbox files contain the e-mail body under the `body.plain` or `body.plain.simple`. The `parse_mbox()` function now handles both cases. [#133](https://github.com/sailuh/kaiaulu/issues/133)
 
 ### BUG FIXES
-
+ 
+ * The CLI interface for git and mailinglist has been updated to conform to the new project configuration file format. [#111](https://github.com/sailuh/kaiaulu/issues/111)
  * Fixes incorrect column name usage when calculating churn, which resulted in churn returning 0 as metric. [#135](https://github.com/sailuh/kaiaulu/issues/135)
  * If OSLOM detected developers to belong to more than one community, the radio silence function would throw warnings when said developer was a neighboor of others, choosing the first of the available groups. This is because the original smell function used a community detection algorithm which did not assign multiple groups. The warning is fixed by implementing what it did by default, i.e. choosing the first group of those assigned. In the future, the smell function can be improved to account for more than one group. [#134](https://github.com/sailuh/kaiaulu/issues/134)
  * The ordering of rows was currently done alphabetically over the date. It is now correctly done based on time. [#126](https://github.com/sailuh/kaiaulu/issues/126)
