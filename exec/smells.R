@@ -58,12 +58,14 @@ if(arguments[["all_branches"]] & arguments[["help"]]){
   git_repo_path <- conf[["version_control"]][["log"]]
   git_branches <- conf[["version_control"]][["branch"]]
 
-  start_commit <- conf[["analysis"]][["window"]][["start_commit"]]
-  end_commit <- conf[["analysis"]][["window"]][["end_commit"]]
+  #start_commit <- conf[["analysis"]][["window"]][["start_commit"]]
+  start_date <- conf[["analysis"]][["window"]][["start_datetime"]]
+  #end_commit <- conf[["analysis"]][["window"]][["end_commit"]]
+  end_date <- conf[["analysis"]][["window"]][["end_datetime"]]
   window_size <- conf[["analysis"]][["window"]][["size_days"]]
 
   mbox_path <- conf[["mailing_list"]][["mbox"]]
-  github_replies_path <- path.expand(conf[["issue_tracker"]][["github"]][["replies"]])
+  github_replies_path <- conf[["issue_tracker"]][["github"]][["replies"]]
   jira_issue_comments_path <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
 
   ## Filters
@@ -165,8 +167,10 @@ if(arguments[["all_branches"]] & arguments[["help"]]){
 
     # Calculate Smells #
 
-    start_date <- get_date_from_commit_hash(project_git,start_commit)
-    end_date <- get_date_from_commit_hash(project_git,end_commit)
+    #start_date <- get_date_from_commit_hash(project_git,start_commit)
+    start_date <- as.POSIXct(start_date,format="%Y-%m-%d %H:%M:%S",tz="UTC")
+    #end_date <- get_date_from_commit_hash(project_git,end_commit)
+    end_date <- as.POSIXct(end_date,format="%Y-%m-%d %H:%M:%S",tz="UTC")
     datetimes <- project_git$author_datetimetz
     reply_datetimes <- project_reply$reply_datetimetz
 

@@ -75,7 +75,7 @@ end_commit <- conf[["analysis"]][["window"]][["end_commit"]]
 window_size <- conf[["analysis"]][["window"]][["size_days"]]
 
 mbox_path <- conf[["mailing_list"]][["mbox"]]
-github_replies_path <- path.expand(conf[["issue_tracker"]][["github"]][["replies"]])
+github_replies_path <- conf[["issue_tracker"]][["github"]][["replies"]]
 jira_issue_comments_path <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
 
 
