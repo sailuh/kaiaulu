@@ -20,6 +20,8 @@ USAGE:
   mailinglist.R tabulate <tools.yml> <project_conf.yml> <save_file_name_path>
   mailinglist.R download modmbox help
   mailinglist.R download modmbox <project_conf.yml> <start_year> <end_year> <save_file_name_path>
+  mailinglist.R download modmboxmonth help
+  mailinglist.R download modmboxmonth <project_conf.yml> <start_year> <end_year> <save_folder_name_path>
   mailinglist.R (-h | --help)
   mailinglist.R --version
 
@@ -77,6 +79,27 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
                             from_year=start_year,
                             to_year=end_year,
                             save_file_path = save_path,
+                            verbose = TRUE)
+
+  cli_alert_success(paste0("Downloaded mailing list was saved at: ",save_path))
+}else if(arguments[["download"]] & arguments[["modmboxmonth"]]){
+
+
+  conf_path <- arguments[["<project_conf.yml>"]]
+  save_path <- arguments[["<save_folder_name_path>"]]
+  conf <- yaml::read_yaml(conf_path)
+
+  mod_mbox_url <- conf[["mailing_list"]][["domain"]]
+  mailing_list <- conf[["mailing_list"]][["list_key"]][1]
+
+  start_year <- arguments[["<start_year>"]]
+  end_year <- arguments[["<end_year>"]]
+
+  mbox <- download_mod_mbox_per_month(base_url = mod_mbox_url,
+                            mailing_list = mailing_list,
+                            from_year=start_year,
+                            to_year=end_year,
+                            save_folder_path = save_path,
                             verbose = TRUE)
 
   cli_alert_success(paste0("Downloaded mailing list was saved at: ",save_path))

@@ -3,6 +3,7 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### NEW FEATURES
 
+ * Adds a new `download_mod_mbox_per_month()` function which allows for the intermediate mbox downloaded files to be saved to the chosen folder (as opposed to tmp). The function is showcases on `download_mod_mbox.Rmd` vignette. [#141](https://github.com/sailuh/kaiaulu/issues/144)
  * A CLI interface for calculating smells over multiple branches was added. Consistent with other interfaces, the input is the tools.yml, the project configuration file, and the file save path. [#132](https://github.com/sailuh/kaiaulu/issues/132)
  * Re-implements the socio technical congruence metric, using the built-in graph model. [#137](https://github.com/sailuh/kaiaulu/issues/137)
  * Social smell notebook now uses the project configuration file to determine which kind of reply data (mbox, github issues and pull requests comments or jira issue comments) to use. Moreover, in case multiple branches are specified only the first (top will be executed). This fully automates the notebook based on the project configuration file. [#132](https://github.com/sailuh/kaiaulu/issues/132)

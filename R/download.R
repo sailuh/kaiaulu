@@ -114,10 +114,12 @@ convert_pipermail_to_mbox <- function(filelist) {
 #' @param from_year First year in the range to be downloaded
 #' @param to_year Last year in the range to be downloaded
 #' @param save_file_path the full path, including file name and extension to save the file
+#' @param is_per_month If TRUE, does not delete monthly files in tmp. (Default = TRUE)
 #' @param verbose Prints progress during execution
 #' @return Returns the path of the downloaded mbox file.
 #' @export
-download_mod_mbox <- function(base_url, mailing_list, from_year, to_year, save_file_path,verbose=FALSE) {
+download_mod_mbox <- function(base_url, mailing_list, from_year, to_year, save_file_path,is_per_month=TRUE,verbose=FALSE) {
+
 
   #Initialize variables
   counter <- 0
@@ -162,7 +164,10 @@ download_mod_mbox <- function(base_url, mailing_list, from_year, to_year, save_f
       }
 
       #Delete the /tmp/ monthly files
-      unlink(full_tmp_save_path, force = TRUE)
+      if(!is_per_month){
+        unlink(full_tmp_save_path, force = TRUE)
+      }
+
 
     }
 
@@ -170,6 +175,60 @@ download_mod_mbox <- function(base_url, mailing_list, from_year, to_year, save_f
 
   #Close connection to target mbox file
   close(fileConn)
+
+  #return output location
+  return(output)
+}
+
+#' Compose mod_mbox archives (.mbox) into a single mbox file for use with \code{\link{parse_mbox}}
+#' @param base_url An url pointing to the mod_mbox directory (e.g. "http://mail-archives.apache.org/mod_mbox") without trailing slashes
+#' @param mailing_list Name of the project mailing list (e.g. apr-dev) in the mod_mbox directory
+#' @param from_year First year in the range to be downloaded
+#' @param to_year Last year in the range to be downloaded
+#' @param save_folder_path the full *folder* path where the monthly downloaded mbox will be stored.
+#' @param verbose Prints progress during execution
+#' @return Returns the path of the downloaded mbox file.
+#' @export
+download_mod_mbox_per_month <- function(base_url, mailing_list, from_year, to_year, save_folder_path,verbose=FALSE) {
+
+
+  #Initialize variables
+  counter <- 0
+  destination <- list()
+
+  #Open file handle to output file
+  output <- path.expand(save_folder_path)
+
+  #Loop through time and compose the mbox file
+  for (year in (from_year:to_year)) {
+
+    for (month in 1:12) {
+      counter <- counter + 1
+
+      #Generate file destinations for the monthly files in /tmp/
+      destination[[counter]] <- sprintf("%d%02d.mbox", year, month)
+
+      if(verbose){
+        print(stringi::stri_c("Downloading:",destination[[counter]],sep = " "))
+      }
+
+      #Try file download and save result
+      full_month_url <- stringi::stri_c(base_url, mailing_list, destination[[counter]], sep = "/")
+      full_tmp_save_path <- file.path(output,destination[[counter]])
+      x <- httr::GET(full_month_url,
+                     httr::write_disk(full_tmp_save_path,overwrite=TRUE))
+
+      # Remove file if error
+      # Can only be done post-write, see https://github.com/r-lib/httr/issues/553
+      if (httr::http_error(x) && file.exists(full_tmp_save_path)) {
+        warning(paste0("Unable to download: ",destination[[counter]]))
+        file.remove(full_tmp_save_path)
+      }
+
+
+    }
+
+  }
 
   #return output location
   return(output)

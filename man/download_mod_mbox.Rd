@@ -10,6 +10,7 @@ download_mod_mbox(
   from_year,
   to_year,
   save_file_path,
+  is_per_month = TRUE,
   verbose = FALSE
 )
 }
@@ -23,6 +24,8 @@ download_mod_mbox(
 \item{to_year}{Last year in the range to be downloaded}
 
 \item{save_file_path}{the full path, including file name and extension to save the file}
+
+\item{is_per_month}{If TRUE, does not delete monthly files in tmp. (Default = TRUE)}
 
 \item{verbose}{Prints progress during execution}
 }
