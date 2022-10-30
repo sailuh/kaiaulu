@@ -18,6 +18,10 @@ github_api_iterate_pages(
 \item{gh_response}{A response returned by any GitHub endpoint which is paginated (e.g. \code{\link{github_api_project_commits}}).}
 
 \item{save_folder_path}{A folder path to save the downloaded json pages "as-is".}
+
+\item{prefix}{Prefix to be added to every json file name}
+
+\item{max_pages}{The maximum number of pages to download. MAX = Available token requests left}
 }
 \description{
 GitHub API endpoints return data in pages, each containing by default 100 entries.

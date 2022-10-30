@@ -7,11 +7,7 @@
 parse_github_replies(github_replies_folder_path)
 }
 \arguments{
-\item{issues_json_folder_path}{The folder path to the issues json obtained from \code{\link{github_api_project_issue}}.}
-
-\item{pull_requests_json_folder_path}{The folder path to the pull requests json obtained from \code{\link{github_api_project_pull_request}}.}
-
-\item{comments_json_folder_path}{The folder path to the comments json obtained from \code{\link{github_api_project_issue_or_pr_comments}}.}
+\item{github_replies_folder_path}{The folder path to where the github api json files have been downloaded.}
 }
 \value{
 A single reply table which combines the communication from the three jsons.

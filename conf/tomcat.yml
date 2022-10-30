@@ -34,7 +34,7 @@ project:
 
 version_control:
   # Where is the git log located locally?
-  log: ../rawdata/git_repo/Tomcat/.git
+  log: ../../rawdata/git_repo/Tomcat/.git
   # From where the git log was downloaded?
   log_url: https://github.com/apache/tomcat
   # List of branches used for analysis
@@ -43,7 +43,7 @@ version_control:
 
 mailing_list:
   # Where is the mbox located locally?
-  #mbox: ../rawdata/mbox/tomcat-dev_2013_2019.mbox
+  #mbox: ../../rawdata/mbox/tomcat-dev_2013_2019.mbox
   # What is the domain of the chosen mailing list archive?
   domain: http://mail-archives.apache.org/mod_mbox
   # Which lists of the domain will be used?
@@ -56,14 +56,14 @@ issue_tracker:
     #domain: https://issues.apache.org/jira
     #project_key: GERONIMO
     # Download using `download_jira_data.Rmd`
-    #issues: ../rawdata/issue_tracker/geronimo_issues.json
-    #issue_comments: ../rawdata/issue_tracker/geronimo_issue_comments.json
+    #issues: ../../rawdata/issue_tracker/geronimo_issues.json
+    #issue_comments: ../../rawdata/issue_tracker/geronimo_issue_comments.json
   github:
     # Obtained from the project's GitHub URL
     #owner: apache
     #repo: geronimo
     # Download using `download_github_comments.Rmd`
-    #replies: ../rawdata/github/geronimo/
+    #replies: ../../rawdata/github/geronimo/
   # Currently not supported
   #bugzilla:
     #url: https://bz.apache.org/bugzilla/buglist.cgi?bug_status=__open__&no_redirect=1&order=Importance&product=Tomcat%209&query_format=specific

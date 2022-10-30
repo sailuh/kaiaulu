@@ -172,7 +172,6 @@ github_parse_project_pull_request <- function(api_responses){
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
 #' @export
-#' @param include_pr Include Pull Request comments if TRUE. Otherwise, only Issue comments will be included.
 #' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-issue-comments-for-a-repository} and
 #' \url{https://docs.github.com/en/rest/guides/working-with-comments#pull-request-comments}.
 #' @export
@@ -323,6 +322,8 @@ github_api_page_last <- function(gh_response){
 #' @param token Your GitHub API token
 #' @param gh_response A response returned by any GitHub endpoint which is paginated (e.g. \code{\link{github_api_project_commits}}).
 #' @param save_folder_path A folder path to save the downloaded json pages "as-is".
+#' @param prefix Prefix to be added to every json file name
+#' @param max_pages The maximum number of pages to download. MAX = Available token requests left
 #' @references For details see \url{https://docs.github.com/en/free-pro-team@latest/rest/guides/traversing-with-pagination}.
 #' @export
 github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=NA,max_pages=NA){

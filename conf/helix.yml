@@ -34,7 +34,7 @@ project:
 
 version_control:
   # Where is the git log located locally?
-  log: ../rawdata/git_repo/helix/.git
+  log: ../../rawdata/git_repo/helix/.git
   # From where the git log was downloaded?
   log_url: https://github.com/apache/helix
   # List of branches used for analysis
@@ -49,12 +49,12 @@ version_control:
 
 mailing_list:
   # Where is the mbox located locally?
-  mbox: ../rawdata/mbox/geronimo-dev.mbox
+  mbox: ../../rawdata/mbox/helix_mbox
   # What is the domain of the chosen mailing list archive?
   domain: http://mail-archives.apache.org/mod_mbox
   # Which lists of the domain will be used?
   list_key:
-    - geronimo-dev
+    - helix-dev
 
 issue_tracker:
   jira:
@@ -62,14 +62,14 @@ issue_tracker:
     domain: https://issues.apache.org/jira
     project_key: HELIX
     # Download using `download_jira_data.Rmd`
-    issues: ../rawdata/issue_tracker/helix_issues.json
-    issue_comments: ../rawdata/issue_tracker/helix_issue_comments.json
+    issues: ../../rawdata/issue_tracker/helix_issues.json
+    issue_comments: ../../rawdata/issue_tracker/helix_issue_comments.json
   github:
     # Obtained from the project's GitHub URL
     owner: apache
     repo: helix
     # Download using `download_github_comments.Rmd`
-    replies: ../rawdata/github/helix/
+    replies: ../../rawdata/github/helix/
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
@@ -144,8 +144,8 @@ analysis:
   # You can specify the intervals in 2 ways: window, or enumeration
   window:
     # If using gitlog, use start_commit and end_commit. Timestamp is inferred from gitlog
-    start_commit: 060ef363dbe28df326b377d5844a84459cf7aae4
-    end_commit: 156013074b67632459215e0044d1da395ef5438e
+    start_commit: e43c65b797842d2a1f01405c73cc040c44670b5e
+    end_commit: 6e07a024796ebc1a86c10fa10c7bb799a716b393
     # Use datetime only if no gitlog is used in the analysis.
     #start_datetime: 2013-05-01 00:00:00
     #end_datetime: 2013-11-01 00:00:00

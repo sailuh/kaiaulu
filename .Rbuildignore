@@ -5,3 +5,4 @@
 ^pkgdown$
 _*\.Rmd$
 depends.log
+^rawdata$

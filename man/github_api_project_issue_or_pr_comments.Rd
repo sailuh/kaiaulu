@@ -12,8 +12,6 @@ github_api_project_issue_or_pr_comments(owner, repo, token)
 \item{repo}{GitHub's repository name (e.g. kaiaulu)}
 
 \item{token}{Your GitHub API token}
-
-\item{include_pr}{Include Pull Request comments if TRUE. Otherwise, only Issue comments will be included.}
 }
 \description{
 Download Issues' or Pull Request's Comments from "GET /repos/{owner}/{repo}/issues/comments" endpoint.

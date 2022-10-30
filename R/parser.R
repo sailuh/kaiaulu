@@ -425,9 +425,7 @@ parse_jira_replies <- function(parsed_jira){
 #' Parses Issue, Pull Request, and Comments Endpoints into a reply table.
 #' See example usage in the download_github_comments.Rmd vignette.
 #'
-#' @param issues_json_folder_path The folder path to the issues json obtained from \code{\link{github_api_project_issue}}.
-#' @param pull_requests_json_folder_path The folder path to the pull requests json obtained from \code{\link{github_api_project_pull_request}}.
-#' @param comments_json_folder_path The folder path to the comments json obtained from \code{\link{github_api_project_issue_or_pr_comments}}.
+#' @param github_replies_folder_path The folder path to where the github api json files have been downloaded.
 #' @return A single reply table which combines the communication from the three jsons.
 #' @export
 parse_github_replies <- function(github_replies_folder_path){
