@@ -3,7 +3,6 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### NEW FEATURES
 
- * Moves suggested rawdata folder assumed on configuration files one level above to avoid rawdata git logs being incorrectly parsed when parsing Kaiaulu architecture during documentation generation. Minor function documentation was also fixed. [#142](https://github.com/sailuh/kaiaulu/issues/142)
  * Adds a new `download_mod_mbox_per_month()` function which allows for the intermediate mbox downloaded files to be saved to the chosen folder (as opposed to tmp). The function is showcases on `download_mod_mbox.Rmd` vignette. [#141](https://github.com/sailuh/kaiaulu/issues/141)
  * A CLI interface for calculating smells over multiple branches was added. Consistent with other interfaces, the input is the tools.yml, the project configuration file, and the file save path. [#132](https://github.com/sailuh/kaiaulu/issues/132)
  * Re-implements the socio technical congruence metric, using the built-in graph model. [#137](https://github.com/sailuh/kaiaulu/issues/137)
@@ -20,6 +19,8 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### MINOR IMPROVEMENTS
 
+ * Added new citation for Kaiaulu work on README and references of works using Kaiaulu. [#143](https://github.com/sailuh/kaiaulu/issues/143)
+ * Moves suggested rawdata folder assumed on configuration files one level above to avoid rawdata git logs being incorrectly parsed when parsing Kaiaulu architecture during documentation generation. Minor function documentation was also fixed. [#142](https://github.com/sailuh/kaiaulu/issues/142)
  * For multi-branch analysis, specifying a single commit hash will not work as it will only apply to a single branch. The CLI has been modified to rely on the start_datetime and end_datetime instead. [#132](https://github.com/sailuh/kaiaulu/issues/132)
  * a kaiaulu.conf has been added. Now that GitHub API is available, we can measure the social smells of the tool via the `social_smell_showcase.Rmd`. [#133](https://github.com/sailuh/kaiaulu/issues/133)
  * Sometimes, mbox files contain the e-mail body under the `body.plain` or `body.plain.simple`. The `parse_mbox()` function now handles both cases. [#133](https://github.com/sailuh/kaiaulu/issues/133)

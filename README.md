@@ -34,6 +34,8 @@ If you are not familiar with R, you can find command line interface scripts in t
 
 ## Installation 
 
+Kaiaulu has been tested on OS X and Ubuntu. 
+
 Dependencies in this package are modular. Depending on what you seek, you may only need to setup a sub-set of this section. Each module is divided by subsection below. Minimally you need to:
 
  1. Clone this repo 
@@ -115,15 +117,18 @@ The following is optional depending on the functionality you seek:
 If you are using Kaiaulu in your research, please cite the following work: 
 
 ```
-@inproceedings{Paradis:2021,
-  author    = {Carlos Paradis and
-               Rick Kazman},
-  editor    = {Mohamed Soliman and
-               Ivano Malavolta and 
-               Mehdi Mirakhorli},
-  title     = {Design Choices in Building an MSR Tool: The Case of Kaiaulu},
-  booktitle = {1st International Workshop on Mining Software Repositories for Software Architecture, {MSR4SA} 2021 at ECSA (15th European Conference on Software Architecture) 2021}, 
-year      = {2021}
+@InProceedings{Paradis:2022,
+author="Paradis, Carlos and Kazman, Rick",
+editor="Scandurra, Patrizia and Galster, Matthias and Mirandola, Raffaela and Weyns, Danny",
+title="Building the MSR Tool Kaiaulu: Design Principles and Experiences",
+booktitle="Software Architecture",
+year="2022",
+publisher="Springer International Publishing",
+address="Cham",
+pages="107--129",
+isbn="978-3-031-15116-3",
+doi = "10.1007/978-3-031-15116-3_6"
+}
 ```
 
 ## Studies using Kaiaulu
