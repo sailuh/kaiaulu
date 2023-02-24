@@ -6,14 +6,13 @@
 
 #' Parse Bugzilla data obtained from Perceval traditional Bugzilla backend
 #'
-#' @param perceval_path path to perceval binary
-#' @param bugzilla_json json object containing bugzilla issue data
+#' @param bugzilla_json json object containing Bugzilla data
 #' @param comments if true, the comments are parsed along with the issues
 #' @export
 #' @family parsers
-parse_bugzilla <- function(bugzilla_json,comments=FALSE){
+parse_bugzilla <- function(bugzilla_json, comments=FALSE){
 
-  json_issue_comments <- data.table(jsonlite::stream_in(textConnection(bugzilla_json),verbose = FALSE))
+  json_issue_comments <- data.table(jsonlite::stream_in(textConnection(bugzilla_json), verbose = FALSE))
 
   # # Comments list parser. Comments may occur on any json issue.
   bugzilla_parse_comment <- function(comment){
@@ -25,9 +24,7 @@ parse_bugzilla <- function(bugzilla_json,comments=FALSE){
 
     parsed_comment[["comment_author_id"]] <- append(comment[["who"]][[2]],NA)[[1]]
     parsed_comment[["comment_author_name"]] <- append(comment[["who"]][[2]],NA)[[2]]
-
     parsed_comment[["comment_body"]] <- append(comment[["thetext"]][[2]],NA)[[1]]
-
     parsed_comment[["comment_created_datetimetz"]] <- append(comment[["bug_when"]][[2]],NA)[[1]]
     parsed_comment[["comment_count"]] <- append(comment[["comment_count"]][[2]],NA)[[1]]
     parsed_comment[["comment_is_private"]] <- append(comment[["isprivate"]][[2]],NA)[[1]]
@@ -41,12 +38,9 @@ parse_bugzilla <- function(bugzilla_json,comments=FALSE){
         parsed_comment <- list()
 
         parsed_comment[["comment_id"]] <- append(comment[["commentid"]][[i]],NA)[[1]]
-
         parsed_comment[["comment_author_id"]] <- append(comment[["who"]][[i]],NA)[[1]]
         parsed_comment[["comment_author_name"]] <- append(comment[["who"]][[i]],NA)[[2]]
-
         parsed_comment[["comment_body"]] <- append(comment[["thetext"]][[i]],NA)[[1]]
-
         parsed_comment[["comment_created_datetimetz"]] <- append(comment[["bug_when"]][[i]],NA)[[1]]
         parsed_comment[["comment_count"]] <- append(comment[["comment_count"]][[i]],NA)[[1]]
         parsed_comment[["comment_is_private"]] <- append(comment[["isprivate"]][[i]],NA)[[1]]
@@ -76,7 +70,6 @@ parse_bugzilla <- function(bugzilla_json,comments=FALSE){
     # Parse all relevant *issue* fields
     all_issues[[i]] <- data.table(
       issue_key = issue_key,
-
       issue_summary = append(issue_comment[["data.short_desc"]][[i]],NA)[1],
       issue_type = append(issue_comment[["category"]][[i]],NA)[1],
       issue_status = append(issue_comment[["data.bug_status"]][[i]],NA)[1],
@@ -97,7 +90,6 @@ parse_bugzilla <- function(bugzilla_json,comments=FALSE){
       issue_target_milestone = append(issue_comment[["data.target_milestone"]][[i]],NA)[1],
       issue_rep_platform = append(issue_comment[["data.rep_platform"]][[i]],NA)[1],
       issue_status_whiteboard = append(issue_comment[["data.status_whiteboard"]][[i]],NA)[1],
-
       issue_version = append(issue_comment[["data.version"]][[i]],NA)[1],
       issue_severity = append(issue_comment[["data.bug_severity"]][[i]],NA)[1],
       issue_priority = append(issue_comment[["data.priority"]][[i]],NA)[1],
@@ -140,14 +132,13 @@ parse_bugzilla <- function(bugzilla_json,comments=FALSE){
 
 #' Parse Bugzilla data obtained from Perceval REST API Bugzilla backend
 #'
-#' @param perceval_path path to perceval binary
-#' @param bugzilla_json json object containing bugzilla issue data
+#' @param bugzilla_json json object containing Bugzilla data
 #' @param comments if true, the comments are parsed along with the issues
 #' @export
 #' @family parsers
-parse_bugzillarest <- function(bugzilla_json,comments=FALSE){
+parse_bugzillarest <- function(bugzilla_json, comments=FALSE){
 
-  json_issue_comments <- data.table(jsonlite::stream_in(textConnection(bugzilla_json),verbose = FALSE))
+  json_issue_comments <- data.table(jsonlite::stream_in(textConnection(bugzilla_json), verbose = FALSE))
 
   # # Comments list parser. Comments may occur on any json issue.
   bugzilla_parse_comment <- function(comment){
@@ -156,18 +147,12 @@ parse_bugzillarest <- function(bugzilla_json,comments=FALSE){
     parsed_comment <- list()
     # First comment is issue description, so we start indexing at 2
     parsed_comment[["comment_id"]] <- append(comment[["id"]][[2]],NA)[[1]]
-
     parsed_comment[["comment_author_id"]] <- append(comment[["creator_id"]][[2]],NA)[[1]]
     parsed_comment[["comment_author_name"]] <- append(comment[["creator"]][[2]],NA)[[1]]
-
     parsed_comment[["comment_body"]] <- append(comment[["text"]][[2]],NA)[[1]]
-
     parsed_comment[["comment_created_datetimetz"]] <- append(comment[["creation_time"]][[2]],NA)[[1]]
     parsed_comment[["comment_count"]] <- append(comment[["count"]][[2]],NA)[[1]]
     parsed_comment[["comment_is_private"]] <- append(comment[["is_private"]][[2]],NA)[[1]]
-
-    #parsed_comment[["comment_tags"]] <- append(comment[["tags"]][[2]],NA)[[1]]
-    #parsed_comment[["comment_time"]] <- append(comment[["time"]][[2]],NA)[[1]]
 
     parsed_comments <- list()
     parsed_comments <- append(list(parsed_comments), list(parsed_comment))
@@ -210,7 +195,6 @@ parse_bugzillarest <- function(bugzilla_json,comments=FALSE){
     # Parse all relevant *issue* fields
     all_issues[[i]] <- data.table(
       issue_key = issue_key,
-
       issue_summary = append(issue_comment[["data.summary"]][[i]],NA)[1],
       issue_type = append(issue_comment[["category"]][[i]],NA)[1],
       issue_status = append(issue_comment[["data.status"]][[i]],NA)[1],
@@ -227,12 +211,12 @@ parse_bugzillarest <- function(bugzilla_json,comments=FALSE){
       issue_creator_email = append(issue_comment[["data.creator_detail.email"]][[i]],NA)[1],
       issue_creator_insider = append(issue_comment[["data.creator_detail.insider"]][[i]],NA)[1],
 
-      issue_assigned_id = append(issue_comment[["data.assigned_to_detail.id"]][[i]],NA)[1],
-      issue_assigned_name = append(issue_comment[["data.assigned_to"]][[i]],NA)[1],
-      issue_assigned_real_name = append(issue_comment[["data.assigned_to_detail.real_name"]][[i]],NA)[1],
-      issue_assigned_active = append(issue_comment[["data.assigned_to_detail.active"]][[i]],NA)[1],
-      issue_assigned_email = append(issue_comment[["data.assigned_to_detail.email"]][[i]],NA)[1],
-      issue_assigned_insider = append(issue_comment[["data.assigned_to_detail.insider"]][[i]],NA)[1],
+      issue_assignee_id = append(issue_comment[["data.assigned_to_detail.id"]][[i]],NA)[1],
+      issue_assignee_name = append(issue_comment[["data.assigned_to"]][[i]],NA)[1],
+      issue_assignee_real_name = append(issue_comment[["data.assigned_to_detail.real_name"]][[i]],NA)[1],
+      issue_assignee_active = append(issue_comment[["data.assigned_to_detail.active"]][[i]],NA)[1],
+      issue_assignee_email = append(issue_comment[["data.assigned_to_detail.email"]][[i]],NA)[1],
+      issue_assignee_insider = append(issue_comment[["data.assigned_to_detail.insider"]][[i]],NA)[1],
 
       issue_target_milestone = append(issue_comment[["data.target_milestone"]][[i]],NA)[1],
       issue_rep_platform = append(issue_comment[["data.platform"]][[i]],NA)[1],
