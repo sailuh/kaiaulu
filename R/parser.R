@@ -6,6 +6,8 @@
 
 #' Parse gitlog from Perceval
 #'
+#' Parses the `.git` file in a github repository using the Perceval library.
+#'
 #' @param perceval_path path to perceval binary
 #' @param git_repo_path path to git repo (ends in .git)
 #' @param save_path optional save path for .rds object
@@ -235,6 +237,8 @@ parse_git_blame <- function(git_repo_path,commit_hash,file_path){
   return(parsed_commit)
 }
 #' Parse mbox from Perceval
+#'
+#' Parses an mbox file, which consists of emails in a mailbox, using the Perceval library.
 #'
 #' @param perceval_path path to perceval binary
 #' @param mbox_path path to mbox archive file (ends in .mbox)

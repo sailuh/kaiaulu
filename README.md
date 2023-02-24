@@ -14,6 +14,8 @@ Most functions will return standardized tables which makes it easier to inspect 
 
 If you are not familiar with R, you can find command line interface scripts in the `exec/` folder. Please create an issue if you would like a feature you do not see there.
 
+To learn more about what Kaiaulu does, check the [Wiki](https://github.com/sailuh/kaiaulu/wiki).
+
 ## Features 
 
  * [Filepath Filters](http://itm0.shidler.hawaii.edu/kaiaulu/reference/index.html#section-filters)
@@ -34,7 +36,10 @@ If you are not familiar with R, you can find command line interface scripts in t
 
 ## Installation 
 
-Kaiaulu has been tested on OS X and Ubuntu. 
+Kaiaulu has been tested on OS X and Ubuntu. For Windows and other OS users, try [Virtualbox](https://www.virtualbox.org/),
+[VMware](https://www.vmware.com/), or any other software to run virtual machines for Ubuntu.
+
+See DESCRIPTION for the libraries used and package versions used by Kaiaulu.
 
 Dependencies in this package are modular. Depending on what you seek, you may only need to setup a sub-set of this section. Each module is divided by subsection below. Minimally you need to:
 
@@ -46,15 +51,15 @@ The following is optional depending on the functionality you seek:
 ### Gitlog analysis 
 
  1. Create a py virtualenv (optional)
- 2. `pip3 install perceval`
- 3. `which perceval` and note its path in `tools.yml`.
+ 2. `pip3 install perceval=0.12.24` (using py virtualenv) or `pip install perceval=0.12.24`
+ 3. `which perceval` to get path of local installation and note this in `tools.yml`.
  4. Open vignettes/gitlog_showcase.Rmd or vignettes/churn_metrics.Rmd for examples and viz on gitlog analysis. 
  
 ### Mailing List Analysis
 
  1. Create a py virtualenv (optional)
- 2. `pip3 install perceval`
- 3. `which perceval` and note its path in `tools.yml`.
+ 2. `pip3 install perceval=0.12.24` (using py virtualenv) or `pip install perceval=0.12.24`
+ 3. `which perceval` to get path of local installation and note this in `tools.yml`.
  4. Open vignettes/mailinglist_showcase.Rmd for examples and viz on mailing list analysis. 
  
 ### Dependency Analysis 

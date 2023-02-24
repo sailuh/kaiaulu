@@ -76,6 +76,8 @@ reference:
   - git_head
   - git_log
   - git_blame
+  - git_create_sample_log
+  - git_delete_sample_log
 - title: GitHub
   desc:  Functions to interact and download data from GitHub API.
 - contents:

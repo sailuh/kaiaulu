@@ -49,6 +49,8 @@ version_control:
 
 mailing_list:
   # Where is the mbox located locally?
+  # This is the path to the .git of the project repository you are analyzing.
+  # The .git is hidden, so you can see it using `ls -a`
   mbox: ../../rawdata/mbox/helix_mbox
   # What is the domain of the chosen mailing list archive?
   domain: http://mail-archives.apache.org/mod_mbox
