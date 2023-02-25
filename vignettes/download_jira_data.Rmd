@@ -17,12 +17,6 @@ seed <- 1
 set.seed(seed)
 ```
 
-Some packages might not be downloadable by install.packages(“packages_name”), we can try to install the package directly from the github
-Ex:
-github url: https://github.com/matbmeijer/JirAgileR
-command: devtools::install_github("matbmeijer/JirAgileR")
-
-
 ```{r warning=FALSE,message=FALSE}
 require(kaiaulu)
 require(data.table)
@@ -41,7 +35,7 @@ As usual, the first step is to load the project configuration file.
 # Project Configuration File
 
 ```{r}
-conf <- yaml::read_yaml("../conf/thrift.yml")
+conf <- yaml::read_yaml("../conf/geronimo.yml")
 issue_tracker_domain <- conf[["issue_tracker"]][["jira"]][["domain"]]
 issue_tracker_project_key <- conf[["issue_tracker"]][["jira"]][["project_key"]]
 save_path_issue_tracker_issues <- conf[["issue_tracker"]][["jira"]][["issues"]]
