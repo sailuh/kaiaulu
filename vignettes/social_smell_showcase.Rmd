@@ -32,6 +32,9 @@ The bottom line is, the required effort to obtain the mailing list data will var
 # Libraries
 
 Please ensure the following R packages are installed on your computer. 
+On Ubuntu the libfontconfig1-dev package and libharfbuzz-dev package are required. It not, here are some command recommended as the following:
+libfontconfig1-dev package: sudo apt -y install libfontconfig1-dev"
+libharfbuzz-dev package: sudo apt-get install libharfbuzz-dev libfribidi-dev
 
 ```{r warning = FALSE, message = FALSE}
 rm(list = ls())
@@ -56,7 +59,7 @@ We also provide the path for `tools.yml`. Kaiaulu does not implement all availab
 
 ```{r}
 tools_path <- "../tools.yml"
-conf_path <- "../conf/helix.yml"
+conf_path <- "../conf/thrift.yml"
 
 tool <- yaml::read_yaml(tools_path)
 scc_path <- tool[["scc"]]
@@ -94,7 +97,16 @@ As stated in the introduction, we need both git log and at least one communicati
 
 ## Parse Gitlog
 
+Recommended perceval version: 0.12.24
 To get started, we use the `parse_gitlog` function to extract a table from the git log. You can inspect the `project_git` variable to inspect what information is available from the git log. 
+Reminder: the parse_gitlog function has a path.expand function, Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
+Example paths on Ubuntu:
+perceval_path: /home/myComputer/.local/bin/perceval
+git_repo_path: ~/Documents/GitHub/thrift/.git
+
+Example paths on Windows: (there seems to be some issues to run perceval in Windows)
+perceval_path: C:/Users/myComputer/AppData/Local/Packages/PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0/LocalCache/local-packages/Python310/Scripts/perceval
+git_repo_path: C:/Users/myComputer/Documents/GitHub/thrift/.git
 
 ```{r}
 git_checkout(git_branch,git_repo_path)
