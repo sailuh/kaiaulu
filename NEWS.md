@@ -40,6 +40,7 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 ### DOCUMENTATION FIXES
 
  * New configuration file for the Apache Thrift project called "thrift.yml". [#148](https://github.com/sailuh/kaiaulu/issues/148)
+ * Fixed minor grammar mistakes and vague wording. [#151] (https://github.com/sailuh/kaiaulu/issues/151)
  
 kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) 
 =========================
