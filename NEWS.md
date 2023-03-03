@@ -3,6 +3,7 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### NEW FEATURES
 
+ * Adds unit tests for parse_mbox() and parse_jira(). [#154](https://github.com/sailuh/kaiaulu/issues/154)
  * Adds issue commit flow. See `issue_social_smell_showcase.Rmd` vignette for details. [#144](https://github.com/sailuh/kaiaulu/issues/144)
  * Adds a new `download_mod_mbox_per_month()` function which allows for the intermediate mbox downloaded files to be saved to the chosen folder (as opposed to tmp). The function is showcases on `download_mod_mbox.Rmd` vignette. [#141](https://github.com/sailuh/kaiaulu/issues/141)
  * A CLI interface for calculating smells over multiple branches was added. Consistent with other interfaces, the input is the tools.yml, the project configuration file, and the file save path. [#132](https://github.com/sailuh/kaiaulu/issues/132)
