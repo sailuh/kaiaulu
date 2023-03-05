@@ -18,6 +18,8 @@ Parse dependencies from Depends
 }
 \seealso{
 Other parsers: 
+\code{\link{parse_bugzillarest}()},
+\code{\link{parse_bugzilla}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_gitlog}()},
 \code{\link{parse_jira}()},
