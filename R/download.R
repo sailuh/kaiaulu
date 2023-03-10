@@ -4,6 +4,22 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+#' Download Bugzilla issues and comments using Perceval
+#'
+#' @param perceval_path path to perceval binary
+#' @param bugzilla_site link to specific bugzilla site
+#' @param date the date to start bug retrieval
+#' @param backend either traditional "bugzilla" or "bugzillarest" for Bugzilla >= 5.0 servers
+#' @export
+download_bugzilla <- function(perceval_path, bugzilla_site, date, backend="bugzilla"){
+  json_data <- system2(perceval_path,
+                         args = c(backend, bugzilla_site, '--json-line', '--from-date', date),
+                         stdout = TRUE,
+                         stderr = FALSE)
+  return(json_data)
+}
+
+
 #' Download all pipermail files in an archive
 #' @param url An url pointing to a pipermail archive
 #' @return Returns `destination`, a vector of the downloaded files in the current working directory
