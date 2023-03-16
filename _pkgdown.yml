@@ -108,6 +108,7 @@ reference:
 - title: Download
   desc:  Functions to download data from various websites and convert to formats used in Kaiaulu.
 - contents:
+  - download_bugzilla_from_rest_api
   - download_bugzilla
   - download_pipermail
   - convert_pipermail_to_mbox
