@@ -20,6 +20,7 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### MINOR IMPROVEMENTS
 
+ * Adds SetUp and TearDown unit tests for a sample git log. [#154](https://github.com/sailuh/kaiaulu/issues/154)
  * Added new citation for Kaiaulu work on README and references of works using Kaiaulu. [#143](https://github.com/sailuh/kaiaulu/issues/143)
  * Moves suggested rawdata folder assumed on configuration files one level above to avoid rawdata git logs being incorrectly parsed when parsing Kaiaulu architecture during documentation generation. Minor function documentation was also fixed. [#142](https://github.com/sailuh/kaiaulu/issues/142)
  * For multi-branch analysis, specifying a single commit hash will not work as it will only apply to a single branch. The CLI has been modified to rely on the start_datetime and end_datetime instead. [#132](https://github.com/sailuh/kaiaulu/issues/132)
