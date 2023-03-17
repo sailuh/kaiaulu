@@ -45,6 +45,8 @@ git_head <- function(git_repo_path){
 }
 #' Saves gitlog to a path
 #'
+#' Saves the `.git` of a github repository as a gitlog at the specified path
+#'
 #' @param git_repo_path The git repo path
 #' @param flags Optional flags for git log command
 #' @param save_path the filepath to save the file
@@ -103,4 +105,97 @@ git_blame <- function(git_repo_path,flags,commit_hash,file_path){
   return(blamed_file)
 
 
+}
+
+#' Creates a sample git log with one commit
+#'
+#' This is a SetUp helper function for Kaiaulu unit tests
+#' that manipulates git logs.
+#'
+#' A folder kaiaulu_sample is created in /tmp by default. A file,
+#' hello.R with a single print is then added to the folder.
+#' Git init is performed, the file is git add, and commit to
+#' the git log.
+#'
+#'
+#' @param folder_path An optional path to where the sample .git should be created.
+#' @return The path to the sample .git file.
+#' @export
+#' @family {unittest}
+git_create_sample_log <- function(folder_path="/tmp"){
+  # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
+  folder_path <- path.expand(folder_path)
+  folder_path <- file.path(folder_path,"kaiaulu_sample")
+
+  #mkdir path/to/folder/sample
+  error <- system2('mkdir',
+                   args = c(folder_path),
+                   stdout = TRUE,
+                   stderr = FALSE)
+
+
+  file_path <- file.path(folder_path,"hello.R")
+
+  #echo "print('hello world!')" >  path/to/folder/hello.R
+  error <- system2('echo',
+                   args = c("\"print('hello world!')\"",
+                            '>',
+                            file_path),
+                   stdout = TRUE,
+                   stderr = FALSE)
+
+  # git init path/to/folder
+  error <- system2('git',
+                   args = c('init',
+                            folder_path),
+                   stdout = TRUE,
+                   stderr = FALSE)
+
+  git_repo <- file.path(folder_path,'.git')
+
+  # git --git-dir sample/.git --work-tree sample add hello.R
+  error <- system2('git',
+                   args = c('--git-dir',
+                            git_repo,
+                            '--work-tree',
+                            folder_path,
+                            'add',
+                            '.'),
+                   stdout = TRUE,
+                   stderr = FALSE)
+
+  # git --git-dir sample/.git --work-tree sample commit -m 'hello world commit'
+  error <- system2('git',
+                   args = c('--git-dir',
+                            git_repo,
+                            '--work-tree',
+                            folder_path,
+                            'commit',
+                            '-m',
+                            "'hello world commit'"),
+                   stdout = TRUE,
+                   stderr = FALSE)
+
+  return(git_repo)
+}
+
+#' Removes sample folder and git log
+#'
+#' This is a TearDown helper function for Kaiaulu unit tests
+#' that manipulates git logs.
+#'
+#' A folder kaiaulu_sample is assumed to have been created by \code{\link{git_create_sample_log}}, and is deleted by this function.
+#'
+#' @param folder_path An optional path to where the sample .git should be created.
+#' @return The path to the sample .git file.
+#' @export
+#' @family {unittest}
+git_delete_sample_log <- function(folder_path="/tmp"){
+  folder_path <- path.expand(folder_path)
+  folder_path <- file.path(folder_path,"kaiaulu_sample")
+  error <- system2('rm',
+                   args = c('-r',
+                            folder_path),
+                   stdout = TRUE,
+                   stderr = FALSE)
 }
