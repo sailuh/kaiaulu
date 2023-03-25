@@ -1,0 +1,134 @@
+---
+title: "Bugzilla Wrapper Showcase"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Bugzilla Wrapper Showcase}
+  %\VignetteEncoding{UTF-8}
+---
+# Introduction
+This notebook explains how to fetch bugs from the bug-tracking system known as Bugzilla. We will use two approaches to do so.
+
+First, we will download the bugzilla issues and comments using perceval. We will be using three function which can be found in the R folder.
+  ~/kaiaulu/R/download.R: download_bugzilla
+  ~/kaiaulu/R/parser.R: parse_bugzilla, parse_bugzillarest
+
+Note: The perceval has two endpoint for bugzilla, so we have two function to parse bugzilla data with different endpoint. One is the traditional backend, and the other one is the REST API backend for Buzilla 5.0 (or higher) servers. The REST API backend will getting more information of issues creator and issue assignee than the traditional backend. For more information, please check: https://github.com/chaoss/grimoirelab-perceval#bugzilla
+
+At the end of this section, we will have json object that is downloaded by perceval from bugzilla site, data tables with the bugzilla issues and comments that parse by using traditional perceval or perceval rest.
+
+For the second approach, we will use the Bugzilla REST API to download and fetch issues. We will be using two more functions found in the R folder.
+  ~/kaiaulu/R/download.R: download_bugzilla_from_rest_api
+  ~/kaiaulu/R/parser.R: TBD
+
+# Libraries
+
+Please ensure the following R packages are installed on your computer. 
+
+```{r warning = FALSE, message = FALSE}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+
+require(kaiaulu)
+require(stringi)
+require(data.table)
+require(jsonlite)
+```
+
+# Project Configuration File (Parameters Needed)
+The parameters necessary for analysis are kept in a project configuration file to ensure reproducibility. In this project, we will using the perceval path which is keep in the  tools.yml in this example to parse the bugzilla data. 
+
+Note: you will need to modify the perceval path in tools.yml to your perceval path, you can find your perceval path by running the following command: 
+  Mac and Ubuntu: which perceval
+  Windows: where perceval
+  
+```{r}
+tools_path <- "../../tools2.yml"#"../tools.yml"
+tool <- yaml::read_yaml(tools_path)
+perceval_path <- tool[["perceval"]]
+```
+
+# Section 1: Bugzilla wrapper with Perceval
+
+## Download Bugzilla issues and comments using Perceval in traditional Bugzilla backend
+As stated in the introduction, we need to download the json object by using perceval from traditional perceval backend. 
+
+The meaning of variables:
+  date: date to start bug retrieval
+  bugzilla_site: bugzilla site link
+  bugzilla_json: json object downloaded from bugzilla site
+
+The bugzilla_json will be use to parse bugzilla data and create data table.
+
+```{r}
+date <- "2023-03-05"
+bugzilla_site <- "https://bugzilla.redhat.com/"
+bugzilla_json <- download_bugzilla(perceval_path, bugzilla_site, date, backend="bugzilla")
+```
+
+## Parse Bugzilla data obtained from Perceval traditional Bugzilla backend
+Next, we will parse json object we downloaded from the previous step by using parse_bugzilla function.
+```{r}
+parse_bugzilla(bugzilla_json, comments=FALSE)
+```
+
+Here is another result that we will be using the 'parse_bugzilla' function below, along with comments.
+```{r}
+parse_bugzilla(bugzilla_json, comments=TRUE)
+```
+
+## Download Bugzilla issues and comments using Perceval in Perceval REST API Bugzilla backend
+Same as download bugzilla data using perceval in trandition bugzilla backend, we will need to download the json object by using perceval from perceval REST API Bugzilla backend.
+```{r}
+date <- "2023-03-05"
+bugzilla_site <- "https://bugzilla.redhat.com/"
+bugzilla_rest_json <- download_bugzilla(perceval_path, bugzilla_site, date, backend="bugzillarest")
+```
+
+## Parse Bugzilla data obtained from Perceval REST API Bugzilla backend
+And we will be using the 'parse_bugzillarest' function below without comments.
+```{r}
+parse_bugzillarest(bugzilla_rest_json, comments=FALSE)
+```
+
+Here is another result that we will be using the 'parse_bugzillarest' function below, along with comments.
+```{r}
+parse_bugzillarest(bugzilla_rest_json, comments=TRUE)
+```
+
+# Section 2: Bugzilla Crawler using REST API
+
+## Download Bugzilla issues and comments using Bugzilla REST API
+Now, let's get our Bugzilla data using Bugzilla's REST API. This method should perform faster than using perceval. Note that if you get an error, the website may have an internal issue, which causes an invalid GET request. First we will download the issues only. A few rows of the json issues is shown next:
+```{r}
+bugzilla_site <- "https://bugzilla.redhat.com"
+start_timestamp <- "2023-02-01"
+end_timestamp <- "2023-03-01"
+project_name <- "redhat"
+
+
+project_bugzilla_rest <- download_bugzilla_from_rest_api(bugzilla_site, start_timestamp, end_timestamp, project_name, comments=FALSE)
+# We can get the issues from the list called project_bugzilla_rest.
+project_bugzilla_rest_issues <- data.table(jsonlite::stream_in(textConnection(project_bugzilla_rest[["issues"]])))
+# Notice that the comments will be empty if you try to get them.
+project_bugzilla_rest_comments <- data.table(jsonlite::stream_in(textConnection(project_bugzilla_rest[["comments"]]))[["bugs"]])
+
+project_bugzilla_rest_issues[5:8]
+```
+
+Next, let's download both the issues and the comments. Since the issue table was already displayed, the following shows a few rows of the issue comments table:
+```{r}
+project_bugzilla_rest <- download_bugzilla_from_rest_api(bugzilla_site, start_timestamp, end_timestamp, project_name, comments=TRUE)
+
+# We can get the issues and comments separately from the list called project_bugzilla_rest.
+project_bugzilla_rest_issues <- data.table(jsonlite::stream_in(textConnection(project_bugzilla_rest[["issues"]])))
+project_bugzilla_rest_comments <- data.table(jsonlite::stream_in(textConnection(project_bugzilla_rest[["comments"]]))[["bugs"]])
+
+# We will look at the comments for the first issue in the list
+project_bugzilla_rest_comments[[1]]
+```
+

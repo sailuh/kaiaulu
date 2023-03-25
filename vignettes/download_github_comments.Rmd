@@ -37,16 +37,16 @@ While the above is true for **comments**, the first message of every issue and e
 Therefore, in this Notebook we have to rely on three endpoints from the GitHub API: The `Issue endpoint` to obtain the "first comment" of every issue, the `Pull Request endpoint` to obtain the "first comment" of every pull request, then finally the `Issue and Pull Request Comment endpoint`, which provides comments for both issue and pull requests together.
 
 
-# Necessary Parameters
+# Project Configuration File
 
-To use the pipeline, you must specify the organization and project of interest, and your token.
+To use the pipeline, you must specify the organization and project of interest, and your token. Obtain a github token following the instructions [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
 
 ```{r}
 conf <- yaml::read_yaml("../conf/helix.yml")
 save_path <- path.expand(conf[["issue_tracker"]][["github"]][["replies"]]) # Path you wish to save all raw data. A folder with the repo name and sub-folders will be created.
 owner <- conf[["issue_tracker"]][["github"]][["owner"]] # Has to match github organization (e.g. github.com/sailuh)
 repo <- conf[["issue_tracker"]][["github"]][["repo"]] # Has to match github repository (e.g. github.com/sailuh/perceive)
-# your file github_token contains the GitHub token API 
+# your file github_token (a text file) contains the GitHub token API
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 ```
 

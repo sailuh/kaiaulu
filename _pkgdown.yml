@@ -12,6 +12,8 @@ reference:
   - parse_mbox
   - parse_jira
   - parse_jira_replies
+  - parse_bugzilla
+  - parse_bugzillarest
   - parse_github_replies
   - parse_dependencies
   - parse_r_dependencies
@@ -76,6 +78,8 @@ reference:
   - git_head
   - git_log
   - git_blame
+  - git_create_sample_log
+  - git_delete_sample_log
 - title: GitHub
   desc:  Functions to interact and download data from GitHub API.
 - contents:
@@ -106,6 +110,8 @@ reference:
 - title: Download
   desc:  Functions to download data from various websites and convert to formats used in Kaiaulu.
 - contents:
+  - download_bugzilla_from_rest_api
+  - download_bugzilla
   - download_pipermail
   - convert_pipermail_to_mbox
   - download_mod_mbox

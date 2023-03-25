@@ -4,6 +4,80 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+#'  Download Bugzilla issues and comments using the Bugzilla REST API
+#'
+#' @param bugzilla_site link to specific bugzilla site
+#' @param start_timestamp when to start bug retrieval (ex. 2023-01-01T00:14:57Z)
+#' @param end_timestamp when to end bug retrieval (ex. 2023-01-01T00:14:57Z)
+#' @param project_name the name of the bugzilla project (ex. redhat for https://bugzilla.redhat.com")
+#' @param comments whether to download comments
+#' @export
+download_bugzilla_from_rest_api <- function(bugzilla_site, start_timestamp, end_timestamp, project_name, comments=FALSE){
+  # Format link to retrieve data using Bugzilla REST API
+  bugzilla_site <- paste(bugzilla_site, "/rest", sep="")
+
+  # Get the issues starting from the specified date
+  issues <- httr::GET(paste(bugzilla_site, "/bug", "?creation_time=", start_timestamp, sep=""))
+  json_issues <- rawToChar(issues$content)
+
+  # Get table for the bug issues
+  bug_issue_table <- data.table(jsonlite::stream_in(textConnection(json_issues),verbose = FALSE))
+
+  # Get table in actual table format
+  table <- data.table(bug_issue_table[["bugs"]][[1]])
+
+  # Filter the table to only include bugs within date range
+  filtered_issue_table <- table[table$creation_time <= end_timestamp]
+
+  # Get the bug ids. Needed to know which comments to retrieve.
+  bug_ids <- filtered_issue_table[["id"]]
+
+  # Download the comments if user wants them
+  json_comments <- vector()
+  if (comments == TRUE){
+    # Get the comments associated with the bugs acquired
+    for (bug in bug_ids){
+      comments <- httr::GET(paste(bugzilla_site, "/bug/", bug, "/comment", sep=""))
+      json_comments <- c(json_comments, rawToChar(comments$content))
+    }
+  }
+
+  # List to hold the issues and comments
+  json_issues_comments <- list()
+
+  json_issues_comments[["issues"]] <- jsonlite::toJSON(filtered_issue_table)
+  json_issues_comments[["comments"]] <- jsonlite::toJSON(lapply(json_comments, jsonlite::fromJSON))
+
+
+  # Save issues and comments
+  jsonlite::write_json(json_issues_comments[["issues"]], paste("../../rawdata/issue_tracker/",  project_name,
+                                                               "_", "issues_",
+                                                               start_timestamp, "_", end_timestamp, ".json", sep=""))
+
+  jsonlite::write_json(json_issues_comments[["comments"]], paste("../../rawdata/issue_tracker/",  project_name,
+                                                                 "_", "comments_",
+                                                                 start_timestamp, "_", end_timestamp, ".json", sep=""))
+
+  return(json_issues_comments)
+}
+
+
+#' Download Bugzilla issues and comments using Perceval
+#'
+#' @param perceval_path path to perceval binary
+#' @param bugzilla_site link to specific bugzilla site
+#' @param date the date to start bug retrieval
+#' @param backend either traditional "bugzilla" or "bugzillarest" for Bugzilla >= 5.0 servers
+#' @export
+download_bugzilla <- function(perceval_path, bugzilla_site, date, backend="bugzilla"){
+  json_data <- system2(perceval_path,
+                         args = c(backend, bugzilla_site, '--json-line', '--from-date', date),
+                         stdout = TRUE,
+                         stderr = FALSE)
+  return(json_data)
+}
+
+
 #' Download all pipermail files in an archive
 #' @param url An url pointing to a pipermail archive
 #' @return Returns `destination`, a vector of the downloaded files in the current working directory
