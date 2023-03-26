@@ -45,6 +45,8 @@ git_head <- function(git_repo_path){
 }
 #' Saves gitlog to a path
 #'
+#' Saves the `.git` of a github repository as a gitlog at the specified path
+#'
 #' @param git_repo_path The git repo path
 #' @param flags Optional flags for git log command
 #' @param save_path the filepath to save the file

@@ -12,7 +12,7 @@ parse_mbox(perceval_path, mbox_path)
 \item{mbox_path}{path to mbox archive file (ends in .mbox)}
 }
 \description{
-Parse mbox from Perceval
+Parses an mbox file, which consists of emails in a mailbox, using the Perceval library.
 }
 \seealso{
 Other parsers: 
