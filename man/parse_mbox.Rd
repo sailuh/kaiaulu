@@ -16,8 +16,6 @@ Parse mbox from Perceval
 }
 \seealso{
 Other parsers: 
-\code{\link{parse_bugzillarest}()},
-\code{\link{parse_bugzilla}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
 \code{\link{parse_gitlog}()},

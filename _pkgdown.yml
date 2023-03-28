@@ -12,8 +12,6 @@ reference:
   - parse_mbox
   - parse_jira
   - parse_jira_replies
-  - parse_bugzilla
-  - parse_bugzillarest
   - parse_github_replies
   - parse_dependencies
   - parse_r_dependencies
@@ -110,8 +108,6 @@ reference:
 - title: Download
   desc:  Functions to download data from various websites and convert to formats used in Kaiaulu.
 - contents:
-  - download_bugzilla_from_rest_api
-  - download_bugzilla
   - download_pipermail
   - convert_pipermail_to_mbox
   - download_mod_mbox
