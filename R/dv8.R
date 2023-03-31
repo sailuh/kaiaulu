@@ -12,13 +12,13 @@ dv8_dsmj_to_dsmb <- function(sdsm_json_path, dv8_dsm_save_path){
   system2('dv8-console', args=c('core:convert-matrix', '-outputFile', dv8_dsm_save_path, sdsm_json_path), stdout=FALSE, stderr=FALSE)
 }
 
-#' Merge matrices from dv8-dsm file to one new matrix in hsdsm.dv8-dsm
+#' Merge matrices from sdsm.dv8-dsm file to one new matrix in hsdsm.dv8-dsm
 #'
 #' @param dv8_dsm_path_1 path to the matrix from sdsm.dv8-dsm file
 #' @param dv8_dsm_path_2 path to the matrix from sdsm.dv8-dsm file
 #' @param merged_dv8_dsm_path path to save the merged matrices in hsdsm.dv8-dsm file
 #' @export
-dv8_hdsmb_sdsmb_to_hsdsmb <- function(dv8_dsm_path_1, dv8_dsm_path_2, merged_dv8_dsm_path){
+dv8_sdsmb_to_hsdsmb <- function(dv8_dsm_path_1, dv8_dsm_path_2, merged_dv8_dsm_path){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   dv8_dsm_path_1 <- path.expand(dv8_dsm_path_1)
   dv8_dsm_path_2 <- path.expand(dv8_dsm_path_2)
