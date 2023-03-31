@@ -41,26 +41,3 @@ dv8_clsxj_to_clsxb <- function(input_path, output_path){
   # Run system2 command
   system2('dv8-console', args=c('core:convert-cluster', '-outputFile', output_path, input_path), stdout=FALSE, stderr=FALSE)
 }
-
-#' Detect Architecture anti-patterns
-#'
-#' @param input_path path to the merged matrix input file dv8-dsm
-#' @param output_path path to architecture folder
-#' @export
-dv8_hsdsmb_to_flaws <- function(input_path, output_path){
-  # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
-  input_path <- path.expand(input_path)
-  output_path <- path.expand(output_path)
-
-  # Run system2 command with appropriate values for options
-  system2('dv8-console', args=c('arch-issue:arch-issue',
-                                '-uiCochange', '2',
-                                '-crossingFanIn', '4',
-                                '-crossingFanOut', '4',
-                                '-cliqueDepends', 'call,use',
-                                '-uihDepends', 'call,use',
-                                '-uihInheritance', 'extend,implement,public,private,virtual',
-                                '-outputFolder', output_path,
-                                input_path),
-          stdout=FALSE, stderr=FALSE)
-}
