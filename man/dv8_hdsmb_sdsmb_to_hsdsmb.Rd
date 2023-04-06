@@ -4,14 +4,14 @@
 \alias{dv8_hdsmb_sdsmb_to_hsdsmb}
 \title{Merge matrices from dv8-dsm file to one new matrix in hsdsm.dv8-dsm}
 \usage{
-dv8_hdsmb_sdsmb_to_hsdsmb(dv8_dsm_path_1, dv8_dsm_path_2, merged_dv8_dsm_path)
+dv8_hdsmb_sdsmb_to_hsdsmb(hdsmb_path, sdsmb_path, hsdsmb_path)
 }
 \arguments{
-\item{dv8_dsm_path_1}{path to the matrix from sdsm.dv8-dsm file}
+\item{hdsmb_path}{path to the matrix from hdsmb file}
 
-\item{dv8_dsm_path_2}{path to the matrix from sdsm.dv8-dsm file}
+\item{hsdsmb_path}{path to save the merged matrices in hsdsm.dv8-dsm file}
 
-\item{merged_dv8_dsm_path}{path to save the merged matrices in hsdsm.dv8-dsm file}
+\item{sdsmb}{path to the matrix from sdsmb file}
 }
 \description{
 Merge matrices from dv8-dsm file to one new matrix in hsdsm.dv8-dsm

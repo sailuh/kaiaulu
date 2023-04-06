@@ -2,15 +2,17 @@
 % Please edit documentation in R/dv8.R
 \name{dv8_clsxj_to_clsxb}
 \alias{dv8_clsxj_to_clsxb}
-\title{Convert an input file project-hier.json to a clustering file (*.dv8-clsx)}
+\title{Convert a json cluster file, clsxj, to a binary cluster file, clsxb.
+An input file *-hier.json is converted to *.dv8-clsx.}
 \usage{
-dv8_clsxj_to_clsxb(input_path, output_path)
+dv8_clsxj_to_clsxb(clsxj_path, clsxb_path)
 }
 \arguments{
-\item{input_path}{path to the input file project-hier.json}
+\item{clsxj_path}{path to the input file project-hier.json}
 
-\item{output_path}{path to clustering file (*.dv8-clsx)}
+\item{clsxb_path}{path to clustering file (*.dv8-clsx)}
 }
 \description{
-Convert an input file project-hier.json to a clustering file (*.dv8-clsx)
+Convert a json cluster file, clsxj, to a binary cluster file, clsxb.
+An input file *-hier.json is converted to *.dv8-clsx.
 }

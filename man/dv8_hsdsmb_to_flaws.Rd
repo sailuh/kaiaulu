@@ -4,12 +4,12 @@
 \alias{dv8_hsdsmb_to_flaws}
 \title{Detect Architecture anti-patterns}
 \usage{
-dv8_hsdsmb_to_flaws(input_path, output_path)
+dv8_hsdsmb_to_flaws(hsdsmb_path, flaws_path)
 }
 \arguments{
-\item{input_path}{path to the merged matrix input file dv8-dsm}
+\item{hsdsmb_path}{path to the merged matrix input file dv8-dsm}
 
-\item{output_path}{path to architecture folder}
+\item{flaws_path}{path to architecture folder}
 }
 \description{
 Detect Architecture anti-patterns

@@ -4,12 +4,12 @@
 \alias{dv8_dsmj_to_dsmb}
 \title{Convert from sdsm.json to a dependency matrix in sdsm.dv8-dsm file}
 \usage{
-dv8_dsmj_to_dsmb(sdsm_json_path, dv8_dsm_save_path)
+dv8_dsmj_to_dsmb(dsmj_path, dsmb_path)
 }
 \arguments{
-\item{sdsm_json_path}{path to sdsm.json}
+\item{dsmj_path}{path to sdsm.json}
 
-\item{dv8_dsm_save_path}{path to save dv8-dsm file}
+\item{dsmb_path}{path to save dv8-dsm file}
 }
 \description{
 Convert from sdsm.json to a dependency matrix in sdsm.dv8-dsm file
