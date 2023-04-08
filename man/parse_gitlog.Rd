@@ -20,6 +20,8 @@ Parses the `.git` file in a github repository using the Perceval library.
 }
 \seealso{
 Other parsers: 
+\code{\link{parse_bugzilla_crawler_comments}()},
+\code{\link{parse_bugzilla_crawler_issue}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
 \code{\link{parse_jira}()},

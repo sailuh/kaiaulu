@@ -16,6 +16,8 @@ Parses an mbox file, which consists of emails in a mailbox, using the Perceval l
 }
 \seealso{
 Other parsers: 
+\code{\link{parse_bugzilla_crawler_comments}()},
+\code{\link{parse_bugzilla_crawler_issue}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
 \code{\link{parse_gitlog}()},

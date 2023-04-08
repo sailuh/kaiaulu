@@ -4,6 +4,136 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+#' Parse Bugzilla issues data obtained from json files from Bugzilla crawler
+#'
+#' @param issues_folder_path path to the issue folder that contains json file with Bugzilla data inside
+#' @export
+#' @family parsers
+parse_bugzilla_crawler_issue <- function(issues_folder_path){
+  json_file_paths <- list.files(issues_folder_path)
+
+  result <- data.table::data.table(list())
+  expected_columns <- c("id",
+                        "summary",
+                        "status",
+                        "resolution",
+                        "creation_time",
+                        "last_change_time",
+                        "creator_detail.id",
+                        "creator_detail.real_name",
+                        "component",
+                        "assigned_to_detail.id",
+                        "assigned_to_detail.real_name",
+                        "target_milestone",
+                        "platform",
+                        "whiteboard",
+                        "product",
+                        "version",
+                        "severity",
+                        "priority",
+                        "op_sys",
+                        "classification",
+                        "keywords")
+
+  expected_columns_names <- c("issue_key",
+                              "issue_summary",
+                              "issue_status",
+                              "issue_resolution",
+                              "issue_created_datetimez",
+                              "issue_updated_datetimez",
+                              "issue_reporter_id",
+                              "issue_reporter_name",
+                              "issue_components",
+                              "issue_assignee_id",
+                              "issue_assignee_name",
+                              "issue_target_milestone",
+                              "issue_rep_platform",
+                              "issue_status_whiteboard",
+                              "issue_product",
+                              "issue_version",
+                              "issue_severity",
+                              "issue_priority",
+                              "issue_op_system",
+                              "issue_classification",
+                              "issue_keywords")
+
+  # Check if files exist in given folder or not
+  if(length(json_file_paths) > 0){
+
+    # Loop over the json file in given folder
+    for(json_file in json_file_paths){
+      json_file_path <- file.path(issues_folder_path, json_file)
+      json_object <- jsonlite::fromJSON(json_file_path)
+
+      if(length(json_object$bugs) > 0){
+        # Get all the bugs from json file
+        bugs <- data.table::data.table(json_object$bugs)
+
+        # Add the bugs to the result data.table
+        result <- rbindlist(list(result, bugs), fill = TRUE)[, ..expected_columns]
+      }
+    }
+  }
+
+  # Rename the columns of data.table
+  setnames(result, expected_columns_names)
+
+  return(result)
+}
+
+#' Parse Bugzilla comments data obtained from json files from Bugzilla crawler
+#'
+#' @param comments_folder_path path to the comments folder that contains json file with Bugzilla data inside
+#' @export
+#' @family parsers
+parse_bugzilla_crawler_comments <- function(comments_folder_path){
+  json_file_paths <- list.files(comments_folder_path)
+
+  result <- data.table::data.table(list())
+
+  expected_columns <- c("bug_id",
+                        "id",
+                        "creation_time",
+                        "creator",
+                        "text",
+                        "count",
+                        "is_private")
+
+  expected_columns_names <- c("issue_key",
+                              "comment_id",
+                              "comment_created_datetimez",
+                              "comment_author_name",
+                              "comment_body",
+                              "comment_count",
+                              "comment_is_private")
+
+  # Check if files exist in given folder or not
+  if(length(json_file_paths) > 0){
+
+    # Loop over the json file in given folder
+    for(json_file in json_file_paths){
+      json_file_path <- file.path(comments_folder_path, json_file)
+      json_object <- jsonlite::fromJSON(json_file_path)
+
+      if(length(json_object$bugs) > 0){
+        # Get all the issue keys from json file
+        issue_keys <- names(json_object$bugs)
+
+        # Get all the comments from json file
+        comments <- json_object$bugs[[issue_keys]]$comments
+
+        # Add the comments to the result data.table
+        result <- rbindlist(list(result, comments), fill = TRUE)[, ..expected_columns]
+      }
+    }
+  }
+
+  # Rename the columns of data.table
+  setnames(result, expected_columns_names)
+
+  return(result)
+}
+
 #' Parse gitlog from Perceval
 #'
 #' Parses the `.git` file in a github repository using the Perceval library.
