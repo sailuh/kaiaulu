@@ -112,3 +112,10 @@ reference:
   - convert_pipermail_to_mbox
   - download_mod_mbox
   - download_mod_mbox_per_month
+- title: DV8
+  desc:  Functions to integrate DV8 capabilities into Kaiaulu.
+- contents:
+  - dv8_clsxb_to_clsxj
+  - parse_dv8_clusters
+  - dependencies_to_sdsmj
+  - gitlog_to_hdsmj
