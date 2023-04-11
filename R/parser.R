@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#' Parse Bugzilla issues data obtained from json files from Bugzilla crawler
+#' Parse Bugzilla issues data obtained from json files from Bugzilla crawler \code{\link{download_bugzilla_issues_from_rest_api}}
 #'
 #' @param issues_folder_path path to the issue folder that contains json file with Bugzilla data inside
 #' @export
@@ -15,6 +15,7 @@ parse_bugzilla_crawler_issue <- function(issues_folder_path){
   result <- data.table::data.table(list())
   expected_columns <- c("id",
                         "summary",
+                        "cf_type",
                         "status",
                         "resolution",
                         "creation_time",
@@ -37,6 +38,7 @@ parse_bugzilla_crawler_issue <- function(issues_folder_path){
 
   expected_columns_names <- c("issue_key",
                               "issue_summary",
+                              "issue_type",
                               "issue_status",
                               "issue_resolution",
                               "issue_created_datetimez",
@@ -81,7 +83,7 @@ parse_bugzilla_crawler_issue <- function(issues_folder_path){
   return(result)
 }
 
-#' Parse Bugzilla comments data obtained from json files from Bugzilla crawler
+#' Parse Bugzilla comments data obtained from json files from Bugzilla crawler \code{\link{download_bugzilla_comments_from_rest_api}}
 #'
 #' @param comments_folder_path path to the comments folder that contains json file with Bugzilla data inside
 #' @export
@@ -95,6 +97,7 @@ parse_bugzilla_crawler_comments <- function(comments_folder_path){
                         "id",
                         "creation_time",
                         "creator",
+                        "creator_id",
                         "text",
                         "count",
                         "is_private")
@@ -103,6 +106,7 @@ parse_bugzilla_crawler_comments <- function(comments_folder_path){
                               "comment_id",
                               "comment_created_datetimez",
                               "comment_author_name",
+                              "comment_author_id",
                               "comment_body",
                               "comment_count",
                               "comment_is_private")
