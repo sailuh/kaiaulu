@@ -14,9 +14,14 @@ dependencies_to_sdsmj(depends_table, project_name, is_sorted = FALSE)
 \item{is_sorted}{whether the json is sorted by src and dest}
 }
 \description{
-Converts table of dependencies from Depends into an *-sdsm.json binary.
+Converts table of dependencies from \code{\link{parse_dependencies}} into an *-sdsm.json binary.
+In the sdsm.json, the Variables are all files/methods or any variables under analysis
+(rows/columns in dependency matrix) and the Cells (matrix cell) contain all the relations of
+ variable (src & dest) pairs.
 }
 \seealso{
+\code{\link{parse_dependencies}}
+
 Other dv8: 
 \code{\link{dv8_clsxb_to_clsxj}()},
 \code{\link{gitlog_to_hdsmj}()},

@@ -15,6 +15,10 @@ gitlog_to_hdsmj(gitlog_table, project_name, is_sorted = FALSE)
 }
 \description{
 Converts a gitlog table into an *-hdsm.json binary.
+In the hdsm.json, the Variables are all files/methods or any variables under analysis
+(rows/columns in dependency matrix) and the Cells (matrix cell) contain all the relations of
+ variable (src & dest) pairs. The Cochange is the number of times the src & dest
+  were committed together.
 }
 \seealso{
 Other dv8: 

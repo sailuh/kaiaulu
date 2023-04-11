@@ -81,13 +81,17 @@ parse_dv8_clusters <- function(clsxj_path){
 
 #' Convert dependencies table to a sdsm.json
 #'
-#' Converts table of dependencies from Depends into an *-sdsm.json binary.
+#' Converts table of dependencies from \code{\link{parse_dependencies}} into an *-sdsm.json binary.
+#' In the sdsm.json, the Variables are all files/methods or any variables under analysis
+#' (rows/columns in dependency matrix) and the Cells (matrix cell) contain all the relations of
+#'  variable (src & dest) pairs.
 #'
 #' @param depends_table parsed dependencies table
 #' @param project_name project name for the sdsm.json
 #' @param is_sorted whether the json is sorted by src and dest
 #' @export
 #' @family dv8
+#' @seealso \code{\link{parse_dependencies}}
 dependencies_to_sdsmj <- function(depends_table, project_name, is_sorted=FALSE){
 
   # Get the files in the src and dest columns
@@ -157,6 +161,10 @@ dependencies_to_sdsmj <- function(depends_table, project_name, is_sorted=FALSE){
 #' Convert gitlog table to a hdsm.json
 #'
 #' Converts a gitlog table into an *-hdsm.json binary.
+#' In the hdsm.json, the Variables are all files/methods or any variables under analysis
+#' (rows/columns in dependency matrix) and the Cells (matrix cell) contain all the relations of
+#'  variable (src & dest) pairs. The Cochange is the number of times the src & dest
+#'   were committed together.
 #'
 #' @param gitlog_table parsed gitlog table
 #' @param project_name project name for the hdsm.json
