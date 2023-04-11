@@ -8,12 +8,12 @@
 #'
 #' @param perceval_path path to perceval binary
 #' @param bugzilla_site link to specific bugzilla site
-#' @param date the date to start bug retrieval
+#' @param datetime fetch bugs updated since this date (in any ISO 8601 format, e.g., 'YYYY-MM-DD HH:mm:SS+|-HH:MM'))
 #' @param backend either traditional "bugzilla" or "bugzillarest" for Bugzilla >= 5.0 servers
 #' @export
-download_bugzilla <- function(perceval_path, bugzilla_site, date, backend="bugzilla"){
+download_bugzilla <- function(perceval_path, bugzilla_site, datetime, backend="bugzilla"){
   json_data <- system2(perceval_path,
-                         args = c(backend, bugzilla_site, '--json-line', '--from-date', date),
+                         args = c(backend, bugzilla_site, '--json-line', '--from-date', paste0('"',datetime,'"')),
                          stdout = TRUE,
                          stderr = FALSE)
   return(json_data)
