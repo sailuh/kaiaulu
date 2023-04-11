@@ -42,6 +42,7 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
  * New configuration file for the Apache Thrift project called "thrift.yml". [#148](https://github.com/sailuh/kaiaulu/issues/148)
  * Fixed minor grammar mistakes and vague wording. [#151] (https://github.com/sailuh/kaiaulu/issues/151)
+ * Adds unit tests for functions `get_date_from_commit_hash()` and `filter_by_file_extensions()` [#154](https://github.com/sailuh/kaiaulu/issues/154)
  
 kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) 
 =========================
