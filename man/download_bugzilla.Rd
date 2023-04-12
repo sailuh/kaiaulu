@@ -4,14 +4,14 @@
 \alias{download_bugzilla}
 \title{Download Bugzilla issues and comments using Perceval}
 \usage{
-download_bugzilla(perceval_path, bugzilla_site, date, backend = "bugzilla")
+download_bugzilla(perceval_path, bugzilla_site, datetime, backend = "bugzilla")
 }
 \arguments{
 \item{perceval_path}{path to perceval binary}
 
 \item{bugzilla_site}{link to specific bugzilla site}
 
-\item{date}{the date to start bug retrieval}
+\item{datetime}{fetch bugs updated since this date (in any ISO 8601 format, e.g., 'YYYY-MM-DD HH:mm:SS+|-HH:MM'))}
 
 \item{backend}{either traditional "bugzilla" or "bugzillarest" for Bugzilla >= 5.0 servers}
 }
