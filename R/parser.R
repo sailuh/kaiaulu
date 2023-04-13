@@ -239,6 +239,10 @@ parse_git_blame <- function(git_repo_path,commit_hash,file_path){
 #' Parse mbox from Perceval
 #'
 #' Parses an mbox file, which consists of emails in a mailbox, using the Perceval library.
+#' Note .mbox files do not have a consistent number of fields (e.g. Reply Cc.). Due to that,
+#' the resulting table of parse mbox may have a different number of columns depending on the
+#' data used. This function only ensures if columns of interest are available, then they are
+#' consistently renamed for clarity.
 #'
 #' @param perceval_path path to perceval binary
 #' @param mbox_path path to mbox archive file (ends in .mbox)
@@ -258,28 +262,17 @@ parse_mbox <- function(perceval_path,mbox_path){
   # Parsed JSON output as a data.table.
   perceval_parsed <- data.table(jsonlite::stream_in(textConnection(perceval_output),verbose=FALSE))
 
-  if("data.body.plain" %in% colnames(perceval_parsed)){
-    data.table::setnames(perceval_parsed,
-                         "data.body.plain",
-                         "reply_body")
-  }else{
-    data.table::setnames(perceval_parsed,
-                         "data.body",
-                         "reply_body")
-  }
+  columns_of_interest <- c("data.Message.ID","data.In.Reply.To","data.Date","data.From","data.To","data.Cc","data.Subject","data.body.plain","data.body")
+  columns_rename <- c("reply_id","in_reply_to_id","reply_datetimetz","reply_from","reply_to","reply_cc","reply_subject","reply_body","reply_body")
+  is_available_column <- columns_of_interest %in% colnames(perceval_parsed)
 
-  data.table::setnames(perceval_parsed,
-                       c("data.Date","data.To","data.From","data.Subject","data.Cc","data.Message.ID","data.In.Reply.To"),
-                       c("reply_datetimetz","reply_to","reply_from","reply_subject","reply_cc","reply_id","in_reply_to_id"))
+  columns_of_interest <- columns_of_interest[is_available_column]
 
-  perceval_parsed <- perceval_parsed[,.(reply_id,
-                                          in_reply_to_id,
-                                          reply_datetimetz,
-                                          reply_from,
-                                          reply_to,
-                                          reply_cc,
-                                          reply_subject,
-                                          reply_body)]
+  perceval_parsed <- perceval_parsed[,..columns_of_interest]
+
+  data.table::setnames(x = perceval_parsed,
+                       old = colnames(perceval_parsed),
+                       new = columns_rename[is_available_column])
 
   return(perceval_parsed)
 }
