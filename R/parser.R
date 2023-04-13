@@ -136,6 +136,8 @@ parse_bugzilla <- function(bugzilla_json, comments=FALSE){
 
   } else {
     # Return just the issues in the table
+    # Order by datetime
+    data.table::setorder(all_issues, cols = "issue_created_datetimetz")
     return(all_issues)
   }
 }
@@ -148,129 +150,133 @@ parse_bugzilla <- function(bugzilla_json, comments=FALSE){
 #' @export
 #' @family parsers
 parse_bugzillarest <- function(bugzilla_json, comments=FALSE){
-
+  # Get table from the json
   json_issue_comments <- data.table(jsonlite::stream_in(textConnection(bugzilla_json), verbose = FALSE))
 
-  # # Comments list parser. Comments may occur on any json issue.
+  # Comments list parser function. Comments may occur on any json issue.
   bugzilla_parse_comment <- function(comment){
-    num_comments <- length(comment[["bug_id"]])
+    num_comments <- length(comment[["commentid"]])
 
     parsed_comment <- list()
+
     # First comment is issue description, so we start indexing at 2
-    parsed_comment[["comment_id"]] <- append(comment[["id"]][[2]],NA)[[1]]
-    parsed_comment[["comment_author_id"]] <- append(comment[["creator_id"]][[2]],NA)[[1]]
-    parsed_comment[["comment_author_name"]] <- append(comment[["creator"]][[2]],NA)[[1]]
-    parsed_comment[["comment_body"]] <- append(comment[["text"]][[2]],NA)[[1]]
-    parsed_comment[["comment_created_datetimetz"]] <- append(comment[["creation_time"]][[2]],NA)[[1]]
-    parsed_comment[["comment_count"]] <- append(comment[["count"]][[2]],NA)[[1]]
-    parsed_comment[["comment_is_private"]] <- append(comment[["is_private"]][[2]],NA)[[1]]
+    # Add the bug id as a column
+    parsed_comment[["issue_key"]] <- comment[["bug_id"]][[1]]
+    parsed_comment[["comment_id"]] <- comment[["id"]][[2]][[1]]
+    parsed_comment[["comment_author_id"]] <- comment[["creator_id"]][[2]][[1]]
+    parsed_comment[["comment_author_name"]] <- comment[["creator"]][[2]][[1]]
+    parsed_comment[["comment_body"]] <- comment[["text"]][[2]][[1]]
+    parsed_comment[["comment_created_datetimetz"]] <- comment[["creation_time"]][[2]][[1]]
+    parsed_comment[["comment_count"]] <- comment[["count"]][[2]][[1]]
+    parsed_comment[["comment_is_private"]] <- comment[["is_private"]][[2]][[1]]
 
     parsed_comments <- list()
     parsed_comments <- append(list(parsed_comments), list(parsed_comment))
 
+    # If there's more than one comment, parse it.
     if (num_comments > 2) {
-
       for (i in 3:num_comments){
         parsed_comment <- list()
-
-        parsed_comment[["comment_id"]] <- append(comment[["id"]][[i]],NA)[[1]]
-        parsed_comment[["comment_author_id"]] <- append(comment[["creator_id"]][[i]],NA)[[1]]
-        parsed_comment[["comment_author_name"]] <- append(comment[["creator"]][[i]],NA)[[1]]
-        parsed_comment[["comment_body"]] <- append(comment[["text"]][[i]],NA)[[1]]
-        parsed_comment[["comment_created_datetimetz"]] <- append(comment[["creation_time"]][[i]],NA)[[1]]
-        parsed_comment[["comment_count"]] <- append(comment[["count"]][[i]],NA)[[1]]
-        parsed_comment[["comment_is_private"]] <- append(comment[["is_private"]][[i]],NA)[[1]]
+        # Add the bug id as a column
+        parsed_comment[["issue_key"]] <- bug_id[[1]]
+        parsed_comment[["comment_id"]] <- comment[["id"]][[i]][[1]]
+        parsed_comment[["comment_author_id"]] <- comment[["creator_id"]][[i]][[1]]
+        parsed_comment[["comment_author_name"]] <- comment[["creator"]][[i]][[1]]
+        parsed_comment[["comment_body"]] <- comment[["text"]][[i]][[1]]
+        parsed_comment[["comment_created_datetimetz"]] <- comment[["creation_time"]][[i]][[1]]
+        parsed_comment[["comment_count"]] <- comment[["count"]][[i]][[1]]
+        parsed_comment[["comment_is_private"]] <- comment[["is_private"]][[i]][[1]]
 
         parsed_comments <- append(parsed_comments, list(parsed_comment))
       }
     }
-
     return(parsed_comments)
   }
 
+  # Issue parser function
+  bugzilla_parse_issue <- function(i) {
+    # Parse all relevant *issue* fields
+    issue_comment <- json_issue_comments
+
+    parsed_issue <- data.table(
+      issue_key = issue_comment[["data.id"]][[i]][[1]],
+      issue_summary = issue_comment[["data.summary"]][[i]][[1]],
+      issue_type = issue_comment[["category"]][[i]][[1]],
+      issue_status = issue_comment[["data.status"]][[i]][[1]],
+      issue_resolution = issue_comment[["data.resolution"]][[i]][[1]],
+      issue_components = issue_comment[["data.component"]][[i]][[1]],
+      issue_description = issue_comment[["data.description"]][[i]][[1]],
+      issue_classification = issue_comment[["data.classification"]][[i]][[1]],
+
+      issue_created_datetimetz = issue_comment[["data.creation_time"]][[i]],
+      issue_creator_id = issue_comment[["data.creator_detail.id"]][[i]][[1]],
+      issue_creator_name = issue_comment[["data.creator"]][[i]],
+      issue_creator_real_name = issue_comment[["data.creator_detail.real_name"]][[i]][[1]],
+      issue_creator_active = issue_comment[["data.creator_detail.active"]][[i]][[1]],
+      issue_creator_email = issue_comment[["data.creator_detail.email"]][[i]][[1]],
+      issue_creator_insider = issue_comment[["data.creator_detail.insider"]][[i]][[1]],
+
+      issue_assignee_id = issue_comment[["data.assigned_to_detail.id"]][[i]][[1]],
+      issue_assignee_name = issue_comment[["data.assigned_to"]][[i]][[1]],
+      issue_assignee_real_name = issue_comment[["data.assigned_to_detail.real_name"]][[i]][[1]],
+      issue_assignee_active = issue_comment[["data.assigned_to_detail.active"]][[i]][[1]],
+      issue_assignee_email = issue_comment[["data.assigned_to_detail.email"]][[i]][[1]],
+      issue_assignee_insider = issue_comment[["data.assigned_to_detail.insider"]][[i]][[1]],
+
+      issue_target_milestone = issue_comment[["data.target_milestone"]][[i]][[1]],
+      issue_rep_platform = issue_comment[["data.platform"]][[i]][[1]],
+      issue_status_whiteboard = issue_comment[["data.whiteboard"]][[i]][[1]],
+      # In some cases, keywords may be equal to character(0), in which case issue_keywords should be set to NA to prevent a warning
+      issue_keywords = ifelse(length(issue_comment[["data.keywords"]][[i]]) > 0, issue_comment[["data.keywords"]][[i]], NA),
+      issue_version = issue_comment[["data.version"]][[i]][[1]],
+      issue_severity = issue_comment[["data.severity"]][[i]][[1]],
+      issue_priority = issue_comment[["data.priority"]][[i]][[1]],
+      issue_op_system = issue_comment[["data.op_sys"]][[i]][[1]],
+      issue_product = issue_comment[["data.product"]][[i]][[1]]
+    )
+
+    return(parsed_issue)
+  }
+
   # Number of issues in table
-  n_issues <- nrow(json_issue_comments)
+  n_issues <- length(unique(json_issue_comments[["data.id"]]))
 
   # Prepare two lists which will contain data.tables for all issues and all comments
   # Both tables can share the issue_key, so they can be joined if desired.
   all_issues <- list()
-  all_issues_comments <- list()
+  all_comments <- list()
 
-  for(i in 1:n_issues){
+  # Get the issues and comments in a for loop
+  for (i in 1:n_issues) {
+    # Parse an issue
+    all_issues[[i]] <- bugzilla_parse_issue(i)
+    comments_i <- json_issue_comments[["data.comments"]][[i]]
 
-    # Obtain the issue_key
-    issue_key <- json_issue_comments[["data.id"]][[i]]
-
-    issue_comment <- json_issue_comments
-
-    # Parse all relevant *issue* fields
-    all_issues[[i]] <- data.table(
-      issue_key = issue_key,
-      issue_summary = append(issue_comment[["data.summary"]][[i]],NA)[1],
-      issue_type = append(issue_comment[["category"]][[i]],NA)[1],
-      issue_status = append(issue_comment[["data.status"]][[i]],NA)[1],
-      issue_resolution = append(issue_comment[["data.resolution"]][[i]],NA)[1],
-      issue_components = append(issue_comment[["data.component"]][[i]],NA)[1],
-      issue_description = append(issue_comment[["data.description"]][[i]],NA)[1],
-      issue_classification = append(issue_comment[["data.classification"]][[i]],NA)[1],
-
-      issue_created_datetimetz = append(issue_comment[["data.creation_time"]][[i]],NA)[1],
-      issue_creator_id = append(issue_comment[["data.creator_detail.id"]][[i]],NA)[1],
-      issue_creator_name = append(issue_comment[["data.creator"]][[i]],NA)[1],
-      issue_creator_real_name = append(issue_comment[["data.creator_detail.real_name"]][[i]],NA)[1],
-      issue_creator_active = append(issue_comment[["data.creator_detail.active"]][[i]],NA)[1],
-      issue_creator_email = append(issue_comment[["data.creator_detail.email"]][[i]],NA)[1],
-      issue_creator_insider = append(issue_comment[["data.creator_detail.insider"]][[i]],NA)[1],
-
-      issue_assignee_id = append(issue_comment[["data.assigned_to_detail.id"]][[i]],NA)[1],
-      issue_assignee_name = append(issue_comment[["data.assigned_to"]][[i]],NA)[1],
-      issue_assignee_real_name = append(issue_comment[["data.assigned_to_detail.real_name"]][[i]],NA)[1],
-      issue_assignee_active = append(issue_comment[["data.assigned_to_detail.active"]][[i]],NA)[1],
-      issue_assignee_email = append(issue_comment[["data.assigned_to_detail.email"]][[i]],NA)[1],
-      issue_assignee_insider = append(issue_comment[["data.assigned_to_detail.insider"]][[i]],NA)[1],
-
-      issue_target_milestone = append(issue_comment[["data.target_milestone"]][[i]],NA)[1],
-      issue_rep_platform = append(issue_comment[["data.platform"]][[i]],NA)[1],
-      issue_status_whiteboard = append(issue_comment[["data.whiteboard"]][[i]],NA)[1],
-      issue_keywords = append(issue_comment[["data.keywords"]][[i]],NA)[1],
-      issue_version = append(issue_comment[["data.version"]][[i]],NA)[1],
-      issue_severity = append(issue_comment[["data.severity"]][[i]],NA)[1],
-      issue_priority = append(issue_comment[["data.priority"]][[i]],NA)[1],
-      issue_op_system = append(issue_comment[["data.op_sys"]][[i]],NA)[1],
-      issue_product = append(issue_comment[["data.product"]][[i]],NA)[1]
-    )
-
-    # Comments
-    # For each issue, it may have 0 or more comments. Parse them
-    # in a separate table if the comments argument is true.
-    if (comments == TRUE) {
-
-      root_of_comments_list <- json_issue_comments[["data.comments"]][[i]]
-
-      #If root_of_comments_list does not exist, then this is an issue only json, skip parsing
-      if(length(root_of_comments_list) > 0){
-        comments_list <- json_issue_comments[["data.comments"]][[i]]
-
-        # Even on a json with comments, some issues may not have comments, check if comments exist:
-        if(length(comments_list[["bug_id"]]) > 1){
-          # Parse all comments into issue_comments
-          issue_comments <- rbindlist(bugzilla_parse_comment(comments_list))
-          # Add issue_key column to the start of the table
-          issue_comments <- cbind(data.table(issue_key=issue_key),issue_comments)
-          all_issues_comments[[i]] <- issue_comments
-        }
-      }
+    if (length(comments_i[["bug_id"]]) > 1){
+      # Parse the comments associated with the issue
+      all_comments <- append(all_comments, bugzilla_parse_comment(comments_i))
     }
   }
 
+  # Convert list of issues & list of comments into tables
   all_issues <- rbindlist(all_issues,fill=TRUE)
-  all_issues_comments <- rbindlist(all_issues_comments,fill=TRUE)
+  all_comments <- rbindlist(all_comments,fill=TRUE)
 
-  parsed_issues_comments <- list()
-  parsed_issues_comments[["issues"]] <- all_issues
-  parsed_issues_comments[["comments"]] <- all_issues_comments
+  # Return output
+  if (comments==TRUE) {
+    # Merge the issues and comments table
+    all_issue_comments <- merge.data.table(all_issues, all_comments, by = "issue_key", all.x = TRUE)
+    # Order by datetime
+    data.table::setorder(all_issue_comments, cols = "issue_created_datetimetz")
+    # Return table of issues and comments
+    return(all_issue_comments)
 
-  return(parsed_issues_comments)
+  } else {
+    # Return just the issues in the table
+    # Order by datetime
+    data.table::setorder(all_issues, cols = "issue_created_datetimetz")
+    return(all_issues)
+  }
 }
 
 
