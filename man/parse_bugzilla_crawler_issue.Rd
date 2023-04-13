@@ -2,7 +2,7 @@
 % Please edit documentation in R/parser.R
 \name{parse_bugzilla_crawler_issue}
 \alias{parse_bugzilla_crawler_issue}
-\title{Parse Bugzilla issues data obtained from json files from Bugzilla crawler}
+\title{Parse Bugzilla issues data obtained from json files from Bugzilla crawler \code{\link{download_bugzilla_issues_from_rest_api}}}
 \usage{
 parse_bugzilla_crawler_issue(issues_folder_path)
 }
@@ -10,7 +10,7 @@ parse_bugzilla_crawler_issue(issues_folder_path)
 \item{issues_folder_path}{path to the issue folder that contains json file with Bugzilla data inside}
 }
 \description{
-Parse Bugzilla issues data obtained from json files from Bugzilla crawler
+Parse Bugzilla issues data obtained from json files from Bugzilla crawler \code{\link{download_bugzilla_issues_from_rest_api}}
 }
 \seealso{
 Other parsers: 

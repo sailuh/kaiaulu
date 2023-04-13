@@ -2,7 +2,7 @@
 % Please edit documentation in R/parser.R
 \name{parse_bugzilla_crawler_comments}
 \alias{parse_bugzilla_crawler_comments}
-\title{Parse Bugzilla comments data obtained from json files from Bugzilla crawler}
+\title{Parse Bugzilla comments data obtained from json files from Bugzilla crawler \code{\link{download_bugzilla_comments_from_rest_api}}}
 \usage{
 parse_bugzilla_crawler_comments(comments_folder_path)
 }
@@ -10,7 +10,7 @@ parse_bugzilla_crawler_comments(comments_folder_path)
 \item{comments_folder_path}{path to the comments folder that contains json file with Bugzilla data inside}
 }
 \description{
-Parse Bugzilla comments data obtained from json files from Bugzilla crawler
+Parse Bugzilla comments data obtained from json files from Bugzilla crawler \code{\link{download_bugzilla_comments_from_rest_api}}
 }
 \seealso{
 Other parsers: 
