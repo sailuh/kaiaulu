@@ -621,7 +621,14 @@ parse_dependencies <- function(depends_jar_path,git_repo_path,language){
   depends_parsed$src <- file_names[depends_parsed$src + 1]
   depends_parsed$dest <- file_names[depends_parsed$dest + 1]
 
-  return(depends_parsed)
+  edgelist <- depends_parsed
+  data.table::setnames(x = edgelist,
+                       old = c("src","dest"),
+                       new = c("src_filepath","dest_filepath"))
+  nodes <- data.table(filepath=file_names)
+  graph <- list(nodes=nodes,edgelist=edgelist)
+
+  return(graph)
 }
 #' Parse NVD Feed CVEs, descriptions and CWE ids
 #'

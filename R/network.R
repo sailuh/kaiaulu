@@ -315,22 +315,29 @@ transform_commit_message_id_to_network <- function(project_git, commit_message_i
 transform_dependencies_to_network <- function(depends_parsed,weight_types=NA){
   src <- dest <- weight <- NULL # due to NSE notes in R CMD check
   # Can only include types user wants if Depends found them at least once on codebase
-  weight_types <- intersect(names(depends_parsed)[3:ncol(depends_parsed)],weight_types)
-  dependency_edgelist <- depends_parsed[,.(src,dest)]
+
+  nodes <- depends_parsed[["nodes"]]
+  edgelist <- depends_parsed[["edgelist"]]
+
+  weight_types <- intersect(names(edgelist)[3:ncol(edgelist)],weight_types)
+  dependency_edgelist <- edgelist[,.(src_filepath,dest_filepath)]
   if(any(is.na(weight_types))){
-    dependency_edgelist$weight <- rowSums(depends_parsed[,3:ncol(depends_parsed),with=FALSE])
+    dependency_edgelist$weight <- rowSums(edgelist[,3:ncol(edgelist),with=FALSE])
   }else{
-    dependency_edgelist$weight <- rowSums(depends_parsed[,weight_types,with=FALSE])
+    dependency_edgelist$weight <- rowSums(edgelist[,weight_types,with=FALSE])
   }
   # Remove dependencies not chosen by user
   dependency_edgelist <- dependency_edgelist[weight != 0]
   setnames(dependency_edgelist,
-           old=c("src","dest"),
+           old=c("src_filepath","dest_filepath"),
            new=c("from","to"))
   # Select relevant columns for nodes
-  dependency_nodes <- unique(c(dependency_edgelist$from,dependency_edgelist$to))
+  dependency_nodes <- nodes
+  setnames(x=dependency_nodes,
+           old="filepath",
+           new="name")
   # Color files yellow
-  dependency_nodes <- data.table(name=dependency_nodes,color="#f4dbb5")
+  dependency_nodes <- data.table(name=dependency_nodes$name,color="#f4dbb5")
   # Return the parsed JSON output as nodes and edgelist.
   file_network <- list()
   file_network[["nodes"]] <- dependency_nodes
