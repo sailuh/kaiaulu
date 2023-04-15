@@ -94,16 +94,12 @@ parse_dv8_clusters <- function(clsxj_path){
 #' @seealso \code{\link{parse_dependencies}}
 dependencies_to_sdsmj <- function(depends_table, project_name, is_sorted=FALSE){
 
-  # Get the files in the src and dest columns
-  depends_files_src <- unique(list(depends_table$src)[[1]])
-  depends_files_dest <- unique(list(depends_table$dest)[[1]])
-  depends_files <- c(depends_files_src, depends_files_dest)
+  # Get the nodes and edgelist tables
+  nodes_table <- depends_table[[1]]
+  edgelist_table <- depends_table[[2]]
 
-  # Get unique file names
-  depends_files <- unique(depends_files)
-
-  # Sort the file names
-  variables <- sort(depends_files, method="radix")
+  # Get and sort the file names
+  variables <- sort(unique(nodes_table[["filepath"]]), method="radix")
 
   # Make indices for the filenames
   variables_indices <- 1:length(variables)
@@ -111,25 +107,27 @@ dependencies_to_sdsmj <- function(depends_table, project_name, is_sorted=FALSE){
   names(variables_indices) <- variables
 
   # List to hold cells' indices
-  cells_indices <- 1:nrow(depends_table)
+  cells_indices <- 1:nrow(edgelist_table)
 
+  # Get parameters that will be used for the cells
+  parameters <- list("Call", "Import", "Use", "Parameter", "Contain", "Create", "Extend",
+                    "Return","Implement", "Cast", "Throw", "Annotation")
+  # Only use parameters in the dataframe
+  parameters <- unlist(intersect(colnames(edgelist_table), parameters))
 
   # get the cell from each row in the depends table
   getCell <- function(i){
-    depends_src <- depends_table[["src"]][[i]]
-    depends_dest <- depends_table[["dest"]][[i]]
+    depends_src <- edgelist_table[["src_filepath"]][[i]]
+    depends_dest <- edgelist_table[["dest_filepath"]][[i]]
 
     # Look at first value in parse_depends table, get matching index in vars array
     src_index <- variables_indices[depends_src] - 1
     dest_index <- variables_indices[depends_dest] - 1
 
-    values = list()
-    parameters = list("Call", "Import", "Use", "Parameter", "Contain", "Create", "Extend",
-                      "Return","Implement", "Cast", "Throw", "Annotation")
-
+    values <- list()
     # Get all the parameter values for a specific cell
     for (j in 1: length(parameters)) {
-      current_param <- depends_table[i][[parameters[[j]]]]
+      current_param <- edgelist_table[i][[parameters[[j]]]]
       if (current_param > 0){
         values[[parameters[[j]]]] <- current_param
       }
@@ -148,7 +146,6 @@ dependencies_to_sdsmj <- function(depends_table, project_name, is_sorted=FALSE){
   }
 
   sdsm_json <- list(schemaVersion="1.0", name=paste0(project_name, "-sdsm"), variables=variables, cells=cells_df)
-
   json_df <- jsonlite::fromJSON(jsonlite::toJSON(sdsm_json, auto_unbox = TRUE))
 
   # Unbox each of the cell values (should be values: object, not values: [object])
@@ -176,39 +173,29 @@ gitlog_to_hdsmj <- function(gitlog_table, project_name, is_sorted=FALSE){
   gitlog_graph <- transform_gitlog_to_bipartite_network(gitlog_table, mode ="commit-file")
   cochange_table <- bipartite_graph_projection(gitlog_graph, mode = FALSE, is_intermediate_projection = FALSE)
 
-  # List of two tables. 2nd table had the filenames and cochange
-  cochange_table <- cochange_table[[2]]
+  # Get the nodes and edgelist tables
+  nodes_table <- cochange_table[[1]]
+  edgelist_table <- cochange_table[[2]]
 
-  # Get the files in the from (src) and to (dest) columns, concatenate them into one list, sort alphabetically
-  # Getting files in the "from" column
-  gitlog_files_src <- unique(cochange_table[["from"]])
-  # Getting files in the "to" column
-  gitlog_files_dest <- unique(cochange_table[["to"]])
-  # Combining src and dest columns
-  gitlog_files <- c(gitlog_files_src, gitlog_files_dest)
-
-  # Taking the unique combined columns
-  variables <- unique(gitlog_files)
-
-  # Sort the file names
-  variables <- sort(variables, method="radix")
+  # Get and sort the file names
+  variables <- sort(unique(nodes_table[["name"]]), method="radix")
   # Make indices for the file names
   variables_indices <- 1:length(variables)
   # Make named list with file names as keys and indices as values
   names(variables_indices) <- variables
 
   # List to hold cells
-  cells_indices <- 1:nrow(cochange_table)
+  cells_indices <- 1:nrow(edgelist_table)
 
   getCell <- function(i) {
-    cochange_src <- cochange_table[["from"]][[i]]
-    cochange_dest <- cochange_table[["to"]][[i]]
+    cochange_src <- edgelist_table[["from"]][[i]]
+    cochange_dest <- edgelist_table[["to"]][[i]]
 
     src_index <- variables_indices[cochange_src] - 1
     dest_index <- variables_indices[cochange_dest] - 1
 
     # Add Cochange parameter for the values field in the json
-    Cochange  <- cochange_table[["weight"]][[i]]
+    Cochange  <- edgelist_table[["weight"]][[i]]
 
     # Add the cells field items for index i of the sdsm_json based on the data
     # in the current parsed_gitlog row
