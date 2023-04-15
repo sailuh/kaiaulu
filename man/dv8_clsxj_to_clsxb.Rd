@@ -5,14 +5,24 @@
 \title{Convert a json cluster file, clsxj, to a binary cluster file, clsxb.
 An input file *-hier.json is converted to *.dv8-clsx.}
 \usage{
-dv8_clsxj_to_clsxb(clsxj_path, clsxb_path)
+dv8_clsxj_to_clsxb(dv8_path, clsxj_path, clsxb_path)
 }
 \arguments{
-\item{clsxj_path}{path to the input file project-hier.json}
+\item{dv8_path}{path to dv8 binary}
 
-\item{clsxb_path}{path to clustering file (*.dv8-clsx)}
+\item{clsxj_path}{path to JSON cluster}
+
+\item{clsxb_path}{path to DV8 binary cluster}
 }
 \description{
 Convert a json cluster file, clsxj, to a binary cluster file, clsxb.
 An input file *-hier.json is converted to *.dv8-clsx.
 }
+\seealso{
+Other dv8: 
+\code{\link{dv8_dsmj_to_dsmb}()},
+\code{\link{dv8_hdsmb_sdsmb_to_hsdsmb}()},
+\code{\link{dv8_hsdsmb_to_flaws}()},
+\code{\link{parse_dv8_architectural_flaws}()}
+}
+\concept{dv8}

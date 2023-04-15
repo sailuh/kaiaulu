@@ -4,13 +4,57 @@
 \alias{dv8_hsdsmb_to_flaws}
 \title{Detect Architecture anti-patterns}
 \usage{
-dv8_hsdsmb_to_flaws(hsdsmb_path, flaws_path)
+dv8_hsdsmb_to_flaws(
+  dv8_path,
+  hsdsmb_path,
+  flaws_path,
+  cliqueDepends = "call,use",
+  crossingCochange = 2,
+  crossingFanIn = 4,
+  crossingFanOut = 4,
+  mvCochange = 2,
+  uiCochange = 2,
+  uihDepends = "call,use",
+  uihInheritance = "extend,implement,public,private,virtual",
+  historyImpact = 10,
+  uiStructImpact = 0.01
+)
 }
 \arguments{
-\item{hsdsmb_path}{path to the merged matrix input file dv8-dsm}
+\item{dv8_path}{path to dv8 binary}
+
+\item{hsdsmb_path}{path to the merged binary DSM}
 
 \item{flaws_path}{path to architecture folder}
+
+\item{cliqueDepends}{(For Clique detection) Filtered dependencies for clique detection. Multiple dependencies should be delimited using ","}
+
+\item{crossingCochange}{(For Crossing detection) Threshold of co-change between two files}
+
+\item{crossingFanIn}{(For Crossing detection) The number of other files that depend on it >= "crossingFanIn"}
+
+\item{crossingFanOut}{(For Crossing detection) The number of other files it depends on >= "crossingFanOut"}
+
+\item{mvCochange}{(For Modularity Violation detection) Threshold of co-change between two files}
+
+\item{uiCochange}{(For Unstable Interface detection) Threshold of co-change between two files}
+
+\item{uihDepends}{(For Unhealthy Inheritance detection) Filtered dependencies for unhealthy inheritance detection. Multiple dependencies should be delimited using ","}
+
+\item{uihInheritance}{(For Unhealthy Inheritance detection) Dependencies for unhealthy inheritance detection. Multiple dependencies should be delimited using ","}
+
+\item{historyImpact}{(For Unstable Interface detection) Threshold of the number of co-changed (more than "co-change" times) files}
+
+\item{uiStructImpact}{(For Unstable Interface detection) Threshold of value < 1 means percentage of all files are dependents}
 }
 \description{
 Detect Architecture anti-patterns
 }
+\seealso{
+Other dv8: 
+\code{\link{dv8_clsxj_to_clsxb}()},
+\code{\link{dv8_dsmj_to_dsmb}()},
+\code{\link{dv8_hdsmb_sdsmb_to_hsdsmb}()},
+\code{\link{parse_dv8_architectural_flaws}()}
+}
+\concept{dv8}

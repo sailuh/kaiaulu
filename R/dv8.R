@@ -1,66 +1,109 @@
-#' Convert from sdsm.json to a dependency matrix in sdsm.dv8-dsm file
+#' Convert from a JSON DSM to a binary DSM.
+#' Note: This function converts
+#'                    a hdsm.json (*.json) to history DSM (*.dv8-dsm)
+#'                    a sdsm.json (*.json) to structural DSM (*.dv8-dsm)
 #'
-#' @param dsmj_path path to sdsm.json
-#' @param dsmb_path path to save dv8-dsm file
+#' @param dv8_path path to dv8 binary
+#' @param dsmj_path path to JSON DSM
+#' @param dsmb_path path to save binary DSM
 #' @export
-dv8_dsmj_to_dsmb <- function(dsmj_path, dsmb_path){
+#' @family dv8
+dv8_dsmj_to_dsmb <- function(dv8_path, dsmj_path, dsmb_path){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
+  dv8_path <- path.expand(dv8_path)
   dsmj_path <- path.expand(dsmj_path)
   dsmb_path <- path.expand(dsmb_path)
 
   # Run system2 command
-  system2('dv8-console', args=c('core:convert-matrix', '-outputFile', dsmb_path, dsmj_path), stdout=FALSE, stderr=FALSE)
+  system2(dv8_path, args=c('core:convert-matrix', '-outputFile', dsmb_path, dsmj_path), stdout=FALSE, stderr=FALSE)
 }
 
-#' Merge matrices from dv8-dsm file to one new matrix in hsdsm.dv8-dsm
+#' Merge history DSM and structural DSM to merged DSM.
+#' A history DSM (*.dv8-dsm) and a structural DSM (*.dv8-dsm) is merged to a merged DSM (*.dv8-dsm)
 #'
-#' @param hdsmb_path path to the matrix from hdsmb file
-#' @param sdsmb path to the matrix from sdsmb file
-#' @param hsdsmb_path path to save the merged matrices in hsdsm.dv8-dsm file
+#' @param dv8_path path to dv8 binary
+#' @param hdsmb_path path to the matrix from history binary DSM
+#' @param sdsmb_path path to the matrix from structural binary DSM
+#' @param hsdsmb_path path to save the merged matrices in binary DSM
 #' @export
-dv8_hdsmb_sdsmb_to_hsdsmb <- function(hdsmb_path, sdsmb_path, hsdsmb_path){
+#' @family dv8
+dv8_hdsmb_sdsmb_to_hsdsmb <- function(dv8_path, hdsmb_path, sdsmb_path, hsdsmb_path){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
+  dv8_path <- path.expand(dv8_path)
   hdsmb_path <- path.expand(hdsmb_path)
   sdsmb_path <- path.expand(sdsmb_path)
   hsdsmb_path <- path.expand(hsdsmb_path)
 
   # Run system2 command
-  system2('dv8-console', args=c('core:merge-matrix', '-outputFile', hsdsmb_path, hdsmb_path, sdsmb_path), stdout=FALSE, stderr=FALSE)
+  system2(dv8_path, args=c('core:merge-matrix', '-outputFile', hsdsmb_path, hdsmb_path, sdsmb_path), stdout=FALSE, stderr=FALSE)
 }
 
 #' Convert a json cluster file, clsxj, to a binary cluster file, clsxb.
 #' An input file *-hier.json is converted to *.dv8-clsx.
 #'
-#' @param clsxj_path path to the input file project-hier.json
-#' @param clsxb_path path to clustering file (*.dv8-clsx)
+#' @param dv8_path path to dv8 binary
+#' @param clsxj_path path to JSON cluster
+#' @param clsxb_path path to DV8 binary cluster
 #' @export
-dv8_clsxj_to_clsxb <- function(clsxj_path, clsxb_path){
+#' @family dv8
+dv8_clsxj_to_clsxb <- function(dv8_path, clsxj_path, clsxb_path){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
+  dv8_path <- path.expand(dv8_path)
   clsxj_path <- path.expand(clsxj_path)
   clsxb_path <- path.expand(clsxb_path)
 
   # Run system2 command
-  system2('dv8-console', args=c('core:convert-cluster', '-outputFile', clsxb_path, clsxj_path), stdout=FALSE, stderr=FALSE)
+  system2(dv8_path, args=c('core:convert-cluster', '-outputFile', clsxb_path, clsxj_path), stdout=FALSE, stderr=FALSE)
 }
 
 #' Detect Architecture anti-patterns
 #'
-#' @param hsdsmb_path path to the merged matrix input file dv8-dsm
+#' @param dv8_path path to dv8 binary
+#' @param hsdsmb_path path to the merged binary DSM
 #' @param flaws_path path to architecture folder
+#' @param cliqueDepends (For Clique detection) Filtered dependencies for clique detection. Multiple dependencies should be delimited using ","
+#' @param crossingCochange (For Crossing detection) Threshold of co-change between two files
+#' @param crossingFanIn (For Crossing detection) The number of other files that depend on it >= "crossingFanIn"
+#' @param crossingFanOut (For Crossing detection) The number of other files it depends on >= "crossingFanOut"
+#' @param mvCochange (For Modularity Violation detection) Threshold of co-change between two files
+#' @param uiCochange (For Unstable Interface detection) Threshold of co-change between two files
+#' @param uihDepends (For Unhealthy Inheritance detection) Filtered dependencies for unhealthy inheritance detection. Multiple dependencies should be delimited using ","
+#' @param uihInheritance (For Unhealthy Inheritance detection) Dependencies for unhealthy inheritance detection. Multiple dependencies should be delimited using ","
+#' @param historyImpact (For Unstable Interface detection) Threshold of the number of co-changed (more than "co-change" times) files
+#' @param uiStructImpact (For Unstable Interface detection) Threshold of value < 1 means percentage of all files are dependents
+#'
 #' @export
-dv8_hsdsmb_to_flaws <- function(hsdsmb_path, flaws_path){
+#' @family dv8
+dv8_hsdsmb_to_flaws <- function(dv8_path,
+                                hsdsmb_path,
+                                flaws_path,
+                                cliqueDepends='call,use',
+                                crossingCochange=2,
+                                crossingFanIn=4,
+                                crossingFanOut=4,
+                                mvCochange=2,
+                                uiCochange=2,
+                                uihDepends='call,use',
+                                uihInheritance='extend,implement,public,private,virtual',
+                                historyImpact=10,
+                                uiStructImpact=0.01){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
+  dv8_path <- path.expand(dv8_path)
   hsdsmb_path <- path.expand(hsdsmb_path)
   flaws_path <- path.expand(flaws_path)
 
   # Run system2 command with appropriate values for options
-  system2('dv8-console', args=c('arch-issue:arch-issue',
-                                '-uiCochange', '2',
-                                '-crossingFanIn', '4',
-                                '-crossingFanOut', '4',
-                                '-cliqueDepends', 'call,use',
-                                '-uihDepends', 'call,use',
-                                '-uihInheritance', 'extend,implement,public,private,virtual',
+  system2(dv8_path, args=c('arch-issue:arch-issue',
+                                '-cliqueDepends', cliqueDepends,
+                                '-crossingCochange', crossingCochange,
+                                '-crossingFanIn', crossingFanIn,
+                                '-crossingFanOut', crossingFanOut,
+                                '-mvCochange', mvCochange,
+                                '-uiCochange', uiCochange,
+                                '-uihDepends', uihDepends,
+                                '-uihInheritance', uihInheritance,
+                                '-historyImpact', historyImpact,
+                                '-uiStructImpact', uiStructImpact,
                                 '-outputFolder', flaws_path,
                                 hsdsmb_path),
           stdout=FALSE, stderr=FALSE)
@@ -68,10 +111,18 @@ dv8_hsdsmb_to_flaws <- function(hsdsmb_path, flaws_path){
 
 #' Parse Architecture Flaws
 #'
-#' @param file_measure_report_path path to file-measure-report.csv
+#' @param dv8_path path to dv8 binary
 #' @param flaws_path path to architecture folder
+#' @param keep_intermediate_files TRUE if the user wishes to keep the intermediate files generated by this function, FALSE otherwise
+#'
 #' @export
-parse_dv8_architectural_flaws <- function(file_measure_report_path, flaws_path) {
+#' @family dv8
+parse_dv8_architectural_flaws <- function(dv8_path, flaws_path, keep_intermediate_files=FALSE) {
+
+  # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
+  dv8_path <- path.expand(dv8_path)
+  flaws_path <- path.expand(flaws_path)
+
   folders_expected <- c("clique", "modularity-violation", "package-cycle", "unhealthy-inheritance")
   folders_exist <- list.files(flaws_path)
 
@@ -83,12 +134,6 @@ parse_dv8_architectural_flaws <- function(file_measure_report_path, flaws_path) 
     }
 
     return(folder_exists)
-  }
-
-  convert_dsm_binary_to_json <- function(dsm_binary_file_path, json_path) {
-    hierjson_path <- file.path(json_path, 'hier.json')
-    system2('dv8-console', args=c('core:export-matrix', '-outputFile', hierjson_path, dsm_binary_file_path), stdout=FALSE, stderr=FALSE)
-    return (hierjson_path)
   }
 
   generate_file_paths <- function(folder_name, flaws_path) {
@@ -116,20 +161,32 @@ parse_dv8_architectural_flaws <- function(file_measure_report_path, flaws_path) 
         # If there are any files that contain the word 'merge'
         if (length(files_merged) > 0) {
           # loop through each file path in files_merged
-          for (file_path in files_merged) {
-            # call convert_dsm_binary_to_json for each dv8-dsm file
-            save_path <- dirname(file_path)
-            result <- convert_dsm_binary_to_json(file_path, save_path)
+          for (file in files_merged) {
+            # call dv8_dsmb_to_dsmj to convert binary DSM to json file
+            json_path <- file.path(dirname(file), basename(subdir))
+            result <- dv8_dsmb_to_dsmj(dv8_path, file, json_path)
 
-            # Get variables (which contains the file paths) from json file
-            file_paths <- jsonlite::fromJSON(result)
-            files <- file_paths$variables
-            file.remove(result)
+            if (length(result) > 0){
+              result <- file.path(dirname(json_path), paste(basename(json_path), 'json', sep='.'))
+              # Get variables (which contains the file paths) from json file
+              file_path <- jsonlite::fromJSON(result)
+              file_path <- file_path$variables
+              dt <- data.table::as.data.table(file_path)
 
-            for (project_file in files){
-              # add the file path and folder name to the data.table
-              issue_id <- gsub("[^0-9]", "", gsub(folder_path, '', subdir))
-              dt_files <- rbind(dt_files, data.table::data.table(file_path = project_file, architecture_issue_type = folder_name, architecture_issue_id = issue_id))
+              # Get issue_id based on folder's name
+              issue_id <- basename(subdir)
+
+              # Add and fill architecture_issue type column with folder name and architecture_issue_id column with issue_id
+              dt[, architecture_issue_type := folder_name]
+              dt[, architecture_issue_id := issue_id]
+
+              # Combine data.table from current json data with previous json data
+              dt_files <- rbind(dt_files, dt, fill=TRUE)
+
+              # Remove file generated by this function if keep_intermediate_files is TRUE
+              if (!keep_intermediate_files){
+                file.remove(result)
+              }
             }
 
           }
@@ -143,9 +200,12 @@ parse_dv8_architectural_flaws <- function(file_measure_report_path, flaws_path) 
 
   result <- data.table::data.table(file_path = character(), architecture_issue_type = character(), architecture_issue_id = character())
 
+  # Loop over the folder exist in the given folder
   for (dir in folders_exist) {
+    # If one of the folder exists, call generate_file_path function
+    # Ex. If clique folder exists, call generate_file_path function
     if (check_folders_exist(folders_expected, dir)) {
-      result <- rbind(result, generate_file_paths(dir, flaws_path))
+      result <- rbind(result, generate_file_paths(dir, flaws_path), fill=TRUE)
     }
   }
 

@@ -2,17 +2,29 @@
 % Please edit documentation in R/dv8.R
 \name{dv8_hdsmb_sdsmb_to_hsdsmb}
 \alias{dv8_hdsmb_sdsmb_to_hsdsmb}
-\title{Merge matrices from dv8-dsm file to one new matrix in hsdsm.dv8-dsm}
+\title{Merge history DSM and structural DSM to merged DSM.
+A history DSM (*.dv8-dsm) and a structural DSM (*.dv8-dsm) is merged to a merged DSM (*.dv8-dsm)}
 \usage{
-dv8_hdsmb_sdsmb_to_hsdsmb(hdsmb_path, sdsmb_path, hsdsmb_path)
+dv8_hdsmb_sdsmb_to_hsdsmb(dv8_path, hdsmb_path, sdsmb_path, hsdsmb_path)
 }
 \arguments{
-\item{hdsmb_path}{path to the matrix from hdsmb file}
+\item{dv8_path}{path to dv8 binary}
 
-\item{hsdsmb_path}{path to save the merged matrices in hsdsm.dv8-dsm file}
+\item{hdsmb_path}{path to the matrix from history binary DSM}
 
-\item{sdsmb}{path to the matrix from sdsmb file}
+\item{sdsmb_path}{path to the matrix from structural binary DSM}
+
+\item{hsdsmb_path}{path to save the merged matrices in binary DSM}
 }
 \description{
-Merge matrices from dv8-dsm file to one new matrix in hsdsm.dv8-dsm
+Merge history DSM and structural DSM to merged DSM.
+A history DSM (*.dv8-dsm) and a structural DSM (*.dv8-dsm) is merged to a merged DSM (*.dv8-dsm)
 }
+\seealso{
+Other dv8: 
+\code{\link{dv8_clsxj_to_clsxb}()},
+\code{\link{dv8_dsmj_to_dsmb}()},
+\code{\link{dv8_hsdsmb_to_flaws}()},
+\code{\link{parse_dv8_architectural_flaws}()}
+}
+\concept{dv8}

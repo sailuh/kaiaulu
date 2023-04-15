@@ -2,15 +2,31 @@
 % Please edit documentation in R/dv8.R
 \name{dv8_dsmj_to_dsmb}
 \alias{dv8_dsmj_to_dsmb}
-\title{Convert from sdsm.json to a dependency matrix in sdsm.dv8-dsm file}
+\title{Convert from a JSON DSM to a binary DSM.
+Note: This function converts
+                   a hdsm.json (*.json) to history DSM (*.dv8-dsm)
+                   a sdsm.json (*.json) to structural DSM (*.dv8-dsm)}
 \usage{
-dv8_dsmj_to_dsmb(dsmj_path, dsmb_path)
+dv8_dsmj_to_dsmb(dv8_path, dsmj_path, dsmb_path)
 }
 \arguments{
-\item{dsmj_path}{path to sdsm.json}
+\item{dv8_path}{path to dv8 binary}
 
-\item{dsmb_path}{path to save dv8-dsm file}
+\item{dsmj_path}{path to JSON DSM}
+
+\item{dsmb_path}{path to save binary DSM}
 }
 \description{
-Convert from sdsm.json to a dependency matrix in sdsm.dv8-dsm file
+Convert from a JSON DSM to a binary DSM.
+Note: This function converts
+                   a hdsm.json (*.json) to history DSM (*.dv8-dsm)
+                   a sdsm.json (*.json) to structural DSM (*.dv8-dsm)
 }
+\seealso{
+Other dv8: 
+\code{\link{dv8_clsxj_to_clsxb}()},
+\code{\link{dv8_hdsmb_sdsmb_to_hsdsmb}()},
+\code{\link{dv8_hsdsmb_to_flaws}()},
+\code{\link{parse_dv8_architectural_flaws}()}
+}
+\concept{dv8}
