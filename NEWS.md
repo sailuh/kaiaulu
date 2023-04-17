@@ -3,6 +3,7 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### NEW FEATURES
 
+ * Adds downloader functions called `download_bugzilla_issues_from_rest_api()` and  `download_bugzilla_comments_from_rest_api()` to download Bugzilla issues and comments respectively using Bugzilla's REST API. [#153](https://github.com/sailuh/kaiaulu/issues/153)
  * Adds issue commit flow. See `issue_social_smell_showcase.Rmd` vignette for details. [#144](https://github.com/sailuh/kaiaulu/issues/144)
  * Adds a new `download_mod_mbox_per_month()` function which allows for the intermediate mbox downloaded files to be saved to the chosen folder (as opposed to tmp). The function is showcases on `download_mod_mbox.Rmd` vignette. [#141](https://github.com/sailuh/kaiaulu/issues/141)
  * A CLI interface for calculating smells over multiple branches was added. Consistent with other interfaces, the input is the tools.yml, the project configuration file, and the file save path. [#132](https://github.com/sailuh/kaiaulu/issues/132)
@@ -20,6 +21,7 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### MINOR IMPROVEMENTS
 
+ * Adds SetUp and TearDown unit tests for a sample git log. [#154](https://github.com/sailuh/kaiaulu/issues/154)
  * Added new citation for Kaiaulu work on README and references of works using Kaiaulu. [#143](https://github.com/sailuh/kaiaulu/issues/143)
  * Moves suggested rawdata folder assumed on configuration files one level above to avoid rawdata git logs being incorrectly parsed when parsing Kaiaulu architecture during documentation generation. Minor function documentation was also fixed. [#142](https://github.com/sailuh/kaiaulu/issues/142)
  * For multi-branch analysis, specifying a single commit hash will not work as it will only apply to a single branch. The CLI has been modified to rely on the start_datetime and end_datetime instead. [#132](https://github.com/sailuh/kaiaulu/issues/132)
@@ -28,6 +30,10 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### BUG FIXES
  
+ * parse_dependencies() now returns a list of nodes and edgelist as opposed to just edgelist tables. Prior to this change, files that contain no dependency to other files would be missed (as they would not exist in the edgelist table, and only in the node table). This is consistent to both Depends and DV8 tables, as there is a 1 to 1 mapping from Depends/DV8 variables field on the generated JSON and the node table in Kaiaulu's graph memory representation, and the Depends/DV8 cells field, and Kaiaulu's graph edgelist table. [#189](https://github.com/sailuh/kaiaulu/issues/189). 
+ * parse_gitlog() now renames files on their first commit renames, instead of when the renamed file is first modified. Prior logic led to situations where, when a file is renamed and never again modified, the new file name is never mentioned on the git log. This was due to how Perceval encoded file renaming, by including in a rarely present field called "newfile" instead of including the new file name under "file". [#184](https://github.com/sailuh/kaiaulu/issues/184)
+ * parse_dependencies() no longer truncates full file paths, but instead turn them into relative paths. Dependencies notebook also now show a sample of the table and dependency graph. [#172](https://github.com/sailuh/kaiaulu/issues/172)   
+ * parse_mbox() can now parse .mbox files that contain less fields [#185](https://github.com/sailuh/kaiaulu/issues/185)
  * The CLI interface for git and mailinglist has been updated to conform to the new project configuration file format. [#111](https://github.com/sailuh/kaiaulu/issues/111)
  * Fixes incorrect column name usage when calculating churn, which resulted in churn returning 0 as metric. [#135](https://github.com/sailuh/kaiaulu/issues/135)
  * If OSLOM detected developers to belong to more than one community, the radio silence function would throw warnings when said developer was a neighboor of others, choosing the first of the available groups. This is because the original smell function used a community detection algorithm which did not assign multiple groups. The warning is fixed by implementing what it did by default, i.e. choosing the first group of those assigned. In the future, the smell function can be improved to account for more than one group. [#134](https://github.com/sailuh/kaiaulu/issues/134)
@@ -39,6 +45,9 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### DOCUMENTATION FIXES
 
+ * New configuration file for the Apache Thrift project called "thrift.yml". [#148](https://github.com/sailuh/kaiaulu/issues/148)
+ * Fixed minor grammar mistakes and vague wording. [#151] (https://github.com/sailuh/kaiaulu/issues/151)
+ 
 kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) 
 =========================
 
