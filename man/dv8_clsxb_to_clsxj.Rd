@@ -21,6 +21,9 @@ Converts a clustering binary in the dv8 format *-clsx.dv8-cslx into a
 Other dv8: 
 \code{\link{dependencies_to_sdsmj}()},
 \code{\link{gitlog_to_hdsmj}()},
-\code{\link{parse_dv8_clusters}()}
+\code{\link{graph_to_dsmj}()},
+\code{\link{parse_dv8_clusters}()},
+\code{\link{transform_dependencies_to_sdsmj}()},
+\code{\link{transform_gitlog_to_hdsmj}()}
 }
 \concept{dv8}

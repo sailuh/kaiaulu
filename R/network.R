@@ -4,6 +4,50 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+#' Transform parsed dependencies into a sdsmj file.
+#'
+#' # Creates a sdsm.json from a table of dependencies from Depends.
+#'
+#' @param depends_table A parsed depends project by \code{parse_dependencies}.
+#' @param is_sorted whether to sort the variables (filenames) in the dsm.json files
+#' @export
+#' @family edgelists
+#' @family dv8
+#' @seealso \code{\link{parse_dependencies}}, \code{\link{transform_gitlog_to_bipartite_network}},
+#' \code{\link{graph_to_dsmj}}
+transform_dependencies_to_sdsmj <- function(depends_table, is_sorted=FALSE){
+  # Rename "filepath" to "to"
+  colnames(depends_table$nodes)[1] = "name"
+  # Rename "src_filepath" to "from"
+  colnames(depends_table$edgelist)[1] = "from"
+  # Rename "dest_filepath" to "to"
+  colnames(depends_table$edgelist)[2] = "to"
+
+  graph_to_dsmj(depends_table, is_sorted)
+}
+
+#' Transform parsed git repo into a hdsmj file.
+#'
+#' # Creates a hdsm.json from a parsed gitlog table.
+#'
+#' @param gitlog_table A parsed git project by \code{parse_gitlog}.
+#' @param is_sorted whether to sort the variables (filenames) in the dsm.json files
+#' @export
+#' @family edgelists
+#' @family dv8
+#' @seealso \code{\link{parse_gitlog}}, \code{\link{transform_dependencies_to_bipartite_network}},
+#' \code{\link{graph_to_dsmj}}
+transform_gitlog_to_hdsmj <- function(gitlog_table, is_sorted=FALSE){
+  # Call preliminary functions to get graph and cochange for the files
+  gitlog_graph <- transform_gitlog_to_bipartite_network(gitlog_table, mode ="commit-file")
+  cochange_table <- bipartite_graph_projection(gitlog_graph, mode = FALSE, is_intermediate_projection = FALSE)
+
+  # Rename "weight" to "Cochange"
+  colnames(cochange_table$edgelist)[3] = "Cochange"
+
+  graph_to_dsmj(cochange_table, is_sorted)
+}
+
 #' Transform parsed git repo into an edgelist
 #'
 #' @param project_git A parsed git project by \code{parse_gitlog}.

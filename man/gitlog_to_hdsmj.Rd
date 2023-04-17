@@ -24,6 +24,9 @@ In the hdsm.json, the Variables are all files/methods or any variables under ana
 Other dv8: 
 \code{\link{dependencies_to_sdsmj}()},
 \code{\link{dv8_clsxb_to_clsxj}()},
-\code{\link{parse_dv8_clusters}()}
+\code{\link{graph_to_dsmj}()},
+\code{\link{parse_dv8_clusters}()},
+\code{\link{transform_dependencies_to_sdsmj}()},
+\code{\link{transform_gitlog_to_hdsmj}()}
 }
 \concept{dv8}

@@ -24,7 +24,10 @@ Other parsers:
 Other dv8: 
 \code{\link{dependencies_to_sdsmj}()},
 \code{\link{dv8_clsxb_to_clsxj}()},
-\code{\link{gitlog_to_hdsmj}()}
+\code{\link{gitlog_to_hdsmj}()},
+\code{\link{graph_to_dsmj}()},
+\code{\link{transform_dependencies_to_sdsmj}()},
+\code{\link{transform_gitlog_to_hdsmj}()}
 }
 \concept{dv8}
 \concept{parsers}
