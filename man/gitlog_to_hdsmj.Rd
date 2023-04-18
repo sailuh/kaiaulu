@@ -2,29 +2,34 @@
 % Please edit documentation in R/dv8.R
 \name{gitlog_to_hdsmj}
 \alias{gitlog_to_hdsmj}
-\title{Convert gitlog table to a hdsm.json}
+\title{Transforms a gitlog table to a historical DSM JSON file.}
 \usage{
-gitlog_to_hdsmj(gitlog_table, project_name, is_sorted = FALSE)
+gitlog_to_hdsmj(gitlog_table, hdsmj_path, is_sorted = FALSE)
 }
 \arguments{
-\item{gitlog_table}{parsed gitlog table}
+\item{gitlog_table}{parsed gitlog table created by \code{\link{parse_gitlog}}}
 
-\item{project_name}{project name for the hdsm.json}
+\item{hdsmj_path}{path to save output file}
 
 \item{is_sorted}{whether the json is sorted by src and dest}
 }
 \description{
-Converts a gitlog table into an *-hdsm.json binary.
+Converts a gitlog table into an *-hdsm.json.
 In the hdsm.json, the Variables are all files/methods or any variables under analysis
 (rows/columns in dependency matrix) and the Cells (matrix cell) contain all the relations of
- variable (src & dest) pairs. The Cochange is the number of times the src & dest
+ variable (src & dest) pairs. The Co-change is the number of times the src & dest
   were committed together.
 }
 \seealso{
 Other dv8: 
 \code{\link{dependencies_to_sdsmj}()},
 \code{\link{dv8_clsxb_to_clsxj}()},
+\code{\link{dv8_clsxj_to_clsxb}()},
+\code{\link{dv8_dsmj_to_dsmb}()},
+\code{\link{dv8_hdsmb_sdsmb_to_mdsmb}()},
+\code{\link{dv8_mdsmb_to_flaws}()},
 \code{\link{graph_to_dsmj}()},
+\code{\link{parse_dv8_architectural_flaws}()},
 \code{\link{parse_dv8_clusters}()},
 \code{\link{transform_dependencies_to_sdsmj}()},
 \code{\link{transform_gitlog_to_hdsmj}()}

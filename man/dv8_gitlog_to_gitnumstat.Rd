@@ -2,21 +2,21 @@
 % Please edit documentation in R/dv8.R
 \name{dv8_gitlog_to_gitnumstat}
 \alias{dv8_gitlog_to_gitnumstat}
-\title{Creates a gitlog numstat file from a git file}
+\title{Transforms a git log to a git numstat file.}
 \usage{
 dv8_gitlog_to_gitnumstat(git_repo_path, git_numstat_path)
 }
 \arguments{
-\item{git_repo_path}{path to local repository}
+\item{git_repo_path}{path to local project git repository}
 
-\item{git_numstat_path}{file name of git log output}
+\item{git_numstat_path}{path to save gitlog numstat}
 }
 \value{
 path to git log output
 }
 \description{
-From a git file *.git, a gitlog numstat file *.txt is created
+Comverts a git folder *.git, to a gitlog numstat file *.txt
 }
 \seealso{
-\code{\link{dv8_gitnumstat_to_hdsmb}} for creating hsdsmb binary file from a git numstat text file
+\code{\link{dv8_gitnumstat_to_hdsmb}} for creating mdsmb binary file from a git numstat text file
 }

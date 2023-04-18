@@ -9,7 +9,7 @@ dv8_clsxb_to_clsxj(dv8_path, clsxb_path, clsxj_path)
 \arguments{
 \item{dv8_path}{path to dv8 binary}
 
-\item{clsxb_path}{path to clsx to convert}
+\item{clsxb_path}{path to clsx to convert created by \code{\link{dv8_mdsmb_to_hierclsxb}}}
 
 \item{clsxj_path}{path to save output file}
 }
@@ -20,8 +20,13 @@ Converts a clustering binary in the dv8 format *-clsx.dv8-cslx into a
 \seealso{
 Other dv8: 
 \code{\link{dependencies_to_sdsmj}()},
+\code{\link{dv8_clsxj_to_clsxb}()},
+\code{\link{dv8_dsmj_to_dsmb}()},
+\code{\link{dv8_hdsmb_sdsmb_to_mdsmb}()},
+\code{\link{dv8_mdsmb_to_flaws}()},
 \code{\link{gitlog_to_hdsmj}()},
 \code{\link{graph_to_dsmj}()},
+\code{\link{parse_dv8_architectural_flaws}()},
 \code{\link{parse_dv8_clusters}()},
 \code{\link{transform_dependencies_to_sdsmj}()},
 \code{\link{transform_gitlog_to_hdsmj}()}

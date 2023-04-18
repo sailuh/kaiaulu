@@ -21,7 +21,12 @@ graph_to_dsmj(graph, is_sorted = FALSE)
 Other dv8: 
 \code{\link{dependencies_to_sdsmj}()},
 \code{\link{dv8_clsxb_to_clsxj}()},
+\code{\link{dv8_clsxj_to_clsxb}()},
+\code{\link{dv8_dsmj_to_dsmb}()},
+\code{\link{dv8_hdsmb_sdsmb_to_mdsmb}()},
+\code{\link{dv8_mdsmb_to_flaws}()},
 \code{\link{gitlog_to_hdsmj}()},
+\code{\link{parse_dv8_architectural_flaws}()},
 \code{\link{parse_dv8_clusters}()},
 \code{\link{transform_dependencies_to_sdsmj}()},
 \code{\link{transform_gitlog_to_hdsmj}()}

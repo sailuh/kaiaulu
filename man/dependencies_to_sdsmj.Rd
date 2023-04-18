@@ -2,19 +2,19 @@
 % Please edit documentation in R/dv8.R
 \name{dependencies_to_sdsmj}
 \alias{dependencies_to_sdsmj}
-\title{Convert dependencies table to a sdsm.json}
+\title{Transforms a dependencies table to a structural DSM JSON file.}
 \usage{
-dependencies_to_sdsmj(depends_table, project_name, is_sorted = FALSE)
+dependencies_to_sdsmj(depends_table, sdsmj_path, is_sorted = FALSE)
 }
 \arguments{
-\item{depends_table}{parsed dependencies table}
+\item{depends_table}{parsed dependencies table created by \code{\link{parse_dependencies}}}
 
-\item{project_name}{project name for the sdsm.json}
+\item{sdsmj_path}{path to save output file}
 
 \item{is_sorted}{whether the json is sorted by src and dest}
 }
 \description{
-Converts table of dependencies from \code{\link{parse_dependencies}} into an *-sdsm.json binary.
+Converts table of dependencies from \code{\link{parse_dependencies}} into an *-sdsm.json.
 In the sdsm.json, the Variables are all files/methods or any variables under analysis
 (rows/columns in dependency matrix) and the Cells (matrix cell) contain all the relations of
  variable (src & dest) pairs.
@@ -24,8 +24,13 @@ In the sdsm.json, the Variables are all files/methods or any variables under ana
 
 Other dv8: 
 \code{\link{dv8_clsxb_to_clsxj}()},
+\code{\link{dv8_clsxj_to_clsxb}()},
+\code{\link{dv8_dsmj_to_dsmb}()},
+\code{\link{dv8_hdsmb_sdsmb_to_mdsmb}()},
+\code{\link{dv8_mdsmb_to_flaws}()},
 \code{\link{gitlog_to_hdsmj}()},
 \code{\link{graph_to_dsmj}()},
+\code{\link{parse_dv8_architectural_flaws}()},
 \code{\link{parse_dv8_clusters}()},
 \code{\link{transform_dependencies_to_sdsmj}()},
 \code{\link{transform_gitlog_to_hdsmj}()}

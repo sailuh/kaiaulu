@@ -7,7 +7,7 @@
 parse_dv8_metrics_decoupling_level(json_path)
 }
 \arguments{
-\item{json_path}{path to decoupling metric json file created by \code{\link{dv8_hsdsmb_to_decoupling_level}}}
+\item{json_path}{path to decoupling metric json file created by \code{\link{dv8_mdsmb_to_decoupling_level}}}
 }
 \value{
 data.table object with decoupling metrics
