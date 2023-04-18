@@ -122,3 +122,9 @@ reference:
   - parse_dv8_clusters
   - dependencies_to_sdsmj
   - gitlog_to_hdsmj
+  - dv8_gitlog_to_gitnumstat
+  - dv8_gitnumstat_to_hdsmb
+  - dv8_hsdsmb_to_decoupling_level
+  - dv8_hsdsmb_to_hierclsxb
+  - dv8_hsdsmb_drhier_to_excel
+  - parse_dv8_metrics_decoupling_level
