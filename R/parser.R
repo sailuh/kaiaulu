@@ -567,10 +567,11 @@ parse_github_replies <- function(github_replies_folder_path){
 #'
 #' @param depends_jar_path path to depends jar
 #' @param git_repo_path path to git repo (ends in .git)
+#' @param output_dir path to output directory (formatted output_path/)
 #' @param language the language of the .git repo (accepts cpp, java, ruby, python, pom)
 #' @export
 #' @family parsers
-parse_dependencies <- function(depends_jar_path,git_repo_path,language){
+parse_dependencies <- function(depends_jar_path,git_repo_path,language,output_dir="/tmp/"){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   depends_jar_path <- path.expand(depends_jar_path)
   git_repo_path <- path.expand(git_repo_path)
@@ -582,14 +583,15 @@ parse_dependencies <- function(depends_jar_path,git_repo_path,language){
   system2("java",
           args = c("-jar",depends_jar_path,
                    language,folder_path,
-                   project_name,'--dir=/tmp/',
+                   project_name,'--dir',
+                   output_dir,
                    '--auto-include',
                    '--granularity=file', '--namepattern=/',
                    '--format=json'),
           stdout = FALSE,
           stderr = FALSE)
-  # Construct /tmp/ file path
-  output_path <- stri_c("/tmp/",project_name,".json")
+  # Construct /output_dir/ file path
+  output_path <- stri_c(output_dir, project_name,".json")
   # Parsed JSON output.
   depends_parsed <- jsonlite::read_json(output_path)
   # The JSON has two main parts. The first is a vector of all file names.

@@ -38,6 +38,8 @@ reference:
   - transform_r_dependencies_to_network
   - transform_commit_message_id_to_network
   - transform_cve_cwe_file_to_network
+  - transform_dependencies_to_sdsmj
+  - transform_gitlog_to_hdsmj
 - title: Graph
   desc:  Provide graph models to construct networks and algorithms for graph analysis
 - contents:
@@ -45,6 +47,7 @@ reference:
   - bipartite_graph_projection
   - community_oslom
   - recolor_network_by_community
+  - graph_to_dsmj
 - title: Identity
   desc:  Provide the same id to authors who use variations of names or emails.
 - contents:
@@ -113,8 +116,12 @@ reference:
   - download_mod_mbox
   - download_mod_mbox_per_month
 - title: DV8
-  desc: Functions to integrate DV8 capabilities into Kaiaulu.
+  desc:  Functions to integrate DV8 capabilities into Kaiaulu.
 - contents:
+  - dv8_clsxb_to_clsxj
+  - parse_dv8_clusters
+  - dependencies_to_sdsmj
+  - gitlog_to_hdsmj
   - dv8_gitlog_to_gitnumstat
   - dv8_gitnumstat_to_hdsmb
   - dv8_hsdsmb_to_decoupling_level
