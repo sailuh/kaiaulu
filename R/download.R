@@ -1,9 +1,3 @@
-# Kaiaulu - https://github.com/sailuh/kaiaulu
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at https://mozilla.org/MPL/2.0/.
-
 #' Download all pipermail files in an archive
 #' @param url An url pointing to a pipermail archive
 #' @return Returns `destination`, a vector of the downloaded files in the current working directory

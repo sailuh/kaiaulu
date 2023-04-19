@@ -2,7 +2,9 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 =========================
 
 ### NEW FEATURES
-
+ * Adds DV8 Notebook showcasing various DV8 Functions. The project configuration file of APR has been expanded to demonstrate available parameters for DV8. [#186](https://github.com/sailuh/kaiaulu/issues/186) and [#182](https://github.com/sailuh/kaiaulu/issues/182).  
+ * Adds functions `dv8_clsxb_to_clsxj`, `parse_dv8_clusters`, `dependencies_to_sdsmj`, and `gitlog_to_hdsmj` for DV8 integration with Kaiaulu. [#168](https://github.com/sailuh/kaiaulu/issues/168) 
+ * Adds functions `dv8_gitlog_to_gitnumstat` `dv8_gitnumstat_to_hdsmb` `dv8_hsdsmb_to_decoupling_level` `dv8_hsdsmb_to_hierclsxb` `dv8_hsdsmb_drhier_to_excel` `parse_dv8_metrics_decoupling_level` [#169](https://github.com/sailuh/kaiaulu/issues/169) 
  * Adds issue commit flow. See `issue_social_smell_showcase.Rmd` vignette for details. [#144](https://github.com/sailuh/kaiaulu/issues/144)
  * Adds a new `download_mod_mbox_per_month()` function which allows for the intermediate mbox downloaded files to be saved to the chosen folder (as opposed to tmp). The function is showcases on `download_mod_mbox.Rmd` vignette. [#141](https://github.com/sailuh/kaiaulu/issues/141)
  * A CLI interface for calculating smells over multiple branches was added. Consistent with other interfaces, the input is the tools.yml, the project configuration file, and the file save path. [#132](https://github.com/sailuh/kaiaulu/issues/132)
@@ -19,7 +21,7 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
  * With version 0.0.0.9600, Three social smells (org silo, missing link, and radio silence) are refactored to the master branch. The social smells no longer have a dependency to igraph, and OSLOM is used for community detection instead of igraph's random walk. Because of the closer integration to source, the social smell notebook includes a new section where any time slice can be explored to assess the social metrics, including coloring by community. A separate branch will contain a notebook comparing the re-implementation to the existing metric. While org silo and missing link should result in the same metric value, radio silence results will be different due to the use of a different community detection algorithm. [#114](https://github.com/sailuh/kaiaulu/issues/114).
 
 ### MINOR IMPROVEMENTS
-
+ * Updated parse_dependencies() with `output_dir` folder for more flexibility. [#168](https://github.com/sailuh/kaiaulu/issues/168) 
  * Adds SetUp and TearDown unit tests for a sample git log. [#154](https://github.com/sailuh/kaiaulu/issues/154)
  * Added new citation for Kaiaulu work on README and references of works using Kaiaulu. [#143](https://github.com/sailuh/kaiaulu/issues/143)
  * Moves suggested rawdata folder assumed on configuration files one level above to avoid rawdata git logs being incorrectly parsed when parsing Kaiaulu architecture during documentation generation. Minor function documentation was also fixed. [#142](https://github.com/sailuh/kaiaulu/issues/142)
@@ -43,7 +45,9 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
  * OSLOM now assign cluster ids to isolated nodes for consistency [#115](https://github.com/sailuh/kaiaulu/issues/115)
 
 ### DOCUMENTATION FIXES
-
+ * Add Malia Liu, and Nicholas Lee as contributors on DESCRIPTION file. 
+ * Fixes various inconsistencies across documentation, missing parameter hyperlinking, seealso, etc. Functions in R/dv8.R were re-order to follow expected order of function call in an analysis, which is consistent to their ordering in _pkgdown.yml. [#186](https://github.com/sailuh/kaiaulu/issues/186)
+ * New vignette for DV8 functions called "dv8.Rmd" [#168](https://github.com/sailuh/kaiaulu/issues/168) 
  * New configuration file for the Apache Thrift project called "thrift.yml". [#148](https://github.com/sailuh/kaiaulu/issues/148)
  * Fixed minor grammar mistakes and vague wording. [#151] (https://github.com/sailuh/kaiaulu/issues/151)
  
