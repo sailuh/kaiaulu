@@ -18,6 +18,8 @@ Parse Jira issue and comments
 }
 \seealso{
 Other parsers: 
+\code{\link{parse_bugzilla_crawler_comments}()},
+\code{\link{parse_bugzilla_crawler_issue}()},
 \code{\link{parse_bugzillarest}()},
 \code{\link{parse_bugzilla}()},
 \code{\link{parse_commit_message_id}()},

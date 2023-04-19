@@ -16,6 +16,8 @@ Adds a column commit_message_id containing the parsed commit message
 }
 \seealso{
 Other parsers: 
+\code{\link{parse_bugzilla_crawler_comments}()},
+\code{\link{parse_bugzilla_crawler_issue}()},
 \code{\link{parse_bugzillarest}()},
 \code{\link{parse_bugzilla}()},
 \code{\link{parse_dependencies}()},
