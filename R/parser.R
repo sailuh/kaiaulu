@@ -4,9 +4,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#' Parse Bugzilla issues data obtained from json files from Bugzilla crawler \code{\link{download_bugzilla_issues_from_rest_api}}
+#' Parse Bugzilla issues data obtained from json files from Bugzilla crawler
 #'
 #' @param issues_folder_path path to the issue folder that contains json file with Bugzilla data inside
+#' @seealso \code{\link{download_bugzilla_issues_from_rest_api}} a downloader function to download bugzilla issues data with REST API
+#' @return data table
 #' @export
 #' @family parsers
 parse_bugzilla_crawler_issue <- function(issues_folder_path){
@@ -86,6 +88,8 @@ parse_bugzilla_crawler_issue <- function(issues_folder_path){
 #' Parse Bugzilla comments data obtained from json files from Bugzilla crawler \code{\link{download_bugzilla_comments_from_rest_api}}
 #'
 #' @param comments_folder_path path to the comments folder that contains json file with Bugzilla data inside
+#' @seealso \code{\link{download_bugzilla_comments_from_rest_api}} a downloader function to download bugzilla comments data with REST API
+#' @return data table
 #' @export
 #' @family parsers
 parse_bugzilla_crawler_comments <- function(comments_folder_path){
@@ -143,6 +147,8 @@ parse_bugzilla_crawler_comments <- function(comments_folder_path){
 #'
 #' @param bugzilla_json json object containing Bugzilla data
 #' @param comments if true, the comments are parsed along with the issues
+#' @seealso \code{\link{download_bugzilla}} a downloader function to download bugzilla data with perceval
+#' @return data table
 #' @export
 #' @family parsers
 parse_bugzilla <- function(bugzilla_json, comments=FALSE){
@@ -282,6 +288,8 @@ parse_bugzilla <- function(bugzilla_json, comments=FALSE){
 #'
 #' @param bugzilla_json json object containing Bugzilla data
 #' @param comments if true, the comments are parsed along with the issues
+#' @seealso \code{\link{download_bugzilla}} a donwoloader function download bugzilla data with perceval
+#' @return data table
 #' @export
 #' @family parsers
 parse_bugzillarest <- function(bugzilla_json, comments=FALSE){

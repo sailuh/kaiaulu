@@ -17,6 +17,8 @@
 #' @param max_bugs the maximum number of bugs requested on the same query. This acts as the limit parameter
 #' in the Bugzilla REST API. Bugzilla sites may have specific limits set, so make sure to change the max_bugs
 #' parameter accordingly to correctly download the data when using the "bugzillarest" backend.
+#' @seealso \code{\link{parse_bugzilla}} a parser function to parse the bugzilla data
+#' @return json object
 #' @export
 download_bugzilla <- function(perceval_path, bugzilla_site, datetime, backend="bugzilla", max_bugs=500){
   json_data <- system2(perceval_path,
@@ -49,7 +51,9 @@ download_bugzilla <- function(perceval_path, bugzilla_site, datetime, backend="b
 #' @param limit_upperbound the number of issues saved in each page file. Some bugzilla sites have limits set on how many bugs
 #' can be retrieved in one GET request, in which case, the limit set by the bugzilla site will be used in place of
 #' limit_upperbound to ensure full bug retrieval.
-#' @seealso \code{\link{download_bugzilla_comments_from_rest_api}} and \code{\link{parse_bugzilla_crawler_issue}}
+#' @seealso \code{\link{download_bugzilla_comments_from_rest_api}} a downloader function to download bugziET request
+#' @seealso \code{\link{parse_bugzilla_crawler_issue}} a parser function to parse bugzilla issue
+#' @return vector of issue ids
 #' @export
 download_bugzilla_issues_from_rest_api <- function(bugzilla_site, start_timestamp, save_folder_path, limit_upperbound=500){
   # Format link to retrieve data using Bugzilla REST API
@@ -128,7 +132,8 @@ download_bugzilla_issues_from_rest_api <- function(bugzilla_site, start_timestam
 #' @param bugzilla_site URL to specific bugzilla site
 #' @param bug_ids the ids of the bugs to extract comments for from \code{\link{download_bugzilla_issues_from_rest_api}}
 #' @param save_folder_path the full *folder* path where the bugzilla comments will be stored
-#' @seealso \code{\link{download_bugzilla_issues_from_rest_api}} and \code{\link{parse_bugzilla_crawler_comments}}
+#' @seealso \code{\link{download_bugzilla_issues_from_rest_api}} a downloader function to download the bugzilla issue with GET request
+#' @seealso \code{\link{parse_bugzilla_crawler_comments}} a parser funciton to parse bugzilla comments
 #' @export
 download_bugzilla_comments_from_rest_api <- function(bugzilla_site, bug_ids, save_folder_path){
   # Format link to retrieve data using Bugzilla REST API

@@ -47,7 +47,7 @@ perceval_path <- tool[["perceval"]]
 # Bugzilla Wrapper
 This section will cover downloading and parsing Bugzilla data using Perceval.
 
-## Download Bugzilla data using Perceval's traditional Bugzilla Backend
+## Perceval Traditional Bugzilla Backend Downloader
 We start by downloading the issues as json files using Perceval's traditional Bugzilla backend.
 
 Variable definitions:
@@ -58,12 +58,12 @@ Variable definitions:
 The bugzilla_json will be used to parse Bugzilla data and create a table of issues.
 
 ```{r}
-datetime <- "2023-04-18T20:14:57Z"
-bugzilla_site <- "https://bugzilla.redhat.com/"
+datetime <- "2023-04-15T20:14:57Z"
+bugzilla_site <- "https://bugzilla.samba.org/"
 bugzilla_json <- download_bugzilla(perceval_path, bugzilla_site, datetime, backend="bugzilla")
 ```
 
-## Parse Bugzilla data obtained from Perceval's traditional Bugzilla backend
+## Perceval Traditional Bugzilla Backend Parser
 Next, we will parse the json object we downloaded from the previous step by using parse_bugzilla function.
 First, let's try parsing just the issues without the comments.
 ```{r}
@@ -75,24 +75,24 @@ Next, let's see how the parsed table looks with the comments included.
 
 If you access the issue via the Bugzilla browser, you will only see comments. In Kaiaulu, the first comment of every issue will appear on issue_description. Remaining comments will appear under comment_body.
 
-Example of an issue from the table on the Redhat Bugzilla website: https://bugzilla.redhat.com/show_bug.cgi?id=505844
+Example of an issue from the table on the Redhat Bugzilla website: https://bugzilla.samba.org/show_bug.cgi?id=5124
 
 ```{r}
 bugzilla_issue_comments_table <- parse_bugzilla(bugzilla_json, comments=TRUE)
 bugzilla_issue_comments_table
 ```
 
-## Download Bugzilla issues and comments using Perceval's REST API Bugzilla Backend
+## Perceval REST API Bugzilla Backend Downloader
 Similar to downloading Bugzilla data using Perceval's traditional Bugzilla backend, we can also download the Bugzilla json object using Perceval's REST API Bugzilla backend.
 
 Note the explicit use of the `max_bugs` parameter. Max_bugs represents the maximum number of bugs requested on the same query. This acts as the `limit` parameter in the Bugzilla REST API. The `limit` represents how many issues can be pulled at a time and saved into a file, in short, how many issues make up a page. Bugzilla sites may have specific limits set, and Perceval does not account for this implicitly, so make sure to research the Bugzilla site you are using and adjust max_bugs appropriately. For Bugzilla Redhat used below, their limit is set to 20 for unauthenticated users. As such, max_bugs is set to 20.
 ```{r}
-datetime <- "2023-04-18T20:14:57Z"
+datetime <- "2023-04-15T20:14:57Z"
 bugzilla_site <- "https://bugzilla.redhat.com/"
 bugzilla_rest_json <- download_bugzilla(perceval_path, bugzilla_site, datetime, backend="bugzillarest", max_bugs=20)
 ```
 
-## Parse Bugzilla data obtained from Perceval's REST API Bugzilla backend
+## Perceval REST API Bugzilla Backend Parser
 We can use the 'parse_bugzillarest' function below to get a data table of Bugzilla issues without comments.
 
 ```{r}
@@ -115,7 +115,7 @@ bugzillarest_issue_comments_table
 This section will cover downloading and parsing bugzilla data using the Bugzilla REST API. 
 Using the Bugzilla REST API directly instead of Perceval's Bugzilla REST API endpoint allows us to bypass the use of third party tools and in turn improve the speed of data retrieval.
 
-## Download Bugzilla issues and comments from REST API
+## REST API Downloader
 We start by downloading the issues and comments as json files using REST API.
 
 Variable definitions:
@@ -131,7 +131,7 @@ limit_upperbound to ensure full bug retrieval. Here, limit_upperbound is set to 
 The save_issues_path and save_comments_path will be used to store Bugzilla data.
 ```{r}
 bugzilla_site <- "https://bugzilla.redhat.com/"
-start_timestamp <- "2023-04-18T20:14:57Z"
+start_timestamp <- "2023-04-15T20:14:57Z"
 save_issues_path <- "../../rawdata/bugzilla/issues"
 bug_ids <- download_bugzilla_issues_from_rest_api(bugzilla_site, start_timestamp, save_issues_path, limit_upperbound=20)
 ```
@@ -142,15 +142,16 @@ download_bugzilla_comments_from_rest_api(bugzilla_site, bug_ids, save_comments_p
 ```
 
 
-## Parse Bugzilla issues data obtained from REST API
+## REST API Issue Parser
 We can use the 'parse_bugzilla_crawler_issue' function below to parse the issues stored in the save_issues_path and retrieve a data table of Bugzilla issues.
 ```{r}
 bugzillarestapi_issue_table <- parse_bugzilla_crawler_issue(save_issues_path)
 bugzillarestapi_issue_table
 ```
 
-## Parse Bugzilla comments data obtained from REST API
+## REST API Comments Parser
 We can use the 'parse_bugzilla_crawler_comments' function below to parse the comments stored in the save_comments_path and retrieve a data table of Bugzilla comments.
 ```{r}
 bugzillarestapi_comments_table <- parse_bugzilla_crawler_comments(save_comments_path)
+bugzillarestapi_comments_table
 ```
