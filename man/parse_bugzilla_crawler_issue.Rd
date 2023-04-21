@@ -2,17 +2,22 @@
 % Please edit documentation in R/parser.R
 \name{parse_bugzilla_crawler_issue}
 \alias{parse_bugzilla_crawler_issue}
-\title{Parse Bugzilla issues data obtained from json files from Bugzilla crawler \code{\link{download_bugzilla_issues_from_rest_api}}}
+\title{Parse Bugzilla issues data obtained from json files from Bugzilla crawler}
 \usage{
 parse_bugzilla_crawler_issue(issues_folder_path)
 }
 \arguments{
 \item{issues_folder_path}{path to the issue folder that contains json file with Bugzilla data inside}
 }
+\value{
+data table
+}
 \description{
-Parse Bugzilla issues data obtained from json files from Bugzilla crawler \code{\link{download_bugzilla_issues_from_rest_api}}
+Parse Bugzilla issues data obtained from json files from Bugzilla crawler
 }
 \seealso{
+\code{\link{download_bugzilla_issues_from_rest_api}} a downloader function to download bugzilla issues data with REST API
+
 Other parsers: 
 \code{\link{parse_bugzilla_crawler_comments}()},
 \code{\link{parse_bugzillarest}()},

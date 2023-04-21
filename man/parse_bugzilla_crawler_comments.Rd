@@ -9,10 +9,15 @@ parse_bugzilla_crawler_comments(comments_folder_path)
 \arguments{
 \item{comments_folder_path}{path to the comments folder that contains json file with Bugzilla data inside}
 }
+\value{
+data table
+}
 \description{
 Parse Bugzilla comments data obtained from json files from Bugzilla crawler \code{\link{download_bugzilla_comments_from_rest_api}}
 }
 \seealso{
+\code{\link{download_bugzilla_comments_from_rest_api}} a downloader function to download bugzilla comments data with REST API
+
 Other parsers: 
 \code{\link{parse_bugzilla_crawler_issue}()},
 \code{\link{parse_bugzillarest}()},
