@@ -10,7 +10,7 @@ parse_bugzilla_crawler_issue(issues_folder_path)
 \item{issues_folder_path}{path to the issue folder that contains json file with Bugzilla data inside}
 }
 \value{
-data table
+data table with parsed bugzilla issues data
 }
 \description{
 Parse Bugzilla issues data obtained from json files from Bugzilla crawler
@@ -19,11 +19,13 @@ Parse Bugzilla issues data obtained from json files from Bugzilla crawler
 \code{\link{download_bugzilla_issues_from_rest_api}} a downloader function to download bugzilla issues data with REST API
 
 Other parsers: 
+\code{\link{dv8_depends_to_sdsmj}()},
 \code{\link{parse_bugzilla_crawler_comments}()},
 \code{\link{parse_bugzillarest}()},
 \code{\link{parse_bugzilla}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
+\code{\link{parse_dv8_clusters}()},
 \code{\link{parse_gitlog}()},
 \code{\link{parse_jira}()},
 \code{\link{parse_mbox}()},

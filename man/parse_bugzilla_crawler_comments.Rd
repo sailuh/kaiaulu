@@ -10,7 +10,7 @@ parse_bugzilla_crawler_comments(comments_folder_path)
 \item{comments_folder_path}{path to the comments folder that contains json file with Bugzilla data inside}
 }
 \value{
-data table
+data table with parsed bugzilla comments data
 }
 \description{
 Parse Bugzilla comments data obtained from json files from Bugzilla crawler \code{\link{download_bugzilla_comments_from_rest_api}}
@@ -19,11 +19,13 @@ Parse Bugzilla comments data obtained from json files from Bugzilla crawler \cod
 \code{\link{download_bugzilla_comments_from_rest_api}} a downloader function to download bugzilla comments data with REST API
 
 Other parsers: 
+\code{\link{dv8_depends_to_sdsmj}()},
 \code{\link{parse_bugzilla_crawler_issue}()},
 \code{\link{parse_bugzillarest}()},
 \code{\link{parse_bugzilla}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
+\code{\link{parse_dv8_clusters}()},
 \code{\link{parse_gitlog}()},
 \code{\link{parse_jira}()},
 \code{\link{parse_mbox}()},

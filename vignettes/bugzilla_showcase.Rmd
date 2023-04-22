@@ -87,7 +87,7 @@ Similar to downloading Bugzilla data using Perceval's traditional Bugzilla backe
 
 Note the explicit use of the `max_bugs` parameter. Max_bugs represents the maximum number of bugs requested on the same query. This acts as the `limit` parameter in the Bugzilla REST API. The `limit` represents how many issues can be pulled at a time and saved into a file, in short, how many issues make up a page. Bugzilla sites may have specific limits set, and Perceval does not account for this implicitly, so make sure to research the Bugzilla site you are using and adjust max_bugs appropriately. For Bugzilla Redhat used below, their limit is set to 20 for unauthenticated users. As such, max_bugs is set to 20.
 ```{r}
-datetime <- "2023-04-15T20:14:57Z"
+datetime <- "2023-04-21T20:14:57Z"
 bugzilla_site <- "https://bugzilla.redhat.com/"
 bugzilla_rest_json <- download_bugzilla(perceval_path, bugzilla_site, datetime, backend="bugzillarest", max_bugs=20)
 ```
@@ -104,14 +104,14 @@ If comments are of interest, we have the option to include these in our parsed B
 
 Again, if you access the issue via the Bugzilla browser, you will only see comments. Similar to parse_bugzilla(), the first comment of every issue will appear on issue_description. Remaining comments will appear under comment_body.
 
-Example of an issue with an attachment: https://bugzilla.redhat.com/show_bug.cgi?id=2043044
+Example of an issue with an attachment: https://bugzilla.redhat.com/show_bug.cgi?id=201449
 
 ```{r}
 bugzillarest_issue_comments_table <- parse_bugzillarest(bugzilla_rest_json, comments=TRUE)
 bugzillarest_issue_comments_table
 ```
 
-# Bugzilla crawler
+# Bugzilla Crawler
 This section will cover downloading and parsing bugzilla data using the Bugzilla REST API. 
 Using the Bugzilla REST API directly instead of Perceval's Bugzilla REST API endpoint allows us to bypass the use of third party tools and in turn improve the speed of data retrieval.
 
@@ -131,7 +131,7 @@ limit_upperbound to ensure full bug retrieval. Here, limit_upperbound is set to 
 The save_issues_path and save_comments_path will be used to store Bugzilla data.
 ```{r}
 bugzilla_site <- "https://bugzilla.redhat.com/"
-start_timestamp <- "2023-04-15T20:14:57Z"
+start_timestamp <- "2023-04-21T20:14:57Z"
 save_issues_path <- "../../rawdata/bugzilla/issues"
 bug_ids <- download_bugzilla_issues_from_rest_api(bugzilla_site, start_timestamp, save_issues_path, limit_upperbound=20)
 ```
@@ -152,7 +152,7 @@ bugzillarestapi_issue_table
 
 ## REST API Comments Parser
 We can use the 'parse_bugzilla_crawler_comments' function below to parse the comments stored in the save_comments_path and retrieve a data table of Bugzilla comments.
-For example, if you go to the issue comments on this Bugzilla page (https://bugzilla.redhat.com/show_bug.cgi?id=2187005), you'll notice that the first comment is actually the issue description.
+For example, if you go to the issue comments on this Bugzilla page (https://bugzilla.redhat.com/show_bug.cgi?id=2188717), you'll notice that the first comment is actually the issue description.
 ```{r}
 bugzillarestapi_comments_table <- parse_bugzilla_crawler_comments(save_comments_path)
 bugzillarestapi_comments_table

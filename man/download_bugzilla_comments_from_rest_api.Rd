@@ -13,7 +13,7 @@ download_bugzilla_comments_from_rest_api(
 \arguments{
 \item{bugzilla_site}{URL to specific bugzilla site}
 
-\item{bug_ids}{the ids of the bugs to extract comments for from \code{\link{download_bugzilla_issues_from_rest_api}}}
+\item{bug_ids}{the ids of the bugs to extract comments from \code{\link{download_bugzilla_issues_from_rest_api}}}
 
 \item{save_folder_path}{the full *folder* path where the bugzilla comments will be stored}
 }
@@ -22,7 +22,7 @@ Downloads comments associated with each bug id returned from \code{\link{downloa
 Each file saved contains a group of comments associated with a particular bug, where the filename is the corresponding bug id.
 }
 \seealso{
-\code{\link{download_bugzilla_issues_from_rest_api}} a downloader function to download the bugzilla issue with GET request
+\code{\link{download_bugzilla_issues_from_rest_api}} a downloader function to download the bugzilla issues data
 
-\code{\link{parse_bugzilla_crawler_comments}} a parser funciton to parse bugzilla comments
+\code{\link{parse_bugzilla_crawler_comments}} a parser function to parse the bugzilla comments data
 }

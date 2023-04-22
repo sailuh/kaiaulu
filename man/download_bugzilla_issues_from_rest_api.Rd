@@ -23,7 +23,7 @@ can be retrieved in one GET request, in which case, the limit set by the bugzill
 limit_upperbound to ensure full bug retrieval.}
 }
 \value{
-vector of issue ids
+a vector of bug ids
 }
 \description{
 Downloads bugzilla issues into a folder, where each file is a json containing a page of issues.
@@ -36,7 +36,7 @@ than the limit set for bug retrieval by the bugzilla site, in which case, this f
 will adjust the limit accordingly to ensure all bugs are retrieved.
 }
 \seealso{
-\code{\link{download_bugzilla_comments_from_rest_api}} a downloader function to download bugziET request
+\code{\link{download_bugzilla_comments_from_rest_api}} a downloader function to to download the issue comments
 
-\code{\link{parse_bugzilla_crawler_issue}} a parser function to parse bugzilla issue
+\code{\link{parse_bugzilla_crawler_issue}} a parser function to parse the bugzilla issue data
 }

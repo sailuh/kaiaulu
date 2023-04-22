@@ -8,7 +8,7 @@
 #'
 #' @param issues_folder_path path to the issue folder that contains json file with Bugzilla data inside
 #' @seealso \code{\link{download_bugzilla_issues_from_rest_api}} a downloader function to download bugzilla issues data with REST API
-#' @return data table
+#' @return data table with parsed bugzilla issues data
 #' @export
 #' @family parsers
 parse_bugzilla_crawler_issue <- function(issues_folder_path){
@@ -89,7 +89,7 @@ parse_bugzilla_crawler_issue <- function(issues_folder_path){
 #'
 #' @param comments_folder_path path to the comments folder that contains json file with Bugzilla data inside
 #' @seealso \code{\link{download_bugzilla_comments_from_rest_api}} a downloader function to download bugzilla comments data with REST API
-#' @return data table
+#' @return data table with parsed bugzilla comments data
 #' @export
 #' @family parsers
 parse_bugzilla_crawler_comments <- function(comments_folder_path){
@@ -148,7 +148,7 @@ parse_bugzilla_crawler_comments <- function(comments_folder_path){
 #' @param bugzilla_json json object containing Bugzilla data
 #' @param comments if true, the comments are parsed along with the issues
 #' @seealso \code{\link{download_bugzilla}} a downloader function to download bugzilla data with perceval
-#' @return data table
+#' @return data table with parsed bugzilla data
 #' @export
 #' @family parsers
 parse_bugzilla <- function(bugzilla_json, comments=FALSE){

@@ -26,7 +26,7 @@ in the Bugzilla REST API. Bugzilla sites may have specific limits set, so make s
 parameter accordingly to correctly download the data when using the "bugzillarest" backend.}
 }
 \value{
-json object
+json object with bugzilla data
 }
 \description{
 Note that for the Bugzilla REST API backend, Bugzilla sites may limit the number of bugs that can be retrieved at one time.
@@ -34,5 +34,5 @@ Thus, the max_bugs parameter needs to be set correctly to ensure all bugs are re
 the json data is not broken. If you get an error trying to parse the data downloaded with this
 }
 \seealso{
-\code{\link{parse_bugzilla}} a parser function to parse the bugzilla data
+\code{\link{parse_bugzilla}} a parser function to parse bugzilla data
 }

@@ -12,7 +12,7 @@ parse_bugzilla(bugzilla_json, comments = FALSE)
 \item{comments}{if true, the comments are parsed along with the issues}
 }
 \value{
-data table
+data table with parsed bugzilla data
 }
 \description{
 Parse Bugzilla data obtained from Perceval traditional Bugzilla backend
@@ -21,11 +21,13 @@ Parse Bugzilla data obtained from Perceval traditional Bugzilla backend
 \code{\link{download_bugzilla}} a downloader function to download bugzilla data with perceval
 
 Other parsers: 
+\code{\link{dv8_depends_to_sdsmj}()},
 \code{\link{parse_bugzilla_crawler_comments}()},
 \code{\link{parse_bugzilla_crawler_issue}()},
 \code{\link{parse_bugzillarest}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
+\code{\link{parse_dv8_clusters}()},
 \code{\link{parse_gitlog}()},
 \code{\link{parse_jira}()},
 \code{\link{parse_mbox}()},
