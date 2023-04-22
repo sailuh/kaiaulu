@@ -21,7 +21,11 @@ License: MPL-2.0 | file LICENSE
 Encoding: UTF-8
 LazyData: true
 Suggests:
-    testthat (>= 2.3.1)
+    testthat (>= 2.3.1),
+    yaml,
+    knitr, 
+    rmarkdown, 
+    markdown
 Depends:
     R (>= 3.6.0)
 Imports:
