@@ -12,3 +12,4 @@ parse_rfile_ast(filepath)
 \description{
 Parse R Abstract Syntax Tree
 }
+\keyword{internal}

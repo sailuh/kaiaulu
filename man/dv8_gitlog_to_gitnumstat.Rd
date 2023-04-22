@@ -12,11 +12,12 @@ dv8_gitlog_to_gitnumstat(git_repo_path, git_numstat_path)
 \item{git_numstat_path}{path to save gitlog numstat}
 }
 \value{
-path to git log output
+the git_numstat_path
 }
 \description{
-Comverts a git folder *.git, to a gitlog numstat file *.txt
+Comverts a git folder \*.git, to a gitlog numstat file \*.txt
 }
 \seealso{
-\code{\link{dv8_gitnumstat_to_hdsmb}} for creating mdsmb binary file from a git numstat text file
+\code{\link{dv8_gitnumstat_to_hdsmb}} to covert to `*-hdsm.dv8-dsm` and
+\code{\link{dv8_hdsmb_sdsmb_to_mdsmb}} to merge DSMs into `*-merge.dv8-dsm`.
 }

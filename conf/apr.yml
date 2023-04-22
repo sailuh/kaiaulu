@@ -139,7 +139,7 @@ tool:
         - public
         - private
         - virtual
-      historyImpact: 10
+      uiHistoryImpact: 10
       uiStructImpact: 0.01
   # Uctags allows finer file-file dependency parsing (e.g. functions, classes, structs)
   uctags:

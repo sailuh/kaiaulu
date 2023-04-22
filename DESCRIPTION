@@ -2,7 +2,7 @@ Package: kaiaulu
 Type: Package
 Title: Kaiaulu
 Version: 0.0.0.9600
-Description: Communication and Collaboration Network Analysis.
+Description: Kaiaulu is an R package and common interface that helps with understanding evolving software development communities, and the artifacts (gitlog, mailing list, files, etc.) which developers collaborate and communicate about. See Paradis et al., (2012) <doi:10.1007/978-3-031-15116-3_6>. 
 Authors@R: c(
     person('Carlos', 'Paradis', role = c('aut', 'cre'),
       email = 'cvas@hawaii.edu',
@@ -24,7 +24,7 @@ Suggests:
     visNetwork (>= 2.0.9),
     ggplot2 (>= 3.2.1),
     ggthemes (>= 4.2.0),
-    pkgdown (>= 1.4.1),
+    pkgdown (>= 2.0.7),
     knitr (>= 1.26),
     reactable (>= 0.1.0),
     igraph (>= 1.2.5),

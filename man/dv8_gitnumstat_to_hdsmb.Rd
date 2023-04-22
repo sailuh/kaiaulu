@@ -22,23 +22,13 @@ dv8_gitnumstat_to_hdsmb(
 \item{max_cochange_count}{maximum count of co-changed files per commit, default 1000}
 
 \item{params_output_file}{output file used to record parameters}
-
-\item{start}{start of date/time range in ISO format ie. 2017-07-08T00:00:00Z}
-
-\item{stop}{end of date/time range in ISO format ie. 2018-07-08T00:00:00Z}
 }
 \value{
-path to hdsmb binary file
+the hdsmb_path
 }
 \description{
-An input file *.txt is converted to *.dv8-dsm
+An input file \*.txt is converted to \*.dv8-dsm
 }
 \seealso{
-\code{\link{dv8_mdsmb_to_decoupling_level}} to calculate decoupling level from mdsmb binary file
-
-\code{\link{dv8_mdsmb_to_hierclsxb}} to compute design rule hierarchy from mdsmb binary file
-
-\code{\link{dv8_mdsmb_drhier_to_excel}} to export a mdsmb binary file as an excel file
-
-\code{\link{dv8_mdsmb_dsmb_to_dsmj}} to export a mdsmb binary file as a json file
+\code{\link{dv8_hdsmb_sdsmb_to_mdsmb}} to merge DSMs into `*-merge.dv8-dsm`.
 }
