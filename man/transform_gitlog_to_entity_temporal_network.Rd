@@ -33,8 +33,10 @@ Other edgelists:
 \code{\link{transform_commit_message_id_to_network}()},
 \code{\link{transform_cve_cwe_file_to_network}()},
 \code{\link{transform_dependencies_to_network}()},
+\code{\link{transform_dependencies_to_sdsmj}()},
 \code{\link{transform_gitlog_to_bipartite_network}()},
 \code{\link{transform_gitlog_to_entity_bipartite_network}()},
+\code{\link{transform_gitlog_to_hdsmj}()},
 \code{\link{transform_gitlog_to_temporal_network}()},
 \code{\link{transform_reply_to_bipartite_network}()}
 }

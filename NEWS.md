@@ -2,7 +2,9 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 =========================
 
 ### NEW FEATURES
-
+ * Adds DV8 Notebook showcasing various DV8 Functions. The project configuration file of APR has been expanded to demonstrate available parameters for DV8. [#186](https://github.com/sailuh/kaiaulu/issues/186) and [#182](https://github.com/sailuh/kaiaulu/issues/182).  
+ * Adds functions `dv8_clsxb_to_clsxj`, `parse_dv8_clusters`, `dependencies_to_sdsmj`, and `gitlog_to_hdsmj` for DV8 integration with Kaiaulu. [#168](https://github.com/sailuh/kaiaulu/issues/168) 
+ * Adds functions `dv8_gitlog_to_gitnumstat` `dv8_gitnumstat_to_hdsmb` `dv8_hsdsmb_to_decoupling_level` `dv8_hsdsmb_to_hierclsxb` `dv8_hsdsmb_drhier_to_excel` `parse_dv8_metrics_decoupling_level` [#169](https://github.com/sailuh/kaiaulu/issues/169) 
  * Adds issue commit flow. See `issue_social_smell_showcase.Rmd` vignette for details. [#144](https://github.com/sailuh/kaiaulu/issues/144)
  * Adds a new `download_mod_mbox_per_month()` function which allows for the intermediate mbox downloaded files to be saved to the chosen folder (as opposed to tmp). The function is showcases on `download_mod_mbox.Rmd` vignette. [#141](https://github.com/sailuh/kaiaulu/issues/141)
  * A CLI interface for calculating smells over multiple branches was added. Consistent with other interfaces, the input is the tools.yml, the project configuration file, and the file save path. [#132](https://github.com/sailuh/kaiaulu/issues/132)
@@ -19,7 +21,7 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
  * With version 0.0.0.9600, Three social smells (org silo, missing link, and radio silence) are refactored to the master branch. The social smells no longer have a dependency to igraph, and OSLOM is used for community detection instead of igraph's random walk. Because of the closer integration to source, the social smell notebook includes a new section where any time slice can be explored to assess the social metrics, including coloring by community. A separate branch will contain a notebook comparing the re-implementation to the existing metric. While org silo and missing link should result in the same metric value, radio silence results will be different due to the use of a different community detection algorithm. [#114](https://github.com/sailuh/kaiaulu/issues/114).
 
 ### MINOR IMPROVEMENTS
-
+ * Updated parse_dependencies() with `output_dir` folder for more flexibility. [#168](https://github.com/sailuh/kaiaulu/issues/168) 
  * Adds SetUp and TearDown unit tests for a sample git log. [#154](https://github.com/sailuh/kaiaulu/issues/154)
  * Added new citation for Kaiaulu work on README and references of works using Kaiaulu. [#143](https://github.com/sailuh/kaiaulu/issues/143)
  * Moves suggested rawdata folder assumed on configuration files one level above to avoid rawdata git logs being incorrectly parsed when parsing Kaiaulu architecture during documentation generation. Minor function documentation was also fixed. [#142](https://github.com/sailuh/kaiaulu/issues/142)
@@ -29,6 +31,10 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 
 ### BUG FIXES
  
+ * parse_dependencies() now returns a list of nodes and edgelist as opposed to just edgelist tables. Prior to this change, files that contain no dependency to other files would be missed (as they would not exist in the edgelist table, and only in the node table). This is consistent to both Depends and DV8 tables, as there is a 1 to 1 mapping from Depends/DV8 variables field on the generated JSON and the node table in Kaiaulu's graph memory representation, and the Depends/DV8 cells field, and Kaiaulu's graph edgelist table. [#189](https://github.com/sailuh/kaiaulu/issues/189). 
+ * parse_gitlog() now renames files on their first commit renames, instead of when the renamed file is first modified. Prior logic led to situations where, when a file is renamed and never again modified, the new file name is never mentioned on the git log. This was due to how Perceval encoded file renaming, by including in a rarely present field called "newfile" instead of including the new file name under "file". [#184](https://github.com/sailuh/kaiaulu/issues/184)
+ * parse_dependencies() no longer truncates full file paths, but instead turn them into relative paths. Dependencies notebook also now show a sample of the table and dependency graph. [#172](https://github.com/sailuh/kaiaulu/issues/172)   
+ * parse_mbox() can now parse .mbox files that contain less fields [#185](https://github.com/sailuh/kaiaulu/issues/185)
  * The CLI interface for git and mailinglist has been updated to conform to the new project configuration file format. [#111](https://github.com/sailuh/kaiaulu/issues/111)
  * Fixes incorrect column name usage when calculating churn, which resulted in churn returning 0 as metric. [#135](https://github.com/sailuh/kaiaulu/issues/135)
  * If OSLOM detected developers to belong to more than one community, the radio silence function would throw warnings when said developer was a neighboor of others, choosing the first of the available groups. This is because the original smell function used a community detection algorithm which did not assign multiple groups. The warning is fixed by implementing what it did by default, i.e. choosing the first group of those assigned. In the future, the smell function can be improved to account for more than one group. [#134](https://github.com/sailuh/kaiaulu/issues/134)
@@ -39,7 +45,9 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
  * OSLOM now assign cluster ids to isolated nodes for consistency [#115](https://github.com/sailuh/kaiaulu/issues/115)
 
 ### DOCUMENTATION FIXES
-
+ * Add Malia Liu, and Nicholas Lee as contributors on DESCRIPTION file. 
+ * Fixes various inconsistencies across documentation, missing parameter hyperlinking, seealso, etc. Functions in R/dv8.R were re-order to follow expected order of function call in an analysis, which is consistent to their ordering in _pkgdown.yml. [#186](https://github.com/sailuh/kaiaulu/issues/186)
+ * New vignette for DV8 functions called "dv8.Rmd" [#168](https://github.com/sailuh/kaiaulu/issues/168) 
  * New configuration file for the Apache Thrift project called "thrift.yml". [#148](https://github.com/sailuh/kaiaulu/issues/148)
  * Fixed minor grammar mistakes and vague wording. [#151] (https://github.com/sailuh/kaiaulu/issues/151)
  
