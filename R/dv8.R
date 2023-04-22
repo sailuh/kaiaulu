@@ -600,7 +600,7 @@ dv8_mdsmb_drhier_to_excel <- function(dv8_path,
                                       excel_path,
                                       hierclsxm_path="",
                                       detail=FALSE,
-                                      drhier=TRUE,
+                                      drhier=FALSE,
                                       namespace=FALSE) {
   dv8_path = path.expand(dv8_path)
   output_file_arg <- sprintf("-outputFile %s", excel_path)

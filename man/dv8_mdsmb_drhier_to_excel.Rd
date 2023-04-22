@@ -10,7 +10,7 @@ dv8_mdsmb_drhier_to_excel(
   excel_path,
   hierclsxm_path = "",
   detail = FALSE,
-  drhier = TRUE,
+  drhier = FALSE,
   namespace = FALSE
 )
 }
