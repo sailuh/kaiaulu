@@ -91,9 +91,8 @@ parse_bugzilla_crawler_issue <- function(issues_folder_path){
 parse_bugzilla_crawler_comments <- function(comments_folder_path){
   json_file_paths <- list.files(comments_folder_path)
 
-  result <- data.table::data.table(list())
-
   expected_columns <- c("bug_id",
+                        "issue_description",
                         "id",
                         "creation_time",
                         "creator",
@@ -103,6 +102,7 @@ parse_bugzilla_crawler_comments <- function(comments_folder_path){
                         "is_private")
 
   expected_columns_names <- c("issue_key",
+                              "issue_description",
                               "comment_id",
                               "comment_created_datetimez",
                               "comment_author_name",
@@ -110,6 +110,8 @@ parse_bugzilla_crawler_comments <- function(comments_folder_path){
                               "comment_body",
                               "comment_count",
                               "comment_is_private")
+
+  result <- data.table::data.table(list())
 
   # Check if files exist in given folder or not
   if(length(json_file_paths) > 0){
@@ -126,8 +128,15 @@ parse_bugzilla_crawler_comments <- function(comments_folder_path){
         # Get all the comments from json file
         comments <- json_object$bugs[[issue_keys]]$comments
 
-        # Add the comments to the result data.table
-        result <- rbindlist(list(result, comments), fill = TRUE)[, ..expected_columns]
+        if (length(comments$text) > 1){
+          # Remove first comment since it is issue description
+          dt <- data.table::as.data.table(comments[-1,])
+          # Add first commment to the issue_description column
+          dt[, issue_description := comments$text[1]]
+
+          # Add the comments to the result data.table
+          result <- rbind(result, dt, fill = TRUE)[, ..expected_columns]
+        }
       }
     }
   }
@@ -137,6 +146,7 @@ parse_bugzilla_crawler_comments <- function(comments_folder_path){
 
   return(result)
 }
+
 
 #' Parse gitlog from Perceval
 #'

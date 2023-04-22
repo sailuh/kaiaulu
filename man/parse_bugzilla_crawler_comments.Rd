@@ -14,9 +14,11 @@ Parse Bugzilla comments data obtained from json files from Bugzilla crawler \cod
 }
 \seealso{
 Other parsers: 
+\code{\link{dv8_depends_to_sdsmj}()},
 \code{\link{parse_bugzilla_crawler_issue}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
+\code{\link{parse_dv8_clusters}()},
 \code{\link{parse_gitlog}()},
 \code{\link{parse_jira}()},
 \code{\link{parse_mbox}()},
