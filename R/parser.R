@@ -10,6 +10,8 @@
 #' @param comments if true, the comments are parsed along with the issues
 #' @export
 #' @family parsers
+#' @seealso \code{\link{download_bugzilla}} a downloader function to download bugzilla data with perceval
+#' @return data table with parsed bugzilla data
 parse_bugzilla <- function(bugzilla_json, comments=FALSE){
   # Get table from the json
   json_issue_comments <- data.table(jsonlite::stream_in(textConnection(bugzilla_json), verbose = FALSE))
