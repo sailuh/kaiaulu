@@ -22,5 +22,7 @@ Downloads comments associated with each bug id returned from \code{\link{downloa
 Each file saved contains a group of comments associated with a particular bug, where the filename is the corresponding bug id.
 }
 \seealso{
-\code{\link{download_bugzilla_issues_from_rest_api}} and \code{\link{parse_bugzilla_crawler_comments}}
+\code{\link{download_bugzilla_issues_from_rest_api}} a downloader function to download the bugzilla issues data
+
+\code{\link{parse_bugzilla_crawler_comments}} a parser function to parse the bugzilla comments data
 }

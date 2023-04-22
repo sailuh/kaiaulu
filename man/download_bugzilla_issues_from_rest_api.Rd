@@ -22,6 +22,9 @@ download_bugzilla_issues_from_rest_api(
 can be retrieved in one GET request, in which case, the limit set by the bugzilla site will be used in place of
 limit_upperbound to ensure full bug retrieval.}
 }
+\value{
+a vector of bug ids
+}
 \description{
 Downloads bugzilla issues into a folder, where each file is a json containing a page of issues.
 Returns a list of bugzilla bug ids for use with \code{\link{download_bugzilla_comments_from_rest_api}}.
@@ -33,5 +36,7 @@ than the limit set for bug retrieval by the bugzilla site, in which case, this f
 will adjust the limit accordingly to ensure all bugs are retrieved.
 }
 \seealso{
-\code{\link{download_bugzilla_comments_from_rest_api}} and \code{\link{parse_bugzilla_crawler_issue}}
+\code{\link{download_bugzilla_comments_from_rest_api}} a downloader function to download the issue comments
+
+\code{\link{parse_bugzilla_crawler_issue}} a parser function to parse the bugzilla issue data
 }
