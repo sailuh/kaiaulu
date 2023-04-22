@@ -34,6 +34,8 @@ As usual, the first step is to load the project configuration file.
 
 # Project Configuration File
 
+In this notebook, we will obtain data from the issue tracker JIRA. We will use [Apache's Geronimo open source project](https://geronimo.apache.org). Refer to the `conf/` folder on Kaiaulu's git repository for Geronimo and other project configuration files. It is in this project configuration file we specify where Kaiaulu can find the jira sources from Geronimo. We will use the issue_tracker -> jira fields only. In regards to the "issues" and "issue_comments" fields, these should be set to paths where you want to store the jira data. Then, you can access this jira data later using these same paths.
+
 ```{r}
 conf <- yaml::read_yaml("../conf/geronimo.yml")
 issue_tracker_domain <- conf[["issue_tracker"]][["jira"]][["domain"]]

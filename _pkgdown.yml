@@ -40,6 +40,8 @@ reference:
   - transform_r_dependencies_to_network
   - transform_commit_message_id_to_network
   - transform_cve_cwe_file_to_network
+  - transform_dependencies_to_sdsmj
+  - transform_gitlog_to_hdsmj
 - title: Graph
   desc:  Provide graph models to construct networks and algorithms for graph analysis
 - contents:
@@ -47,6 +49,7 @@ reference:
   - bipartite_graph_projection
   - community_oslom
   - recolor_network_by_community
+  - graph_to_dsmj
 - title: Identity
   desc:  Provide the same id to authors who use variations of names or emails.
 - contents:
@@ -78,6 +81,8 @@ reference:
   - git_head
   - git_log
   - git_blame
+  - git_create_sample_log
+  - git_delete_sample_log
 - title: GitHub
   desc:  Functions to interact and download data from GitHub API.
 - contents:
@@ -113,3 +118,24 @@ reference:
   - convert_pipermail_to_mbox
   - download_mod_mbox
   - download_mod_mbox_per_month
+- title: DV8
+  desc:  Functions to interface with ArchDia's DV8.
+- contents:
+  - gitlog_to_hdsmj
+  - dv8_gitlog_to_gitnumstat
+  - dv8_gitnumstat_to_hdsmb
+  - dependencies_to_sdsmj
+  - dv8_depends_to_sdsmj
+  - dv8_dsmj_to_dsmb
+  - dv8_dsmb_to_dsmj
+  - dv8_hdsmb_sdsmb_to_mdsmb
+  - dv8_mdsmb_to_flaws
+  - parse_dv8_architectural_flaws
+  - dv8_mdsmb_to_decoupling_level
+  - parse_dv8_metrics_decoupling_level
+  - dv8_mdsmb_to_hierclsxb
+  - dv8_mdsmb_drhier_to_excel
+  - parse_dv8_metrics_decoupling_level
+  - dv8_clsxb_to_clsxj
+  - dv8_clsxj_to_clsxb
+  - parse_dv8_clusters

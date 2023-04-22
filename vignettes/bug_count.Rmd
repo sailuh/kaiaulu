@@ -51,7 +51,7 @@ file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
 substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
 ```
 
-To establish bug count, we must map each file to its associated issue. In general (but not always), an open source project will adopt a commit message convention to label issue ids. For example, Kaiaulu uses `i #<issue number>`. JIRA dictates issue ids in the format PROJECT-<issue-number>. We can capitalize on this assumption to detect which issue commits in the git log are trying to fix. You can create your own regular expression by manually inspecting some of the commit messages (for example, compare the regular expression from the geronimo project used here against [its commit message](https://github.com/apache/geronimo/commits/trunk)).
+To establish bug count, we must map each file to its associated issue. In general (but not always), an open source project will adopt a commit message convention to label issue ids. For example, Kaiaulu uses `i #<issue number>`. JIRA dictates issue ids in the format PROJECT-<issue-number>. We can use this assumption to find the issues that the git log commits are trying to fix. You can create your own regular expression by manually inspecting some of the commit messages (for example, compare the regular expression from the geronimo project used here against [its commit message](https://github.com/apache/geronimo/commits/trunk)).
 
 Since commits are in turn associated to files, we can establish a map from file to issue. Additionally, projects which use JIRA commonly annotate on their issue type whether the issue is a feature or bug. 
 
@@ -146,7 +146,7 @@ project_git <- merge(project_git,jira_issues,all.x=TRUE,by.x="commit_message_id"
                      by.y="issue_key")
 ```
 
-With the added information per commit per file of which commits were associated to issues which were bugs, we can then group by filepath, the number of issues which the type is bug. The following show the top 20 buggiest files:
+For each file, we now know the commits that were associated with fixing bugs. We then group the number of bug-related issues by file path. Our result should show the number of bugs per file path. The following outputs the top 20 files with the most bugs.
 
 ```{r}
 file_bug_count <- project_git[,.(bug_count=.N),by = "file_pathname"]
