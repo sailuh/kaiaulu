@@ -144,6 +144,7 @@ download_bugzilla_comments_from_rest_api(bugzilla_site, bug_ids, save_comments_p
 
 ## REST API Issue Parser
 We can use the 'parse_bugzilla_crawler_issue' function below to parse the issues stored in the save_issues_path and retrieve a data table of Bugzilla issues.
+Example of an issue with an attachment: https://bugzilla.redhat.com/show_bug.cgi?id=2187772
 ```{r}
 bugzillarestapi_issue_table <- parse_bugzilla_crawler_issue(save_issues_path)
 bugzillarestapi_issue_table
@@ -151,6 +152,7 @@ bugzillarestapi_issue_table
 
 ## REST API Comments Parser
 We can use the 'parse_bugzilla_crawler_comments' function below to parse the comments stored in the save_comments_path and retrieve a data table of Bugzilla comments.
+For example, if you go to the issue comments on this Bugzilla page (https://bugzilla.redhat.com/show_bug.cgi?id=2187005), you'll notice that the first comment is actually the issue description.
 ```{r}
 bugzillarestapi_comments_table <- parse_bugzilla_crawler_comments(save_comments_path)
 bugzillarestapi_comments_table
