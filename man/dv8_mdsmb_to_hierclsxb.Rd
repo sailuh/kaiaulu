@@ -27,11 +27,12 @@ dv8_mdsmb_to_hierclsxb(
 \item{recursive}{use recursive algorithm if switched on}
 }
 \value{
-path of output file
+the hierclsxb_path
 }
 \description{
-Creates a *.dv8-clsx file from a *.dv8-dsm file
+Creates a \*.dv8-clsx file from a \*.dv8-dsm file
 }
 \seealso{
-\code{\link{dv8_mdsmb_drhier_to_excel}} for using *.dv8-clsx file when exporting mdsmb binary file as an excel file
+\code{\link{dv8_mdsmb_drhier_to_excel}} for exporting `*-clsx.dv8-clsx` to excel `-clsx.xlsx`, or
+\code{\link{dv8_clsxb_to_clsxj}} and \code{\link{parse_dv8_clusters}} for conversion and parsing.
 }

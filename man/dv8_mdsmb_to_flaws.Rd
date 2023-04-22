@@ -16,7 +16,7 @@ dv8_mdsmb_to_flaws(
   uiCochange = 2,
   uihDepends = "call,use",
   uihInheritance = "extend,implement,public,private,virtual",
-  historyImpact = 10,
+  uiHistoryImpact = 10,
   uiStructImpact = 0.01
 )
 }
@@ -44,18 +44,25 @@ Note you can also use a hdsmb or sdsmb separately to compute architectural flaws
 
 \item{uihInheritance}{(For Unhealthy Inheritance detection) Dependencies for unhealthy inheritance detection. Multiple dependencies should be delimited using ","}
 
-\item{historyImpact}{(For Unstable Interface detection) Threshold of the number of co-changed (more than "co-change" times) files}
+\item{uiHistoryImpact}{(For Unstable Interface detection) Threshold of the number of co-changed (more than "co-change" times) files}
 
 \item{uiStructImpact}{(For Unstable Interface detection) Threshold of value < 1 means percentage of all files are dependents}
+}
+\value{
+the path to the flaws folder
 }
 \description{
 Computes the Architectural Flaws folder
 }
 \seealso{
+\code{\link{parse_dv8_architectural_flaws}} to create a `.csv`
+mapping of file to architectural flaw.
+
 Other dv8: 
 \code{\link{dependencies_to_sdsmj}()},
 \code{\link{dv8_clsxb_to_clsxj}()},
 \code{\link{dv8_clsxj_to_clsxb}()},
+\code{\link{dv8_depends_to_sdsmj}()},
 \code{\link{dv8_dsmj_to_dsmb}()},
 \code{\link{dv8_hdsmb_sdsmb_to_mdsmb}()},
 \code{\link{gitlog_to_hdsmj}()},

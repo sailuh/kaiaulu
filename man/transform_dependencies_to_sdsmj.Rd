@@ -7,7 +7,7 @@
 transform_dependencies_to_sdsmj(depends_table, is_sorted = FALSE)
 }
 \arguments{
-\item{depends_table}{A parsed depends project by \code{parse_dependencies}.}
+\item{depends_table}{A parsed depends project by \code{\link{parse_dependencies}}.}
 
 \item{is_sorted}{whether to sort the variables (filenames) in the dsm.json files}
 }
@@ -33,6 +33,7 @@ Other dv8:
 \code{\link{dependencies_to_sdsmj}()},
 \code{\link{dv8_clsxb_to_clsxj}()},
 \code{\link{dv8_clsxj_to_clsxb}()},
+\code{\link{dv8_depends_to_sdsmj}()},
 \code{\link{dv8_dsmj_to_dsmb}()},
 \code{\link{dv8_hdsmb_sdsmb_to_mdsmb}()},
 \code{\link{dv8_mdsmb_to_flaws}()},

@@ -20,9 +20,6 @@ consistently renamed for clarity.
 }
 \seealso{
 Other parsers: 
-\code{\link{dv8_depends_to_sdsmj}()},
-\code{\link{parse_bugzilla_crawler_comments}()},
-\code{\link{parse_bugzilla_crawler_issue}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
 \code{\link{parse_dv8_clusters}()},

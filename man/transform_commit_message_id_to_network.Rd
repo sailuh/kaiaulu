@@ -7,7 +7,7 @@
 transform_commit_message_id_to_network(project_git, commit_message_id_regex)
 }
 \arguments{
-\item{project_git}{A parsed git project by \code{parse_gitlog}.}
+\item{project_git}{A parsed git project by \code{\link{parse_gitlog}}.}
 
 \item{commit_message_id_regex}{the regex to extract the id from the commit message}
 }

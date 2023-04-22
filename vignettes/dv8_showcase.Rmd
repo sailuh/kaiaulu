@@ -45,6 +45,9 @@ keep_dependencies_type <- conf[["tool"]][["depends"]][["keep_dependencies_type"]
 
 # DV8 parameters 
 project_path <- conf[["tool"]][["dv8"]][["folder_path"]]
+project_name <- stringi::stri_split_regex(project_path,pattern = "/")[[1]]
+project_name <- project_name[length(project_name)]
+
 flaws_params <- conf[["tool"]][["dv8"]][["architectural_flaws"]]
 
 # Filters
@@ -62,7 +65,8 @@ For the git log, this is done in two steps. First we obtain a gitlog numstat .tx
 
 
 ```{r}
-numstat_path <- dv8_gitlog_to_gitnumstat(git_repo_path,file.path(project_path,"apr-numstat.txt"))
+numstat_path <- dv8_gitlog_to_gitnumstat(git_repo_path,file.path(project_path,
+                                                                 paste0(project_name,"-numstat.txt")))
 hdsmb_path <- dv8_gitnumstat_to_hdsmb(dv8_path,numstat_path,hdsmb_path = file.path(project_path,"apr-hdsm.dv8-dsm"))
 ```
 
@@ -72,10 +76,11 @@ Next, we parse file dependencies using Depends, and proceed to convert it into a
 sdsmj_path <- dv8_depends_to_sdsmj(depends_jar=depends_jar_path,
                                    git_repo_path = git_repo_path,
                                    language = language,
-                                   sdsmj_path = file.path(project_path,"apr-sdsm.json"))
+                                   sdsmj_path = file.path(project_path,paste0(project_name,"-sdsm.json")))
 sdsmb_path <- dv8_dsmj_to_dsmb(dv8_path = dv8_path,
                                      dsmj_path = sdsmj_path, 
-                                     dsmb_path = file.path(project_path,"apr-sdsm.dv8-dsm"))
+                                     dsmb_path = file.path(project_path,paste0(project_name,
+                                                                               "-sdsm.dv8-dsm")))
 
 list.files(project_path)
 ```
@@ -88,7 +93,8 @@ Our next step in the pipeline, is to combine both our binary DSMs, i.e. \*-sdsm.
 mdsmb_path <- dv8_hdsmb_sdsmb_to_mdsmb(dv8_path=dv8_path,
                                          hdsmb_path=hdsmb_path,
                                          sdsmb_path = sdsmb_path,
-                                         mdsmb_path = file.path(project_path,"apr-merge.dv8-dsm"))
+                                         mdsmb_path = file.path(project_path,
+                                                                paste0(project_name,"-merge.dv8-dsm")))
 list.files(project_path)
 ```
 
@@ -100,7 +106,9 @@ We can load load on DV8-GUI the -hdsm, -sdsm or -mdsm files files to inspect the
 ```{r}
 hierclsxb_path <- dv8_mdsmb_to_hierclsxb(dv8_path = dv8_path,
                                           mdsmb_path = mdsmb_path,
-                                          hierclsxb_path = file.path(project_path,"apr-clsx.dv8-clsx"))
+                                          hierclsxb_path = file.path(project_path,
+                                                                     paste0(project_name,
+                                                                            "-clsx.dv8-clsx")))
 list.files(project_path)
 ```
 
@@ -109,7 +117,7 @@ We then export the file as a .xlsx, including the clusters just generated like s
 ```{r}
 mdsmb_xlsx <- dv8_mdsmb_drhier_to_excel(dv8_path = dv8_path,
                                          mdsmb_path = mdsmb_path,
-                                         excel_path = file.path(project_path,"apr-mdsm.xlsx")#,
+                                         excel_path = file.path(project_path,paste0(project_name,"-mdsm.xlsx"))#,
                                          #hierclsxm_path = hierclsxb_path
                                         )
 list.files(project_path)
@@ -151,7 +159,7 @@ flaws_folder <- dv8_mdsmb_to_flaws(dv8_path = dv8_path,
                                     uiCochange=flaws_params$uiCochange,
                                     uihDepends=flaws_params$uihDepends,
                                     uihInheritance=flaws_params$uihInheritance,
-                                    historyImpact=flaws_params$historyImpact,
+                                    uiHistoryImpact=flaws_params$uiHistoryImpact,
                                     uiStructImpact=flaws_params$uiStructImpact)
 list.files(project_path)
 ```
@@ -224,7 +232,8 @@ We can augment the Flaws Mapping with cluster assignment information. Recall we 
 ```{r}
 hierclsxj_path <- dv8_clsxb_to_clsxj(dv8_path,
                                      clsxb_path = hierclsxb_path,
-                                     clsxj_path = file.path(project_path,"apr-clsxj.json"))
+                                     clsxj_path = file.path(project_path,paste0(project_name,
+                                                                                "-clsxj.json")))
 hierclsxj_table <- parse_dv8_clusters(hierclsxj_path)
 kable(head(hierclsxj_table))
 ```
@@ -246,7 +255,8 @@ An additional metric that can be computed from our merge DSM are DL Metrics. We 
 ```{r}
 dl_metrics <- dv8_mdsmb_to_decoupling_level(dv8_path = dv8_path,
                                              mdsmb_path = mdsmb_path,
-                                             json_path = file.path(project_path,"apr-dl.json"))
+                                            dl_path = file.path(project_path,paste0(project_name,
+                                                                                       "-dl.json")))
 
 dl_metrics_table <- parse_dv8_metrics_decoupling_level(dl_metrics)
 kable(dl_metrics_table)
