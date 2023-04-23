@@ -99,6 +99,7 @@ kable(head(project_dependencies[["edgelist"]],10))
 
 ```
 
+
 ```{r}
 project_file_network <- igraph::graph_from_data_frame(d=project_file_network[["edgelist"]],
                       directed = TRUE,
