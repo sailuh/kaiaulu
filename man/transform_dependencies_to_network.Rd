@@ -7,7 +7,7 @@
 transform_dependencies_to_network(depends_parsed, weight_types = NA)
 }
 \arguments{
-\item{depends_parsed}{A parsed mbox by \code{parse_dependencies}.}
+\item{depends_parsed}{A parsed mbox by \code{\link{parse_dependencies}}.}
 
 \item{weight_types}{The weight types as defined in Depends.}
 }

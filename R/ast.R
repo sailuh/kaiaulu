@@ -8,6 +8,7 @@
 #' @param filepath The filepath of an R file
 #' @export
 #' @importFrom utils getParseData
+#' @keywords internal
 parse_rfile_ast <- function(filepath){
   parsed_file <- data.table(getParseData(x = parse(file = filepath,
                                                    keep.source = TRUE)),
@@ -21,6 +22,7 @@ parse_rfile_ast <- function(filepath){
 #' Parse R Function Definitions
 #' @param parsed_r_file A parsed R file (see \code{\link{parse_rfile_ast}})
 #' @export
+#' @keywords internal
 parse_r_function_definition <-function(parsed_r_file){
   token <- NULL # due to NSE notes in R CMD check
   # filepath is the same for all rows since the parameter is an r_file
@@ -81,6 +83,7 @@ parse_r_function_definition <-function(parsed_r_file){
 #' @param function_definition A list of function definitions (see \code{\link{parse_r_function_definition}})
 #' @export
 #' @importFrom utils tail
+#' @keywords internal
 parse_r_function_dependencies <- function(parsed_r_file,function_definition){
   token <- NULL # due to NSE notes in R CMD check
   # filepath is the same for all rows since the parameter is an r_file

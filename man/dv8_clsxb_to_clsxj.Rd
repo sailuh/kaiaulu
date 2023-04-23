@@ -13,6 +13,9 @@ dv8_clsxb_to_clsxj(dv8_path, clsxb_path, clsxj_path)
 
 \item{clsxj_path}{path to save output file}
 }
+\value{
+the clsxj_path
+}
 \description{
 Converts a clustering binary in the dv8 format *-clsx.dv8-cslx into a
  *-clsx.json.
@@ -21,6 +24,7 @@ Converts a clustering binary in the dv8 format *-clsx.dv8-cslx into a
 Other dv8: 
 \code{\link{dependencies_to_sdsmj}()},
 \code{\link{dv8_clsxj_to_clsxb}()},
+\code{\link{dv8_depends_to_sdsmj}()},
 \code{\link{dv8_dsmj_to_dsmb}()},
 \code{\link{dv8_hdsmb_sdsmb_to_mdsmb}()},
 \code{\link{dv8_mdsmb_to_flaws}()},

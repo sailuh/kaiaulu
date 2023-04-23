@@ -4,18 +4,18 @@
 \alias{dv8_dsmb_to_dsmj}
 \title{Export a dsmb binary file as a separate json file}
 \usage{
-dv8_dsmb_to_dsmj(dv8_path, dsmb_path, json_path)
+dv8_dsmb_to_dsmj(dv8_path, dsmb_path, dsmj_path)
 }
 \arguments{
 \item{dv8_path}{path to DV8 binary}
 
 \item{dsmb_path}{path to dsmb binary file created by \code{\link{dv8_gitnumstat_to_hdsmb}}}
 
-\item{json_path}{path to json file}
+\item{dsmj_path}{path to json file}
 }
 \value{
-path to output json file
+the dsmj_path
 }
 \description{
-Takes a *.dv8-dsm file and exports as *.json file
+Takes a \*.dv8-dsm file and exports as \*.json file
 }

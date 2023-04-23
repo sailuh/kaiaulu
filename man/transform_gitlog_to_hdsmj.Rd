@@ -7,7 +7,7 @@
 transform_gitlog_to_hdsmj(gitlog_table, is_sorted = FALSE)
 }
 \arguments{
-\item{gitlog_table}{A parsed git project by \code{parse_gitlog}.}
+\item{gitlog_table}{A parsed git project by \code{\link{parse_gitlog}}.}
 
 \item{is_sorted}{whether to sort the variables (filenames) in the dsm.json files}
 }
@@ -15,8 +15,7 @@ transform_gitlog_to_hdsmj(gitlog_table, is_sorted = FALSE)
 # Creates a hdsm.json from a parsed gitlog table.
 }
 \seealso{
-\code{\link{parse_gitlog}}, \code{\link{transform_dependencies_to_bipartite_network}},
-\code{\link{graph_to_dsmj}}
+\code{\link{parse_gitlog}}, \code{\link{graph_to_dsmj}}
 
 Other edgelists: 
 \code{\link{transform_commit_message_id_to_network}()},
@@ -33,6 +32,7 @@ Other dv8:
 \code{\link{dependencies_to_sdsmj}()},
 \code{\link{dv8_clsxb_to_clsxj}()},
 \code{\link{dv8_clsxj_to_clsxb}()},
+\code{\link{dv8_depends_to_sdsmj}()},
 \code{\link{dv8_dsmj_to_dsmb}()},
 \code{\link{dv8_hdsmb_sdsmb_to_mdsmb}()},
 \code{\link{dv8_mdsmb_to_flaws}()},

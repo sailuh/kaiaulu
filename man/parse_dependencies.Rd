@@ -25,7 +25,6 @@ Parse dependencies from Depends
 }
 \seealso{
 Other parsers: 
-\code{\link{dv8_depends_to_sdsmj}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dv8_clusters}()},
 \code{\link{parse_gitlog}()},

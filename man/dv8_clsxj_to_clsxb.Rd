@@ -13,13 +13,17 @@ dv8_clsxj_to_clsxb(dv8_path, clsxj_path, clsxb_path)
 
 \item{clsxb_path}{path to save the DV8 binary cluster}
 }
+\value{
+the clsxb_path
+}
 \description{
-An input file *-hier.json is converted to *-clsx.dv8-clsx.
+An input file \*-hier.json is converted to \*-clsx.dv8-clsx.
 }
 \seealso{
 Other dv8: 
 \code{\link{dependencies_to_sdsmj}()},
 \code{\link{dv8_clsxb_to_clsxj}()},
+\code{\link{dv8_depends_to_sdsmj}()},
 \code{\link{dv8_dsmj_to_dsmb}()},
 \code{\link{dv8_hdsmb_sdsmb_to_mdsmb}()},
 \code{\link{dv8_mdsmb_to_flaws}()},
