@@ -1,52 +1,54 @@
 test_that("Using Perceval version other than 0.12.24 will fail for parse_mbox", {
-  perceval_path <- "../../../tools/bin/perceval-incompatible-version"
-  mbox_path <- "../../../../rawdata/mbox/project.mbox"
-  expect_error(parse_mbox(perceval_path, mbox_path))
+  tools_path <- "../../tools.yml"
+  tool <- yaml::read_yaml(tools_path)
+  perceval_path <- tool[["perceval"]]
+  perceval_version <- system2(perceval_path, args="--version", stdout=TRUE, stderr=FALSE)
+  expect_equal(perceval_version, "perceval 0.12.24")
 })
-test_that("Correct config file parameters and Perceval version 0.12.24 work", {
-  perceval_path <- "../../../tools/bin/perceval"
-  mbox_path <- "../../../../rawdata/mbox/project.mbox"
-  jira_issue_comments_path <- "../../../../rawdata/issue_tracker/project_issue_comments.json"
-  expect_no_error(parse_mbox(perceval_path, mbox_path))
-  expect_no_error(parse_jira(jira_issue_comments_path))
+test_that("Correct perceval path", {
+  tools_path <- "../../tools.yml"
+  tool <- yaml::read_yaml(tools_path)
+  perceval_path <- tool[["perceval"]]
+  expect_equal(file.exists(perceval_path), TRUE)
 })
-test_that("Incorrect paths to files passed to parse functions fails", {
-  perceval_path <- "../../../tools/bin/perceval"
-  perceval_path_bad <- "/bad/perceval/path"
-  mbox_path <- "../../../../rawdata/mbox/project.mbox"
-  mbox_path_bad <- "/bad/mbox/path"
-  jira_issue_comments_path_bad <- "/bad/jira/path"
-  expect_error(parse_mbox(perceval_path_bad, mbox_path))
-  expect_error(parse_mbox(perceval_path, mbox_path_bad))
-  expect_warning(expect_error(parse_jira(jira_issue_comments_path_bad)))
+test_that("Correct mbox path", {
+  conf_path <-"../../conf/thrift.yml"
+  conf <- yaml::read_yaml(conf_path)
+  mbox_path <- conf[["mailing_list"]][["mbox"]]
+  expect_equal(file.exists(mbox_path), TRUE)
 })
-test_that("Empty file path passed to parse functions fails", {
-  perceval_path <- "../../../tools/bin/perceval"
-  mbox_path <- "../../../../rawdata/mbox/project.mbox"
-  # If a user forgot to set a config parameter, they would have something like
-  # the variable below
-  empty_path <-
-  # What happens if config parameter(s) left blank
-  expect_error(parse_mbox(perceval_path, empty_path))
-  expect_error(parse_mbox(empty_path, perceval_path))
-  expect_error(parse_mbox(empty_path, empty_path))
-  expect_error(parse_jira(empty_path))
+test_that("Correct jira issues comments path", {
+  conf_path <-"../../conf/thrift.yml"
+  conf <- yaml::read_yaml(conf_path)
+  jira_issue_comments_path <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
+  expect_equal(file.exists(jira_issue_comments_path), TRUE)
 })
-test_that("Absolute filepaths passed to parsers work", {
-  perceval_path_rel <- "../../../tools/bin/perceval"
-  mbox_path_rel <- "../../../../rawdata/mbox/project.mbox"
-  perceval_path_abs <- "/Users/absolute-path/tools/bin/perceval"
-  mbox_path_abs <- "/Users/absolute-path/rawdata/mbox/project.mbox"
-  jira_path_abs <- "/Users/absolute-path/rawdata/issue_tracker/project_issue_comments.json"
-  expect_no_error(parse_mbox(perceval_path_rel, mbox_path_abs))
-  expect_no_error(parse_mbox(perceval_path_abs, mbox_path_rel))
-  expect_no_error(parse_mbox(perceval_path_abs, mbox_path_abs))
-  expect_no_error(parse_jira(jira_path_abs))
+test_that("Incorrect perceval path fails parse_mbox", {
+  conf_path <-"../../conf/thrift.yml"
+  conf <- yaml::read_yaml(conf_path)
+  mbox_path <- conf[["mailing_list"]][["mbox"]]
+  incorrect_perceval_path <- "/incorrect/path/to/perceval"
+  expect_error(parse_mbox(incorrect_perceval_path, mbox_path), "error in running command")
+})
+test_that("Incorrect mbox path fails parse_mbox", {
+  tools_path <- "../../tools.yml"
+  tool <- yaml::read_yaml(tools_path)
+  perceval_path <- tool[["perceval"]]
+  incorrect_mbox_path <- "/incorrect/path/to/mbox"
+  expect_error(parse_mbox(perceval_path, incorrect_mbox_path), "Items of 'old' not found in column names: [data.body]. Consider skip_absent=TRUE.")
+})
+test_that("Incorrect jira issue comments path fails parse_jira", {
+  incorrect_jira_issue_comments_path <- "/incorrect/path/to/jira_issue_comments"
+  expect_error(parse_jira(incorrect_jira_issue_comments_path), "cannot open the connection")
 })
 test_that("Parsers produce tables with correct columns and expected size", {
-  perceval_path <- "../../../tools/bin/perceval"
-  mbox_path <- "../../../../rawdata/mbox/project.mbox"
-  jira_issue_comments_path <- "../../../../rawdata/issue_tracker/project.json"
+  tools_path <- "../../tools.yml"
+  conf_path <-"../../conf/thrift.yml"
+  tool <- yaml::read_yaml(tools_path)
+  conf <- yaml::read_yaml(conf_path)
+  perceval_path <- tool[["perceval"]]
+  mbox_path <- conf[["mailing_list"]][["mbox"]]
+  jira_issue_comments_path <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
   mbox_table <- parse_mbox(perceval_path, mbox_path)
   jira_table <- parse_jira(jira_issue_comments_path)
   jira_issues <- jira_table[["issues"]]
