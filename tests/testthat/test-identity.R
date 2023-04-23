@@ -172,8 +172,3 @@ test_that("all identities are the same for the same person",{
       "xxx at uy.com (Wy Zkk)")),
     c(1, 1, 1))
 })
-
-
-test_that("this will faill intentionally",{
-  expect_true(FALSE)
-})
