@@ -1,4 +1,4 @@
-kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in development)
+__kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in development)__
 =========================
 
 ### NEW FEATURES
@@ -21,6 +21,7 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
  * With version 0.0.0.9600, Three social smells (org silo, missing link, and radio silence) are refactored to the master branch. The social smells no longer have a dependency to igraph, and OSLOM is used for community detection instead of igraph's random walk. Because of the closer integration to source, the social smell notebook includes a new section where any time slice can be explored to assess the social metrics, including coloring by community. A separate branch will contain a notebook comparing the re-implementation to the existing metric. While org silo and missing link should result in the same metric value, radio silence results will be different due to the use of a different community detection algorithm. [#114](https://github.com/sailuh/kaiaulu/issues/114).
 
 ### MINOR IMPROVEMENTS
+ * DV8 Notebook no longer hardcodes project names to "apr-". [#190](https://github.com/sailuh/kaiaulu/issues/190)
  * Updated parse_dependencies() with `output_dir` folder for more flexibility. [#168](https://github.com/sailuh/kaiaulu/issues/168) 
  * Adds SetUp and TearDown unit tests for a sample git log. [#154](https://github.com/sailuh/kaiaulu/issues/154)
  * Added new citation for Kaiaulu work on README and references of works using Kaiaulu. [#143](https://github.com/sailuh/kaiaulu/issues/143)
@@ -45,13 +46,17 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
  * OSLOM now assign cluster ids to isolated nodes for consistency [#115](https://github.com/sailuh/kaiaulu/issues/115)
 
 ### DOCUMENTATION FIXES
+ * Added new paper citation, and moved references from .bib to a vignette. 
+ * README was substantially updated, and made more concise. Additional third party tool documentation was moved to the wiki where it can expand more freely. [#191](https://github.com/sailuh/kaiaulu/issues/191)
+ * Kaiaulu docs now use the most recent version of pkgdown, which now includes a search field. 
+ * Forward Referencing and Backward Referencing navigation across all functions have been added. "Check" was also used for incorrect referencing on ghost parameters or functions. Dangling stringr call was replaced by stringi. [#190](https://github.com/sailuh/kaiaulu/issues/190)
  * Add Malia Liu, and Nicholas Lee as contributors on DESCRIPTION file. 
  * Fixes various inconsistencies across documentation, missing parameter hyperlinking, seealso, etc. Functions in R/dv8.R were re-order to follow expected order of function call in an analysis, which is consistent to their ordering in _pkgdown.yml. [#186](https://github.com/sailuh/kaiaulu/issues/186)
  * New vignette for DV8 functions called "dv8.Rmd" [#168](https://github.com/sailuh/kaiaulu/issues/168) 
  * New configuration file for the Apache Thrift project called "thrift.yml". [#148](https://github.com/sailuh/kaiaulu/issues/148)
  * Fixed minor grammar mistakes and vague wording. [#151] (https://github.com/sailuh/kaiaulu/issues/151)
  
-kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) 
+__kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) __
 =========================
 
 ### NEW FEATURES
@@ -88,7 +93,7 @@ kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5)
  * the gitlog_showcase Notebook was renamed to "Explore Git Log", and now contains extensive textual documentation explaining all the file functions, both bipartite and temporal. It also briefly introduces the information used from the project configuration file. Some notebooks which had redundant content were also deleted and re-organized on this one. The software vulnerabilities notebook was also renamed to "Issues, Software Vulnerabilities and Weaknesses", and now focuses on commit log message parsing only. The notebook which presents the method to parse git log entities was renamed to "Extending Git Logs from Files to Entities", it was also reorganized so as to not depend on a saved local rds file. It now loads a very small amount of data so the documentation generation does not take too long as the processing of a full log takes awhile. [#91](https://github.com/sailuh/kaiaulu/issues/91)
 
 
-kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (04/24/2021)
+__kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (04/24/2021)__
 =========================
 
 ### NEW FEATURES

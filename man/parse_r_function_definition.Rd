@@ -12,3 +12,4 @@ parse_r_function_definition(parsed_r_file)
 \description{
 Parse R Function Definitions
 }
+\keyword{internal}

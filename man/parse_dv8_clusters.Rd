@@ -14,7 +14,8 @@ Parses a cluster *-clsx.json into a data table.
 }
 \seealso{
 Other parsers: 
-\code{\link{dv8_depends_to_sdsmj}()},
+\code{\link{parse_bugzillarest}()},
+\code{\link{parse_bugzilla}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
 \code{\link{parse_gitlog}()},
@@ -26,6 +27,7 @@ Other dv8:
 \code{\link{dependencies_to_sdsmj}()},
 \code{\link{dv8_clsxb_to_clsxj}()},
 \code{\link{dv8_clsxj_to_clsxb}()},
+\code{\link{dv8_depends_to_sdsmj}()},
 \code{\link{dv8_dsmj_to_dsmb}()},
 \code{\link{dv8_hdsmb_sdsmb_to_mdsmb}()},
 \code{\link{dv8_mdsmb_to_flaws}()},

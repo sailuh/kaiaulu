@@ -10,7 +10,7 @@ transform_gitlog_to_temporal_network(
 )
 }
 \arguments{
-\item{project_git}{A parsed git project by \code{parse_gitlog}. The
+\item{project_git}{A parsed git project by \code{\link{parse_gitlog}}. The
 name column will be used to label nodes.}
 
 \item{mode}{author, committer}

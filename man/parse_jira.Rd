@@ -17,10 +17,9 @@ Note the comments element will be empty if the downloaded json only contain issu
 Parse Jira issue and comments
 }
 \seealso{
-Other parsers:
+Other parsers: 
 \code{\link{parse_bugzillarest}()},
 \code{\link{parse_bugzilla}()},
-\code{\link{dv8_depends_to_sdsmj}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
 \code{\link{parse_dv8_clusters}()},

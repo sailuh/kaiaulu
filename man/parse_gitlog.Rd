@@ -19,10 +19,9 @@ parse_gitlog(perceval_path, git_repo_path, save_path = NA, perl_regex = NA)
 Parses the `.git` file in a github repository using the Perceval library.
 }
 \seealso{
-Other parsers:
+Other parsers: 
 \code{\link{parse_bugzillarest}()},
 \code{\link{parse_bugzilla}()},
-\code{\link{dv8_depends_to_sdsmj}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
 \code{\link{parse_dv8_clusters}()},

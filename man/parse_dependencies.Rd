@@ -24,10 +24,9 @@ parse_dependencies(
 Parse dependencies from Depends
 }
 \seealso{
-Other parsers:
+Other parsers: 
 \code{\link{parse_bugzillarest}()},
 \code{\link{parse_bugzilla}()},
-\code{\link{dv8_depends_to_sdsmj}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dv8_clusters}()},
 \code{\link{parse_gitlog}()},
