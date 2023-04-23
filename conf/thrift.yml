@@ -29,55 +29,52 @@
 # https://github.com/sailuh/kaiaulu/discussions
 
 project:
-  website: https://github.com/openssl/openssl
-  openhub: https://www.openhub.net/p/openssl
+  website: https://thrift.apache.org
+  openhub: https://www.openhub.net/p/thrift
 
 version_control:
   # Where is the git log located locally?
-  # This is the path to the .git of the project repository you are analyzing.
-  # The .git is hidden, so you can see it using `ls -a`
-  log: ../../rawdata/git_repo/OpenSSL/.git
+  log: ../../rawdata/git_repo/thrift/.git # cloned Apache Thrift repo and put path to its .git file
   # From where the git log was downloaded?
-  log_url: https://github.com/apache/apr
+  log_url: https://github.com/apache/thrift
   # List of branches used for analysis
   branch:
     - master
 
 mailing_list:
   # Where is the mbox located locally?
-  #mbox: ../../rawdata/mbox/openssl_dev_mbox # 2004-2008 fields are complete
-  mbox: ../../rawdata/mbox/openssl-dev.mbx # 2002-2019 gmail field is redacted due to google groups
+  mbox: ../../rawdata/mbox/thrift-dev.mbox # Download here: https://cdn.lfdr.de/stmc/ieee_tse_data/mail/thrift-dev.mbox
   # What is the domain of the chosen mailing list archive?
-  #domain: http://mail-archives.apache.org/mod_mbox
+  domain: http://mail-archives.apache.org/mod_mbox
   # Which lists of the domain will be used?
-  #list_key:
-  #  - apr-dev
+  list_key:
+    - thrift-dev
 
-#issue_tracker:
-  #jira:
+issue_tracker:
+  jira:
     # Obtained from the project's JIRA URL
-    #domain: https://issues.apache.org/jira
-    #project_key: HELIX
+    domain: https://issues.apache.org/jira
+    project_key: THRIFT
     # Download using `download_jira_data.Rmd`
-    #issues: ../../rawdata/issue_tracker/helix_issues.json
-    #issue_comments: ../../rawdata/issue_tracker/helix_issue_comments.json
-  #github:
+    issues: ../../rawdata/issue_tracker/thrift_issues.json
+    issue_comments: ../../rawdata/issue_tracker/thrift_issue_comments.json
+  github:
     # Obtained from the project's GitHub URL
-    #owner: apache
-    #repo: apr
+    owner: apache
+    repo: thrift
     # Download using `download_github_comments.Rmd`
-    #replies: ../../rawdata/github/apr/
+    replies: ../../rawdata/github/thrift/
 
-vulnerabilities:
+#vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
   # Download at: https://nvd.nist.gov/vuln/data-feeds
-  nvd_feed: rawdata/nvdfeed
+  #nvd_feed: rawdata/nvdfeed
 
 # Commit message CVE or Issue Regular Expression (regex)
 # See project's commit message for examples to create the regex
 commit_message_id_regex:
-  #issue_id: ?
-  cve_id: CVE-[0-9]+-[0-9]+
+  issue_id: \#[0-9]+
+  #cve_id: ?
 
 filter:
   keep_filepaths_ending_with:
@@ -100,7 +97,7 @@ tool:
   depends:
     # accepts one language at a time: cpp, java, ruby, python, pom
     # You can obtain this information on OpenHub or the project GiHub page right pane.
-    code_language: cpp
+    code_language: java
     # Specify which types of Dependencies to keep - see the Depends tool README.md for details.
     keep_dependencies_type:
       - Cast
@@ -141,8 +138,9 @@ analysis:
   # You can specify the intervals in 2 ways: window, or enumeration
   window:
     # If using gitlog, use start_commit and end_commit. Timestamp is inferred from gitlog
-    #start_commit: 9eae9e96f15e1f216162810cef4271a439a74223
-    #end_commit: f8f9ec1f249dd552065aa37c983bed4d4d869bb0
+    # Note: make sure time of start_commit and end_commit overlap in the project_git and project_reply tables
+    start_commit: 9e7ba8cbacd5d09eb2af4c76eb82f7df5e0b8739 # end of 2010
+    end_commit: fae04ead811fa92957dbc6578c1fcd52e16c320c # end of 2011
     # Use datetime only if no gitlog is used in the analysis.
     #start_datetime: 2013-05-01 00:00:00
     #end_datetime: 2013-11-01 00:00:00

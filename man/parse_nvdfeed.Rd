@@ -15,10 +15,15 @@ Parse NVD Feed CVEs, descriptions and CWE ids
 }
 \seealso{
 Other parsers: 
+<<<<<<< HEAD
 \code{\link{parse_bugzillarest}()},
 \code{\link{parse_bugzilla}()},
+=======
+\code{\link{dv8_depends_to_sdsmj}()},
+>>>>>>> master
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
+\code{\link{parse_dv8_clusters}()},
 \code{\link{parse_gitlog}()},
 \code{\link{parse_jira}()},
 \code{\link{parse_mbox}()}

@@ -15,10 +15,12 @@ parse_commit_message_id(project_git, commit_message_id_regex)
 Adds a column commit_message_id containing the parsed commit message
 }
 \seealso{
-Other parsers: 
+Other parsers:
 \code{\link{parse_bugzillarest}()},
 \code{\link{parse_bugzilla}()},
+\code{\link{dv8_depends_to_sdsmj}()},
 \code{\link{parse_dependencies}()},
+\code{\link{parse_dv8_clusters}()},
 \code{\link{parse_gitlog}()},
 \code{\link{parse_jira}()},
 \code{\link{parse_mbox}()},

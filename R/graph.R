@@ -4,6 +4,79 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+#' Create a dsm.json file given either a dependencies table from \code{\link{transform_dependencies_to_sdsmj}}
+#' or a gitlog table from \code{\link{transform_gitlog_to_hdsmj}}.
+#'
+#' # Returns either a hdsm.json (from dependencies table) or a sdsmj.json (from gitlog table).
+#'
+#' @param graph the table containing the nodes and edgelist of the graph of dependencies or the gitlog.
+#' @param is_sorted whether to sort the variables (filenames) in the dsm.json files
+#' @export
+#' @family dv8
+#' @seealso \code{\link{transform_dependencies_to_sdsmj}} and \code{\link{transform_gitlog_to_hdsmj}}
+#'
+graph_to_dsmj <- function(graph, is_sorted=FALSE){
+
+  # Get the nodes and edgelist tables
+  nodes_table <- graph[[1]]
+  edgelist_table <- graph[[2]]
+
+  # Get and sort the file names
+  variables <- sort(unique(nodes_table[["name"]]), method="radix")
+
+  # Make indices for the file names
+  variables_indices <- 1:length(variables)
+  # Make named list with file names as keys and indices as values
+  names(variables_indices) <- variables
+
+  # List to hold cells
+  cells_indices <- 1:nrow(edgelist_table)
+
+  # Get parameters that will be used for the cells
+  parameters <- list("Call", "Import", "Use", "Parameter", "Contain", "Create", "Extend",
+                     "Return","Implement", "Cast", "Throw", "Annotation", "Cochange")
+  # Only use parameters in the dataframe
+  parameters <- unlist(intersect(colnames(edgelist_table), parameters))
+
+  getCell <- function(i) {
+    src <- edgelist_table[["from"]][[i]]
+    dest <- edgelist_table[["to"]][[i]]
+
+    src_index <- variables_indices[src] - 1
+    dest_index <- variables_indices[dest] - 1
+
+    values <- list()
+    # Get all the parameter values for a specific cell
+    for (j in 1: length(parameters)) {
+      current_param <- edgelist_table[i][[parameters[[j]]]]
+      if (current_param > 0){
+        values[[parameters[[j]]]] <- current_param
+      }
+    }
+    return(list(src=src_index, dest=dest_index, values=data.frame(values)))
+  }
+
+  # Sorted list
+  cells <- lapply(cells_indices, getCell)
+  cells_df <- data.table::data.table(jsonlite::fromJSON(jsonlite::toJSON(cells, auto_unbox = TRUE)))
+
+  if (is_sorted == TRUE){
+    data.table::setorder(cells_df, cols = "src", "dest")
+  }
+
+  # Create the final json
+  hdsm_json <- list(schemaVersion="1.0", name=paste0("april16-graph", "-hdsm"), variables=variables, cells=cells_df)
+
+  json_df <- jsonlite::fromJSON(jsonlite::toJSON(hdsm_json, auto_unbox = TRUE))
+
+  # Do this only if it's for Cochange?
+  # Unbox each of the cell values (should be values: object, not values: [object])
+  json_df$cells$values <- lapply(json_df$cells$values, jsonlite::unbox)
+
+  # Save the json to a file
+  jsonlite::write_json(json_df, paste0("../rawdata/dv8/", "april16-depends-helix-graph", ".json"), auto_unbox=TRUE)
+}
+
 #' Create a directed graph model
 #'
 #' @param edgelist a 2-column data.table containing named columns
