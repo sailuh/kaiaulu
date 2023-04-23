@@ -11,10 +11,15 @@ parse_bugzillarest(bugzilla_json, comments = FALSE)
 
 \item{comments}{if true, the comments are parsed along with the issues}
 }
+\value{
+data table
+}
 \description{
 Parse Bugzilla data obtained from Perceval REST API Bugzilla backend
 }
 \seealso{
+\code{\link{download_bugzilla}} a donwoloader function download bugzilla data with perceval
+
 Other parsers: 
 \code{\link{parse_bugzilla}()},
 \code{\link{parse_commit_message_id}()},

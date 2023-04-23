@@ -17,9 +17,9 @@
 #' @param max_bugs the maximum number of bugs requested on the same query. This acts as the limit parameter
 #' in the Bugzilla REST API. Bugzilla sites may have specific limits set, so make sure to change the max_bugs
 #' parameter accordingly to correctly download the data when using the "bugzillarest" backend.
-#' @export
 #' @seealso \code{\link{parse_bugzilla}} a parser function to parse bugzilla data
 #' @return json object with bugzilla data
+#' @export
 download_bugzilla <- function(perceval_path, bugzilla_site, datetime, backend="bugzilla", max_bugs=500){
   json_data <- system2(perceval_path,
                          args = c(backend, bugzilla_site, '--json-line', '--from-date', paste0('"',datetime,'"'),
