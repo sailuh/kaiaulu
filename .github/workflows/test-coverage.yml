@@ -1,18 +1,19 @@
 on:
   push:
     branches:
-      - main
-      - master
+      - github_actions_debug
   pull_request:
     branches:
-      - main
-      - master
+      - github_actions_debug
 
 name: test-coverage
 
 jobs:
   test-coverage:
     runs-on: macOS-latest
+    strategy:
+      matrix:
+        r-version: ['3.6.1']
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:

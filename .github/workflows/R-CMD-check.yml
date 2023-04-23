@@ -3,18 +3,19 @@
 on:
   push:
     branches:
-      - main
-      - master
+      - github_actions_debug
   pull_request:
     branches:
-      - main
-      - master
+      - github_actions_debug
 
 name: R-CMD-check
 
 jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        r-version: ['3.6.1']
 
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})
 
