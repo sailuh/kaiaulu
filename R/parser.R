@@ -4,14 +4,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#' Parse Bugzilla issues data obtained from json files from Bugzilla crawler \code{\link{download_bugzilla_issues_from_rest_api}}
+#' Parse Bugzilla issues data obtained from json files from Bugzilla crawler \code{\link{download_bugzilla_rest_issues}}
 #'
 #' @param issues_folder_path path to the issue folder that contains json file with Bugzilla data inside
-#' @seealso \code{\link{download_bugzilla_issues_from_rest_api}} a downloader function to download bugzilla issues data with REST API
+#' @seealso \code{\link{download_bugzilla_rest_issues}} a downloader function to download bugzilla issues data with REST API
 #' @return data table with parsed bugzilla issues data
 #' @export
 #' @family parsers
-parse_bugzilla_crawler_issue <- function(issues_folder_path){
+parse_bugzilla_rest_issues <- function(issues_folder_path){
   json_file_paths <- list.files(issues_folder_path)
 
   result <- data.table::data.table(list())
@@ -85,18 +85,17 @@ parse_bugzilla_crawler_issue <- function(issues_folder_path){
   return(result)
 }
 
-#' Parse Bugzilla comments data obtained from json files from Bugzilla crawler \code{\link{download_bugzilla_comments_from_rest_api}}
+#' Parse Bugzilla comments data obtained from json files from Bugzilla crawler \code{\link{parse_bugzilla_rest_comments}}
 #'
 #' @param comments_folder_path path to the comments folder that contains json file with Bugzilla data inside
-#' @seealso \code{\link{download_bugzilla_comments_from_rest_api}} a downloader function to download bugzilla data with perceval
+#' @seealso \code{\link{parse_bugzilla_rest_comments}} a downloader function to download bugzilla data with perceval
 #' @return data table with parsed bugzilla comments data
 #' @export
 #' @family parsers
-parse_bugzilla_crawler_comments <- function(comments_folder_path){
+parse_bugzilla_rest_comments <- function(comments_folder_path){
   json_file_paths <- list.files(comments_folder_path)
 
   expected_columns <- c("bug_id",
-                        "issue_description",
                         "id",
                         "creation_time",
                         "creator",
@@ -106,7 +105,6 @@ parse_bugzilla_crawler_comments <- function(comments_folder_path){
                         "is_private")
 
   expected_columns_names <- c("issue_key",
-                              "issue_description",
                               "comment_id",
                               "comment_created_datetimez",
                               "comment_author_name",
@@ -132,15 +130,8 @@ parse_bugzilla_crawler_comments <- function(comments_folder_path){
         # Get all the comments from json file
         comments <- json_object$bugs[[issue_keys]]$comments
 
-        if (length(comments$text) > 1){
-          # Remove first comment since it is issue description
-          dt <- data.table::as.data.table(comments[-1,])
-          # Add first commment to the issue_description column
-          dt[, issue_description := comments$text[1]]
-
-          # Add the comments to the result data.table
-          result <- rbind(result, dt, fill = TRUE)[, ..expected_columns]
-        }
+        # Add the comments to the result data.table
+        result <- rbindlist(list(result, comments), fill = TRUE)[, ..expected_columns]
       }
     }
   }
