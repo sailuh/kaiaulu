@@ -56,8 +56,10 @@ jobs:
 
       - name: Show testthat output
         if: always()
-        run: find check -name 'testthat.Rout*' -exec cat '{}' \; || true
-        shell: bash
+        run: |
+          install.packages("devtools")
+          devtools::test()
+        shell: Rscript {0}
 
       - name: Upload check results
         if: failure()
