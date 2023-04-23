@@ -13,6 +13,9 @@ dependencies_to_sdsmj(depends_table, sdsmj_path, is_sorted = FALSE)
 
 \item{is_sorted}{whether the json is sorted by src and dest}
 }
+\value{
+the sdsmj_path
+}
 \description{
 Converts table of dependencies from \code{\link{parse_dependencies}} into an *-sdsm.json.
 In the sdsm.json, the Variables are all files/methods or any variables under analysis
@@ -20,11 +23,13 @@ In the sdsm.json, the Variables are all files/methods or any variables under ana
  variable (src & dest) pairs.
 }
 \seealso{
-\code{\link{parse_dependencies}}
+\code{\link{dv8_dsmj_to_dsmb}} to convert to `*-sdsm.dv8-dsm` and
+\code{\link{dv8_hdsmb_sdsmb_to_mdsmb}} to merge DSMs into `*-merge.dv8-dsm`.
 
 Other dv8: 
 \code{\link{dv8_clsxb_to_clsxj}()},
 \code{\link{dv8_clsxj_to_clsxb}()},
+\code{\link{dv8_depends_to_sdsmj}()},
 \code{\link{dv8_dsmj_to_dsmb}()},
 \code{\link{dv8_hdsmb_sdsmb_to_mdsmb}()},
 \code{\link{dv8_mdsmb_to_flaws}()},

@@ -13,6 +13,9 @@ gitlog_to_hdsmj(gitlog_table, hdsmj_path, is_sorted = FALSE)
 
 \item{is_sorted}{whether the json is sorted by src and dest}
 }
+\value{
+the hdsmj_path
+}
 \description{
 Converts a gitlog table into an *-hdsm.json.
 In the hdsm.json, the Variables are all files/methods or any variables under analysis
@@ -21,10 +24,14 @@ In the hdsm.json, the Variables are all files/methods or any variables under ana
   were committed together.
 }
 \seealso{
+\code{\link{dv8_dsmj_to_dsmb}} to convert to `*-hdsm.dv8-dsm` and
+\code{\link{dv8_hdsmb_sdsmb_to_mdsmb}} to merge DSMs into `*-merge.dv8-dsm`.
+
 Other dv8: 
 \code{\link{dependencies_to_sdsmj}()},
 \code{\link{dv8_clsxb_to_clsxj}()},
 \code{\link{dv8_clsxj_to_clsxb}()},
+\code{\link{dv8_depends_to_sdsmj}()},
 \code{\link{dv8_dsmj_to_dsmb}()},
 \code{\link{dv8_hdsmb_sdsmb_to_mdsmb}()},
 \code{\link{dv8_mdsmb_to_flaws}()},

@@ -14,3 +14,4 @@ normalized_levenshtein(a, b)
 \description{
 Edit Distance of two words
 }
+\keyword{internal}
