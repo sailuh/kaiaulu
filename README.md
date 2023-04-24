@@ -29,7 +29,7 @@ To learn more about what Kaiaulu does, check the [Wiki](https://github.com/sailu
     * Issue ID parsers from commit messages 
     * Name and E-mail Identity Matching (For identifying same users inter and intra GitLog, Mailing List, etc.)
  * [Parser to Network Transformations](http://itm0.shidler.hawaii.edu/kaiaulu/reference/index.html#section-networks) + Interactive visualizations (See Getting Started below)
-    * Graph representation uses node + edge format, making easier to extend analysis in popular graph tools such as Gephi and igraph library. 
+    * Graph representation uses node + edge format, making it easier to extend analysis in popular graph tools such as Gephi and igraph library. 
  * Social Smells (Organizational Silos, Missing Links, Radio Silence)
  * Quality Framework Metrics (N. Timezones, Authors on GitLog, Authors on Mailing List, N. Files changed, etc).
  * And more! 
