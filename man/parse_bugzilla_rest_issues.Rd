@@ -10,16 +10,17 @@ parse_bugzilla_rest_issues(issues_folder_path)
 \item{issues_folder_path}{path to the issue folder that contains json file with Bugzilla data inside}
 }
 \value{
-data table with parsed bugzilla issues data
+data table with parsed Bugzilla issues data
 }
 \description{
 Parse Bugzilla issues data obtained from json files from Bugzilla crawler \code{\link{download_bugzilla_rest_issues}}
 }
 \seealso{
-\code{\link{download_bugzilla_rest_issues}} a downloader function to download bugzilla issues data with REST API
+\code{\link{download_bugzilla_rest_issues}} a downloader function to download Bugzilla issues data with REST API
 
 Other parsers: 
 \code{\link{parse_bugzilla_rest_comments}()},
+\code{\link{parse_bugzilla_rest_issues_comments}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
 \code{\link{parse_dv8_clusters}()},

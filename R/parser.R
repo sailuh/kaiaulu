@@ -7,8 +7,8 @@
 #' Parse Bugzilla issues data obtained from json files from Bugzilla crawler \code{\link{download_bugzilla_rest_issues}}
 #'
 #' @param issues_folder_path path to the issue folder that contains json file with Bugzilla data inside
-#' @seealso \code{\link{download_bugzilla_rest_issues}} a downloader function to download bugzilla issues data with REST API
-#' @return data table with parsed bugzilla issues data
+#' @seealso \code{\link{download_bugzilla_rest_issues}} a downloader function to download Bugzilla issues data with REST API
+#' @return data table with parsed Bugzilla issues data
 #' @export
 #' @family parsers
 parse_bugzilla_rest_issues <- function(issues_folder_path){
@@ -17,7 +17,7 @@ parse_bugzilla_rest_issues <- function(issues_folder_path){
   result <- data.table::data.table(list())
   expected_columns <- c("id",
                         "summary",
-                        "cf_type",
+                        "issue_type",
                         "status",
                         "resolution",
                         "creation_time",
@@ -69,10 +69,20 @@ parse_bugzilla_rest_issues <- function(issues_folder_path){
       json_file_path <- file.path(issues_folder_path, json_file)
       json_object <- jsonlite::fromJSON(json_file_path)
 
+      if(length(json_object$faults) > 0){
+        # Get all the faults from json file
+        faults <- data.table::data.table(json_object$faults)
+        # Add issue type
+        faults[, issue_type := "faults"]
+        # Add the faults to the result data.table
+        result <- rbindlist(list(result, faults), fill = TRUE)[, ..expected_columns]
+      }
+
       if(length(json_object$bugs) > 0){
         # Get all the bugs from json file
         bugs <- data.table::data.table(json_object$bugs)
-
+        # Add issue type
+        bugs[, issue_type := "bugs"]
         # Add the bugs to the result data.table
         result <- rbindlist(list(result, bugs), fill = TRUE)[, ..expected_columns]
       }
@@ -88,8 +98,8 @@ parse_bugzilla_rest_issues <- function(issues_folder_path){
 #' Parse Bugzilla comments data obtained from json files from Bugzilla crawler \code{\link{parse_bugzilla_rest_comments}}
 #'
 #' @param comments_folder_path path to the comments folder that contains json file with Bugzilla data inside
-#' @seealso \code{\link{parse_bugzilla_rest_comments}} a downloader function to download bugzilla data with perceval
-#' @return data table with parsed bugzilla comments data
+#' @seealso \code{\link{parse_bugzilla_rest_comments}} a downloader function to download Bugzilla data with perceval
+#' @return data table with parsed Bugzilla comments data
 #' @export
 #' @family parsers
 parse_bugzilla_rest_comments <- function(comments_folder_path){
@@ -138,6 +148,22 @@ parse_bugzilla_rest_comments <- function(comments_folder_path){
 
   # Rename the columns of data.table
   setnames(result, expected_columns_names)
+
+  return(result)
+}
+
+#' Combine Bugzilla issues data table with Bugzilla comments data table
+#'
+#' @param bugzilla_issues a data table with parsed Bugzilla issues data
+#' @param bugzilla_comments a data table with parsed Bugzilla comments data
+#' @seealso \code{\link{parse_bugzilla_rest_issues}} a parser function to parse Bugzilla issues data
+#' @seealso \code{\link{parse_bugzilla_rest_comments}} a parser function to parse Bugzilla comments data
+#' @return data table combined Bugzilla issue data and Bugzilla comments data
+#' @export
+#' @family parsers
+parse_bugzilla_rest_issues_comments <- function(bugzilla_issues, bugzilla_comments){
+  # Merge data table by issue key
+  result <- data.table::merge.data.table(bugzilla_issues, bugzilla_comments, by="issue_key", all=TRUE)
 
   return(result)
 }

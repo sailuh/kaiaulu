@@ -10,15 +10,16 @@ parse_bugzilla_rest_comments(comments_folder_path)
 \item{comments_folder_path}{path to the comments folder that contains json file with Bugzilla data inside}
 }
 \value{
-data table with parsed bugzilla comments data
+data table with parsed Bugzilla comments data
 }
 \description{
 Parse Bugzilla comments data obtained from json files from Bugzilla crawler \code{\link{parse_bugzilla_rest_comments}}
 }
 \seealso{
-\code{\link{parse_bugzilla_rest_comments}} a downloader function to download bugzilla data with perceval
+\code{\link{parse_bugzilla_rest_comments}} a downloader function to download Bugzilla data with perceval
 
 Other parsers: 
+\code{\link{parse_bugzilla_rest_issues_comments}()},
 \code{\link{parse_bugzilla_rest_issues}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
