@@ -4,10 +4,10 @@
 \alias{gitlog_to_hdsmj}
 \title{Transforms a gitlog table to a historical DSM JSON file.}
 \usage{
-gitlog_to_hdsmj(gitlog_table, hdsmj_path, is_sorted = FALSE)
+gitlog_to_hdsmj(project_gitlog, hdsmj_path, is_sorted = FALSE)
 }
 \arguments{
-\item{gitlog_table}{parsed gitlog table created by \code{\link{parse_gitlog}}}
+\item{project_gitlog}{parsed gitlog table created by \code{\link{parse_gitlog}}}
 
 \item{hdsmj_path}{path to save output file}
 

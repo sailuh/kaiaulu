@@ -2,6 +2,7 @@ __kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in develo
 =========================
 
 ### NEW FEATURES
+ * DV8 Showcase vignette now uses gitlog and dependency functions transformers, which enable using Kaiaulu filters. [#184](https://github.com/sailuh/kaiaulu/issues/184)  
  * R/graph.R function was modularized to allow for different weight schemes. [#184](https://github.com/sailuh/kaiaulu/issues/184)  
  * Adds DV8 Notebook showcasing various DV8 Functions. The project configuration file of APR has been expanded to demonstrate available parameters for DV8. [#186](https://github.com/sailuh/kaiaulu/issues/186) and [#182](https://github.com/sailuh/kaiaulu/issues/182).  
  * Adds functions `dv8_clsxb_to_clsxj`, `parse_dv8_clusters`, `dependencies_to_sdsmj`, and `gitlog_to_hdsmj` for DV8 integration with Kaiaulu. [#168](https://github.com/sailuh/kaiaulu/issues/168) 
@@ -22,6 +23,7 @@ __kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in develo
  * With version 0.0.0.9600, Three social smells (org silo, missing link, and radio silence) are refactored to the master branch. The social smells no longer have a dependency to igraph, and OSLOM is used for community detection instead of igraph's random walk. Because of the closer integration to source, the social smell notebook includes a new section where any time slice can be explored to assess the social metrics, including coloring by community. A separate branch will contain a notebook comparing the re-implementation to the existing metric. While org silo and missing link should result in the same metric value, radio silence results will be different due to the use of a different community detection algorithm. [#114](https://github.com/sailuh/kaiaulu/issues/114).
 
 ### MINOR IMPROVEMENTS
+ * Flaws folder is no longer hardcoded to "apr-"
  * DV8 Notebook no longer hardcodes project names to "apr-". [#190](https://github.com/sailuh/kaiaulu/issues/190)
  * Updated parse_dependencies() with `output_dir` folder for more flexibility. [#168](https://github.com/sailuh/kaiaulu/issues/168) 
  * Adds SetUp and TearDown unit tests for a sample git log. [#154](https://github.com/sailuh/kaiaulu/issues/154)
