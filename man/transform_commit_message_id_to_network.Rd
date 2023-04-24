@@ -7,7 +7,7 @@
 transform_commit_message_id_to_network(project_git, commit_message_id_regex)
 }
 \arguments{
-\item{project_git}{A parsed git project by \code{parse_gitlog}.}
+\item{project_git}{A parsed git project by \code{\link{parse_gitlog}}.}
 
 \item{commit_message_id_regex}{the regex to extract the id from the commit message}
 }
@@ -18,9 +18,11 @@ Transform parsed git repo commit messages id and files into an edgelist
 Other edgelists: 
 \code{\link{transform_cve_cwe_file_to_network}()},
 \code{\link{transform_dependencies_to_network}()},
+\code{\link{transform_dependencies_to_sdsmj}()},
 \code{\link{transform_gitlog_to_bipartite_network}()},
 \code{\link{transform_gitlog_to_entity_bipartite_network}()},
 \code{\link{transform_gitlog_to_entity_temporal_network}()},
+\code{\link{transform_gitlog_to_hdsmj}()},
 \code{\link{transform_gitlog_to_temporal_network}()},
 \code{\link{transform_reply_to_bipartite_network}()}
 }

@@ -34,6 +34,8 @@ project:
 
 version_control:
   # Where is the git log located locally?
+  # This is the path to the .git of the project repository you are analyzing.
+  # The .git is hidden, so you can see it using `ls -a`
   log: ../../rawdata/git_repo/APR/.git
   # From where the git log was downloaded?
   log_url: https://github.com/apache/apr
@@ -113,6 +115,32 @@ tool:
       - Throw
       - Parameter
       - Contain
+  dv8:
+    # The project folder path to store various intermediate
+    # files for DV8 Analysis
+    # The folder name will be used in the file names.
+    folder_path: ../../analysis/dv8/apr
+    # the architectural flaws thresholds that should be used
+    architectural_flaws:
+      cliqueDepends:
+        - call
+        - use
+      crossingCochange: 2
+      crossingFanIn: 4
+      crossingFanOut: 4
+      mvCochange: 2
+      uiCochange: 2
+      uihDepends:
+        - call
+        - use
+      uihInheritance:
+        - extend
+        - implement
+        - public
+        - private
+        - virtual
+      uiHistoryImpact: 10
+      uiStructImpact: 0.01
   # Uctags allows finer file-file dependency parsing (e.g. functions, classes, structs)
   uctags:
     # See https://github.com/sailuh/kaiaulu/wiki/Universal-Ctags for details

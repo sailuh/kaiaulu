@@ -28,7 +28,7 @@ This vignette introduces the blamed line types concept of Kaiaulu. This is an ex
 
 ## Project Configuration File
 
-To identify line types, we must choose what types of lines are of our interest (e.g. functions, structs, etc). Kaiaulu defers to the project configuration file the choice of line types and uses [Universal Ctags](https://github.com/universal-ctags/ctags). The relevant portion of the configuration file in APR is as follows:
+To identify line types, we must choose what types of lines are of our interest (e.g. functions, structs, etc). Kaiaulu chooses the line types from the project configuration file and uses [Universal Ctags](https://github.com/universal-ctags/ctags). The relevant portion of the configuration file in APR is as follows:
 
 ```
 tool:
@@ -57,7 +57,7 @@ tool:
         - f # functions
 ```
 
-[Kaiaulu's GitHub wiki page](https://github.com/sailuh/kaiaulu/wiki/Universal-Ctags) also provides more details on Universal Ctags various flags. 
+[Kaiaulu's GitHub wiki page](https://github.com/sailuh/kaiaulu/wiki/Universal-Ctags) also provides more details on Universal Ctag's various flags. 
 
 We also leverage from the project configuration file the location of the repository on the computer, commonly used across the other vignettes:
 

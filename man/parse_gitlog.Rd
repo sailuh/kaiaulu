@@ -16,12 +16,13 @@ parse_gitlog(perceval_path, git_repo_path, save_path = NA, perl_regex = NA)
 \item{perl_regex}{a regex to filter git log entries using git's algorithm (efficient to return small datasets from large projects such as commit annotated issues)}
 }
 \description{
-Parse gitlog from Perceval
+Parses the `.git` file in a github repository using the Perceval library.
 }
 \seealso{
 Other parsers: 
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
+\code{\link{parse_dv8_clusters}()},
 \code{\link{parse_jira}()},
 \code{\link{parse_mbox}()},
 \code{\link{parse_nvdfeed}()}

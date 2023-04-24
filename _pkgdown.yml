@@ -1,9 +1,8 @@
 destination: docs
 template:
-  params:
-    bootswatch: simplex
+  bootstrap: 5
 reference:
-- title: Parsers
+- title: __Parsers__
   desc:  Provides various interfaces to external tools to parse data and filters.
 - contents:
   - parse_gitlog
@@ -20,13 +19,14 @@ reference:
   - parse_line_metrics
   - parse_line_type_file
   - parse_commit_message_id
-- title: Filters
+- title: __Filters__
   desc:  Filters for file extensions, and substrings, such as test files, and time intervals.
 - contents:
   - filter_by_file_extension
   - filter_by_filepath_substring
   - filter_by_commit_interval
-- title: Networks
+  - filter_by_last_files_change
+- title: __Networks__
   desc:  Transforms parsed data into a format suitable to network libraries
 - contents:
   - transform_gitlog_to_bipartite_network
@@ -38,14 +38,19 @@ reference:
   - transform_r_dependencies_to_network
   - transform_commit_message_id_to_network
   - transform_cve_cwe_file_to_network
-- title: Graph
+  - transform_dependencies_to_sdsmj
+  - transform_gitlog_to_hdsmj
+- title: __Graph__
   desc:  Provide graph models to construct networks and algorithms for graph analysis
 - contents:
   - model_directed_graph
   - bipartite_graph_projection
+  - weight_scheme_sum_edges
+  - weight_scheme_count_deleted_nodes
   - community_oslom
   - recolor_network_by_community
-- title: Identity
+  - graph_to_dsmj
+- title: __Identity__
   desc:  Provide the same id to authors who use variations of names or emails.
 - contents:
   - format_name_email
@@ -53,60 +58,116 @@ reference:
   - is_same_identity
   - assign_exact_identity
   - identity_match
-- title: Interval
+- title: __Interval__
   desc:  Provides different types of interval windows (e.g. release) for metric functions.
 - contents:
   - interval_commit_metric
   - get_date_from_commit_hash
-- title: Metrics
+- title: __Metrics__
   desc:  Various metrics used to estimate code quality, complexity and effort
 - contents:
   - metric_churn_per_commit_interval
   - metric_churn_per_commit_per_file
   - commit_message_id_coverage
-- title: IO
+  - metric_churn
+- title: __IO__
   desc:  Functions to create and read temporary files in R.
 - contents:
   - make_temporary_file
   - read_temporary_file
-- title: Git
+- title: __Git__
   desc:  Functions to interact with git interface to facilitate interval static code analysis.
 - contents:
   - git_checkout
   - git_head
   - git_log
   - git_blame
-- title: GitHub
-  desc:  Functions to interact and download data from GitHub API.
+  - git_create_sample_log
+  - git_delete_sample_log
+- title: __GitHub__
+  desc: Functions to interact and download data from GitHub API.
+- subtitle: Issues
+  desc: GitHub's Issues and Issues' Events
 - contents:
   - github_api_project_issue_events
   - github_parse_project_issue_events
+  - github_api_project_issue
+  - github_parse_project_issue
+- subtitle: Commits
+  desc: GitHub's Commits
+- contents:
   - github_api_project_commits
   - github_parse_project_commits
   - github_api_project_contributors
-  - github_api_project_issue
-  - github_parse_project_issue
+- subtitle: Pull Request
+  desc: GitHub's Pull Request
+- contents:
   - github_api_project_pull_request
   - github_parse_project_pull_request
+- subtitle: Issue and Pull Request Comments
+  desc: >
+    GitHub's assumes Issues and Pull Requests to be
+    the same in regards to comments.
+- contents:
   - github_api_project_issue_or_pr_comments
   - github_parse_project_issue_or_pr_comments
   - github_api_rate_limit
+- subtitle: Pagination and Requests
+  desc: >
+    Misc functions for GitHub pagination when
+    downloading data.
+- contents:
   - github_api_page_next
   - github_api_page_prev
   - github_api_page_first
   - github_api_page_last
   - github_api_iterate_pages
-- title: Social Smells
+- title: __Social Smells__
   desc:  Functions to compute social smells.
 - contents:
   - smell_missing_links
   - smell_organizational_silo
   - smell_sociotechnical_congruence
   - smell_radio_silence
-- title: Download
+- title: __Download__
   desc:  Functions to download data from various websites and convert to formats used in Kaiaulu.
 - contents:
   - download_pipermail
   - convert_pipermail_to_mbox
   - download_mod_mbox
   - download_mod_mbox_per_month
+- title: __DV8__
+  desc: Functions to interface with ArchDia’s DV8.
+- subtitle: Design Structure Matrix (DSM)
+  desc: >
+    Parsing DSMs from raw data, convert between
+    JSON DSMs and DV8's binary DSMs, combine DSMs,
+    and DSM export to Excel.
+- contents:
+  - gitlog_to_hdsmj
+  - dv8_gitlog_to_gitnumstat
+  - dv8_gitnumstat_to_hdsmb
+  - dependencies_to_sdsmj
+  - dv8_depends_to_sdsmj
+  - dv8_dsmj_to_dsmb
+  - dv8_dsmb_to_dsmj
+  - dv8_hdsmb_sdsmb_to_mdsmb
+  - dv8_mdsmb_drhier_to_excel
+- subtitle: Metrics
+  desc: >
+    Various DV8 metrics, Parsing into R Memory,
+    and File to Flaw mapping.
+- contents:
+  - dv8_mdsmb_to_flaws
+  - parse_dv8_architectural_flaws
+  - dv8_mdsmb_to_decoupling_level
+  - parse_dv8_metrics_decoupling_level
+  - dv8_mdsmb_to_hierclsxb
+- subtitle: Clustering
+  desc: >
+    Hierarchical Clustering, Parsing into R Memory, and Clustering
+    conversion between JSON and DV8's binary.
+- contents:
+  - dv8_clsxb_to_clsxj
+  - dv8_clsxj_to_clsxb
+  - parse_dv8_clusters

@@ -35,7 +35,7 @@ This notebook showcases the use of community detection using OSLOM [1], which re
 
 [1] Finding statistically significant communities in networks. A. Lancichinetti, F. Radicchi, J.J. Ramasco and S. Fortunato PLoS ONE 6, e18961 (2011).
 
-To facilitate the usage of the OSLOM algorithm, Kaiaulu currently provides two interface functions to its two binaries: `community_oslom` and `recolor_network_by_community`. The former requires the binary path to OSLOM to be provided and parses OSLOM outputs into R memory as a list of tables closest to the raw output. The later leverages said list of tables to re-color a network by its assigned community up to 12 different communities (the limitation is only on color, the OSLOM output will give as many communities as detected). Nodes that are assigned to more than one community are colored black. 
+To facilitate the usage of the OSLOM algorithm, Kaiaulu currently provides two    interface functions to its two binaries: `community_oslom` and `recolor_network_by_community`. The former requires the binary path to OSLOM to be provided and parses OSLOM outputs into R memory as a list of tables closest to the raw output. The latter leverages said list of tables to re-color a network by its assigned community up to 12 different communities (the limitation is only on color, the OSLOM output will give as many communities as detected). Nodes that are assigned to more than one community are colored black. 
 
 `recolor_network_by_community` leverages the existing visualization library in Kaiaulu, which means communities can be explored interactively. This is of particular interest to some of the social smells, where community detection is a required step, and therefore a poor community detection would lead to erroneous results. 
 
@@ -157,11 +157,15 @@ project_dependencies <- parse_dependencies(depends_jar_path,git_repo_path,langua
 ```
 
 ```{r}
-project_dependencies <- project_dependencies  %>%
-  filter_by_file_extension(file_extensions,"src")  %>% 
-  filter_by_file_extension(file_extensions,"dest")  %>% 
-  filter_by_filepath_substring(substring_filepath,"src") %>%
-  filter_by_filepath_substring(substring_filepath,"dest")
+project_dependencies[["nodes"]] <- project_dependencies[["nodes"]]  %>%
+  filter_by_file_extension(file_extensions,"filepath")  %>% 
+  filter_by_filepath_substring(substring_filepath,"filepath")
+
+project_dependencies[["edgelist"]] <- project_dependencies[["edgelist"]]  %>%
+  filter_by_file_extension(file_extensions,"src_filepath")  %>% 
+  filter_by_file_extension(file_extensions,"dest_filepath")  %>% 
+  filter_by_filepath_substring(substring_filepath,"src_filepath") %>%
+  filter_by_filepath_substring(substring_filepath,"dest_filepath")
 ```
 
 ```{r}
@@ -201,8 +205,8 @@ project_commit_network <- transform_gitlog_to_bipartite_network(project_git_slic
 
 ```{r}
 co_change_network <- bipartite_graph_projection(project_commit_network,
-                                                is_intermediate_projection = FALSE,
-                                                mode = FALSE)
+                                                mode = FALSE,
+                                                weight_scheme_function = weight_scheme_sum_edges)
 ```
 
 ```{r}
