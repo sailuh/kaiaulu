@@ -41,6 +41,7 @@ kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in developm
 ### DOCUMENTATION FIXES
 
  * New configuration file for the Apache Thrift project called "thrift.yml". [#148](https://github.com/sailuh/kaiaulu/issues/148)
+ * Added unit tests for git_checkout() and parse_gitlog(). [#154](https://github.com/sailuh/kaiaulu/issues/154)
  
 kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) 
 =========================
