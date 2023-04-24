@@ -245,8 +245,8 @@ if(arguments[["all_branches"]] & arguments[["help"]]){
         # dev-thread => dev-dev, and dev-file => dev-dev. This creates both dev-dev via graph projections
 
         git_network_authors <- bipartite_graph_projection(network_git_slice,
-                                                          is_intermediate_projection = FALSE,
-                                                          mode = TRUE)
+                                                          mode = TRUE,
+                                                          weight_scheme_function = weight_scheme_sum_edges)
 
         code_clusters <- community_oslom(oslom_undir_path,
                                          git_network_authors,
@@ -260,8 +260,8 @@ if(arguments[["all_branches"]] & arguments[["help"]]){
 
 
         reply_network_authors <- bipartite_graph_projection(network_reply_slice,
-                                                            is_intermediate_projection = FALSE,
-                                                            mode = TRUE)
+                                                            mode = TRUE,
+                                                            weight_scheme_function = weight_scheme_sum_edges)
 
         # Community Detection
 

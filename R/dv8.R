@@ -23,7 +23,9 @@
 gitlog_to_hdsmj <- function(gitlog_table, hdsmj_path, is_sorted=FALSE){
   # Call preliminary functions to get graph and cochange for the files
   gitlog_graph <- transform_gitlog_to_bipartite_network(gitlog_table, mode ="commit-file")
-  cochange_table <- bipartite_graph_projection(gitlog_graph, mode = FALSE, is_intermediate_projection = FALSE)
+  cochange_table <- bipartite_graph_projection(gitlog_graph,
+                                               mode = FALSE,
+                                               weight_scheme_function = weight_scheme_count_deleted_nodes)
 
   # Get the nodes and edgelist tables
   nodes_table <- cochange_table[[1]]
