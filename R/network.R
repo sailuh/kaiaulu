@@ -60,7 +60,8 @@ transform_dependencies_to_sdsmj <- function(project_depends, sdsmj_path, is_dire
 #' and a *-hdsm.json will be returned for \code{\link{transform_gitlog_to_hdsmj}}
 transform_gitlog_to_hdsmj <- function(project_git, hdsmj_path, is_directed, is_sorted=FALSE){
   # Call preliminary functions to get graph and cochange for the files
-  git_bipartite <- transform_gitlog_to_bipartite_network(project_git, mode ="commit-file")
+  #git_bipartite <- transform_gitlog_to_bipartite_network(project_git, mode ="commit-file")
+  git_bipartite <- transform_gitlog_to_temporal_network(project_git, mode=c("author", 'committer'))
   cochange_table <- bipartite_graph_projection(git_bipartite, mode = FALSE,
                                                weight_scheme_function = weight_scheme_count_deleted_nodes)
 

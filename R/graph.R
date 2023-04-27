@@ -97,7 +97,7 @@ graph_to_dsmj <- function(graph, dsm_path, is_directed, is_sorted=FALSE){
   }
 
   # Create the final json
-  hdsm_json <- list(schemaVersion="1.0", name=paste0("april23-graph", "-hdsm"), variables=variables, cells=cells_df)
+  hdsm_json <- list(schemaVersion="1.0", name=paste0("hdsm"), variables=variables, cells=cells_df)
 
   json_df <- jsonlite::fromJSON(jsonlite::toJSON(hdsm_json, auto_unbox = TRUE))
 
