@@ -1,10 +1,10 @@
 on:
   push:
     branches:
-      - github_actions_debug
+      - master
   pull_request:
     branches:
-      - github_actions_debug
+      - master
 
 name: test-coverage
 
