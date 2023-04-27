@@ -4,19 +4,35 @@
 \alias{transform_dependencies_to_sdsmj}
 \title{Transform parsed dependencies into a sdsmj file.}
 \usage{
-transform_dependencies_to_sdsmj(depends_table, is_sorted = FALSE)
+transform_dependencies_to_sdsmj(
+  project_depends,
+  sdsmj_path,
+  is_directed,
+  is_sorted = FALSE
+)
 }
 \arguments{
-\item{depends_table}{A parsed depends project by \code{\link{parse_dependencies}}.}
+\item{project_depends}{A parsed depends project by \code{\link{parse_dependencies}}.}
 
-\item{is_sorted}{whether to sort the variables (filenames) in the dsm.json files}
+\item{sdsmj_path}{the path to save the structural dsm (*-sdsm.json).}
+
+\item{is_directed}{whether the graph is directed. If false, cells will be doubled
+with src/dest switched to represent an undirected graph as a directed graph.}
+
+\item{is_sorted}{whether to sort the variables (filenames) in the sdsm.json file.}
 }
 \description{
-# Creates a sdsm.json from a table of dependencies from Depends.
+Converts table of dependencies from \code{\link{parse_dependencies}} into an *-sdsm.json.
+In the sdsm.json, the Variables are all files/methods or any variables under analysis
+(rows/columns in dependency matrix) and the Cells (matrix cell) contain all the relations of
+ variable (src & dest) pairs.
 }
 \seealso{
-\code{\link{parse_dependencies}}, \code{\link{transform_gitlog_to_bipartite_network}},
-\code{\link{graph_to_dsmj}}
+\code{\link{parse_dependencies}} to get a table of parsed dependencies needed
+ as input into \code{\link{transform_dependencies_to_sdsmj}},
+ \code{\link{transform_gitlog_to_hdsmj}} to perform a similar transformation into a *-dsm.json using a gitlog,
+\code{\link{graph_to_dsmj}} to generate a *-dsm.json file. A *-sdsm.json will be returned for \code{\link{transform_dependencies_to_sdsmj}}
+and a *-hdsm.json will be returned for \code{\link{transform_gitlog_to_hdsmj}}
 
 Other edgelists: 
 \code{\link{transform_commit_message_id_to_network}()},

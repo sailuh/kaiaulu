@@ -4,18 +4,38 @@
 \alias{transform_gitlog_to_hdsmj}
 \title{Transform parsed git repo into a hdsmj file.}
 \usage{
-transform_gitlog_to_hdsmj(project_git, is_sorted = FALSE)
+transform_gitlog_to_hdsmj(
+  project_git,
+  hdsmj_path,
+  is_directed,
+  is_sorted = FALSE
+)
 }
 \arguments{
 \item{project_git}{A parsed git project by \code{\link{parse_gitlog}}.}
 
-\item{is_sorted}{whether to sort the variables (filenames) in the dsm.json files}
+\item{hdsmj_path}{the path to save the history dsm (*-hdsm.json).}
+
+\item{is_directed}{whether the graph is directed. If false, cells will be doubled
+with src/dest switched to represent an undirected graph as a directed graph.}
+
+\item{is_sorted}{whether to sort the variables (filenames) in the hdsm.json file.}
 }
 \description{
-# Creates a hdsm.json from a parsed gitlog table.
+Converts a gitlog table into an *-hdsm.json.
+In the hdsm.json, the Variables are all files/methods or any variables under analysis
+(rows/columns in dependency matrix) and the Cells (matrix cell) contain all the relations of
+ variable (src & dest) pairs. The Co-change is the number of times the src & dest
+  were committed together.
+Note that the cochange between a file and its renamed variant will not be considered
+using this function, so those cells won't appear in the final *-hdsm.json.
 }
 \seealso{
-\code{\link{parse_gitlog}}, \code{\link{graph_to_dsmj}}
+\code{\link{parse_gitlog}} to get a table of a parsed git project needed
+ as input into \code{\link{transform_gitlog_to_hdsmj}},
+ \code{\link{transform_dependencies_to_sdsmj}} to perform a similar transformation into a *-dsm.json using dependencies from Depends,
+\code{\link{graph_to_dsmj}} to generate a *-dsm.json file. A *-sdsm.json will be returned for \code{\link{transform_dependencies_to_sdsmj}}
+and a *-hdsm.json will be returned for \code{\link{transform_gitlog_to_hdsmj}}
 
 Other edgelists: 
 \code{\link{transform_commit_message_id_to_network}()},

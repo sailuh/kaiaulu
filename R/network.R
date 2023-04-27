@@ -6,16 +6,25 @@
 
 #' Transform parsed dependencies into a sdsmj file.
 #'
-#' # Creates a sdsm.json from a table of dependencies from Depends.
+#' Converts table of dependencies from \code{\link{parse_dependencies}} into an *-sdsm.json.
+#' In the sdsm.json, the Variables are all files/methods or any variables under analysis
+#' (rows/columns in dependency matrix) and the Cells (matrix cell) contain all the relations of
+#'  variable (src & dest) pairs.
 #'
-#' @param depends_table A parsed depends project by \code{\link{parse_dependencies}}.
-#' @param is_sorted whether to sort the variables (filenames) in the dsm.json files
+#' @param project_depends A parsed depends project by \code{\link{parse_dependencies}}.
+#' @param sdsmj_path the path to save the structural dsm (*-sdsm.json).
+#' @param is_directed whether the graph is directed. If false, cells will be doubled
+#'  with src/dest switched to represent an undirected graph as a directed graph.
+#' @param is_sorted whether to sort the variables (filenames) in the sdsm.json file.
 #' @export
 #' @family edgelists
 #' @family dv8
-#' @seealso \code{\link{parse_dependencies}}, \code{\link{transform_gitlog_to_bipartite_network}},
-#' \code{\link{graph_to_dsmj}}
-transform_dependencies_to_sdsmj <- function(depends_table, is_sorted=FALSE){
+#' @seealso \code{\link{parse_dependencies}} to get a table of parsed dependencies needed
+#'  as input into \code{\link{transform_dependencies_to_sdsmj}},
+#'  \code{\link{transform_gitlog_to_hdsmj}} to perform a similar transformation into a *-dsm.json using a gitlog,
+#' \code{\link{graph_to_dsmj}} to generate a *-dsm.json file. A *-sdsm.json will be returned for \code{\link{transform_dependencies_to_sdsmj}}
+#' and a *-hdsm.json will be returned for \code{\link{transform_gitlog_to_hdsmj}}
+transform_dependencies_to_sdsmj <- function(project_depends, sdsmj_path, is_directed, is_sorted=FALSE){
   # Rename "filepath" to "to"
   colnames(depends_table$nodes)[1] = "name"
   # Rename "src_filepath" to "from"
@@ -23,29 +32,42 @@ transform_dependencies_to_sdsmj <- function(depends_table, is_sorted=FALSE){
   # Rename "dest_filepath" to "to"
   colnames(depends_table$edgelist)[2] = "to"
 
-  graph_to_dsmj(depends_table, is_sorted)
+  graph_to_dsmj(project_depends, sdsmj_path, is_directed, is_sorted)
 }
 
 #' Transform parsed git repo into a hdsmj file.
 #'
-#' # Creates a hdsm.json from a parsed gitlog table.
+#' Converts a gitlog table into an *-hdsm.json.
+#' In the hdsm.json, the Variables are all files/methods or any variables under analysis
+#' (rows/columns in dependency matrix) and the Cells (matrix cell) contain all the relations of
+#'  variable (src & dest) pairs. The Co-change is the number of times the src & dest
+#'   were committed together.
+#' Note that the cochange between a file and its renamed variant will not be considered
+#' using this function, so those cells won't appear in the final *-hdsm.json.
 #'
 #' @param project_git A parsed git project by \code{\link{parse_gitlog}}.
-#' @param is_sorted whether to sort the variables (filenames) in the dsm.json files
+#' @param hdsmj_path the path to save the history dsm (*-hdsm.json).
+#' @param is_directed whether the graph is directed. If false, cells will be doubled
+#'  with src/dest switched to represent an undirected graph as a directed graph.
+#' @param is_sorted whether to sort the variables (filenames) in the hdsm.json file.
 #' @export
 #' @family edgelists
 #' @family dv8
-#' @seealso \code{\link{parse_gitlog}}, \code{\link{graph_to_dsmj}}
-transform_gitlog_to_hdsmj <- function(project_git, is_sorted=FALSE){
+#' @seealso \code{\link{parse_gitlog}} to get a table of a parsed git project needed
+#'  as input into \code{\link{transform_gitlog_to_hdsmj}},
+#'  \code{\link{transform_dependencies_to_sdsmj}} to perform a similar transformation into a *-dsm.json using dependencies from Depends,
+#' \code{\link{graph_to_dsmj}} to generate a *-dsm.json file. A *-sdsm.json will be returned for \code{\link{transform_dependencies_to_sdsmj}}
+#' and a *-hdsm.json will be returned for \code{\link{transform_gitlog_to_hdsmj}}
+transform_gitlog_to_hdsmj <- function(project_git, hdsmj_path, is_directed, is_sorted=FALSE){
   # Call preliminary functions to get graph and cochange for the files
   git_bipartite <- transform_gitlog_to_bipartite_network(project_git, mode ="commit-file")
   cochange_table <- bipartite_graph_projection(git_bipartite, mode = FALSE,
                                                weight_scheme_function = weight_scheme_count_deleted_nodes)
 
-  ## Rename "weight" to "Cochange"
-  #colnames(cochange_table$edgelist)[3] = "Cochange"
+  # Rename "weight" to "Cochange"
+  colnames(cochange_table$edgelist)[3] = "Cochange"
 
-  graph_to_dsmj(cochange_table, is_sorted)
+  graph_to_dsmj(cochange_table, hdsmj_path, is_directed, is_sorted)
 }
 
 #' Transform parsed git repo into an edgelist

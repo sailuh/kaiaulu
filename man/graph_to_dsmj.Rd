@@ -5,15 +5,24 @@
 \title{Create a dsm.json file given either a dependencies table from \code{\link{transform_dependencies_to_sdsmj}}
 or a gitlog table from \code{\link{transform_gitlog_to_hdsmj}}.}
 \usage{
-graph_to_dsmj(graph, is_sorted = FALSE)
+graph_to_dsmj(graph, dsm_path, is_directed, is_sorted = FALSE)
 }
 \arguments{
 \item{graph}{the table containing the nodes and edgelist of the graph of dependencies or the gitlog.}
 
+\item{dsm_path}{path to save either the *-sdsm.json from \code{\link{transform_dependencies_to_sdsmj}} or the
+*-hdsmj.json from \code{\link{transform_gitlog_to_hdsmj}}}
+
+\item{is_directed}{whether the graph is directed. If false, cells will be doubled
+with src/dest switched to represent an undirected graph as a directed graph.}
+
 \item{is_sorted}{whether to sort the variables (filenames) in the dsm.json files}
 }
+\value{
+either the path to a sdsm.json (from dependencies table) or a hdsmj.json (from gitlog table).
+}
 \description{
-# Returns either a hdsm.json (from dependencies table) or a sdsmj.json (from gitlog table).
+# Returns either a sdsm.json (from dependencies table) or a hdsmj.json (from gitlog table).
 }
 \seealso{
 \code{\link{transform_dependencies_to_sdsmj}} and \code{\link{transform_gitlog_to_hdsmj}}
