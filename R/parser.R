@@ -98,7 +98,7 @@ parse_bugzilla_rest_issues <- function(issues_folder_path){
 #' Parse Bugzilla comments data obtained from json files from Bugzilla crawler \code{\link{parse_bugzilla_rest_comments}}
 #'
 #' @param comments_folder_path path to the comments folder that contains json file with Bugzilla data inside
-#' @seealso \code{\link{parse_bugzilla_rest_comments}} a downloader function to download Bugzilla data with perceval
+#' @seealso \code{\link{download_bugzilla_rest_comments}} a downloader function to download Bugzilla comments data with REST API
 #' @return data table with parsed Bugzilla comments data
 #' @export
 #' @family parsers
