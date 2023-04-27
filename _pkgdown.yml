@@ -16,6 +16,7 @@ reference:
   - parse_bugzilla_perceval_rest_issue_comments
   - parse_bugzilla_rest_issues
   - parse_bugzilla_rest_comments
+  - parse_bugzilla_rest_issues_comments
   - parse_github_replies
   - parse_dependencies
   - parse_r_dependencies
