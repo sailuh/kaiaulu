@@ -4,7 +4,7 @@
 \alias{bipartite_graph_projection}
 \title{Apply a bipartite graph projection}
 \usage{
-bipartite_graph_projection(graph, mode, weight_scheme_function = NA)
+bipartite_graph_projection(graph, mode, weight_scheme_function = NULL)
 }
 \arguments{
 \item{graph}{A bipartite network (see transform_*_bipartite functions).}
