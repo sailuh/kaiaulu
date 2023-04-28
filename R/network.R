@@ -26,11 +26,11 @@
 #' and a *-hdsm.json will be returned for \code{\link{transform_gitlog_to_hdsmj}}
 transform_dependencies_to_sdsmj <- function(project_depends, sdsmj_path, is_directed, is_sorted=FALSE){
   # Rename "filepath" to "to"
-  colnames(depends_table$nodes)[1] = "name"
+  colnames(depends_table$nodes)[colnames(depends_table$nodes) == "filepath"] = "name"
   # Rename "src_filepath" to "from"
-  colnames(depends_table$edgelist)[1] = "from"
+  colnames(depends_table$edgelist)[colnames(depends_table$edgelist) == "src_filepath"] = "from"
   # Rename "dest_filepath" to "to"
-  colnames(depends_table$edgelist)[2] = "to"
+  colnames(depends_table$edgelist)[colnames(depends_table$edgelist) == "dest_filepath"] = "to"
 
   graph_to_dsmj(project_depends, sdsmj_path, is_directed, is_sorted)
 }
@@ -60,13 +60,13 @@ transform_dependencies_to_sdsmj <- function(project_depends, sdsmj_path, is_dire
 #' and a *-hdsm.json will be returned for \code{\link{transform_gitlog_to_hdsmj}}
 transform_gitlog_to_hdsmj <- function(project_git, hdsmj_path, is_directed, is_sorted=FALSE){
   # Call preliminary functions to get graph and cochange for the files
-  #git_bipartite <- transform_gitlog_to_bipartite_network(project_git, mode ="commit-file")
-  git_bipartite <- transform_gitlog_to_temporal_network(project_git, mode=c("author", 'committer'))
+  git_bipartite <- transform_gitlog_to_bipartite_network(project_git, mode ="commit-file")
+  #git_bipartite <- transform_gitlog_to_temporal_network(project_git, mode=c("author"))
   cochange_table <- bipartite_graph_projection(git_bipartite, mode = FALSE,
                                                weight_scheme_function = weight_scheme_count_deleted_nodes)
 
   # Rename "weight" to "Cochange"
-  colnames(cochange_table$edgelist)[3] = "Cochange"
+  colnames(cochange_table$edgelist)[colnames(cochange_table$edgelist) == "weight"] = "Cochange"
 
   graph_to_dsmj(cochange_table, hdsmj_path, is_directed, is_sorted)
 }
