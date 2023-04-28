@@ -2,7 +2,7 @@ Package: kaiaulu
 Type: Package
 Title: Kaiaulu
 Version: 0.0.0.9600
-Description: Communication and Collaboration Network Analysis.
+Description: Kaiaulu is an R package and common interface that helps with understanding evolving software development communities, and the artifacts (gitlog, mailing list, files, etc.) which developers collaborate and communicate about. See Paradis et al., (2012) <doi:10.1007/978-3-031-15116-3_6>. 
 Authors@R: c(
     person('Carlos', 'Paradis', role = c('aut', 'cre'),
       email = 'cvas@hawaii.edu',
@@ -11,24 +11,21 @@ Authors@R: c(
     comment = c(ORCID = "0000-0003-0392-2783")),
     person('Massimo', 'Manca', role = c('ctb')),
     person('Corné', 'Broere', role = c('ctb')),
-    person('Jari van', 'Meijel', role = c('ctb'))
+    person('Jari van', 'Meijel', role = c('ctb')),
+    person('Leilani', 'Reich', role = c('ctb')),
+    person('Malia', 'Liu', role = c('ctb')),
+    person('Nicholas', 'Lee', role = c('ctb'))    
     )
 Maintainer: Carlos Paradis <cvas@hawaii.edu>
 License: MPL-2.0 | file LICENSE
 Encoding: UTF-8
 LazyData: true
 Suggests:
-    visNetwork (>= 2.0.9),
-    ggplot2 (>= 3.2.1),
-    ggthemes (>= 4.2.0),
-    pkgdown (>= 1.4.1),
-    knitr (>= 1.26),
-    reactable (>= 0.1.0),
-    igraph (>= 1.2.5),
-    gh (>= 1.1.0),
-    yaml (>= 2.2.1),
     testthat (>= 2.3.1),
-    JirAgileR (>= 0.0.2.1)
+    yaml,
+    knitr, 
+    rmarkdown, 
+    markdown
 Depends:
     R (>= 3.6.0)
 Imports:

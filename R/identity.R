@@ -9,6 +9,7 @@
 #' @param b a string
 #' @export
 #' @importFrom utils adist
+#' @keywords internal
 normalized_levenshtein <- function(a,b){
   return(drop(1 - adist(a,b)/max(nchar(a),nchar(b))))
 }
