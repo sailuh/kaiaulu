@@ -6,8 +6,7 @@
 #' @param limit_upperbound the number of issues saved in each page file. Some bugzilla sites have limits set on how many bugs
 #' can be retrieved in one GET request, in which case, the limit set by the bugzilla site will be used in place of
 #' limit_upperbound to ensure full bug retrieval.
-#' @seealso \code{\link{parse_bugzilla_rest_issues}} a parser function to parse Bugzilla issues data
-#' @seealso \code{\link{parse_bugzilla_rest_comments}} a parser function to parse Bugzilla comments data
+#' @seealso \code{\link{parse_bugzilla_rest_issues_comments}} a parser function to parse Bugzilla issues and comments data
 #' @export
 download_bugzilla_rest_issues_comments <- function(bugzilla_site, start_timestamp, save_folder_path, limit_upperbound = 500) {
   # Format link to retrieve data using Bugzilla REST API

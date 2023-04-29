@@ -28,7 +28,5 @@ Download project data (issues and comments) from bugzilla site
 Note: The first comment in every issue is the issue description
 }
 \seealso{
-\code{\link{parse_bugzilla_rest_issues}} a parser function to parse Bugzilla issues data
-
-\code{\link{parse_bugzilla_rest_comments}} a parser function to parse Bugzilla comments data
+\code{\link{parse_bugzilla_rest_issues_comments}} a parser function to parse Bugzilla issues and comments data
 }
