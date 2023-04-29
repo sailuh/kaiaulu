@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#' Parse Bugzilla issues data obtained from json files from Bugzilla crawler \code{\link{download_bugzilla_rest_issues}}
+#' Parse Bugzilla issues data obtained from json files from Bugzilla crawler
 #'
 #' @param issues_folder_path path to the issue folder that contains json file with Bugzilla data inside
 #' @seealso \code{\link{download_bugzilla_rest_issues_comments}} a downloader function to parse Bugzilla issues and comments data
