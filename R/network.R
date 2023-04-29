@@ -30,19 +30,20 @@ transform_dependencies_to_sdsmj <- function(depends_table, is_sorted=FALSE){
 #'
 #' # Creates a hdsm.json from a parsed gitlog table.
 #'
-#' @param gitlog_table A parsed git project by \code{\link{parse_gitlog}}.
+#' @param project_git A parsed git project by \code{\link{parse_gitlog}}.
 #' @param is_sorted whether to sort the variables (filenames) in the dsm.json files
 #' @export
 #' @family edgelists
 #' @family dv8
 #' @seealso \code{\link{parse_gitlog}}, \code{\link{graph_to_dsmj}}
-transform_gitlog_to_hdsmj <- function(gitlog_table, is_sorted=FALSE){
+transform_gitlog_to_hdsmj <- function(project_git, is_sorted=FALSE){
   # Call preliminary functions to get graph and cochange for the files
-  gitlog_graph <- transform_gitlog_to_bipartite_network(gitlog_table, mode ="commit-file")
-  cochange_table <- bipartite_graph_projection(gitlog_graph, mode = FALSE, is_intermediate_projection = FALSE)
+  git_bipartite <- transform_gitlog_to_bipartite_network(project_git, mode ="commit-file")
+  cochange_table <- bipartite_graph_projection(git_bipartite, mode = FALSE,
+                                               weight_scheme_function = weight_scheme_count_deleted_nodes)
 
-  # Rename "weight" to "Cochange"
-  colnames(cochange_table$edgelist)[3] = "Cochange"
+  ## Rename "weight" to "Cochange"
+  #colnames(cochange_table$edgelist)[3] = "Cochange"
 
   graph_to_dsmj(cochange_table, is_sorted)
 }

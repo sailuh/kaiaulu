@@ -21,17 +21,11 @@ License: MPL-2.0 | file LICENSE
 Encoding: UTF-8
 LazyData: true
 Suggests:
-    visNetwork (>= 2.0.9),
-    ggplot2 (>= 3.2.1),
-    ggthemes (>= 4.2.0),
-    pkgdown (>= 2.0.7),
-    knitr (>= 1.26),
-    reactable (>= 0.1.0),
-    igraph (>= 1.2.5),
-    gh (>= 1.1.0),
-    yaml (>= 2.2.1),
     testthat (>= 2.3.1),
-    JirAgileR (>= 0.0.2.1)
+    yaml,
+    knitr, 
+    rmarkdown, 
+    markdown
 Depends:
     R (>= 3.6.0)
 Imports:
