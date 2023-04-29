@@ -3,10 +3,10 @@
 on:
   push:
     branches:
-      - master
+      - github_actions_debug2
   pull_request:
     branches:
-      - master
+      - github_actions_debug2
 
 name: R-CMD-check
 
@@ -15,7 +15,7 @@ jobs:
     runs-on: macOS-latest
     strategy:
       matrix:
-        r-version: ['3.6.1']
+        r-version: ['3.6']
 
     steps:
       - uses: actions/checkout@v3
