@@ -16,8 +16,6 @@ data table with parsed Bugzilla comments data
 Parse Bugzilla comments data obtained from json files from Bugzilla crawler \code{\link{parse_bugzilla_rest_comments}}
 }
 \seealso{
-\code{\link{download_bugzilla_rest_comments}} a downloader function to download Bugzilla comments data with REST API
-
 Other parsers: 
 \code{\link{parse_bugzilla_rest_issues_comments}()},
 \code{\link{parse_bugzilla_rest_issues}()},
