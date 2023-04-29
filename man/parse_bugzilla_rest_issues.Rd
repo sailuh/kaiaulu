@@ -2,7 +2,7 @@
 % Please edit documentation in R/parser.R
 \name{parse_bugzilla_rest_issues}
 \alias{parse_bugzilla_rest_issues}
-\title{Parse Bugzilla issues data obtained from json files from Bugzilla crawler \code{\link{download_bugzilla_rest_issues}}}
+\title{Parse Bugzilla issues data obtained from json files from Bugzilla crawler}
 \usage{
 parse_bugzilla_rest_issues(issues_folder_path)
 }
@@ -13,7 +13,7 @@ parse_bugzilla_rest_issues(issues_folder_path)
 data table with parsed Bugzilla issues data
 }
 \description{
-Parse Bugzilla issues data obtained from json files from Bugzilla crawler \code{\link{download_bugzilla_rest_issues}}
+Parse Bugzilla issues data obtained from json files from Bugzilla crawler
 }
 \seealso{
 \code{\link{download_bugzilla_rest_issues_comments}} a downloader function to parse Bugzilla issues and comments data
