@@ -18,6 +18,8 @@ Parse Bugzilla issues data obtained from json files from Bugzilla crawler \code{
 \seealso{
 \code{\link{download_bugzilla_rest_issues}} a downloader function to download Bugzilla issues data with REST API
 
+\code{\link{download_bugzilla_rest_issues_comments}} a downloader function to parse Bugzilla issues and comments data
+
 Other parsers: 
 \code{\link{parse_bugzilla_rest_comments}()},
 \code{\link{parse_bugzilla_rest_issues_comments}()},

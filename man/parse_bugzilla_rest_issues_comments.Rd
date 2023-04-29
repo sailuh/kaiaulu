@@ -2,25 +2,23 @@
 % Please edit documentation in R/parser.R
 \name{parse_bugzilla_rest_issues_comments}
 \alias{parse_bugzilla_rest_issues_comments}
-\title{Combine Bugzilla issues data table with Bugzilla comments data table}
+\title{Parse Bugzilla issues and comments data table}
 \usage{
-parse_bugzilla_rest_issues_comments(bugzilla_issues, bugzilla_comments)
+parse_bugzilla_rest_issues_comments(bugzilla_folder_path)
 }
 \arguments{
-\item{bugzilla_issues}{a data table with parsed Bugzilla issues data}
-
-\item{bugzilla_comments}{a data table with parsed Bugzilla comments data}
+\item{bugzilla_folder_path}{path to the folder that contains json file with Bugzilla data inside}
 }
 \value{
-data table combined Bugzilla issue data and Bugzilla comments data
+data table with Bugzilla issue data and Bugzilla comments data
 }
 \description{
-Combine Bugzilla issues data table with Bugzilla comments data table
+Parse Bugzilla issues and comments data table
 }
 \seealso{
 \code{\link{parse_bugzilla_rest_issues}} a parser function to parse Bugzilla issues data
 
-\code{\link{parse_bugzilla_rest_comments}} a parser function to parse Bugzilla comments data
+\code{\link{download_bugzilla_rest_issues_comments}} a downloader function to parse Bugzilla issues and comments data
 
 Other parsers: 
 \code{\link{parse_bugzilla_rest_comments}()},

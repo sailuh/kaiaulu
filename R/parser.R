@@ -8,6 +8,7 @@
 #'
 #' @param issues_folder_path path to the issue folder that contains json file with Bugzilla data inside
 #' @seealso \code{\link{download_bugzilla_rest_issues}} a downloader function to download Bugzilla issues data with REST API
+#' @seealso \code{\link{download_bugzilla_rest_issues_comments}} a downloader function to parse Bugzilla issues and comments data
 #' @return data table with parsed Bugzilla issues data
 #' @export
 #' @family parsers
@@ -152,16 +153,59 @@ parse_bugzilla_rest_comments <- function(comments_folder_path){
   return(result)
 }
 
-#' Combine Bugzilla issues data table with Bugzilla comments data table
+#' Parse Bugzilla issues and comments data table
 #'
-#' @param bugzilla_issues a data table with parsed Bugzilla issues data
-#' @param bugzilla_comments a data table with parsed Bugzilla comments data
+#' @param bugzilla_folder_path path to the folder that contains json file with Bugzilla data inside
 #' @seealso \code{\link{parse_bugzilla_rest_issues}} a parser function to parse Bugzilla issues data
-#' @seealso \code{\link{parse_bugzilla_rest_comments}} a parser function to parse Bugzilla comments data
-#' @return data table combined Bugzilla issue data and Bugzilla comments data
+#' @seealso \code{\link{download_bugzilla_rest_issues_comments}} a downloader function to parse Bugzilla issues and comments data
+#' @return data table with Bugzilla issue data and Bugzilla comments data
 #' @export
 #' @family parsers
-parse_bugzilla_rest_issues_comments <- function(bugzilla_issues, bugzilla_comments){
+parse_bugzilla_rest_issues_comments <- function(bugzilla_folder_path){
+  json_file_paths <- list.files(bugzilla_folder_path)
+  bugzilla_issues <- parse_bugzilla_rest_issues(bugzilla_folder_path)
+  bugzilla_comments <- data.table::data.table(list())
+  result <- data.table::data.table(list())
+
+  expected_comments_columns <- c("bug_id",
+                                 "id",
+                                 "creation_time",
+                                 "creator",
+                                 "creator_id",
+                                 "text",
+                                 "count",
+                                 "is_private")
+
+  expected_comments_columns_names <- c("issue_key",
+                                       "comment_id",
+                                       "comment_created_datetimez",
+                                       "comment_author_name",
+                                       "comment_author_id",
+                                       "comment_body",
+                                       "comment_count",
+                                       "comment_is_private")
+
+  # Check if files exist in given folder or not
+  if(length(json_file_paths) > 0){
+
+    # Loop over the json file in given folder
+    for(json_file in json_file_paths){
+      json_file_path <- file.path(bugzilla_folder_path, json_file)
+      json_object <- jsonlite::fromJSON(json_file_path)
+
+      if(length(json_object$bugs$comments) > 0){
+        comments <- json_object$bugs$comments
+
+        for(comment in comments){
+          # Get all the bugs from json file
+          comment <- data.table::data.table(comment)
+          bugzilla_comments <- rbindlist(list(bugzilla_comments, comment), fill = TRUE)[, ..expected_comments_columns]
+        }
+      }
+    }
+  }
+  setnames(bugzilla_comments, expected_comments_columns_names)
+
   # Merge data table by issue key
   result <- data.table::merge.data.table(bugzilla_issues, bugzilla_comments, by="issue_key", all=TRUE)
 
