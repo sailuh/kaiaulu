@@ -4,23 +4,20 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#' Create a dsm.json file given either a dependencies table from \code{\link{transform_dependencies_to_sdsmj}}
-#' or a gitlog table from \code{\link{transform_gitlog_to_hdsmj}}.
+#' Exports a graph as a dsmj.
 #'
-#' # Returns either a sdsm.json (from dependencies table) or a hdsmj.json (from gitlog table).
-#'
-#' @param graph the table containing the nodes and edgelist of the graph of dependencies or the gitlog.
-#' @param is_directed whether the graph is directed. If false, cells will be doubled
+#' @param graph a graph returned by \code{\link{model_directed_graph}}
+#' @param dsmj_path path to save the dsmj.
+#' @param dsmj_name name of the dsmj file, passed by the call from the transform functions
+#' @param is_directed whether the graph is directed. If false, cells will be doubled.
 #'  with src/dest switched to represent an undirected graph as a directed graph.
-#' @param dsm_path path to save either the *-sdsm.json from \code{\link{transform_dependencies_to_sdsmj}} or the
-#' *-hdsmj.json from \code{\link{transform_gitlog_to_hdsmj}}
-#' @param is_sorted whether to sort the variables (filenames) in the dsm.json files
-#' @return either the path to a sdsm.json (from dependencies table) or a hdsmj.json (from gitlog table).
+#' @param is_sorted whether to sort the variables (filenames) in the dsm.json files (optional).
+#' @return the path to the dsm.json file saved.
 #' @export
 #' @family dv8
 #' @seealso \code{\link{transform_dependencies_to_sdsmj}} and \code{\link{transform_gitlog_to_hdsmj}}
 #'
-graph_to_dsmj <- function(graph, dsm_path, is_directed, is_sorted=FALSE){
+graph_to_dsmj <- function(graph, dsmj_path, dsmj_name, is_directed, is_sorted=FALSE){
 
   # Get the nodes and edgelist tables
   nodes_table <- graph[["nodes"]]
@@ -38,12 +35,29 @@ graph_to_dsmj <- function(graph, dsm_path, is_directed, is_sorted=FALSE){
   cells_indices <- 1:nrow(edgelist_table)
 
   # Get parameters that will be used for the cells
-  parameters <- list("Call", "Import", "Use", "Parameter", "Contain", "Create", "Extend",
-                     "Return","Implement", "Cast", "Throw", "Annotation", "Cochange")
-  # Only use parameters in the dataframe
-  parameters <- unlist(intersect(colnames(edgelist_table), parameters))
+  parameters <- unique(edgelist_table[["label"]])
 
-  getCell <- function(i) {
+  # getCell <- function(i) {
+  #   src <- edgelist_table[["from"]][[i]]
+  #   dest <- edgelist_table[["to"]][[i]]
+  #
+  #   src_index <- variables_indices[src] - 1
+  #   dest_index <- variables_indices[dest] - 1
+  #
+  #   values <- list()
+  #   # Get all the parameter values for a specific cell
+  #   for (j in 1: length(parameters)) {
+  #     current_param <- edgelist_table[["weight"]][i]
+  #     if (current_param > 0){
+  #       values[[parameters[[j]]]] <- current_param
+  #     }
+  #   }
+  #
+  #   return(list(src=src_index, dest=dest_index, values=as.data.table(values)))
+  # }
+
+  cells <- list()
+  for (i in 1:nrow(edgelist_table)){
     src <- edgelist_table[["from"]][[i]]
     dest <- edgelist_table[["to"]][[i]]
 
@@ -51,39 +65,52 @@ graph_to_dsmj <- function(graph, dsm_path, is_directed, is_sorted=FALSE){
     dest_index <- variables_indices[dest] - 1
 
     values <- list()
-    # Get all the parameter values for a specific cell
-    for (j in 1: length(parameters)) {
-      current_param <- edgelist_table[i][[parameters[[j]]]]
-      if (current_param > 0){
-        values[[parameters[[j]]]] <- current_param
+    cell <- NULL
+    j <- i
+    while (j < nrow(edgelist_table) & src == edgelist_table[["from"]][[j]] & dest == edgelist_table[["to"]][[j]]){
+      current_label <- edgelist_table[["label"]][j]
+      current_weight <- edgelist_table[["weight"]][j]
+      if (current_weight > 0){
+        values[[current_label]] <- current_weight
       }
+
+      j <- j + 1
     }
 
-    return(list(src=src_index, dest=dest_index, values=as.data.table(values)))
+    cell <- list(src=src_index, dest=dest_index, values=as.data.table(values))
+    print(src_index)
+    print(dest_index)
+    print(as.data.table(values))
+    print("--------------")
+    cells <- append(cells, list(cell))
+    i <- i + j
   }
 
-  getCellReverse <- function(i) {
-    src <- edgelist_table[["to"]][[i]]
-    dest <- edgelist_table[["from"]][[i]]
 
-    src_index <- variables_indices[src] - 1
-    dest_index <- variables_indices[dest] - 1
 
-    values <- list()
-    # Get all the parameter values for a specific cell
-    for (j in 1: length(parameters)) {
-      current_param <- edgelist_table[i][[parameters[[j]]]]
-      if (current_param > 0){
-        values[[parameters[[j]]]] <- current_param
-      }
-    }
-
-    return(list(src=src_index, dest=dest_index, values=as.data.table(values)))
-  }
+  # getCellReverse <- function(i) {
+  #   src <- edgelist_table[["to"]][[i]]
+  #   dest <- edgelist_table[["from"]][[i]]
+  #
+  #   src_index <- variables_indices[src] - 1
+  #   dest_index <- variables_indices[dest] - 1
+  #
+  #   values <- list()
+  #   # Get all the parameter values for a specific cell
+  #   for (j in 1: length(parameters)) {
+  #     current_param <- edgelist_table[["weight"]][i]
+  #     if (current_param > 0){
+  #       values[[parameters[[j]]]] <- current_param
+  #     }
+  #   }
+  #
+  #   return(list(src=src_index, dest=dest_index, values=as.data.table(values)))
+  # }
 
   # Sorted list
-  cells <- lapply(cells_indices, getCell)
+  #cells <- lapply(cells_indices, getCell)
   cells_df <- data.table::data.table(jsonlite::fromJSON(jsonlite::toJSON(cells, auto_unbox = TRUE)))
+  print(cells_df)
 
   if (is_directed == FALSE){
     cells_reverse <- lapply(cells_indices, getCellReverse)
@@ -97,17 +124,17 @@ graph_to_dsmj <- function(graph, dsm_path, is_directed, is_sorted=FALSE){
   }
 
   # Create the final json
-  hdsm_json <- list(schemaVersion="1.0", name=paste0("hdsm"), variables=variables, cells=cells_df)
+  dsm_json <- list(schemaVersion="1.0", name=dsmj_name, variables=variables, cells=cells_df)
 
-  json_df <- jsonlite::fromJSON(jsonlite::toJSON(hdsm_json, auto_unbox = TRUE))
+  dsm_json <- jsonlite::fromJSON(jsonlite::toJSON(dsm_json, auto_unbox = TRUE))
 
   # Unbox each of the cell values (should be values: object, not values: [object])
-  json_df$cells$values <- lapply(json_df$cells$values, jsonlite::unbox)
+  dsm_json$cells$values <- lapply(dsm_json$cells$values, jsonlite::unbox)
 
   # Save the json to a file
-  jsonlite::write_json(json_df, paste0(dsm_path), auto_unbox=TRUE)
+  jsonlite::write_json(dsm_json, paste0(dsmj_path), auto_unbox=TRUE)
 
-  return(dsm_path)
+  return(dsmj_path)
 }
 
 #' Create a directed graph model
