@@ -120,6 +120,7 @@ reference:
   - download_bugzilla_perceval_rest_issue_comments
   - download_bugzilla_rest_issues
   - download_bugzilla_rest_comments
+  - download_bugzilla_rest_issues_comments
   - download_pipermail
   - convert_pipermail_to_mbox
   - download_mod_mbox

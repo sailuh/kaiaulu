@@ -11,7 +11,7 @@ vignette: >
 ---
 # Introduction
 This notebook explains how to fetch bugs from a Bugzilla website by downloading the issues and comments using Perceval and the Bugzilla REST API. We will be using seven functions, which can be found in the R folder.
-  ~/kaiaulu/R/download.R: download_bugzilla_perceval_traditional_issue_comments, download_bugzilla_perceval_rest_issue_comments, download_bugzilla_rest_issues, download_bugzilla_rest_comments
+  ~/kaiaulu/R/download.R: download_bugzilla_perceval_traditional_issue_comments, download_bugzilla_perceval_rest_issue_comments, download_bugzilla_rest_issues, download_bugzilla_rest_comments, download_bugzilla_rest_issues_comments
   ~/kaiaulu/R/parser.R: parse_bugzilla_perceval_traditional_issue_comments, parse_bugzilla_perceval_rest_issue_comments, parse_bugzilla_rest_issues, parse_bugzilla_rest_comments, parse_bugzilla_rest_issues_comments
 
 Note: Perceval has two endpoints for Bugzilla, so we have two separate functions to parse Bugzilla data from different endpoints. One endpoint is the traditional Bugzilla backend, and the other is the REST API backend for Bugzilla 5.0 (or higher) servers. The REST API backend gives us more information on the issue_creator and issue_assignee than the traditional backend. For more information on Perceval's Bugzilla functions, please check: https://github.com/chaoss/grimoirelab-perceval#bugzilla. To learn more about the Bugzilla REST API, see here: https://wiki.mozilla.org/Bugzilla:REST_API.
@@ -159,8 +159,16 @@ bugzillarestapi_comments_table <- parse_bugzilla_rest_comments(save_comments_pat
 bugzillarestapi_comments_table
 ```
 
-## REST API Issues and Comments Parser
-We can use the 'parse_bugzilla_rest_issues_comments' function below to combine the data tables of the issues and the comments from the previous functions, 'parse_bugzilla_rest_issues' and 'parse_bugzilla_rest_comments'.
+## REST API Issues and Comments Downloader
+We can also use 'download_bugzilla_rest_issues_comments' function to download both issues and comments from the Bugzilla site together.
 ```{r}
-parse_bugzilla_rest_issues_comments(bugzillarestapi_issue_table, bugzillarestapi_comments_table)
+save_comments_path <- "../../rawdata/bugzilla/issues_comments"
+download_bugzilla_rest_issues_comments(bugzilla_site, start_timestamp, save_issues_path, limit_upperbound=20)
+```
+
+## REST API Issues and Comments Parser
+We can use the 'parse_bugzilla_rest_issues_comments' function below to parse the issues and the comments we downloaded from 'download_bugzilla_rest_issues_comments' function.
+```{r}
+bugzillarest_issues_comments_table <- parse_bugzilla_rest_issues_comments(save_comments_path)
+bugzillarest_issues_comments_table
 ```
