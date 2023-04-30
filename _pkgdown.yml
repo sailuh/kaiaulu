@@ -40,6 +40,7 @@ reference:
   - transform_cve_cwe_file_to_network
   - transform_dependencies_to_sdsmj
   - transform_gitlog_to_hdsmj
+  - transform_temporal_gitlog_to_adsmj
 - title: __Graph__
   desc:  Provide graph models to construct networks and algorithms for graph analysis
 - contents:
