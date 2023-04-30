@@ -22,7 +22,7 @@ download_bugzilla_perceval_traditional_issue_comments <- function(perceval_path,
   return(json_data)
 }
 
-#' Download Bugzilla issues and comments using Perceval traditional backend.
+#' Download Bugzilla issues and comments using Perceval REST API backend.
 #'
 #' Note that for the Bugzilla REST API backend, Bugzilla sites may limit the number of bugs that can be retrieved at one time.
 #' Thus, the max_bugs parameter needs to be set correctly to ensure all bugs are retrieved and that
