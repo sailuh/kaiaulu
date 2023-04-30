@@ -2,7 +2,7 @@
 % Please edit documentation in R/download.R
 \name{download_bugzilla_perceval_rest_issue_comments}
 \alias{download_bugzilla_perceval_rest_issue_comments}
-\title{Download Bugzilla issues and comments using Perceval traditional backend.}
+\title{Download Bugzilla issues and comments using Perceval REST API backend.}
 \usage{
 download_bugzilla_perceval_rest_issue_comments(
   perceval_path,
