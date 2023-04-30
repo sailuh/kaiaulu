@@ -3,7 +3,6 @@ test_that("Correct git repo path", {
   expect_equal(file.exists(git_repo_path), TRUE)
   suppressWarnings(git_delete_sample_log(git_repo_path))
 })
-
 test_that("Calling parse_gitlog with correct perceval and correct git log path returns a data table", {
   tools_path <- "../../tools.yml"
   tool <- yaml::read_yaml(tools_path)
@@ -25,5 +24,7 @@ test_that("Calling parse_gitlog with incorrect git repo path returns correct err
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
   incorrect_repo_path <- "incorrect/path/to/git_repo.git"
-  expect_error(parse_gitlog(perceval_path, incorrect_repo_path), "object 'data.Author' not found")
+  suppressWarnings({
+    expect_error(parse_gitlog(perceval_path, incorrect_repo_path), "object 'data.Author' not found")
+  })
 })
