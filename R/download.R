@@ -58,7 +58,7 @@ download_bugzilla_rest_issues <- function(bugzilla_site, start_timestamp, save_f
 
     # Get the table for the first page of bugs to check the number of rows
     # and determine the actual value of the limit parameter.
-    page1_bug_table <- parse_bugzilla_crawler_issue(save_folder_path)
+    page1_bug_table <- parse_bugzilla_rest_issues(save_folder_path)
     # Get the limit we should use.
     limit <- nrow(page1_bug_table)
     # Add to the offset based on the limit.
