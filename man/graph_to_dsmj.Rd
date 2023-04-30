@@ -2,30 +2,32 @@
 % Please edit documentation in R/graph.R
 \name{graph_to_dsmj}
 \alias{graph_to_dsmj}
-\title{Create a dsm.json file given either a dependencies table from \code{\link{transform_dependencies_to_sdsmj}}
-or a gitlog table from \code{\link{transform_gitlog_to_hdsmj}}.}
+\title{Exports a graph as a dsmj.}
 \usage{
-graph_to_dsmj(graph, dsm_path, is_directed, is_sorted = FALSE)
+graph_to_dsmj(graph, dsmj_path, dsmj_name, is_directed, is_sorted = FALSE)
 }
 \arguments{
-\item{graph}{the table containing the nodes and edgelist of the graph of dependencies or the gitlog.}
+\item{graph}{a graph returned by \code{\link{model_directed_graph}}}
 
-\item{dsm_path}{path to save either the *-sdsm.json from \code{\link{transform_dependencies_to_sdsmj}} or the
-*-hdsmj.json from \code{\link{transform_gitlog_to_hdsmj}}}
+\item{dsmj_path}{path to save the dsmj.}
 
-\item{is_directed}{whether the graph is directed. If false, cells will be doubled
+\item{dsmj_name}{name of the dsmj file, passed by the call from an appropriate transform function.}
+
+\item{is_directed}{whether the graph is directed. If false, cells will be doubled.
 with src/dest switched to represent an undirected graph as a directed graph.}
 
-\item{is_sorted}{whether to sort the variables (filenames) in the dsm.json files}
+\item{is_sorted}{whether to sort the variables (filenames) in the dsm.json files (optional).}
 }
 \value{
-either the path to a sdsm.json (from dependencies table) or a hdsmj.json (from gitlog table).
+the path to the dsm.json file saved.
 }
 \description{
-# Returns either a sdsm.json (from dependencies table) or a hdsmj.json (from gitlog table).
+Exports a graph as a dsmj.
 }
 \seealso{
-\code{\link{transform_dependencies_to_sdsmj}} and \code{\link{transform_gitlog_to_hdsmj}}
+\code{\link{transform_dependencies_to_sdsmj}} to transform dependencies from Depends into a structure dsm.json,
+\code{\link{transform_gitlog_to_hdsmj}} to transform a gitlog table into a history dsm.json, and
+\code{\link{transform_temporal_gitlog_to_adsmj}} to transform a gitlog table into an author dsm.json.
 
 Other dv8: 
 \code{\link{dependencies_to_sdsmj}()},
@@ -39,6 +41,7 @@ Other dv8:
 \code{\link{parse_dv8_architectural_flaws}()},
 \code{\link{parse_dv8_clusters}()},
 \code{\link{transform_dependencies_to_sdsmj}()},
-\code{\link{transform_gitlog_to_hdsmj}()}
+\code{\link{transform_gitlog_to_hdsmj}()},
+\code{\link{transform_temporal_gitlog_to_adsmj}()}
 }
 \concept{dv8}

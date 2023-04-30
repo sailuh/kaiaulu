@@ -8,14 +8,16 @@
 #'
 #' @param graph a graph returned by \code{\link{model_directed_graph}}
 #' @param dsmj_path path to save the dsmj.
-#' @param dsmj_name name of the dsmj file, passed by the call from the transform functions
+#' @param dsmj_name name of the dsmj file, passed by the call from an appropriate transform function.
 #' @param is_directed whether the graph is directed. If false, cells will be doubled.
 #'  with src/dest switched to represent an undirected graph as a directed graph.
 #' @param is_sorted whether to sort the variables (filenames) in the dsm.json files (optional).
 #' @return the path to the dsm.json file saved.
 #' @export
 #' @family dv8
-#' @seealso \code{\link{transform_dependencies_to_sdsmj}} and \code{\link{transform_gitlog_to_hdsmj}}
+#' @seealso \code{\link{transform_dependencies_to_sdsmj}} to transform dependencies from Depends into a structure dsm.json,
+#' \code{\link{transform_gitlog_to_hdsmj}} to transform a gitlog table into a history dsm.json, and
+#' \code{\link{transform_temporal_gitlog_to_adsmj}} to transform a gitlog table into an author dsm.json.
 #'
 graph_to_dsmj <- function(graph, dsmj_path, dsmj_name, is_directed, is_sorted=FALSE){
 
@@ -31,92 +33,62 @@ graph_to_dsmj <- function(graph, dsmj_path, dsmj_name, is_directed, is_sorted=FA
   # Make named list with file names as keys and indices as values
   names(variables_indices) <- variables
 
-  # List to hold cells
-  cells_indices <- 1:nrow(edgelist_table)
+  # Group data into cells by the "from" and "to" files and get their labels and weights.
+  grouped_cells <- edgelist_table[, .(labels=list(label), weights=list(weight)),
+                                                by =.(from, to)]
 
-  # Get parameters that will be used for the cells
-  parameters <- unique(edgelist_table[["label"]])
+  # List to hold cells' indices
+  cells_indices <- 1:nrow(grouped_cells)
 
-  # getCell <- function(i) {
-  #   src <- edgelist_table[["from"]][[i]]
-  #   dest <- edgelist_table[["to"]][[i]]
-  #
-  #   src_index <- variables_indices[src] - 1
-  #   dest_index <- variables_indices[dest] - 1
-  #
-  #   values <- list()
-  #   # Get all the parameter values for a specific cell
-  #   for (j in 1: length(parameters)) {
-  #     current_param <- edgelist_table[["weight"]][i]
-  #     if (current_param > 0){
-  #       values[[parameters[[j]]]] <- current_param
-  #     }
-  #   }
-  #
-  #   return(list(src=src_index, dest=dest_index, values=as.data.table(values)))
-  # }
-
-  cells <- list()
-  for (i in 1:nrow(edgelist_table)){
-    src <- edgelist_table[["from"]][[i]]
-    dest <- edgelist_table[["to"]][[i]]
+  getCell <- function(i) {
+    src <- grouped_cells[["from"]][[i]]
+    dest <- grouped_cells[["to"]][[i]]
 
     src_index <- variables_indices[src] - 1
     dest_index <- variables_indices[dest] - 1
 
     values <- list()
-    cell <- NULL
-    j <- i
-    while (j < nrow(edgelist_table) & src == edgelist_table[["from"]][[j]] & dest == edgelist_table[["to"]][[j]]){
-      current_label <- edgelist_table[["label"]][j]
-      current_weight <- edgelist_table[["weight"]][j]
-      if (current_weight > 0){
-        values[[current_label]] <- current_weight
+    # Get all the parameter values for a specific cell
+    parameters <- grouped_cells[["labels"]][[i]]
+    for (j in 1: length(parameters)) {
+      current_param <- grouped_cells[["weights"]][[i]][[j]]
+      if (current_param > 0){
+        values[[as.character(parameters[[j]])]] <- current_param
       }
-
-      j <- j + 1
     }
 
-    cell <- list(src=src_index, dest=dest_index, values=as.data.table(values))
-    print(src_index)
-    print(dest_index)
-    print(as.data.table(values))
-    print("--------------")
-    cells <- append(cells, list(cell))
-    i <- i + j
+    return(list(src=src_index, dest=dest_index, values=as.data.table(values)))
   }
 
+  getCellReverse <- function(i) {
+    src <- grouped_cells[["to"]][[i]]
+    dest <- grouped_cells[["from"]][[i]]
 
+    src_index <- variables_indices[src] - 1
+    dest_index <- variables_indices[dest] - 1
 
-  # getCellReverse <- function(i) {
-  #   src <- edgelist_table[["to"]][[i]]
-  #   dest <- edgelist_table[["from"]][[i]]
-  #
-  #   src_index <- variables_indices[src] - 1
-  #   dest_index <- variables_indices[dest] - 1
-  #
-  #   values <- list()
-  #   # Get all the parameter values for a specific cell
-  #   for (j in 1: length(parameters)) {
-  #     current_param <- edgelist_table[["weight"]][i]
-  #     if (current_param > 0){
-  #       values[[parameters[[j]]]] <- current_param
-  #     }
-  #   }
-  #
-  #   return(list(src=src_index, dest=dest_index, values=as.data.table(values)))
-  # }
+    values <- list()
+    # Get all the parameter values for a specific cell
+    parameters <- grouped_cells[["labels"]][[i]]
+    for (j in 1: length(parameters)) {
+      current_param <- grouped_cells[["weights"]][[i]][[j]]
+      if (current_param > 0){
+        values[[as.character(parameters[[j]])]] <- current_param
+      }
+    }
+
+    return(list(src=src_index, dest=dest_index, values=as.data.table(values)))
+  }
 
   # Sorted list
-  #cells <- lapply(cells_indices, getCell)
+  cells <- lapply(cells_indices, getCell)
   cells_df <- data.table::data.table(jsonlite::fromJSON(jsonlite::toJSON(cells, auto_unbox = TRUE)))
-  print(cells_df)
 
+  # Double the cells (switching src/dest) if not a directed graph
   if (is_directed == FALSE){
     cells_reverse <- lapply(cells_indices, getCellReverse)
     cells_reverse_df <- data.table::data.table(jsonlite::fromJSON(jsonlite::toJSON(cells_reverse, auto_unbox = TRUE)))
     cells_df <- rbind(cells_df, cells_reverse_df)
-
   }
 
   if (is_sorted == TRUE){
