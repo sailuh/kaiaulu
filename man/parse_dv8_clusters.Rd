@@ -14,6 +14,9 @@ Parses a cluster *-clsx.json into a data table.
 }
 \seealso{
 Other parsers: 
+\code{\link{parse_bugzilla_rest_comments}()},
+\code{\link{parse_bugzilla_rest_issues_comments}()},
+\code{\link{parse_bugzilla_rest_issues}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
 \code{\link{parse_gitlog}()},

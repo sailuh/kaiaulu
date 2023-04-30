@@ -168,6 +168,55 @@ download_pipermail <- function(url) {
 
 }
 
+#' Download project data (issues and comments) from bugzilla site
+#' Note: The first comment in every issue is the issue description
+#' @param bugzilla_site URL to specific bugzilla site
+#' @param start_timestamp when to start bug retrieval (ex. 2023-01-01T00:14:57Z)
+#' @param save_folder_path the full *folder* path where the bugzilla issues will be stored
+#' @param limit_upperbound the number of issues saved in each page file. Some bugzilla sites have limits set on how many bugs
+#' can be retrieved in one GET request, in which case, the limit set by the bugzilla site will be used in place of
+#' limit_upperbound to ensure full bug retrieval.
+#' @seealso \code{\link{parse_bugzilla_rest_issues_comments}} a parser function to parse Bugzilla issues and comments data
+#' @export
+download_bugzilla_rest_issues_comments <- function(bugzilla_site, start_timestamp, save_folder_path, limit_upperbound = 500) {
+  # Format link to retrieve data using Bugzilla REST API
+  bugzilla_site <- paste(bugzilla_site, "/rest", sep="")
+
+  # Make sure folder path is correctly formatted
+  if (stringi::stri_sub(save_folder_path,-1) != "/"){
+    save_folder_path <-paste0(save_folder_path, "/")
+  }
+
+  # Defines what bug to start from in bugs retrieved.
+  offset <- 0
+  # Defines name of the file. Each page contains 500 bugs.
+  page <- 0
+  # Defines the limit.
+  limit <- limit_upperbound
+  # Initialize to keep request or not
+  keep_request <- TRUE
+
+  while(keep_request){
+    # Get request to get the project data
+    issues <- httr::GET(paste0(bugzilla_site, "/bug", "?creation_time=", start_timestamp, "&include_fields=_default,comments", "&limit=", limit, "&offset=", offset))
+
+    # Check if the limit being restrict or not
+    if(as.integer(httr::content(issues)$limit) != limit){
+      limit <- as.integer(httr::content(issues)$limit)
+    }
+
+    # Check if there is any issue created after specific date
+    if(httr::content(issues)$total_matches > 0){
+      issues_content <- httr::content(issues, "text")
+      issues_content <- jsonlite::fromJSON(issues_content)
+      jsonlite::write_json(issues_content, file.path(save_folder_path, paste0(page, ".json")), auto_unbox = TRUE)
+      page <- page + 1
+      offset <- offset + limit
+    } else{
+      keep_request <- FALSE
+    }
+  }
+}
 
 #' Convert pipermail archive files (.txt and .txt.gz) into an mbox format for use with \code{\link{parse_mbox}}
 #' @param filelist A vector of pipermail archive files from \code{\link{download_pipermail}}
