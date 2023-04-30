@@ -16,8 +16,8 @@ Adds a column commit_message_id containing the parsed commit message
 }
 \seealso{
 Other parsers: 
-\code{\link{parse_bugzillarest}()},
-\code{\link{parse_bugzilla}()},
+\code{\link{parse_bugzilla_perceval_rest_issue_comments}()},
+\code{\link{parse_bugzilla_perceval_traditional_issue_comments}()},
 \code{\link{parse_dependencies}()},
 \code{\link{parse_dv8_clusters}()},
 \code{\link{parse_gitlog}()},

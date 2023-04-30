@@ -4,7 +4,25 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#' Download Bugzilla issues and comments using Perceval.
+#' Download Bugzilla issues and comments using Perceval traditional backend.
+#'
+#' @param perceval_path path to perceval binary
+#' @param bugzilla_site link to specific bugzilla site
+#' @param datetime fetch bugs updated since this date (in any ISO 8601 format, e.g., 'YYYY-MM-DD HH:mm:SS+|-HH:MM'))
+#' @param max_bugs the maximum number of bugs requested on the same query. Note: Some sites might have restrictions on the number of bugs in one request.
+#' @seealso \code{\link{parse_bugzilla_perceval_traditional_issue_comments}} a parser function to parse bugzilla data
+#' @return json object with bugzilla data
+#' @export
+download_bugzilla_perceval_traditional_issue_comments <- function(perceval_path, bugzilla_site, datetime, max_bugs=500){
+  json_data <- system2(perceval_path,
+                         args = c('bugzilla', bugzilla_site, '--json-line', '--from-date', paste0('"',datetime,'"'),
+                                  "--max-bugs", max_bugs),
+                         stdout = TRUE,
+                         stderr = FALSE)
+  return(json_data)
+}
+
+#' Download Bugzilla issues and comments using Perceval traditional backend.
 #'
 #' Note that for the Bugzilla REST API backend, Bugzilla sites may limit the number of bugs that can be retrieved at one time.
 #' Thus, the max_bugs parameter needs to be set correctly to ensure all bugs are retrieved and that
@@ -13,19 +31,18 @@
 #' @param perceval_path path to perceval binary
 #' @param bugzilla_site link to specific bugzilla site
 #' @param datetime fetch bugs updated since this date (in any ISO 8601 format, e.g., 'YYYY-MM-DD HH:mm:SS+|-HH:MM'))
-#' @param backend either traditional "bugzilla" or "bugzillarest" for Bugzilla >= 5.0 servers
 #' @param max_bugs the maximum number of bugs requested on the same query. This acts as the limit parameter
 #' in the Bugzilla REST API. Bugzilla sites may have specific limits set, so make sure to change the max_bugs
 #' parameter accordingly to correctly download the data when using the "bugzillarest" backend.
-#' @seealso \code{\link{parse_bugzilla}} a parser function to parse bugzilla data
+#' @seealso \code{\link{parse_bugzilla_perceval_rest_issue_comments}} a parser function to parse bugzilla data
 #' @return json object with bugzilla data
 #' @export
-download_bugzilla <- function(perceval_path, bugzilla_site, datetime, backend="bugzilla", max_bugs=500){
+download_bugzilla_perceval_rest_issue_comments <- function(perceval_path, bugzilla_site, datetime, max_bugs=500){
   json_data <- system2(perceval_path,
-                         args = c(backend, bugzilla_site, '--json-line', '--from-date', paste0('"',datetime,'"'),
-                                  "--max-bugs", max_bugs),
-                         stdout = TRUE,
-                         stderr = FALSE)
+                       args = c('bugzillarest', bugzilla_site, '--json-line', '--from-date', paste0('"',datetime,'"'),
+                                "--max-bugs", max_bugs),
+                       stdout = TRUE,
+                       stderr = FALSE)
   return(json_data)
 }
 

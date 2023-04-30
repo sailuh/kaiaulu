@@ -8,11 +8,11 @@
 #'
 #' @param bugzilla_json json object containing Bugzilla data
 #' @param comments if true, the comments are parsed along with the issues
-#' @seealso \code{\link{download_bugzilla}} a downloader function to download bugzilla data with perceval
+#' @seealso \code{\link{download_bugzilla_perceval_traditional_issue_comments}} a downloader function to download bugzilla data with perceval
 #' @return data table with parsed bugzilla data
 #' @export
 #' @family parsers
-parse_bugzilla <- function(bugzilla_json, comments=FALSE){
+parse_bugzilla_perceval_traditional_issue_comments <- function(bugzilla_json, comments=FALSE){
   # Get table from the json
   json_issue_comments <- data.table(jsonlite::stream_in(textConnection(bugzilla_json), verbose = FALSE))
 
@@ -149,11 +149,11 @@ parse_bugzilla <- function(bugzilla_json, comments=FALSE){
 #'
 #' @param bugzilla_json json object containing Bugzilla data
 #' @param comments if true, the comments are parsed along with the issues
-#' @seealso \code{\link{download_bugzilla}} a donwoloader function download bugzilla data with perceval
+#' @seealso \code{\link{download_bugzilla_perceval_rest_issue_comments}} a donwoloader function download bugzilla data with perceval
 #' @return data table
 #' @export
 #' @family parsers
-parse_bugzillarest <- function(bugzilla_json, comments=FALSE){
+parse_bugzilla_perceval_rest_issue_comments <- function(bugzilla_json, comments=FALSE){
   # Get table from the json
   json_issue_comments <- data.table(jsonlite::stream_in(textConnection(bugzilla_json), verbose = FALSE))
 
