@@ -20,9 +20,8 @@ consistently renamed for clarity.
 }
 \seealso{
 Other parsers: 
-\code{\link{parse_bugzilla_rest_comments}()},
-\code{\link{parse_bugzilla_rest_issues_comments}()},
-\code{\link{parse_bugzilla_rest_issues}()},
+\code{\link{parse_bugzilla_perceval_rest_issue_comments}()},
+\code{\link{parse_bugzilla_perceval_traditional_issue_comments}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
 \code{\link{parse_dv8_clusters}()},
