@@ -11,8 +11,8 @@ reference:
   - parse_mbox
   - parse_jira
   - parse_jira_replies
-  - parse_bugzilla
-  - parse_bugzillarest
+  - parse_bugzilla_perceval_traditional_issue_comments
+  - parse_bugzilla_perceval_rest_issue_comments
   - parse_github_replies
   - parse_dependencies
   - parse_r_dependencies
@@ -134,7 +134,8 @@ reference:
 - title: __Download__
   desc:  Functions to download data from various websites and convert to formats used in Kaiaulu.
 - contents:
-  - download_bugzilla
+  - download_bugzilla_perceval_traditional_issue_comments
+  - download_bugzilla_perceval_rest_issue_comments
   - download_pipermail
   - convert_pipermail_to_mbox
   - download_mod_mbox
