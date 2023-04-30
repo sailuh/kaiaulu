@@ -580,7 +580,6 @@ parse_dependencies <- function(depends_jar_path,git_repo_path,language,output_di
   project_name <- stri_split_regex(folder_path,pattern="/")[[1]]
   project_name <- project_name[length(project_name)-1]
 
-  print(folder_path)
   # Use Depends to parse the code folder.
   system2("java",
           args = c("-jar",depends_jar_path,

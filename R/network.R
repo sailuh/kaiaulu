@@ -22,19 +22,22 @@
 #' \code{\link{transform_temporal_gitlog_to_adsmj}} to perform a similar transformation into a *-dsm.json using a temporal gitlog,
 #' \code{\link{graph_to_dsmj}} to generate a *-dsm.json file.
 transform_dependencies_to_sdsmj <- function(project_dependencies, sdsmj_path, is_sorted=FALSE){
+  # Make copy of table to do changes
+  project_depends <- copy(project_dependencies)
+
   # Convert table to long form
-  project_dependencies[["edgelist"]] <- melt(project_dependencies[["edgelist"]],id.vars <- c("src_filepath","dest_filepath"), variable.name = "label")
+  project_depends[["edgelist"]] <- melt(project_depends[["edgelist"]],id.vars <- c("src_filepath","dest_filepath"), variable.name = "label")
 
-  setnames(x=project_dependencies[["nodes"]], old = c("filepath"), new = c("name"))
+  setnames(x=project_depends[["nodes"]], old = c("filepath"), new = c("name"))
 
-  setnames(x=project_dependencies[["edgelist"]], old = c("src_filepath","dest_filepath", "value"),
+  setnames(x=project_depends[["edgelist"]], old = c("src_filepath","dest_filepath", "value"),
            new = c("from","to", "weight"))
 
   # Put the weight column in front of the label column
-  setcolorder(project_dependencies[["edgelist"]], c("from", "to", "weight", "label"))
+  setcolorder(project_depends[["edgelist"]], c("from", "to", "weight", "label"))
 
   # This is a directed graph, so no duplication of edges
-  graph_to_dsmj(project_dependencies, sdsmj_path, dsmj_name="sdsm", is_directed=TRUE, is_sorted)
+  graph_to_dsmj(project_depends, sdsmj_path, dsmj_name="sdsm", is_directed=TRUE, is_sorted)
 }
 
 #' Transform parsed git repo into a history dsm.json file.
