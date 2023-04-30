@@ -22,6 +22,9 @@ Parse Bugzilla data obtained from Perceval REST API Bugzilla backend
 
 Other parsers: 
 \code{\link{parse_bugzilla_perceval_traditional_issue_comments}()},
+\code{\link{parse_bugzilla_rest_comments}()},
+\code{\link{parse_bugzilla_rest_issues_comments}()},
+\code{\link{parse_bugzilla_rest_issues}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
 \code{\link{parse_dv8_clusters}()},

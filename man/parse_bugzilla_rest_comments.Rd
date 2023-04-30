@@ -17,6 +17,8 @@ Parse Bugzilla comments data obtained from json files from Bugzilla crawler \cod
 }
 \seealso{
 Other parsers: 
+\code{\link{parse_bugzilla_perceval_rest_issue_comments}()},
+\code{\link{parse_bugzilla_perceval_traditional_issue_comments}()},
 \code{\link{parse_bugzilla_rest_issues_comments}()},
 \code{\link{parse_bugzilla_rest_issues}()},
 \code{\link{parse_commit_message_id}()},
