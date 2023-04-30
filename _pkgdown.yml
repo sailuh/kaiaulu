@@ -47,6 +47,8 @@ reference:
 - contents:
   - model_directed_graph
   - bipartite_graph_projection
+  - weight_scheme_sum_edges
+  - weight_scheme_count_deleted_nodes
   - community_oslom
   - recolor_network_by_community
   - graph_to_dsmj
