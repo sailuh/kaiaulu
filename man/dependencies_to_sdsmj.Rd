@@ -4,10 +4,10 @@
 \alias{dependencies_to_sdsmj}
 \title{Transforms a dependencies table to a structural DSM JSON file.}
 \usage{
-dependencies_to_sdsmj(depends_table, sdsmj_path, is_sorted = FALSE)
+dependencies_to_sdsmj(project_dependencies, sdsmj_path, is_sorted = FALSE)
 }
 \arguments{
-\item{depends_table}{parsed dependencies table created by \code{\link{parse_dependencies}}}
+\item{project_dependencies}{parsed dependencies table created by \code{\link{parse_dependencies}}}
 
 \item{sdsmj_path}{path to save output file}
 

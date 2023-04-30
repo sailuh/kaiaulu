@@ -2,8 +2,8 @@ __kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in develo
 =========================
 
 ### NEW FEATURES
-
- * Adds downloader functions called `download_bugzilla_issues_from_rest_api()` and  `download_bugzilla_comments_from_rest_api()` to download Bugzilla issues and comments respectively using Bugzilla's REST API. [#153](https://github.com/sailuh/kaiaulu/issues/153)
+ * DV8 Showcase vignette now uses gitlog and dependency functions transformers, which enable using Kaiaulu filters. [#184](https://github.com/sailuh/kaiaulu/issues/184)  
+ * R/graph.R function was modularized to allow for different weight schemes. [#184](https://github.com/sailuh/kaiaulu/issues/184)  
  * Adds DV8 Notebook showcasing various DV8 Functions. The project configuration file of APR has been expanded to demonstrate available parameters for DV8. [#186](https://github.com/sailuh/kaiaulu/issues/186) and [#182](https://github.com/sailuh/kaiaulu/issues/182).  
  * Adds functions `dv8_clsxb_to_clsxj`, `parse_dv8_clusters`, `dependencies_to_sdsmj`, and `gitlog_to_hdsmj` for DV8 integration with Kaiaulu. [#168](https://github.com/sailuh/kaiaulu/issues/168) 
  * Adds functions `dv8_gitlog_to_gitnumstat` `dv8_gitnumstat_to_hdsmb` `dv8_hsdsmb_to_decoupling_level` `dv8_hsdsmb_to_hierclsxb` `dv8_hsdsmb_drhier_to_excel` `parse_dv8_metrics_decoupling_level` [#169](https://github.com/sailuh/kaiaulu/issues/169) 
@@ -23,6 +23,7 @@ __kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in develo
  * With version 0.0.0.9600, Three social smells (org silo, missing link, and radio silence) are refactored to the master branch. The social smells no longer have a dependency to igraph, and OSLOM is used for community detection instead of igraph's random walk. Because of the closer integration to source, the social smell notebook includes a new section where any time slice can be explored to assess the social metrics, including coloring by community. A separate branch will contain a notebook comparing the re-implementation to the existing metric. While org silo and missing link should result in the same metric value, radio silence results will be different due to the use of a different community detection algorithm. [#114](https://github.com/sailuh/kaiaulu/issues/114).
 
 ### MINOR IMPROVEMENTS
+ * Flaws folder is no longer hardcoded to "apr-"
  * DV8 Notebook no longer hardcodes project names to "apr-". [#190](https://github.com/sailuh/kaiaulu/issues/190)
  * Updated parse_dependencies() with `output_dir` folder for more flexibility. [#168](https://github.com/sailuh/kaiaulu/issues/168) 
  * Adds SetUp and TearDown unit tests for a sample git log. [#154](https://github.com/sailuh/kaiaulu/issues/154)
@@ -33,11 +34,8 @@ __kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in develo
  * Sometimes, mbox files contain the e-mail body under the `body.plain` or `body.plain.simple`. The `parse_mbox()` function now handles both cases. [#133](https://github.com/sailuh/kaiaulu/issues/133)
 
 ### BUG FIXES
-<<<<<<< HEAD
-
-=======
  
->>>>>>> master
+ * In the Gitlog explore Notebook, co-change was being calculated with the wrong weight scheme (weight sum). This is now fixed to eliminated node counts. [#184](https://github.com/sailuh/kaiaulu/issues/184)  
  * parse_dependencies() now returns a list of nodes and edgelist as opposed to just edgelist tables. Prior to this change, files that contain no dependency to other files would be missed (as they would not exist in the edgelist table, and only in the node table). This is consistent to both Depends and DV8 tables, as there is a 1 to 1 mapping from Depends/DV8 variables field on the generated JSON and the node table in Kaiaulu's graph memory representation, and the Depends/DV8 cells field, and Kaiaulu's graph edgelist table. [#189](https://github.com/sailuh/kaiaulu/issues/189). 
  * parse_gitlog() now renames files on their first commit renames, instead of when the renamed file is first modified. Prior logic led to situations where, when a file is renamed and never again modified, the new file name is never mentioned on the git log. This was due to how Perceval encoded file renaming, by including in a rarely present field called "newfile" instead of including the new file name under "file". [#184](https://github.com/sailuh/kaiaulu/issues/184)
  * parse_dependencies() no longer truncates full file paths, but instead turn them into relative paths. Dependencies notebook also now show a sample of the table and dependency graph. [#172](https://github.com/sailuh/kaiaulu/issues/172)   

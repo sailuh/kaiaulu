@@ -31,7 +31,7 @@ require(openxlsx)
 
 ```{r}
 tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/apr.yml")
+conf <- yaml::read_yaml("../conf/calculator.yml")
 perceval_path <- tool[["perceval"]]
 dv8_path <- tool[["dv8"]]
 
@@ -57,26 +57,63 @@ substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
 
 # Preparing Gitlog and Dependencies for DV8
 
-Our first step is to parse the Git log and Dependencies for DV8. These will used to construct historical and structural dependencies in DV8. 
+Our first step is to parse the Git log and Dependencies for DV8. These will used to construct historical and structural dependencies in DV8. There are two ways to perform this step. The legacy approach is deferred to the end of this notebook for completeness sake, however does not allow for customizing the filtering step in Kaiaulu. 
 
 ## Git Log 
 
-For the git log, this is done in two steps. First we obtain a gitlog numstat .txt file out of the git log, then we convert it to a DV8 Historical Dependency Matrix binary, or *-dv8.sdsm for short. Since DV8 can represent a sdsm in both json and binary format, we differentiate the function names in Kaiaulu with the suffix "j" and "b" respectively. 
-
+For the git log, we first parse it into Kaiaulu as a table, and filter based on the project configuration files criteria. Here's a sample:
 
 ```{r}
-numstat_path <- dv8_gitlog_to_gitnumstat(git_repo_path,file.path(project_path,
-                                                                 paste0(project_name,"-numstat.txt")))
-hdsmb_path <- dv8_gitnumstat_to_hdsmb(dv8_path,numstat_path,hdsmb_path = file.path(project_path,"apr-hdsm.dv8-dsm"))
+#git_repo_path <- "~/Downloads/testing-cochange/.git"
+project_git <- parse_gitlog(perceval_path,git_repo_path)
+project_git <- project_git  %>%
+  filter_by_file_extension(file_extensions,"file_pathname")  %>% 
+  filter_by_filepath_substring(substring_filepath,"file_pathname")
+
+kable(head(project_git))
 ```
 
-Next, we parse file dependencies using Depends, and proceed to convert it into a DV8 Structural Dependency Matrix binary. 
+We then transform it as a hsdsm JSON (i.e. hdsmj):
 
 ```{r}
-sdsmj_path <- dv8_depends_to_sdsmj(depends_jar=depends_jar_path,
-                                   git_repo_path = git_repo_path,
-                                   language = language,
-                                   sdsmj_path = file.path(project_path,paste0(project_name,"-sdsm.json")))
+hdsmj_path <- gitlog_to_hdsmj(project_git,
+                             hdsmj_path = file.path(project_path,paste0(project_name,"-hdsm.json")))
+```
+
+
+Next, we parse file dependencies using Depends, filter the files by the project configuration file criteria, and proceed to convert it into a DV8 Structural Dependency Matrix binary. 
+
+```{r}
+project_dependencies <- parse_dependencies(depends_jar_path,git_repo_path,language=language)
+
+project_dependencies[["nodes"]] <- project_dependencies[["nodes"]]  %>%
+  filter_by_file_extension(file_extensions,"filepath")  %>% 
+  filter_by_filepath_substring(substring_filepath,"filepath")
+
+project_dependencies[["edgelist"]] <- project_dependencies[["edgelist"]]  %>%
+  filter_by_file_extension(file_extensions,"src_filepath")  %>% 
+  filter_by_file_extension(file_extensions,"dest_filepath")  %>% 
+  filter_by_filepath_substring(substring_filepath,"src_filepath") %>%
+  filter_by_filepath_substring(substring_filepath,"dest_filepath")
+
+
+sdsmj_path <- dependencies_to_sdsmj(project_dependencies,
+                                    sdsmj_path = file.path(project_path,paste0(project_name,"-sdsm.json")))
+
+list.files(project_path)
+```
+
+# Converting to DV8 Binaries
+
+We are now ready to convert the json files into binary format, so they can be merged:
+
+```{r}
+
+hdsmb_path <- dv8_dsmj_to_dsmb(dv8_path = dv8_path,
+                                     dsmj_path = hdsmj_path, 
+                                     dsmb_path = file.path(project_path,paste0(project_name,
+                                                                               "-hdsm.dv8-dsm")))
+
 sdsmb_path <- dv8_dsmj_to_dsmb(dv8_path = dv8_path,
                                      dsmj_path = sdsmj_path, 
                                      dsmb_path = file.path(project_path,paste0(project_name,
@@ -84,6 +121,7 @@ sdsmb_path <- dv8_dsmj_to_dsmb(dv8_path = dv8_path,
 
 list.files(project_path)
 ```
+
 
 # Merging DSMs
 
@@ -128,7 +166,7 @@ of the table exported is shown here. Note the clustering will not be displayed w
 R, as it is visually represented using black lines around the cells, something R does not display natively. The dsm files can also be loaded to DV8 GUI for inspection instead of exporting and opening in excel. To obtain cluster information in R, we will use other set of functions discussed towards the
 end of this Notebook. For now, we will present analysis that can be done with the -merge.dv8-dsm.
 
-```{r}
+```{r eval = FALSE}
 mdsmb_xlsx_table <- data.table(openxlsx::read.xlsx(mdsmb_xlsx))
 kable(mdsmb_xlsx_table[1:10,1:10,with=FALSE])
 ```
@@ -167,7 +205,7 @@ list.files(project_path)
 
 ### Exploring Flaws DSMs 
 
-We can see a folder of Architectural Flaws was generated. The folder organization provides us with means to understand what files are assigned to various types of architectural flaws. For example:
+We can see a folder of Architectural Flaws was generated. The folder organization provides us with means to understand what files are assigned to various types of architectural flaws. The following is a general  example used for APR (not computed here, but the structure carries over for other larger projects):
 
 ```
 apr_flaws/
@@ -262,7 +300,33 @@ dl_metrics_table <- parse_dv8_metrics_decoupling_level(dl_metrics)
 kable(dl_metrics_table)
 ```
 
+# (Legacy) Preparing Gitlog and Dependencies for DV8
 
-# Gitlog and Dependencies with Filters
+This section documents the legacy approach to construct both datasets for DV8. The code below is not executed in the Notebook. 
 
-This section will describe milestone 3.4 `gitlog_to_hdsmj` and `dependencies_to_sdsmj`, Kaiaulu functions which can write DV8 compatible dsmj. 
+## Git Log 
+
+For the git log, this is done in two steps. First we obtain a gitlog numstat .txt file out of the git log, then we convert it to a DV8 Historical Dependency Matrix binary, or *-dv8.sdsm for short. Since DV8 can represent a sdsm in both json and binary format, we differentiate the function names in Kaiaulu with the suffix "j" and "b" respectively. 
+
+
+```{r eval=FALSE}
+numstat_path <- dv8_gitlog_to_gitnumstat(git_repo_path,file.path(project_path,
+                                                                 paste0(project_name,"-numstat.txt")))
+hdsmb_path <- dv8_gitnumstat_to_hdsmb(dv8_path,numstat_path,hdsmb_path = file.path(project_path,paste0(project_name,"_flaws")))
+```
+
+Next, we parse file dependencies using Depends, and proceed to convert it into a DV8 Structural Dependency Matrix binary. 
+
+```{r eval = FALSE}
+sdsmj_path <- dv8_depends_to_sdsmj(depends_jar=depends_jar_path,
+                                   git_repo_path = git_repo_path,
+                                   language = language,
+                                   sdsmj_path = file.path(project_path,paste0(project_name,"-sdsm.json")))
+sdsmb_path <- dv8_dsmj_to_dsmb(dv8_path = dv8_path,
+                                     dsmj_path = sdsmj_path, 
+                                     dsmb_path = file.path(project_path,paste0(project_name,
+                                                                               "-sdsm.dv8-dsm")))
+
+list.files(project_path)
+```
+

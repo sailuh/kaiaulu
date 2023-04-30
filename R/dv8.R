@@ -12,7 +12,7 @@
 #'  variable (src & dest) pairs. The Co-change is the number of times the src & dest
 #'   were committed together.
 #'
-#' @param gitlog_table parsed gitlog table created by \code{\link{parse_gitlog}}
+#' @param project_gitlog parsed gitlog table created by \code{\link{parse_gitlog}}
 #' @param hdsmj_path path to save output file
 #' @param is_sorted whether the json is sorted by src and dest
 #' @return the hdsmj_path
@@ -20,10 +20,12 @@
 #' @seealso \code{\link{dv8_dsmj_to_dsmb}} to convert to `*-hdsm.dv8-dsm` and
 #' \code{\link{dv8_hdsmb_sdsmb_to_mdsmb}} to merge DSMs into `*-merge.dv8-dsm`.
 #' @family dv8
-gitlog_to_hdsmj <- function(gitlog_table, hdsmj_path, is_sorted=FALSE){
+gitlog_to_hdsmj <- function(project_gitlog, hdsmj_path, is_sorted=FALSE){
   # Call preliminary functions to get graph and cochange for the files
-  gitlog_graph <- transform_gitlog_to_bipartite_network(gitlog_table, mode ="commit-file")
-  cochange_table <- bipartite_graph_projection(gitlog_graph, mode = FALSE, is_intermediate_projection = FALSE)
+  gitlog_graph <- transform_gitlog_to_bipartite_network(project_gitlog, mode ="commit-file")
+  cochange_table <- bipartite_graph_projection(gitlog_graph,
+                                               mode = FALSE,
+                                               weight_scheme_function = weight_scheme_count_deleted_nodes)
 
   # Get the nodes and edgelist tables
   nodes_table <- cochange_table[[1]]
@@ -72,6 +74,8 @@ gitlog_to_hdsmj <- function(gitlog_table, hdsmj_path, is_sorted=FALSE){
 
   # Save the json to a file
   jsonlite::write_json(json_df, hdsmj_path, auto_unbox=TRUE)
+
+  return(hdsmj_path)
 }
 
 #' Transforms a git log to a git numstat file.
@@ -149,7 +153,7 @@ dv8_gitnumstat_to_hdsmb <- function(dv8_path,
 #' (rows/columns in dependency matrix) and the Cells (matrix cell) contain all the relations of
 #'  variable (src & dest) pairs.
 #'
-#' @param depends_table parsed dependencies table created by \code{\link{parse_dependencies}}
+#' @param project_dependencies parsed dependencies table created by \code{\link{parse_dependencies}}
 #' @param sdsmj_path path to save output file
 #' @param is_sorted whether the json is sorted by src and dest
 #' @return the sdsmj_path
@@ -157,11 +161,11 @@ dv8_gitnumstat_to_hdsmb <- function(dv8_path,
 #' @family dv8
 #' @seealso \code{\link{dv8_dsmj_to_dsmb}} to convert to `*-sdsm.dv8-dsm` and
 #' \code{\link{dv8_hdsmb_sdsmb_to_mdsmb}} to merge DSMs into `*-merge.dv8-dsm`.
-dependencies_to_sdsmj <- function(depends_table, sdsmj_path, is_sorted=FALSE){
+dependencies_to_sdsmj <- function(project_dependencies, sdsmj_path, is_sorted=FALSE){
 
   # Get the nodes and edgelist tables
-  nodes_table <- depends_table[[1]]
-  edgelist_table <- depends_table[[2]]
+  nodes_table <- project_dependencies[["nodes"]]
+  edgelist_table <- project_dependencies[["edgelist"]]
 
   # Get and sort the file names
   variables <- sort(unique(nodes_table[["filepath"]]), method="radix")
@@ -218,6 +222,8 @@ dependencies_to_sdsmj <- function(depends_table, sdsmj_path, is_sorted=FALSE){
 
   # Save the json to a file
   jsonlite::write_json(json_df,sdsmj_path, auto_unbox=TRUE)
+
+  return(sdsmj_path)
 }
 
 

@@ -1,0 +1,185 @@
+# -*- yaml -*-
+# https://github.com/sailuh/kaiaulu
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
+# Project Configuration File #
+#
+# To perform analysis on open source projects, you need to manually
+# collect some information from the project's website. As there is
+# no standardized website format, this file serves to distill
+# important data source information so it can be reused by others
+# and understood by Kaiaulu.
+#
+# Please check https://github.com/sailuh/kaiaulu/tree/master/conf to
+# see if a project configuration file already exists. Otherwise, we
+# would appreciate if you share your curated file with us by sending a
+# Pull Request: https://github.com/sailuh/kaiaulu/pulls
+#
+# Note, you do NOT need to specify this entire file to conduct analysis.
+# Each R Notebook uses a different portion of this file. To know what
+# information is used, see the project configuration file section at
+# the start of each R Notebook.
+#
+# Please comment unused parameters instead of deleting them for clarity.
+# If you have questions, please open a discussion:
+# https://github.com/sailuh/kaiaulu/discussions
+
+project:
+  #website: https://apr.apache.org/
+  #openhub: https://www.openhub.net/p/apache_portable_runtime
+
+version_control:
+  # Where is the git log located locally?
+  # This is the path to the .git of the project repository you are analyzing.
+  # The .git is hidden, so you can see it using `ls -a`
+  log: ../../rawdata/git_repo/Calculator/.git
+  # From where the git log was downloaded?
+  log_url: https://github.com/HouariZegai/Calculator
+  # List of branches used for analysis
+  branch:
+    - master
+
+mailing_list:
+  # Where is the mbox located locally?
+  #mbox: ../../rawdata/mbox/apr-dev_2012_2019.mbox
+  # What is the domain of the chosen mailing list archive?
+  #domain: http://mail-archives.apache.org/mod_mbox
+  # Which lists of the domain will be used?
+  #list_key:
+  #  - apr-dev
+
+#issue_tracker:
+#  jira:
+    # Obtained from the project's JIRA URL
+#    domain: https://issues.apache.org/jira
+    #project_key: HELIX
+    # Download using `download_jira_data.Rmd`
+    #issues: ../../rawdata/issue_tracker/helix_issues.json
+    #issue_comments: ../../rawdata/issue_tracker/helix_issue_comments.json
+  github:
+    # Obtained from the project's GitHub URL
+    owner: HouariZegai
+    repo: Calculator
+    # Download using `download_github_comments.Rmd`
+    replies: ../../rawdata/github/Calculator/
+
+#vulnerabilities:
+  # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
+  # Download at: https://nvd.nist.gov/vuln/data-feeds
+  #nvd_feed: rawdata/nvdfeed
+
+# Commit message CVE or Issue Regular Expression (regex)
+# See project's commit message for examples to create the regex
+commit_message_id_regex:
+  issue_id: \#[0-9]+
+  #cve_id: ?
+
+filter:
+  keep_filepaths_ending_with:
+    - cpp
+    - c
+    - h
+    - java
+    - js
+    - py
+    - cc
+  remove_filepaths_containing:
+    - test
+
+
+# Third Party Tools Configuration #
+#
+# See Kaiaulu's README.md for details on how to setup these tools.
+tool:
+  # Depends allow to parse file-file static dependencies.
+  depends:
+    # accepts one language at a time: cpp, java, ruby, python, pom
+    # You can obtain this information on OpenHub or the project GiHub page right pane.
+    code_language: java
+    # Specify which types of Dependencies to keep - see the Depends tool README.md for details.
+    keep_dependencies_type:
+      - Cast
+      - Call
+      - Import
+      - Return
+      - Set
+      - Use
+      - Implement
+      - ImplLink
+      - Extend
+      - Create
+      - Throw
+      - Parameter
+      - Contain
+  dv8:
+    # The project folder path to store various intermediate
+    # files for DV8 Analysis
+    # The folder name will be used in the file names.
+    folder_path: ../../analysis/dv8/calculator
+    # the architectural flaws thresholds that should be used
+    architectural_flaws:
+      cliqueDepends:
+        - call
+        - use
+      crossingCochange: 2
+      crossingFanIn: 4
+      crossingFanOut: 4
+      mvCochange: 2
+      uiCochange: 2
+      uihDepends:
+        - call
+        - use
+      uihInheritance:
+        - extend
+        - implement
+        - public
+        - private
+        - virtual
+      uiHistoryImpact: 10
+      uiStructImpact: 0.01
+  # Uctags allows finer file-file dependency parsing (e.g. functions, classes, structs)
+  uctags:
+    # See https://github.com/sailuh/kaiaulu/wiki/Universal-Ctags for details
+    # What types of file-file dependencies should be considered? If all
+    # dependencies are specified, Kaiaulu will use all of them if available.
+    keep_lines_type:
+      c:
+        - f # function definition
+      cpp:
+        - c # classes
+        - f # function definition
+      java:
+        - c # classes
+        - m # methods
+      python:
+        - c # classes
+        - f # functions
+      r:
+        - f # functions
+
+# Analysis Configuration #
+analysis:
+  # You can specify the intervals in 2 ways: window, or enumeration
+  window:
+    # If using gitlog, use start_commit and end_commit. Timestamp is inferred from gitlog
+    start_commit: 9eae9e96f15e1f216162810cef4271a439a74223
+    end_commit: f8f9ec1f249dd552065aa37c983bed4d4d869bb0
+    # Use datetime only if no gitlog is used in the analysis.
+    #start_datetime: 2013-05-01 00:00:00
+    #end_datetime: 2013-11-01 00:00:00
+    size_days: 90
+#  enumeration:
+     # If using gitlog, specify the commits
+#    commit:
+#      - 9eae9e96f15e1f216162810cef4271a439a74223
+#      - f1d2d568776b3708dd6a3077376e2331f9268b04
+#      - c33a2ce74c84f0d435bfa2dd8953d132ebf7a77a
+     # Use datetime only if no gitlog is used in the analysis. Timestamp is inferred from gitlog
+#    datetime:
+#      - 2013-05-01 00:00:00
+#      - 2013-08-01 00:00:00
+#      - 2013-11-01 00:00:00

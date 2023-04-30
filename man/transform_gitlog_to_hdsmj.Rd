@@ -4,10 +4,10 @@
 \alias{transform_gitlog_to_hdsmj}
 \title{Transform parsed git repo into a hdsmj file.}
 \usage{
-transform_gitlog_to_hdsmj(gitlog_table, is_sorted = FALSE)
+transform_gitlog_to_hdsmj(project_git, is_sorted = FALSE)
 }
 \arguments{
-\item{gitlog_table}{A parsed git project by \code{\link{parse_gitlog}}.}
+\item{project_git}{A parsed git project by \code{\link{parse_gitlog}}.}
 
 \item{is_sorted}{whether to sort the variables (filenames) in the dsm.json files}
 }
