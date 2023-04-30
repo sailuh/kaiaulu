@@ -7,7 +7,7 @@
 #' Parse Bugzilla issues data obtained from json files from Bugzilla crawler
 #'
 #' @param issues_folder_path path to the issue folder that contains json file with Bugzilla data inside
-#' @seealso \code{\link{download_bugzilla_rest_issues_comments}} a downloader function to parse Bugzilla issues and comments data
+#' @seealso \code{\link{download_bugzilla_rest_issues_comments}} a download function to parse Bugzilla issues and comments data
 #' @return data table with parsed Bugzilla issues data
 #' @export
 #' @family parsers
@@ -155,7 +155,7 @@ parse_bugzilla_rest_comments <- function(comments_folder_path){
 #'
 #' @param bugzilla_folder_path path to the folder that contains json file with Bugzilla data inside
 #' @seealso \code{\link{parse_bugzilla_rest_issues}} a parser function to parse Bugzilla issues data
-#' @seealso \code{\link{download_bugzilla_rest_issues_comments}} a downloader function to parse Bugzilla issues and comments data
+#' @seealso \code{\link{download_bugzilla_rest_issues_comments}} a download function to download Bugzilla issues and comments data
 #' @return data table with Bugzilla issue data and Bugzilla comments data
 #' @export
 #' @family parsers

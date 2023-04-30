@@ -20,7 +20,7 @@
 #' @param limit_upperbound the number of issues saved in each page file. Some bugzilla sites have limits set on how many bugs
 #' can be retrieved in one GET request, in which case, the limit set by the bugzilla site will be used in place of
 #' limit_upperbound to ensure full bug retrieval.
-#' @seealso \code{\link{download_bugzilla_rest_comments}} a downloader function to download the issue comments
+#' @seealso \code{\link{download_bugzilla_rest_comments}} a download function to download the issue comments
 #' @return a vector of bug ids
 #' @export
 download_bugzilla_rest_issues <- function(bugzilla_site, start_timestamp, save_folder_path, limit_upperbound=500){
@@ -58,7 +58,7 @@ download_bugzilla_rest_issues <- function(bugzilla_site, start_timestamp, save_f
 
     # Get the table for the first page of bugs to check the number of rows
     # and determine the actual value of the limit parameter.
-    page1_bug_table <- parse_bugzilla_crawler_issue(save_folder_path)
+    page1_bug_table <- parse_bugzilla_rest_issues(save_folder_path)
     # Get the limit we should use.
     limit <- nrow(page1_bug_table)
     # Add to the offset based on the limit.
