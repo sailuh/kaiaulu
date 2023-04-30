@@ -14,6 +14,8 @@ Parses a cluster *-clsx.json into a data table.
 }
 \seealso{
 Other parsers: 
+\code{\link{parse_bugzilla_perceval_rest_issue_comments}()},
+\code{\link{parse_bugzilla_perceval_traditional_issue_comments}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
 \code{\link{parse_gitlog}()},
@@ -33,7 +35,8 @@ Other dv8:
 \code{\link{graph_to_dsmj}()},
 \code{\link{parse_dv8_architectural_flaws}()},
 \code{\link{transform_dependencies_to_sdsmj}()},
-\code{\link{transform_gitlog_to_hdsmj}()}
+\code{\link{transform_gitlog_to_hdsmj}()},
+\code{\link{transform_temporal_gitlog_to_adsmj}()}
 }
 \concept{dv8}
 \concept{parsers}

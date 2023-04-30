@@ -4,6 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+
 #' Download Bugzilla issues using the Bugzilla REST API
 #'
 #' Downloads bugzilla issues into a folder, where each file is a json containing a page of issues.
@@ -117,6 +118,48 @@ download_bugzilla_rest_comments <- function(bugzilla_site, bug_ids, save_folder_
     comments <- httr::GET(paste(bugzilla_site, "/bug/", bug_ids[i], "/comment", sep=""),
                           httr::write_disk(file.path(paste0(save_folder_path, bug_ids[i], ".json")), overwrite = TRUE))
   }
+}
+
+#' Download Bugzilla issues and comments using Perceval traditional backend.
+#'
+#' @param perceval_path path to perceval binary
+#' @param bugzilla_site link to specific bugzilla site
+#' @param datetime fetch bugs updated since this date (in any ISO 8601 format, e.g., 'YYYY-MM-DD HH:mm:SS+|-HH:MM'))
+#' @param max_bugs the maximum number of bugs requested on the same query. Note: Some sites might have restrictions on the number of bugs in one request.
+#' @seealso \code{\link{parse_bugzilla_perceval_traditional_issue_comments}} a parser function to parse bugzilla data
+#' @return json object with bugzilla data
+#' @export
+download_bugzilla_perceval_traditional_issue_comments <- function(perceval_path, bugzilla_site, datetime, max_bugs=500){
+  json_data <- system2(perceval_path,
+                         args = c('bugzilla', bugzilla_site, '--json-line', '--from-date', paste0('"',datetime,'"'),
+                                  "--max-bugs", max_bugs),
+                         stdout = TRUE,
+                         stderr = FALSE)
+  return(json_data)
+}
+
+#' Download Bugzilla issues and comments using Perceval REST API backend.
+#'
+#' Note that for the Bugzilla REST API backend, Bugzilla sites may limit the number of bugs that can be retrieved at one time.
+#' Thus, the max_bugs parameter needs to be set correctly to ensure all bugs are retrieved and that
+#' the json data is not broken. If you get an error trying to parse the data downloaded with this
+#'
+#' @param perceval_path path to perceval binary
+#' @param bugzilla_site link to specific bugzilla site
+#' @param datetime fetch bugs updated since this date (in any ISO 8601 format, e.g., 'YYYY-MM-DD HH:mm:SS+|-HH:MM'))
+#' @param max_bugs the maximum number of bugs requested on the same query. This acts as the limit parameter
+#' in the Bugzilla REST API. Bugzilla sites may have specific limits set, so make sure to change the max_bugs
+#' parameter accordingly to correctly download the data when using the "bugzillarest" backend.
+#' @seealso \code{\link{parse_bugzilla_perceval_rest_issue_comments}} a parser function to parse bugzilla data
+#' @return json object with bugzilla data
+#' @export
+download_bugzilla_perceval_rest_issue_comments <- function(perceval_path, bugzilla_site, datetime, max_bugs=500){
+  json_data <- system2(perceval_path,
+                       args = c('bugzillarest', bugzilla_site, '--json-line', '--from-date', paste0('"',datetime,'"'),
+                                "--max-bugs", max_bugs),
+                       stdout = TRUE,
+                       stderr = FALSE)
+  return(json_data)
 }
 
 #' Download all pipermail files in an archive
