@@ -7,7 +7,7 @@
 #' Download Bugzilla issues using the Bugzilla REST API
 #'
 #' Downloads bugzilla issues into a folder, where each file is a json containing a page of issues.
-#' Returns a list of bugzilla bug ids for use with \code{\link{download_bugzilla_comments_from_rest_api}}.
+#' Returns a list of bugzilla bug ids for use with \code{\link{download_bugzilla_rest_comments}}.
 #'
 #' Note that some bugzilla sites limit the bugs that can retrieved in a single GET request.
 #' The limit_upperbound you set to retrieve a number of bugs for each page/file may be greater
@@ -20,11 +20,11 @@
 #' @param limit_upperbound the number of issues saved in each page file. Some bugzilla sites have limits set on how many bugs
 #' can be retrieved in one GET request, in which case, the limit set by the bugzilla site will be used in place of
 #' limit_upperbound to ensure full bug retrieval.
-#' @seealso \code{\link{download_bugzilla_comments_from_rest_api}} a downloader function to download the issue comments
-#' @seealso \code{\link{parse_bugzilla_crawler_issue}} a parser function to parse the bugzilla issue data
+#' @seealso \code{\link{download_bugzilla_rest_comments}} a downloader function to download the issue comments
+#' @seealso \code{\link{parse_bugzilla_rest_issues}} a parser function to parse the bugzilla issue data
 #' @return a vector of bug ids
 #' @export
-download_bugzilla_issues_from_rest_api <- function(bugzilla_site, start_timestamp, save_folder_path, limit_upperbound=500){
+download_bugzilla_rest_issues <- function(bugzilla_site, start_timestamp, save_folder_path, limit_upperbound=500){
   # Format link to retrieve data using Bugzilla REST API
   bugzilla_site <- paste(bugzilla_site, "/rest", sep="")
 
@@ -95,16 +95,16 @@ download_bugzilla_issues_from_rest_api <- function(bugzilla_site, start_timestam
 
 #' Download Bugzilla comments using the Bugzilla REST API
 #'
-#' Downloads comments associated with each bug id returned from \code{\link{download_bugzilla_issues_from_rest_api}}.
+#' Downloads comments associated with each bug id returned from \code{\link{download_bugzilla_rest_issues}}.
 #' Each file saved contains a group of comments associated with a particular bug, where the filename is the corresponding bug id.
 #'
 #' @param bugzilla_site URL to specific bugzilla site
-#' @param bug_ids the ids of the bugs to extract comments for from \code{\link{download_bugzilla_issues_from_rest_api}}
+#' @param bug_ids the ids of the bugs to extract comments for from \code{\link{download_bugzilla_rest_issues}}
 #' @param save_folder_path the full *folder* path where the bugzilla comments will be stored
-#' @seealso \code{\link{download_bugzilla_issues_from_rest_api}} a downloader function to download the bugzilla issues data
-#' @seealso \code{\link{parse_bugzilla_crawler_comments}} a parser function to parse the bugzilla comments data
+#' @seealso \code{\link{download_bugzilla_rest_issues}} a downloader function to download the bugzilla issues data
+#' @seealso \code{\link{parse_bugzilla_rest_comments}} a parser function to parse the bugzilla comments data
 #' @export
-download_bugzilla_comments_from_rest_api <- function(bugzilla_site, bug_ids, save_folder_path){
+download_bugzilla_rest_comments <- function(bugzilla_site, bug_ids, save_folder_path){
   # Format link to retrieve data using Bugzilla REST API
   bugzilla_site <- paste(bugzilla_site, "/rest", sep="")
 
