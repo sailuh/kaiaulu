@@ -19,6 +19,4 @@ Each file saved contains a group of comments associated with a particular bug, w
 }
 \seealso{
 \code{\link{download_bugzilla_rest_issues}} a downloader function to download the bugzilla issues data
-
-\code{\link{parse_bugzilla_rest_comments}} a parser function to parse the bugzilla comments data
 }

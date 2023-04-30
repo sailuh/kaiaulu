@@ -21,7 +21,6 @@
 #' can be retrieved in one GET request, in which case, the limit set by the bugzilla site will be used in place of
 #' limit_upperbound to ensure full bug retrieval.
 #' @seealso \code{\link{download_bugzilla_rest_comments}} a downloader function to download the issue comments
-#' @seealso \code{\link{parse_bugzilla_rest_issues}} a parser function to parse the bugzilla issue data
 #' @return a vector of bug ids
 #' @export
 download_bugzilla_rest_issues <- function(bugzilla_site, start_timestamp, save_folder_path, limit_upperbound=500){
@@ -102,7 +101,6 @@ download_bugzilla_rest_issues <- function(bugzilla_site, start_timestamp, save_f
 #' @param bug_ids the ids of the bugs to extract comments for from \code{\link{download_bugzilla_rest_issues}}
 #' @param save_folder_path the full *folder* path where the bugzilla comments will be stored
 #' @seealso \code{\link{download_bugzilla_rest_issues}} a downloader function to download the bugzilla issues data
-#' @seealso \code{\link{parse_bugzilla_rest_comments}} a parser function to parse the bugzilla comments data
 #' @export
 download_bugzilla_rest_comments <- function(bugzilla_site, bug_ids, save_folder_path){
   # Format link to retrieve data using Bugzilla REST API

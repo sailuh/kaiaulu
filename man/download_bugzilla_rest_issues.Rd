@@ -37,6 +37,4 @@ will adjust the limit accordingly to ensure all bugs are retrieved.
 }
 \seealso{
 \code{\link{download_bugzilla_rest_comments}} a downloader function to download the issue comments
-
-\code{\link{parse_bugzilla_rest_issues}} a parser function to parse the bugzilla issue data
 }
