@@ -69,6 +69,7 @@ __kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in develo
  * Adds unit tests for parse_mbox() and parse_jira(). [#154](https://github.com/sailuh/kaiaulu/issues/154)
  * Adds unit tests for git_checkout() and parse_gitlog(). [#154](https://github.com/sailuh/kaiaulu/issues/154)
  * Fixed minor grammar mistakes and vague wording. [#151] (https://github.com/sailuh/kaiaulu/issues/151)
+ * Adds unit tests for functions `get_date_from_commit_hash()` and `filter_by_file_extensions()` [#154](https://github.com/sailuh/kaiaulu/issues/154)
  
 __kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) __
 =========================
