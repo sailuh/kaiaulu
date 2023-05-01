@@ -24,7 +24,7 @@ jobs:
         with:
           r-version: ${{ matrix.r-version }}
 
-      - uses: r-lib/actions/setup-pandoc@v1
+      - uses: r-lib/actions/setup-pandoc@v2
 
       - name: Query dependencies
         run: |
@@ -53,6 +53,13 @@ jobs:
           remotes::install_deps(dependencies = TRUE)
           remotes::install_cran("rcmdcheck")
         shell: Rscript {0}
+
+      - name: Install Perceval and Update tools.yml
+        if: always()
+        run: |
+          pip3 install perceval==0.12.24
+          sed -i -e 's/perceval: ~\/perceval\/bin\/perceval/perceval/g' tools.yml
+        shell: bash
 
       - name: Check
         env:
