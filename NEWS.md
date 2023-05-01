@@ -66,11 +66,8 @@ __kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in develo
  * Fixes various inconsistencies across documentation, missing parameter hyperlinking, seealso, etc. Functions in R/dv8.R were re-order to follow expected order of function call in an analysis, which is consistent to their ordering in _pkgdown.yml. [#186](https://github.com/sailuh/kaiaulu/issues/186)
  * New vignette for DV8 functions called "dv8.Rmd" [#168](https://github.com/sailuh/kaiaulu/issues/168) 
  * New configuration file for the Apache Thrift project called "thrift.yml". [#148](https://github.com/sailuh/kaiaulu/issues/148)
-<<<<<<< HEAD
- * Added unit tests for git_checkout() and parse_gitlog(). [#154](https://github.com/sailuh/kaiaulu/issues/154)
-=======
+ * Adds unit tests for parse_mbox() and parse_jira(). [#154](https://github.com/sailuh/kaiaulu/issues/154)
  * Fixed minor grammar mistakes and vague wording. [#151] (https://github.com/sailuh/kaiaulu/issues/151)
->>>>>>> origin/master
  
 __kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) __
 =========================
