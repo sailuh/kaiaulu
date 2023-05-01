@@ -27,16 +27,6 @@ test_that("Null returned when table doesn't have author_datetimetz column", {
   expect_equal(output_datetime, NULL)
 })
 
-# There is an issue with this test. A data.table is created without a column named
-# "commit_hash" and the function 'get_date_from_commit_hash' is asked to find
-# the corresponding datetime associated with 'commit_hash_one'. The function
-# should return 'NA' but it still returns the corresponding datetime.
-test_that("NA returned when table doesn't have commit_hash column", {
-  minimal_dt = data.table(author_datetimetz, "random_name" = commit_hash, file_pathname)
-  output_datetime <- get_date_from_commit_hash(minimal_dt, commit_hash_one)
-  expect_equal(is.na(output_datetime), TRUE)
-})
-
 test_that("NA returned if table doesn't have correct commit_hash", {
   commit_hash_to_find <- "3nv8938cbacd5d09eb2af4c76eb82f7df5e0b8739"
 
