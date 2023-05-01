@@ -96,7 +96,10 @@ project_file_network <- transform_dependencies_to_network(project_dependencies_s
                                                    weight_types = keep_dependencies_type)
 
 kable(head(project_dependencies[["edgelist"]],10))
+
 ```
+
+
 ```{r}
 project_file_network <- igraph::graph_from_data_frame(d=project_file_network[["edgelist"]],
                       directed = TRUE,
