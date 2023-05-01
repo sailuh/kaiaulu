@@ -64,7 +64,7 @@ test_that("Calling parse_gitlog with incorrect perceval path returns correct err
 })
 
 test_that("Calling parse_gitlog with incorrect git repo path returns correct error", {
-  tools_path <- "../../tools.yml"
+  tools_path <- "tools.yml"
   tools_path <- file.path(tools_path)
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
