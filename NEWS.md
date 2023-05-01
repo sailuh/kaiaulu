@@ -2,6 +2,12 @@ __kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in develo
 =========================
 
 ### NEW FEATURES
+ * Adds Bugzilla Notebook showcasing various Bugzilla Functions. [#164](https://github.com/sailuh/kaiaulu/pull/164)
+ * Adds bugzilla crawler downloader and parser functions `parse_bugzilla_rest_issues`, `parse_bugzilla_rest_comments`, `download_bugzilla_rest_issues_comments`, and `parse_bugzilla_rest_issues_comments`. [#164](https://github.com/sailuh/kaiaulu/pull/164)
+ * Adds bugzilla crawler donwloader functions `download_bugzilla_rest_issues` and `download_bugzilla_rest_comments` to download project data from bugzilla site using REST API. [#177](https://github.com/sailuh/kaiaulu/pull/177)
+ * Adds bugzilla functions `download_bugzilla_perceval_traditional_issue_comments`, `download_bugzilla_perceval_rest_issue_comments`, `parse_bugzilla_perceval_traditional_issue_comments`, and `parse_bugzilla_perceval_rest_issue_comments` to download and parse project data from bugzilla site using perceval. [#155](https://github.com/sailuh/kaiaulu/pull/155)
+ * Adds milestone 3.4 DV8 functions `graph_to_dsmj`, `transform_dependencies_to_sdsmj`, `transform_gitlog_to_hdsmj`,
+ `transform_temporal_gitlog_to_adsmj` to convert a dsm into a json format. [#184](https://github.com/sailuh/kaiaulu/issues/184)
  * DV8 Showcase vignette now uses gitlog and dependency functions transformers, which enable using Kaiaulu filters. [#184](https://github.com/sailuh/kaiaulu/issues/184)  
  * R/graph.R function was modularized to allow for different weight schemes. [#184](https://github.com/sailuh/kaiaulu/issues/184)  
  * Adds DV8 Notebook showcasing various DV8 Functions. The project configuration file of APR has been expanded to demonstrate available parameters for DV8. [#186](https://github.com/sailuh/kaiaulu/issues/186) and [#182](https://github.com/sailuh/kaiaulu/issues/182).  
@@ -23,6 +29,7 @@ __kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in develo
  * With version 0.0.0.9600, Three social smells (org silo, missing link, and radio silence) are refactored to the master branch. The social smells no longer have a dependency to igraph, and OSLOM is used for community detection instead of igraph's random walk. Because of the closer integration to source, the social smell notebook includes a new section where any time slice can be explored to assess the social metrics, including coloring by community. A separate branch will contain a notebook comparing the re-implementation to the existing metric. While org silo and missing link should result in the same metric value, radio silence results will be different due to the use of a different community detection algorithm. [#114](https://github.com/sailuh/kaiaulu/issues/114).
 
 ### MINOR IMPROVEMENTS
+
  * Flaws folder is no longer hardcoded to "apr-"
  * DV8 Notebook no longer hardcodes project names to "apr-". [#190](https://github.com/sailuh/kaiaulu/issues/190)
  * Updated parse_dependencies() with `output_dir` folder for more flexibility. [#168](https://github.com/sailuh/kaiaulu/issues/168) 
@@ -50,6 +57,7 @@ __kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in develo
  * OSLOM now assign cluster ids to isolated nodes for consistency [#115](https://github.com/sailuh/kaiaulu/issues/115)
 
 ### DOCUMENTATION FIXES
+
  * Added new paper citation, and moved references from .bib to a vignette. 
  * README was substantially updated, and made more concise. Additional third party tool documentation was moved to the wiki where it can expand more freely. [#191](https://github.com/sailuh/kaiaulu/issues/191)
  * Kaiaulu docs now use the most recent version of pkgdown, which now includes a search field. 
@@ -105,6 +113,7 @@ __kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (04/24/202
 =========================
 
 ### NEW FEATURES
+
   * added a dependencies parser for R using utils abstract syntax tree parser, and API functions. Kaiaulu architecture is used for showcase, which should facilitate understanding new functions being added and their dependencies. See kaiaulu_architecture.Rmd for details. [#84](https://github.com/sailuh/kaiaulu/issues/84)
   * added an interface to OSLOM community detection algorithm. [#81](https://github.com/sailuh/kaiaulu/issues/81)
   * added git log parser at lower granularity, entity (e.g. function git log parser) `parse_gitlog_entity()`, and associated network 
