@@ -2,7 +2,10 @@ __kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in develo
 =========================
 
 ### NEW FEATURES
-
+ * Adds Bugzilla Notebook showcasing various Bugzilla Functions. [#164](https://github.com/sailuh/kaiaulu/pull/164)
+ * Adds bugzilla crawler downloader and parser functions `parse_bugzilla_rest_issues`, `parse_bugzilla_rest_comments`, `download_bugzilla_rest_issues_comments`, and `parse_bugzilla_rest_issues_comments`. [#164](https://github.com/sailuh/kaiaulu/pull/164)
+ * Adds bugzilla crawler donwloader functions `download_bugzilla_rest_issues` and `download_bugzilla_rest_comments` to download project data from bugzilla site using REST API. [#177](https://github.com/sailuh/kaiaulu/pull/177)
+ * Adds bugzilla functions `download_bugzilla_perceval_traditional_issue_comments`, `download_bugzilla_perceval_rest_issue_comments`, `parse_bugzilla_perceval_traditional_issue_comments`, and `parse_bugzilla_perceval_rest_issue_comments` to download and parse project data from bugzilla site using perceval. [#155](https://github.com/sailuh/kaiaulu/pull/155)
  * Adds milestone 3.4 DV8 functions `graph_to_dsmj`, `transform_dependencies_to_sdsmj`, `transform_gitlog_to_hdsmj`,
  `transform_temporal_gitlog_to_adsmj` to convert a dsm into a json format. [#184](https://github.com/sailuh/kaiaulu/issues/184)
  * DV8 Showcase vignette now uses gitlog and dependency functions transformers, which enable using Kaiaulu filters. [#184](https://github.com/sailuh/kaiaulu/issues/184)  
