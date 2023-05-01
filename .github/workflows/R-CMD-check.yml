@@ -57,7 +57,7 @@ jobs:
       - name: Install Perceval and Update tools.yml
         if: always()
         run: |
-          pip install perceval=0.12.24
+          pip3 install perceval==0.12.24
           sed -i -e 's/perceval: ~\/perceval\/bin\/perceval/perceval/g' tools.yml
         shell: bash
 
