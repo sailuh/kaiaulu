@@ -49,14 +49,9 @@ jobs:
       - name: Install Perceval and Update tools.yml
         if: always()
         run: |
-          ls
           pip3 install perceval==0.12.24
-          head tools.yml
-          sed -i -e 's/perceval: ~\/perceval\/bin\/perceval/perceval: perceval/g' tools.yml
-          pwd
-          which perceval
-          ls
-          head tools.yml
+          sed -i -e 's/perceval: ~\/perceval\/bin\/perceval/perceval/g' tools.yml
+          cp tools.yml tests/testthat/testdata/tools.yml
         shell: bash
 
       - name: Test coverage
