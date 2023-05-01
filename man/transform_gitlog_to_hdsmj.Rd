@@ -2,20 +2,30 @@
 % Please edit documentation in R/network.R
 \name{transform_gitlog_to_hdsmj}
 \alias{transform_gitlog_to_hdsmj}
-\title{Transform parsed git repo into a hdsmj file.}
+\title{Transform parsed git repo into a history dsm.json file.}
 \usage{
-transform_gitlog_to_hdsmj(project_git, is_sorted = FALSE)
+transform_gitlog_to_hdsmj(project_git, hdsmj_path, is_sorted = FALSE)
 }
 \arguments{
 \item{project_git}{A parsed git project by \code{\link{parse_gitlog}}.}
 
-\item{is_sorted}{whether to sort the variables (filenames) in the dsm.json files}
+\item{hdsmj_path}{the path to save the history dsm (*-hdsm.json).}
+
+\item{is_sorted}{whether to sort the variables (filenames) in the hdsm.json file (optional).}
 }
 \description{
-# Creates a hdsm.json from a parsed gitlog table.
+Converts a gitlog table into an *-hdsm.json.
+In the hdsm.json, the Variables are all files/methods or any variables under analysis
+(rows/columns in dependency matrix) and the Cells (matrix cell) contain all the relations of
+ variable (src & dest) pairs. The Co-change is the number of times the src & dest were committed together.
+Note that the co-change between a file and its renamed variant will not be considered
+using this function, so those cells won't appear in the final *-hdsm.json.
 }
 \seealso{
-\code{\link{parse_gitlog}}, \code{\link{graph_to_dsmj}}
+\code{\link{parse_gitlog}} to get a table of a parsed git project needed as input into \code{\link{transform_gitlog_to_hdsmj}},
+\code{\link{transform_temporal_gitlog_to_adsmj}} to perform a similar transformation into a *-dsm.json using a temporal gitlog,
+\code{\link{transform_dependencies_to_sdsmj}} to perform a similar transformation into a *-dsm.json using dependencies from Depends,
+\code{\link{graph_to_dsmj}} to generate a *-dsm.json file.
 
 Other edgelists: 
 \code{\link{transform_commit_message_id_to_network}()},
@@ -26,7 +36,8 @@ Other edgelists:
 \code{\link{transform_gitlog_to_entity_bipartite_network}()},
 \code{\link{transform_gitlog_to_entity_temporal_network}()},
 \code{\link{transform_gitlog_to_temporal_network}()},
-\code{\link{transform_reply_to_bipartite_network}()}
+\code{\link{transform_reply_to_bipartite_network}()},
+\code{\link{transform_temporal_gitlog_to_adsmj}()}
 
 Other dv8: 
 \code{\link{dependencies_to_sdsmj}()},
@@ -40,7 +51,8 @@ Other dv8:
 \code{\link{graph_to_dsmj}()},
 \code{\link{parse_dv8_architectural_flaws}()},
 \code{\link{parse_dv8_clusters}()},
-\code{\link{transform_dependencies_to_sdsmj}()}
+\code{\link{transform_dependencies_to_sdsmj}()},
+\code{\link{transform_temporal_gitlog_to_adsmj}()}
 }
 \concept{dv8}
 \concept{edgelists}
