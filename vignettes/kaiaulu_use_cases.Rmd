@@ -1,0 +1,86 @@
+---
+title: "Kaiāulu Use Cases"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Kaiāulu Use Cases}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Conference Publications 
+```
+@inproceedings{10.1145/3544902.3546249,
+author = {Mumtaz, Haris and Singh, Paramvir and Blincoe, Kelly},
+title = {Analyzing the Relationship between Community and Design Smells in Open-Source Software Projects: An Empirical Study},
+year = {2022},
+isbn = {9781450394277},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3544902.3546249},
+doi = {10.1145/3544902.3546249},
+abstract = {Background: Software smells reflect the sub-optimal patterns in the software. In a similar way, community smells consider the sub-optimal patterns in the organizational and social structures of software teams. Related work performed empirical studies to identify the relationship between community smells and software smells at the architecture and code levels. However, how community smells relate with design smells is still unknown. Aims: In this paper, we empirically investigate the relationship between community smells and design smells during the evolution of software projects. Method: We apply three statistical methods: correlation, trend, and information gain analysis to empirically examine the relationship between community and design smells in 100 releases of 10 large-scale Apache open-source software projects. Results: Our results reveal that the relationship between community and design smells varies across the analyzed projects. We find significant correlations and trend similarities for one type of community smell (when developers work in isolation without peer communication—Missing Links) with design smells in most of the analyzed projects. Furthermore, the results of our statistical model disclose that community smells are more relevant for design smells compared to other community-related factors. Conclusion: Our results find that the relationship of community smells (in particular, the Missing Links smell) exists with design smells. Based on our findings, we discuss specific community smell refactoring techniques that should be done together when refactoring design smells so that the problems associated with the social and technical (design) aspects of the projects can be managed concurrently.},
+booktitle = {Proceedings of the 16th ACM / IEEE International Symposium on Empirical Software Engineering and Measurement},
+pages = {23–33},
+numpages = {11},
+keywords = {Socio-Technical Analysis, Design Smells, Social Smells, Community Smells, Open-Source Development.},
+location = {Helsinki, Finland},
+series = {ESEM '22}
+}
+```
+
+
+```
+@inproceedings{Mumtaz:2022,
+author = {Mumtaz, Haris and Paradis, Carlos and Palomba, Fabio and Tamburri, Damian A. and Kazman, Rick and Blincoe, Kelly},
+title = {A Preliminary Study on the Assignment of GitHub Issues to Issue Commenters and the Relationship with Social Smells},
+year = {2022},
+isbn = {9781450393423},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3528579.3529181},
+doi = {10.1145/3528579.3529181},
+booktitle = {Proceedings of the 15th International Conference on Cooperative and Human Aspects of Software Engineering},
+pages = {61–65},
+numpages = {5},
+keywords = {open-source development, community smells, social smells, socio-technical analysis, GitHub features},
+location = {Pittsburgh, Pennsylvania},
+series = {CHASE '22}
+}
+```
+
+# Thesis 
+
+```
+@mastersthesis{Broere:2021,
+    author = {Corn\'{e} Broere},
+    title = {Effects of community smells on turnover in Open Source Software projects},
+    institution = {Vrije Universiteit Amsterdam},
+    month = {July},
+    year = {2021}
+}
+```
+
+```
+@mastersthesis{Meijel:2021,
+    author = {Jari van Meijel},
+    institution = {Eindhoven University of Technology},
+    title = {On the Relations Between Community Patterns and Smells in Open-Source: A Taxonomic and Empirical Analysis},
+    month = {Oct},
+    year = {2021},
+    URL = {https://research.tue.nl/en/studentTheses/on-the-relations-between-community-patterns-and-smells-in-open-so}
+}
+```
+
+```
+@phdthesis{Paradis:2021,
+  author  = "Carlos Paradis",
+  title   = "PERCEIVE: Proactive Exploration of Risky Concept Emergence for Identifying Vulnerabilities \& Exposures",
+  school  = "University of Hawaii at Manoa",
+  year    = "2021",
+  month = "May",
+  URL = "https://ntrs.nasa.gov/citations/20210016858"
+}
+```

@@ -4,14 +4,17 @@
 \alias{gitlog_to_hdsmj}
 \title{Transforms a gitlog table to a historical DSM JSON file.}
 \usage{
-gitlog_to_hdsmj(gitlog_table, hdsmj_path, is_sorted = FALSE)
+gitlog_to_hdsmj(project_gitlog, hdsmj_path, is_sorted = FALSE)
 }
 \arguments{
-\item{gitlog_table}{parsed gitlog table created by \code{\link{parse_gitlog}}}
+\item{project_gitlog}{parsed gitlog table created by \code{\link{parse_gitlog}}}
 
 \item{hdsmj_path}{path to save output file}
 
 \item{is_sorted}{whether the json is sorted by src and dest}
+}
+\value{
+the hdsmj_path
 }
 \description{
 Converts a gitlog table into an *-hdsm.json.
@@ -21,10 +24,14 @@ In the hdsm.json, the Variables are all files/methods or any variables under ana
   were committed together.
 }
 \seealso{
+\code{\link{dv8_dsmj_to_dsmb}} to convert to `*-hdsm.dv8-dsm` and
+\code{\link{dv8_hdsmb_sdsmb_to_mdsmb}} to merge DSMs into `*-merge.dv8-dsm`.
+
 Other dv8: 
 \code{\link{dependencies_to_sdsmj}()},
 \code{\link{dv8_clsxb_to_clsxj}()},
 \code{\link{dv8_clsxj_to_clsxb}()},
+\code{\link{dv8_depends_to_sdsmj}()},
 \code{\link{dv8_dsmj_to_dsmb}()},
 \code{\link{dv8_hdsmb_sdsmb_to_mdsmb}()},
 \code{\link{dv8_mdsmb_to_flaws}()},
@@ -32,6 +39,7 @@ Other dv8:
 \code{\link{parse_dv8_architectural_flaws}()},
 \code{\link{parse_dv8_clusters}()},
 \code{\link{transform_dependencies_to_sdsmj}()},
-\code{\link{transform_gitlog_to_hdsmj}()}
+\code{\link{transform_gitlog_to_hdsmj}()},
+\code{\link{transform_temporal_gitlog_to_adsmj}()}
 }
 \concept{dv8}

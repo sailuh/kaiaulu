@@ -10,7 +10,7 @@ transform_gitlog_to_bipartite_network(
 )
 }
 \arguments{
-\item{project_git}{A parsed git project by \code{parse_gitlog}.}
+\item{project_git}{A parsed git project by \code{\link{parse_gitlog}}.}
 
 \item{mode}{The network of interest: author-entity, committer-entity, commit-entity, author-committer}
 }
@@ -27,6 +27,7 @@ Other edgelists:
 \code{\link{transform_gitlog_to_entity_temporal_network}()},
 \code{\link{transform_gitlog_to_hdsmj}()},
 \code{\link{transform_gitlog_to_temporal_network}()},
-\code{\link{transform_reply_to_bipartite_network}()}
+\code{\link{transform_reply_to_bipartite_network}()},
+\code{\link{transform_temporal_gitlog_to_adsmj}()}
 }
 \concept{edgelists}

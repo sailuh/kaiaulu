@@ -12,15 +12,20 @@
 #'  variable (src & dest) pairs. The Co-change is the number of times the src & dest
 #'   were committed together.
 #'
-#' @param gitlog_table parsed gitlog table created by \code{\link{parse_gitlog}}
+#' @param project_gitlog parsed gitlog table created by \code{\link{parse_gitlog}}
 #' @param hdsmj_path path to save output file
 #' @param is_sorted whether the json is sorted by src and dest
+#' @return the hdsmj_path
 #' @export
+#' @seealso \code{\link{dv8_dsmj_to_dsmb}} to convert to `*-hdsm.dv8-dsm` and
+#' \code{\link{dv8_hdsmb_sdsmb_to_mdsmb}} to merge DSMs into `*-merge.dv8-dsm`.
 #' @family dv8
-gitlog_to_hdsmj <- function(gitlog_table, hdsmj_path, is_sorted=FALSE){
+gitlog_to_hdsmj <- function(project_gitlog, hdsmj_path, is_sorted=FALSE){
   # Call preliminary functions to get graph and cochange for the files
-  gitlog_graph <- transform_gitlog_to_bipartite_network(gitlog_table, mode ="commit-file")
-  cochange_table <- bipartite_graph_projection(gitlog_graph, mode = FALSE, is_intermediate_projection = FALSE)
+  gitlog_graph <- transform_gitlog_to_bipartite_network(project_gitlog, mode ="commit-file")
+  cochange_table <- bipartite_graph_projection(gitlog_graph,
+                                               mode = FALSE,
+                                               weight_scheme_function = weight_scheme_count_deleted_nodes)
 
   # Get the nodes and edgelist tables
   nodes_table <- cochange_table[[1]]
@@ -69,18 +74,21 @@ gitlog_to_hdsmj <- function(gitlog_table, hdsmj_path, is_sorted=FALSE){
 
   # Save the json to a file
   jsonlite::write_json(json_df, hdsmj_path, auto_unbox=TRUE)
+
+  return(hdsmj_path)
 }
 
 #' Transforms a git log to a git numstat file.
 #'
-#' Comverts a git folder *.git, to a gitlog numstat file *.txt
+#' Comverts a git folder \*.git, to a gitlog numstat file \*.txt
 #'
 #' @param git_repo_path path to local project git repository
 #' @param git_numstat_path path to save gitlog numstat
 #'
-#' @return path to git log output
+#' @return the git_numstat_path
 #' @export
-#' @seealso \code{\link{dv8_gitnumstat_to_hdsmb}} for creating mdsmb binary file from a git numstat text file
+#' @seealso \code{\link{dv8_gitnumstat_to_hdsmb}} to covert to `*-hdsm.dv8-dsm` and
+#' \code{\link{dv8_hdsmb_sdsmb_to_mdsmb}} to merge DSMs into `*-merge.dv8-dsm`.
 #'
 dv8_gitlog_to_gitnumstat <- function(git_repo_path, git_numstat_path) {
   system2(command = "git",
@@ -96,28 +104,21 @@ dv8_gitlog_to_gitnumstat <- function(git_repo_path, git_numstat_path) {
 
 #' Converts a git log text file into a hdsmb binary file
 #'
-#' An input file *.txt is converted to *.dv8-dsm
+#' An input file \*.txt is converted to \*.dv8-dsm
 #'
 #' @param dv8_path path to DV8 binary
 #' @param git_numstat_path path to local git log text file obtained by \code{\link{dv8_gitlog_to_gitnumstat}}
-#' @param start start of date/time range in ISO format ie. 2017-07-08T00:00:00Z
-#' @param stop end of date/time range in ISO format ie. 2018-07-08T00:00:00Z
 #' @param max_cochange_count maximum count of co-changed files per commit, default 1000
 #' @param hdsmb_path name of output hdsmb binary file, defaults to name of input
 #' @param params_output_file output file used to record parameters
 #'
-#' @return path to hdsmb binary file
+#' @return the hdsmb_path
 #' @export
-#' @seealso \code{\link{dv8_mdsmb_to_decoupling_level}} to calculate decoupling level from mdsmb binary file
-#' @seealso \code{\link{dv8_mdsmb_to_hierclsxb}} to compute design rule hierarchy from mdsmb binary file
-#' @seealso \code{\link{dv8_mdsmb_drhier_to_excel}} to export a mdsmb binary file as an excel file
-#' @seealso \code{\link{dv8_mdsmb_dsmb_to_dsmj}} to export a mdsmb binary file as a json file
+#' @seealso \code{\link{dv8_hdsmb_sdsmb_to_mdsmb}} to merge DSMs into `*-merge.dv8-dsm`.
 #'
 dv8_gitnumstat_to_hdsmb <- function(dv8_path,
                                     git_numstat_path,
                                     hdsmb_path,
-                                    #                                   start,
-                                    #                                    stop,
                                     max_cochange_count=1000,
                                     params_output_file="") {
 
@@ -152,17 +153,19 @@ dv8_gitnumstat_to_hdsmb <- function(dv8_path,
 #' (rows/columns in dependency matrix) and the Cells (matrix cell) contain all the relations of
 #'  variable (src & dest) pairs.
 #'
-#' @param depends_table parsed dependencies table created by \code{\link{parse_dependencies}}
+#' @param project_dependencies parsed dependencies table created by \code{\link{parse_dependencies}}
 #' @param sdsmj_path path to save output file
 #' @param is_sorted whether the json is sorted by src and dest
+#' @return the sdsmj_path
 #' @export
 #' @family dv8
-#' @seealso \code{\link{parse_dependencies}}
-dependencies_to_sdsmj <- function(depends_table, sdsmj_path, is_sorted=FALSE){
+#' @seealso \code{\link{dv8_dsmj_to_dsmb}} to convert to `*-sdsm.dv8-dsm` and
+#' \code{\link{dv8_hdsmb_sdsmb_to_mdsmb}} to merge DSMs into `*-merge.dv8-dsm`.
+dependencies_to_sdsmj <- function(project_dependencies, sdsmj_path, is_sorted=FALSE){
 
   # Get the nodes and edgelist tables
-  nodes_table <- depends_table[[1]]
-  edgelist_table <- depends_table[[2]]
+  nodes_table <- project_dependencies[["nodes"]]
+  edgelist_table <- project_dependencies[["edgelist"]]
 
   # Get and sort the file names
   variables <- sort(unique(nodes_table[["filepath"]]), method="radix")
@@ -219,6 +222,8 @@ dependencies_to_sdsmj <- function(depends_table, sdsmj_path, is_sorted=FALSE){
 
   # Save the json to a file
   jsonlite::write_json(json_df,sdsmj_path, auto_unbox=TRUE)
+
+  return(sdsmj_path)
 }
 
 
@@ -227,9 +232,12 @@ dependencies_to_sdsmj <- function(depends_table, sdsmj_path, is_sorted=FALSE){
 #' @param depends_jar_path path to depends jar
 #' @param git_repo_path path to git repo (ends in .git)
 #' @param language the language of the .git repo (accepts cpp, java, ruby, python, pom)
-#' @param dsmb_path the path to save the sdsm-dv8.dsm file.
+#' @param sdsmj_path the path to save the sdsm-dv8.dsm file.
+#' @return the sdsmj_path
 #' @export
-#' @family parsers
+#' @seealso \code{\link{dv8_dsmj_to_dsmb}} to convert to `*-sdsm.dv8-dsm` and
+#' \code{\link{dv8_hdsmb_sdsmb_to_mdsmb}} to merge DSMs into `*-merge.dv8-dsm`.
+#' @family dv8
 dv8_depends_to_sdsmj <- function(depends_jar_path,git_repo_path,language,sdsmj_path) {
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   depends_jar_path <- path.expand(depends_jar_path)
@@ -262,16 +270,18 @@ dv8_depends_to_sdsmj <- function(depends_jar_path,git_repo_path,language,sdsmj_p
 
 #' Transforms a DV8 binary DSM file to a DSM JSON file.
 #'
-#' Converts a a hdsm.json *(-hdsm.json) to history DSM (*-hdsm.dv8-dsm),
-#' a sdsm.json (*-sdsm.json) to structural DSM (*-sdsm.dv8-dsm) or a
-#' a mdsm.json (*-merge.json) to structural DSM (*-merge.dv8-dsm).
+#' Converts a a hdsm.json \*(-hdsm.json) to history DSM (\*-hdsm.dv8-dsm),
+#' a sdsm.json (\*-sdsm.json) to structural DSM (\*-sdsm.dv8-dsm) or a
+#' a mdsm.json (\*-merge.json) to structural DSM (\*-merge.dv8-dsm).
 #'
 #' @param dv8_path path to dv8 binary
 #' @param dsmj_path path to JSON DSM created by \code{\link{gitlog_to_hdsmj}},
 #' \code{\link{dependencies_to_sdsmj}}, \code{\link{dv8_depends_to_sdsmj}}, or
 #' \code{\link{dv8_dsmb_to_dsmj}}
 #' @param dsmb_path path to save binary DSM
+#' @return the dsmb_path
 #' @export
+#' @seealso \code{\link{dv8_hdsmb_sdsmb_to_mdsmb}} to merge DSMs into `*-merge.dv8-dsm`.
 #' @family dv8
 dv8_dsmj_to_dsmb <- function(dv8_path, dsmj_path, dsmb_path){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
@@ -288,31 +298,30 @@ dv8_dsmj_to_dsmb <- function(dv8_path, dsmj_path, dsmb_path){
 
 #' Export a dsmb binary file as a separate json file
 #'
-#' Takes a *.dv8-dsm file and exports as *.json file
+#' Takes a \*.dv8-dsm file and exports as \*.json file
 #'
 #' @param dv8_path path to DV8 binary
 #' @param dsmb_path path to dsmb binary file created by \code{\link{dv8_gitnumstat_to_hdsmb}}
-#' @param json_path path to json file
-#'
-#' @return path to output json file
+#' @param dsmj_path path to json file
+#' @return the dsmj_path
 #' @export
 #'
-dv8_dsmb_to_dsmj <- function(dv8_path, dsmb_path, json_path) {
+dv8_dsmb_to_dsmj <- function(dv8_path, dsmb_path, dsmj_path) {
   dv8_path = path.expand(dv8_path)
-  output_file_arg <- sprintf("-outputFile %s", json_path)
+  output_file_arg <- sprintf("-outputFile %s", dsmj_path)
 
   system2(command=dv8_path,
           args=c("core:export-matrix",
                  output_file_arg,
                  dsmb_path),
-          stdout=json_path)
+          stdout=dsmj_path)
 
-  return(json_path)
+  return(dsmj_path)
 }
 
 #' Merge history DSM and structural DSM to merged DSM.
 #'
-#' A history DSM (*-hdsm.dv8-dsm) and a structural DSM (*-sdsm.dv8-dsm) are
+#' A history DSM (\*-hdsm.dv8-dsm) and a structural DSM (\*-sdsm.dv8-dsm) are
 #' merged to a merge DSM (*.dv8-dsm)
 #'
 #' @param dv8_path path to dv8 binary
@@ -321,7 +330,13 @@ dv8_dsmb_to_dsmj <- function(dv8_path, dsmb_path, json_path) {
 #' @param sdsmb_path path to structural DSM binary created by (\code{\link{dependencies_to_sdsmj}},
 #' or \code{\link{dependencies_to_sdsmj}}) and \code{\link{dv8_depends_to_sdsmj}}
 #' @param mdsmb_path path to save the merge DSM binary
+#' @return the mdsmb_path
 #' @export
+#' @seealso \code{\link{dv8_mdsmb_drhier_to_excel}} to export a `*-merged.dv8-dsm` file to `merged.xlsx` for DSM visualization.
+#' For analysis, see \code{\link{dv8_mdsmb_to_decoupling_level}} to calculate decoupling level `*-dl.json`, or
+#' \code{\link{dv8_mdsmb_to_flaws}} to generate the architectural flaws `folder`.
+#' For conversions, see \code{\link{dv8_mdsmb_to_hierclsxb}} to cluster the DSM to `*-clsx.dv8-clsx`, or
+#' \code{\link{dv8_dsmb_to_dsmj}} to convert a `*-merged.dv8-dsm` binary file as a JSON `-*merged.json` file
 #' @family dv8
 dv8_hdsmb_sdsmb_to_mdsmb <- function(dv8_path, hdsmb_path, sdsmb_path, mdsmb_path){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
@@ -350,10 +365,13 @@ dv8_hdsmb_sdsmb_to_mdsmb <- function(dv8_path, hdsmb_path, sdsmb_path, mdsmb_pat
 #' @param uiCochange (For Unstable Interface detection) Threshold of co-change between two files
 #' @param uihDepends (For Unhealthy Inheritance detection) Filtered dependencies for unhealthy inheritance detection. Multiple dependencies should be delimited using ","
 #' @param uihInheritance (For Unhealthy Inheritance detection) Dependencies for unhealthy inheritance detection. Multiple dependencies should be delimited using ","
-#' @param historyImpact (For Unstable Interface detection) Threshold of the number of co-changed (more than "co-change" times) files
+#' @param uiHistoryImpact (For Unstable Interface detection) Threshold of the number of co-changed (more than "co-change" times) files
 #' @param uiStructImpact (For Unstable Interface detection) Threshold of value < 1 means percentage of all files are dependents
+#' @return the path to the flaws folder
 #'
 #' @export
+#' @seealso \code{\link{parse_dv8_architectural_flaws}} to create a `.csv`
+#' mapping of file to architectural flaw.
 #' @family dv8
 dv8_mdsmb_to_flaws <- function(dv8_path,
                                mdsmb_path,
@@ -366,7 +384,7 @@ dv8_mdsmb_to_flaws <- function(dv8_path,
                                uiCochange=2,
                                uihDepends='call,use',
                                uihInheritance='extend,implement,public,private,virtual',
-                               historyImpact=10,
+                               uiHistoryImpact=10,
                                uiStructImpact=0.01){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   dv8_path <- path.expand(dv8_path)
@@ -383,7 +401,7 @@ dv8_mdsmb_to_flaws <- function(dv8_path,
                            '-uiCochange', uiCochange,
                            '-uihDepends', uihDepends,
                            '-uihInheritance', uihInheritance,
-                           '-uiHistoryImpact', historyImpact,
+                           '-uiHistoryImpact', uiHistoryImpact,
                            '-uiStructImpact', uiStructImpact,
                            '-outputFolder', flaws_path,
                            mdsmb_path),
@@ -403,8 +421,9 @@ dv8_mdsmb_to_flaws <- function(dv8_path,
 #' @param dv8_path path to dv8 binary
 #' @param flaws_path path to architecture folder created by \code{\link{dv8_mdsmb_to_flaws}}
 #' @param keep_intermediate_files TRUE if the user wishes to keep the intermediate files generated by this function, FALSE otherwise
-#'
+#' @return data.table object with file to flaw mapping
 #' @export
+#'
 #' @family dv8
 parse_dv8_architectural_flaws <- function(dv8_path, flaws_path, keep_intermediate_files=FALSE) {
 
@@ -503,27 +522,27 @@ parse_dv8_architectural_flaws <- function(dv8_path, flaws_path, keep_intermediat
 
 #' Computes the Decoupling Level from a mdsm binary file
 #'
-#' Creates a *.json file with decoupling metrics from *.dv8-dsm file
+#' Creates a \*.json file with decoupling metrics from \*.dv8-dsm file
 #'
 #' @param dv8_path path to DV8 binary
 #' @param mdsmb_path path to mdsm binary file created by \code{\link{dv8_gitnumstat_to_hdsmb}}
-#' @param json_path name of output file
+#' @param dl_path name of output file
 #'
-#' @return path of output json file
+#' @return the dl_path
 #' @export
-#' @seealso \code{\link{parse_dv8_metrics_decoupling_level}} to parse decoupling level json file
+#' @seealso \code{\link{parse_dv8_metrics_decoupling_level}} to parse decoupling level JSON file `-dl.json`
 #'
-dv8_mdsmb_to_decoupling_level <- function(dv8_path, mdsmb_path, json_path) {
+dv8_mdsmb_to_decoupling_level <- function(dv8_path, mdsmb_path, dl_path) {
   dv8_path <- path.expand(dv8_path)
-  output_file_arg <- sprintf("-outputFile %s ", json_path)
+  output_file_arg <- sprintf("-outputFile %s ", dl_path)
 
   system2(command=dv8_path,
           args=c("metrics:decoupling-level",
                  output_file_arg,
                  mdsmb_path),
-          stdout=json_path)
+          stdout=dl_path)
 
-  return(json_path)
+  return(dl_path)
 }
 
 
@@ -531,7 +550,7 @@ dv8_mdsmb_to_decoupling_level <- function(dv8_path, mdsmb_path, json_path) {
 
 #' Computes the design rule hierarchy for a mdsm binary file
 #'
-#' Creates a *.dv8-clsx file from a *.dv8-dsm file
+#' Creates a \*.dv8-clsx file from a \*.dv8-dsm file
 #'
 #' @param dv8_path path to DV8 binary
 #' @param mdsmb_path path to mdsm binary file created by \code{\link{dv8_gitnumstat_to_hdsmb}}
@@ -540,9 +559,10 @@ dv8_mdsmb_to_decoupling_level <- function(dv8_path, mdsmb_path, json_path) {
 #' @param recursive use recursive algorithm if switched on
 #' @param hierclsxb_path name of output file
 #'
-#' @return path of output file
+#' @return the hierclsxb_path
 #' @export
-#' @seealso \code{\link{dv8_mdsmb_drhier_to_excel}} for using *.dv8-clsx file when exporting mdsmb binary file as an excel file
+#' @seealso \code{\link{dv8_mdsmb_drhier_to_excel}} for exporting `*-clsx.dv8-clsx` to excel `-clsx.xlsx`, or
+#' \code{\link{dv8_clsxb_to_clsxj}} and \code{\link{parse_dv8_clusters}} for conversion and parsing.
 #'
 dv8_mdsmb_to_hierclsxb <- function(dv8_path,
                                    mdsmb_path,
@@ -582,7 +602,7 @@ dv8_mdsmb_to_hierclsxb <- function(dv8_path,
 
 #' Export a mdsmb binary file into a spreadsheet
 #'
-#' Creates a *.xlsx from a *.dv8-dsm file
+#' Creates a \*.xlsx from a \*.dv8-dsm file
 #'
 #' @param dv8_path path to DV8 binary
 #' @param mdsmb_path path to mdsmb binary file created by \code{\link{dv8_gitnumstat_to_hdsmb}}
@@ -592,7 +612,7 @@ dv8_mdsmb_to_hierclsxb <- function(dv8_path,
 #' @param drhier if TRUE, use recursive drh clustering in spreadsheet, default FALSE
 #' @param namespace if TRUE, use namespace clustering in spreadsheet, default FALSE
 #'
-#' @return path to output excel file
+#' @return the excel_path
 #' @export
 #'
 dv8_mdsmb_drhier_to_excel <- function(dv8_path,
@@ -646,13 +666,13 @@ dv8_mdsmb_drhier_to_excel <- function(dv8_path,
 #'
 #' Creates a data.table object from a *.json file
 #'
-#' @param json_path path to decoupling metric json file created by \code{\link{dv8_mdsmb_to_decoupling_level}}
+#' @param dl_path path to decoupling metric json file created by \code{\link{dv8_mdsmb_to_decoupling_level}}
 #'
 #' @return data.table object with decoupling metrics
 #' @export
 #'
-parse_dv8_metrics_decoupling_level <- function(json_path) {
-  json <- jsonlite::read_json(json_path)
+parse_dv8_metrics_decoupling_level <- function(dl_path) {
+  json <- jsonlite::read_json(dl_path)
   dl_table <- setDT(json)
 
   return(dl_table)
@@ -667,6 +687,7 @@ parse_dv8_metrics_decoupling_level <- function(json_path) {
 #' @param dv8_path path to dv8 binary
 #' @param clsxb_path path to clsx to convert created by \code{\link{dv8_mdsmb_to_hierclsxb}}
 #' @param clsxj_path path to save output file
+#' @return the clsxj_path
 #' @export
 #' @family dv8
 dv8_clsxb_to_clsxj <- function(dv8_path, clsxb_path, clsxj_path){
@@ -678,11 +699,12 @@ dv8_clsxb_to_clsxj <- function(dv8_path, clsxb_path, clsxj_path){
 
 #' Convert a json cluster file, clsxj, to a binary cluster file, clsxb.
 #'
-#' An input file *-hier.json is converted to *-clsx.dv8-clsx.
+#' An input file \*-hier.json is converted to \*-clsx.dv8-clsx.
 #'
 #' @param dv8_path path to dv8 binary
 #' @param clsxj_path path to JSON cluster created by \code{\link{dv8_mdsmb_to_hierclsxb}}
 #' @param clsxb_path path to save the DV8 binary cluster
+#' @return the clsxb_path
 #' @export
 #' @family dv8
 dv8_clsxj_to_clsxb <- function(dv8_path, clsxj_path, clsxb_path){
@@ -728,7 +750,7 @@ parse_dv8_clusters <- function(clsxj_path){
     # Iterate through each module
     for (j in 1: num_modules) {
       # Get the module number (M0, M1, M2, ...)
-      LM_name <- stringr::str_split(structure[[i]]$nested[[j]]$name, "/")
+      LM_name <- stringi::stri_split_regex(structure[[i]]$nested[[j]]$name, pattern = "/")
       module_j <- LM_name[[1]][2]
 
       # Get number of files for the layer/module pair
@@ -756,26 +778,3 @@ parse_dv8_clusters <- function(clsxj_path){
   # Return parsed cluster data table
   return(cluster_parsed)
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

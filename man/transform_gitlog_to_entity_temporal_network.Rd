@@ -10,7 +10,7 @@ transform_gitlog_to_entity_temporal_network(
 )
 }
 \arguments{
-\item{project_git_entity}{A parsed git project by \code{parse_gitlog_entity}.}
+\item{project_git_entity}{A parsed git project by \code{\link{parse_gitlog_entity}}.}
 
 \item{mode}{author, committer}
 }
@@ -38,6 +38,7 @@ Other edgelists:
 \code{\link{transform_gitlog_to_entity_bipartite_network}()},
 \code{\link{transform_gitlog_to_hdsmj}()},
 \code{\link{transform_gitlog_to_temporal_network}()},
-\code{\link{transform_reply_to_bipartite_network}()}
+\code{\link{transform_reply_to_bipartite_network}()},
+\code{\link{transform_temporal_gitlog_to_adsmj}()}
 }
 \concept{edgelists}

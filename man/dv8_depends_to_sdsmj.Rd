@@ -13,19 +13,31 @@ dv8_depends_to_sdsmj(depends_jar_path, git_repo_path, language, sdsmj_path)
 
 \item{language}{the language of the .git repo (accepts cpp, java, ruby, python, pom)}
 
-\item{dsmb_path}{the path to save the sdsm-dv8.dsm file.}
+\item{sdsmj_path}{the path to save the sdsm-dv8.dsm file.}
+}
+\value{
+the sdsmj_path
 }
 \description{
 Creates dependencies using Depends
 }
 \seealso{
-Other parsers: 
-\code{\link{parse_commit_message_id}()},
-\code{\link{parse_dependencies}()},
+\code{\link{dv8_dsmj_to_dsmb}} to convert to `*-sdsm.dv8-dsm` and
+\code{\link{dv8_hdsmb_sdsmb_to_mdsmb}} to merge DSMs into `*-merge.dv8-dsm`.
+
+Other dv8: 
+\code{\link{dependencies_to_sdsmj}()},
+\code{\link{dv8_clsxb_to_clsxj}()},
+\code{\link{dv8_clsxj_to_clsxb}()},
+\code{\link{dv8_dsmj_to_dsmb}()},
+\code{\link{dv8_hdsmb_sdsmb_to_mdsmb}()},
+\code{\link{dv8_mdsmb_to_flaws}()},
+\code{\link{gitlog_to_hdsmj}()},
+\code{\link{graph_to_dsmj}()},
+\code{\link{parse_dv8_architectural_flaws}()},
 \code{\link{parse_dv8_clusters}()},
-\code{\link{parse_gitlog}()},
-\code{\link{parse_jira}()},
-\code{\link{parse_mbox}()},
-\code{\link{parse_nvdfeed}()}
+\code{\link{transform_dependencies_to_sdsmj}()},
+\code{\link{transform_gitlog_to_hdsmj}()},
+\code{\link{transform_temporal_gitlog_to_adsmj}()}
 }
-\concept{parsers}
+\concept{dv8}

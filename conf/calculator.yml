@@ -29,43 +29,43 @@
 # https://github.com/sailuh/kaiaulu/discussions
 
 project:
-  website: https://apr.apache.org/
-  openhub: https://www.openhub.net/p/apache_portable_runtime
+  #website: https://apr.apache.org/
+  #openhub: https://www.openhub.net/p/apache_portable_runtime
 
 version_control:
   # Where is the git log located locally?
   # This is the path to the .git of the project repository you are analyzing.
   # The .git is hidden, so you can see it using `ls -a`
-  log: ../../rawdata/git_repo/APR/.git
+  log: ../../rawdata/git_repo/Calculator/.git
   # From where the git log was downloaded?
-  log_url: https://github.com/apache/apr
+  log_url: https://github.com/HouariZegai/Calculator
   # List of branches used for analysis
   branch:
-    - trunk
+    - master
 
 mailing_list:
   # Where is the mbox located locally?
-  mbox: ../../rawdata/mbox/apr-dev_2012_2019.mbox
+  #mbox: ../../rawdata/mbox/apr-dev_2012_2019.mbox
   # What is the domain of the chosen mailing list archive?
-  domain: http://mail-archives.apache.org/mod_mbox
+  #domain: http://mail-archives.apache.org/mod_mbox
   # Which lists of the domain will be used?
-  list_key:
-    - apr-dev
+  #list_key:
+  #  - apr-dev
 
-issue_tracker:
-  jira:
+#issue_tracker:
+#  jira:
     # Obtained from the project's JIRA URL
-    domain: https://issues.apache.org/jira
+#    domain: https://issues.apache.org/jira
     #project_key: HELIX
     # Download using `download_jira_data.Rmd`
     #issues: ../../rawdata/issue_tracker/helix_issues.json
     #issue_comments: ../../rawdata/issue_tracker/helix_issue_comments.json
   github:
     # Obtained from the project's GitHub URL
-    owner: apache
-    repo: apr
+    owner: HouariZegai
+    repo: Calculator
     # Download using `download_github_comments.Rmd`
-    replies: ../../rawdata/github/apr/
+    replies: ../../rawdata/github/Calculator/
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
@@ -99,7 +99,7 @@ tool:
   depends:
     # accepts one language at a time: cpp, java, ruby, python, pom
     # You can obtain this information on OpenHub or the project GiHub page right pane.
-    code_language: cpp
+    code_language: java
     # Specify which types of Dependencies to keep - see the Depends tool README.md for details.
     keep_dependencies_type:
       - Cast
@@ -119,7 +119,7 @@ tool:
     # The project folder path to store various intermediate
     # files for DV8 Analysis
     # The folder name will be used in the file names.
-    folder_path: ../../analysis/dv8/apr
+    folder_path: ../../analysis/dv8/calculator
     # the architectural flaws thresholds that should be used
     architectural_flaws:
       cliqueDepends:

@@ -14,3 +14,4 @@ parse_r_function_dependencies(parsed_r_file, function_definition)
 \description{
 Identify function calls in an R File.
 }
+\keyword{internal}

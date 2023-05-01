@@ -15,16 +15,22 @@ dv8_dsmj_to_dsmb(dv8_path, dsmj_path, dsmb_path)
 
 \item{dsmb_path}{path to save binary DSM}
 }
+\value{
+the dsmb_path
+}
 \description{
-Converts a a hdsm.json *(-hdsm.json) to history DSM (*-hdsm.dv8-dsm),
-a sdsm.json (*-sdsm.json) to structural DSM (*-sdsm.dv8-dsm) or a
-a mdsm.json (*-merge.json) to structural DSM (*-merge.dv8-dsm).
+Converts a a hdsm.json \*(-hdsm.json) to history DSM (\*-hdsm.dv8-dsm),
+a sdsm.json (\*-sdsm.json) to structural DSM (\*-sdsm.dv8-dsm) or a
+a mdsm.json (\*-merge.json) to structural DSM (\*-merge.dv8-dsm).
 }
 \seealso{
+\code{\link{dv8_hdsmb_sdsmb_to_mdsmb}} to merge DSMs into `*-merge.dv8-dsm`.
+
 Other dv8: 
 \code{\link{dependencies_to_sdsmj}()},
 \code{\link{dv8_clsxb_to_clsxj}()},
 \code{\link{dv8_clsxj_to_clsxb}()},
+\code{\link{dv8_depends_to_sdsmj}()},
 \code{\link{dv8_hdsmb_sdsmb_to_mdsmb}()},
 \code{\link{dv8_mdsmb_to_flaws}()},
 \code{\link{gitlog_to_hdsmj}()},
@@ -32,6 +38,7 @@ Other dv8:
 \code{\link{parse_dv8_architectural_flaws}()},
 \code{\link{parse_dv8_clusters}()},
 \code{\link{transform_dependencies_to_sdsmj}()},
-\code{\link{transform_gitlog_to_hdsmj}()}
+\code{\link{transform_gitlog_to_hdsmj}()},
+\code{\link{transform_temporal_gitlog_to_adsmj}()}
 }
 \concept{dv8}

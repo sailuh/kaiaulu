@@ -4,22 +4,26 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#' Create a dsm.json file given either a dependencies table from \code{\link{transform_dependencies_to_sdsmj}}
-#' or a gitlog table from \code{\link{transform_gitlog_to_hdsmj}}.
+#' Exports a graph as a dsmj.
 #'
-#' # Returns either a hdsm.json (from dependencies table) or a sdsmj.json (from gitlog table).
-#'
-#' @param graph the table containing the nodes and edgelist of the graph of dependencies or the gitlog.
-#' @param is_sorted whether to sort the variables (filenames) in the dsm.json files
+#' @param graph a graph returned by \code{\link{model_directed_graph}}
+#' @param dsmj_path path to save the dsmj.
+#' @param dsmj_name name of the dsmj file, passed by the call from an appropriate transform function.
+#' @param is_directed whether the graph is directed. If false, cells will be doubled.
+#'  with src/dest switched to represent an undirected graph as a directed graph.
+#' @param is_sorted whether to sort the variables (filenames) in the dsm.json files (optional).
+#' @return the path to the dsm.json file saved.
 #' @export
 #' @family dv8
-#' @seealso \code{\link{transform_dependencies_to_sdsmj}} and \code{\link{transform_gitlog_to_hdsmj}}
+#' @seealso \code{\link{transform_dependencies_to_sdsmj}} to transform dependencies from Depends into a structure dsm.json,
+#' \code{\link{transform_gitlog_to_hdsmj}} to transform a gitlog table into a history dsm.json, and
+#' \code{\link{transform_temporal_gitlog_to_adsmj}} to transform a gitlog table into an author dsm.json.
 #'
-graph_to_dsmj <- function(graph, is_sorted=FALSE){
+graph_to_dsmj <- function(graph, dsmj_path, dsmj_name, is_directed, is_sorted=FALSE){
 
   # Get the nodes and edgelist tables
-  nodes_table <- graph[[1]]
-  edgelist_table <- graph[[2]]
+  nodes_table <- graph[["nodes"]]
+  edgelist_table <- graph[["edgelist"]]
 
   # Get and sort the file names
   variables <- sort(unique(nodes_table[["name"]]), method="radix")
@@ -29,52 +33,80 @@ graph_to_dsmj <- function(graph, is_sorted=FALSE){
   # Make named list with file names as keys and indices as values
   names(variables_indices) <- variables
 
-  # List to hold cells
-  cells_indices <- 1:nrow(edgelist_table)
+  # Group data into cells by the "from" and "to" files and get their labels and weights.
+  grouped_cells <- edgelist_table[, .(labels=list(label), weights=list(weight)),
+                                                by =.(from, to)]
 
-  # Get parameters that will be used for the cells
-  parameters <- list("Call", "Import", "Use", "Parameter", "Contain", "Create", "Extend",
-                     "Return","Implement", "Cast", "Throw", "Annotation", "Cochange")
-  # Only use parameters in the dataframe
-  parameters <- unlist(intersect(colnames(edgelist_table), parameters))
+  # List to hold cells' indices
+  cells_indices <- 1:nrow(grouped_cells)
 
   getCell <- function(i) {
-    src <- edgelist_table[["from"]][[i]]
-    dest <- edgelist_table[["to"]][[i]]
+    src <- grouped_cells[["from"]][[i]]
+    dest <- grouped_cells[["to"]][[i]]
 
     src_index <- variables_indices[src] - 1
     dest_index <- variables_indices[dest] - 1
 
     values <- list()
     # Get all the parameter values for a specific cell
+    parameters <- grouped_cells[["labels"]][[i]]
     for (j in 1: length(parameters)) {
-      current_param <- edgelist_table[i][[parameters[[j]]]]
+      current_param <- grouped_cells[["weights"]][[i]][[j]]
       if (current_param > 0){
-        values[[parameters[[j]]]] <- current_param
+        values[[as.character(parameters[[j]])]] <- current_param
       }
     }
-    return(list(src=src_index, dest=dest_index, values=data.frame(values)))
+
+    return(list(src=src_index, dest=dest_index, values=as.data.table(values)))
+  }
+
+  getCellReverse <- function(i) {
+    src <- grouped_cells[["to"]][[i]]
+    dest <- grouped_cells[["from"]][[i]]
+
+    src_index <- variables_indices[src] - 1
+    dest_index <- variables_indices[dest] - 1
+
+    values <- list()
+    # Get all the parameter values for a specific cell
+    parameters <- grouped_cells[["labels"]][[i]]
+    for (j in 1: length(parameters)) {
+      current_param <- grouped_cells[["weights"]][[i]][[j]]
+      if (current_param > 0){
+        values[[as.character(parameters[[j]])]] <- current_param
+      }
+    }
+
+    return(list(src=src_index, dest=dest_index, values=as.data.table(values)))
   }
 
   # Sorted list
   cells <- lapply(cells_indices, getCell)
   cells_df <- data.table::data.table(jsonlite::fromJSON(jsonlite::toJSON(cells, auto_unbox = TRUE)))
 
+  # Double the cells (switching src/dest) if not a directed graph
+  if (is_directed == FALSE){
+    cells_reverse <- lapply(cells_indices, getCellReverse)
+    cells_reverse_df <- data.table::data.table(jsonlite::fromJSON(jsonlite::toJSON(cells_reverse, auto_unbox = TRUE)))
+    cells_df <- rbind(cells_df, cells_reverse_df)
+  }
+
   if (is_sorted == TRUE){
     data.table::setorder(cells_df, cols = "src", "dest")
   }
 
   # Create the final json
-  hdsm_json <- list(schemaVersion="1.0", name=paste0("april16-graph", "-hdsm"), variables=variables, cells=cells_df)
+  dsm_json <- list(schemaVersion="1.0", name=dsmj_name, variables=variables, cells=cells_df)
 
-  json_df <- jsonlite::fromJSON(jsonlite::toJSON(hdsm_json, auto_unbox = TRUE))
+  dsm_json <- jsonlite::fromJSON(jsonlite::toJSON(dsm_json, auto_unbox = TRUE))
 
-  # Do this only if it's for Cochange?
   # Unbox each of the cell values (should be values: object, not values: [object])
-  json_df$cells$values <- lapply(json_df$cells$values, jsonlite::unbox)
+  dsm_json$cells$values <- lapply(dsm_json$cells$values, jsonlite::unbox)
 
   # Save the json to a file
-  jsonlite::write_json(json_df, paste0("../rawdata/dv8/", "april16-depends-helix-graph", ".json"), auto_unbox=TRUE)
+  jsonlite::write_json(dsm_json, paste0(dsmj_path), auto_unbox=TRUE)
+
+  return(dsmj_path)
 }
 
 #' Create a directed graph model
@@ -111,11 +143,15 @@ model_directed_graph <- function(edgelist,is_bipartite,color){
 #' Apply a bipartite graph projection
 #'
 #' @param graph A bipartite network (see transform_*_bipartite functions).
-#' @param is_intermediate_projection If true, displays the eliminated nodes by the projection. TRUE or FALSE.
 #' @param mode Which of the two nodes the projection should be applied to. TRUE or FALSE
+#' @param weight_scheme_function When not specified, bipartite_graph_projection will return an intermediate
+#' projection table specifying the deleted node, from_projection, to_projection, from_weight, and to_weight.
+#' This table also contains (N choose 2) rows for every "deleted_node" in the original graph.
+#' When receiving as parameter \code{\link{weight_scheme_sum_edges}} or
+#' \code{\link{weight_scheme_count_deleted_nodes}}, the final projection table will be returned instead.
 #' @return A graph projection.
 #' @export
-bipartite_graph_projection <- function(graph,mode, is_intermediate_projection = FALSE){
+bipartite_graph_projection <- function(graph,mode,weight_scheme_function = NULL){
 
   get_combinations <- function(edgelist){
     dt <- edgelist
@@ -155,7 +191,7 @@ bipartite_graph_projection <- function(graph,mode, is_intermediate_projection = 
              c("weight"),
              c("to_weight"))
 
-    combinations$weight <- combinations$from_weight + combinations$to_weight
+    #combinations$weight <- combinations$from_weight + combinations$to_weight
 
     return(combinations)
   }
@@ -167,37 +203,111 @@ bipartite_graph_projection <- function(graph,mode, is_intermediate_projection = 
 
   if(mode){
 
+    # Calculate N Choose 2 combinations for every deleted node
     graph[["edgelist"]] <- graph[["edgelist"]][, get_combinations(.SD),
                                           by = c("to"),
                                           .SDcols = c("from","weight")]
 
-    graph[["edgelist"]] <- graph[["edgelist"]][,.(eliminated_node = to,
-                                                  from=from_projection,
-                                                  to=to_projection,weight)]
+    setnames(x = graph[["edgelist"]],
+             old = c("to"),
+             new = c("eliminated_node"))
+
   }else{
 
+    # Calculate N Choose 2 combinations for every deleted node
     graph[["edgelist"]] <- graph[["edgelist"]][, get_combinations(.SD),
                                           by = c("from"),
                                           .SDcols = c("to","weight")]
-    graph[["edgelist"]] <- graph[["edgelist"]][,.(eliminated_node = from,
-                                                  from=from_projection,
-                                                  to=to_projection,weight)]
+
+    setnames(x = graph[["edgelist"]],
+             old = c("from"),
+             new = c("eliminated_node"))
 
   }
 
-  #
+  # Remove from edgelist the nodes that do not connect to others (e.g. a single file commit)
   graph[["edgelist"]] <- graph[["edgelist"]][complete.cases(graph[["edgelist"]])]
 
 
-  # Do not aggregate weights if intermediate projection is chosen
-  if(is_intermediate_projection){
+  # Do not aggregate weights if no weight scheme is specified
+  if(is.null(weight_scheme_function)){
     return(graph)
   }else{
-    graph[["edgelist"]] <- graph[["edgelist"]][,.(weight=sum(weight)),by=c("from","to")]
-    return(graph)
+    return(weight_scheme_function(graph))
   }
 
 
+}
+
+#' Weight Edge Sum Projection Scheme
+#'
+#' This weight scheme sums the deleted node adjacent edges when re-wired
+#' in the projection graph. For most cases, this is the commonly used
+#' approach in the literature.
+#'
+#' For example assume author A changes file1 three times, and
+#' author B changes file1 one time. A projection which returns
+#' a author-author network using this function would return,
+#' assuming this being the entire collaboration graph,
+#' that author A and author B have a connection of 3 + 1 = 4.
+#'
+#' Suppose now also that the entire collaboration graph contains
+#' another file2 such that author A and author B modified 2 and 3
+#' times respectively. Hence in the projection step, this would
+#' further contribute a 2 + 3 = 5 weight to authors A and B. In this
+#' graph, where file1 and file2 are present, the final weight for
+#' authors A and B would thus be (3 + 1) + (2 + 3) = 9.
+#'
+#' @param projected_graph A semi-processed bipartite projection network resulting
+#' @export
+#' @family weight_scheme
+#' from \code{\link{bipartite_graph_projection}} when specifying
+#' weight_scheme_function = NA.
+weight_scheme_sum_edges <- function(projected_graph){
+  projected_graph[["edgelist"]]$weight <- projected_graph[["edgelist"]]$from_weight + projected_graph[["edgelist"]]$to_weight
+  projected_graph[["edgelist"]] <- projected_graph[["edgelist"]][,.(weight=sum(weight)),by=c("from_projection","to_projection")]
+  setnames(x = projected_graph[["edgelist"]],
+           old = c("from_projection","to_projection"),
+           new = c("from","to"))
+  return(projected_graph)
+}
+
+#' Weight Number of Deleted Nodes Projection Scheme
+#'
+#' This weight scheme counts the number of deleted nodes for
+#' every pair of adjacent edges, and uses it as the projection
+#' edge weight.
+#'
+#' For example, assume a graph which contains commit A and
+#' commit B. Additionally, assume file1, file2, and file3 to
+#' connect to commit A. And file2 and file3 to connect to
+#' commit B.
+#'
+#' If we wish to know the co-change metric, i.e. how many
+#' times each pair of file were modified in the same commit,
+#' then we may obtain it by counting the number of deleted nodes.
+#'
+#' In this example the edges  (file1,file2), (file2,file3), and
+#' (file1,file3) receive a contribution of weight 1 from the
+#' deleted commit A, and (file2,file3) receive a contribution of
+#' weight 1 from the deleted commit B.
+#'
+#' Thus, the weights would be (file1,file2) = 1, (file2,file3) = 2,
+#' and (file2,file3) = 1. In other words, in this example file2
+#' and file3 have a co-change of 2, and the remaining pairs a
+#' co-change of 1.
+#'
+#' @param projected_graph A semi-processed bipartite projection network resulting
+#' from \code{\link{bipartite_graph_projection}} when specifying
+#' weight_scheme_function = NA.
+#' @export
+#' @family weight_scheme
+weight_scheme_count_deleted_nodes <- function(projected_graph){
+  projected_graph[["edgelist"]] <- projected_graph[["edgelist"]][,.(weight=length(eliminated_node)),by=c("from_projection","to_projection")]
+  setnames(x = projected_graph[["edgelist"]],
+           old = c("from_projection","to_projection"),
+           new = c("from","to"))
+  return(projected_graph)
 }
 
 #' OSLOM Community Detection

@@ -4,14 +4,17 @@
 \alias{dependencies_to_sdsmj}
 \title{Transforms a dependencies table to a structural DSM JSON file.}
 \usage{
-dependencies_to_sdsmj(depends_table, sdsmj_path, is_sorted = FALSE)
+dependencies_to_sdsmj(project_dependencies, sdsmj_path, is_sorted = FALSE)
 }
 \arguments{
-\item{depends_table}{parsed dependencies table created by \code{\link{parse_dependencies}}}
+\item{project_dependencies}{parsed dependencies table created by \code{\link{parse_dependencies}}}
 
 \item{sdsmj_path}{path to save output file}
 
 \item{is_sorted}{whether the json is sorted by src and dest}
+}
+\value{
+the sdsmj_path
 }
 \description{
 Converts table of dependencies from \code{\link{parse_dependencies}} into an *-sdsm.json.
@@ -20,11 +23,13 @@ In the sdsm.json, the Variables are all files/methods or any variables under ana
  variable (src & dest) pairs.
 }
 \seealso{
-\code{\link{parse_dependencies}}
+\code{\link{dv8_dsmj_to_dsmb}} to convert to `*-sdsm.dv8-dsm` and
+\code{\link{dv8_hdsmb_sdsmb_to_mdsmb}} to merge DSMs into `*-merge.dv8-dsm`.
 
 Other dv8: 
 \code{\link{dv8_clsxb_to_clsxj}()},
 \code{\link{dv8_clsxj_to_clsxb}()},
+\code{\link{dv8_depends_to_sdsmj}()},
 \code{\link{dv8_dsmj_to_dsmb}()},
 \code{\link{dv8_hdsmb_sdsmb_to_mdsmb}()},
 \code{\link{dv8_mdsmb_to_flaws}()},
@@ -33,6 +38,7 @@ Other dv8:
 \code{\link{parse_dv8_architectural_flaws}()},
 \code{\link{parse_dv8_clusters}()},
 \code{\link{transform_dependencies_to_sdsmj}()},
-\code{\link{transform_gitlog_to_hdsmj}()}
+\code{\link{transform_gitlog_to_hdsmj}()},
+\code{\link{transform_temporal_gitlog_to_adsmj}()}
 }
 \concept{dv8}

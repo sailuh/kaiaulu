@@ -10,7 +10,7 @@ dv8_mdsmb_drhier_to_excel(
   excel_path,
   hierclsxm_path = "",
   detail = FALSE,
-  drhier = FALSE,
+  drhier = TRUE,
   namespace = FALSE
 )
 }
@@ -30,8 +30,8 @@ dv8_mdsmb_drhier_to_excel(
 \item{namespace}{if TRUE, use namespace clustering in spreadsheet, default FALSE}
 }
 \value{
-path to output excel file
+the excel_path
 }
 \description{
-Creates a *.xlsx from a *.dv8-dsm file
+Creates a \*.xlsx from a \*.dv8-dsm file
 }
