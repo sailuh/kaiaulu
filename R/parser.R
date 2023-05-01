@@ -6,6 +6,8 @@
 
 #' Parse gitlog from Perceval
 #'
+#' Parses the `.git` file in a github repository using the Perceval library.
+#'
 #' @param perceval_path path to perceval binary
 #' @param git_repo_path path to git repo (ends in .git)
 #' @param save_path optional save path for .rds object
@@ -62,20 +64,55 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA,perl_regex=NA)
   is_commit_with_files <- !!sapply(perceval_parsed$data.files,length)
   perceval_parsed <- perceval_parsed[is_commit_with_files]
   # Column data.files is a data.table. Unlist, so perceval_parsed is a table instead of a table of tables.
+
+  # Only when a file is renamed, Perceval will add a field "newfile". Normalize the list so every
+  # element contain newfile, so the subsequent step can correctly tabulate "newfile" field.
+  add_new_files_to_table <- function(data_files_row){
+    commit_change_table <- data.table(data_files_row)
+
+    # In some cases for APR (e.g. 873ca8616235529ceb222c8dd428c2d0e23824b6 and
+    # b43bbf82e946864de970bf792c5d0907ae142dba, Perceval can only parse added, file  and removed.
+    # If a file is modified, Perceval will include a #newfiles field, leading to a total of 7 fields.
+    # To be safe, fill with NA any column that is missing.
+    if(!("action" %in% colnames(commit_change_table))) commit_change_table$action <- NA_character_
+    if(!("added" %in% colnames(commit_change_table))) commit_change_table$added <- NA_character_
+    if(!("indexes" %in% colnames(commit_change_table))) commit_change_table$indexes <- NA_character_
+    if(!("modes" %in% colnames(commit_change_table))) commit_change_table$modes <- NA_character_
+    if(!("newfile" %in% colnames(commit_change_table))) commit_change_table$newfile <- NA_character_
+    if(!("removed" %in% colnames(commit_change_table))) commit_change_table$removed <- NA_character_
+
+    commit_change_table <- commit_change_table[,.(action,
+                                                  added,
+                                                  file,
+                                                  indexes,
+                                                  modes,
+                                                  newfile,
+                                                  removed)]
+      return(commit_change_table)
+  }
+  perceval_parsed$data.files <- lapply(perceval_parsed$data.files,add_new_files_to_table)
+
   perceval_parsed <- perceval_parsed[, .(file=unlist(data.files[[1]]$file),
                                          added=unlist(data.files[[1]]$added),
-                                         removed=unlist(data.files[[1]]$removed)),, by = list(data.Author,
+                                         removed=unlist(data.files[[1]]$removed),
+                                         newfile=unlist(data.files[[1]]$newfile)),, by = list(data.Author,
                                                                                               data.AuthorDate,
                                                                                               data.commit,
                                                                                               data.Commit,
                                                                                               data.CommitDate,
                                                                                               data.message)]
 
+
   setnames(perceval_parsed,
            c("data.Author","data.AuthorDate","data.commit","data.Commit","data.CommitDate","data.message",
-             "file","added","removed"),
+             "file","added","removed","newfile"),
            c("author_name_email","author_datetimetz","commit_hash","committer_name_email","committer_datetimetz",
-             "commit_message","file_pathname","lines_added","lines_removed"))
+             "commit_message","file_pathname","lines_added","lines_removed","file_pathname_renamed"))
+
+  # When newfile is provided, replace "file" with "newfile"
+  # This avoids situations where a file is renamed, and never again modified, to not be included
+  # in the list of files
+  perceval_parsed[!is.na(file_pathname_renamed)]$file_pathname <- perceval_parsed[!is.na(file_pathname_renamed)]$file_pathname_renamed
 
   # Parsing gitlog can take awhile, save if a path is provided
   if(!is.na(save_path)){
@@ -236,6 +273,12 @@ parse_git_blame <- function(git_repo_path,commit_hash,file_path){
 }
 #' Parse mbox from Perceval
 #'
+#' Parses an mbox file, which consists of emails in a mailbox, using the Perceval library.
+#' Note .mbox files do not have a consistent number of fields (e.g. Reply Cc.). Due to that,
+#' the resulting table of parse mbox may have a different number of columns depending on the
+#' data used. This function only ensures if columns of interest are available, then they are
+#' consistently renamed for clarity.
+#'
 #' @param perceval_path path to perceval binary
 #' @param mbox_path path to mbox archive file (ends in .mbox)
 #' @export
@@ -254,28 +297,17 @@ parse_mbox <- function(perceval_path,mbox_path){
   # Parsed JSON output as a data.table.
   perceval_parsed <- data.table(jsonlite::stream_in(textConnection(perceval_output),verbose=FALSE))
 
-  if("data.body.plain" %in% colnames(perceval_parsed)){
-    data.table::setnames(perceval_parsed,
-                         "data.body.plain",
-                         "reply_body")
-  }else{
-    data.table::setnames(perceval_parsed,
-                         "data.body",
-                         "reply_body")
-  }
+  columns_of_interest <- c("data.Message.ID","data.In.Reply.To","data.Date","data.From","data.To","data.Cc","data.Subject","data.body.plain","data.body")
+  columns_rename <- c("reply_id","in_reply_to_id","reply_datetimetz","reply_from","reply_to","reply_cc","reply_subject","reply_body","reply_body")
+  is_available_column <- columns_of_interest %in% colnames(perceval_parsed)
 
-  data.table::setnames(perceval_parsed,
-                       c("data.Date","data.To","data.From","data.Subject","data.Cc","data.Message.ID","data.In.Reply.To"),
-                       c("reply_datetimetz","reply_to","reply_from","reply_subject","reply_cc","reply_id","in_reply_to_id"))
+  columns_of_interest <- columns_of_interest[is_available_column]
 
-  perceval_parsed <- perceval_parsed[,.(reply_id,
-                                          in_reply_to_id,
-                                          reply_datetimetz,
-                                          reply_from,
-                                          reply_to,
-                                          reply_cc,
-                                          reply_subject,
-                                          reply_body)]
+  perceval_parsed <- perceval_parsed[,..columns_of_interest]
+
+  data.table::setnames(x = perceval_parsed,
+                       old = colnames(perceval_parsed),
+                       new = columns_rename[is_available_column])
 
   return(perceval_parsed)
 }
@@ -535,10 +567,11 @@ parse_github_replies <- function(github_replies_folder_path){
 #'
 #' @param depends_jar_path path to depends jar
 #' @param git_repo_path path to git repo (ends in .git)
+#' @param output_dir path to output directory (formatted output_path/)
 #' @param language the language of the .git repo (accepts cpp, java, ruby, python, pom)
 #' @export
 #' @family parsers
-parse_dependencies <- function(depends_jar_path,git_repo_path,language){
+parse_dependencies <- function(depends_jar_path,git_repo_path,language,output_dir="/tmp/"){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   depends_jar_path <- path.expand(depends_jar_path)
   git_repo_path <- path.expand(git_repo_path)
@@ -550,20 +583,26 @@ parse_dependencies <- function(depends_jar_path,git_repo_path,language){
   system2("java",
           args = c("-jar",depends_jar_path,
                    language,folder_path,
-                   project_name,'--dir=/tmp/',
+                   project_name,'--dir',
+                   output_dir,
                    '--auto-include',
                    '--granularity=file', '--namepattern=/',
                    '--format=json'),
           stdout = FALSE,
           stderr = FALSE)
-  # Construct /tmp/ file path
-  output_path <- stri_c("/tmp/",project_name,".json")
+  # Construct /output_dir/ file path
+  output_path <- stri_c(output_dir, project_name,".json")
   # Parsed JSON output.
   depends_parsed <- jsonlite::read_json(output_path)
   # The JSON has two main parts. The first is a vector of all file names.
   file_names <- unlist(depends_parsed[["variables"]])
+  # Depends will create full filepaths, but folder_path may be a relative path.
+  # We must guarantee our folder_path is also a full path in order to turn all
+  # full filepaths generated by Depends into relative paths.
+  # "../rawdata/git_repo/helix/" => "/Users/cvp/Desktop/kaiaulu/rawdata/git_repo/helix"
+  normalized_folder_path <- normalizePath(folder_path)
   # /Users/user/git_repos/APR/xml/apr_xml_xmllite.c => "xml/apr_xml_xmllite.c"
-  file_names <- stri_replace_first(file_names,replacement="",regex=folder_path)
+  file_names <- stri_replace_first(file_names,replacement="",regex=normalized_folder_path)
   # The second part is the dependencies itself, which refer to the file name indices.
   dependencies <- depends_parsed[["cells"]]
   # The types of dependencies is a list of lists. First we unlist the various types.
@@ -584,7 +623,14 @@ parse_dependencies <- function(depends_jar_path,git_repo_path,language){
   depends_parsed$src <- file_names[depends_parsed$src + 1]
   depends_parsed$dest <- file_names[depends_parsed$dest + 1]
 
-  return(depends_parsed)
+  edgelist <- depends_parsed
+  data.table::setnames(x = edgelist,
+                       old = c("src","dest"),
+                       new = c("src_filepath","dest_filepath"))
+  nodes <- data.table(filepath=file_names)
+  graph <- list(nodes=nodes,edgelist=edgelist)
+
+  return(graph)
 }
 #' Parse NVD Feed CVEs, descriptions and CWE ids
 #'

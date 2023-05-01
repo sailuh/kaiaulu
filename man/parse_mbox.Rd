@@ -12,12 +12,17 @@ parse_mbox(perceval_path, mbox_path)
 \item{mbox_path}{path to mbox archive file (ends in .mbox)}
 }
 \description{
-Parse mbox from Perceval
+Parses an mbox file, which consists of emails in a mailbox, using the Perceval library.
+Note .mbox files do not have a consistent number of fields (e.g. Reply Cc.). Due to that,
+the resulting table of parse mbox may have a different number of columns depending on the
+data used. This function only ensures if columns of interest are available, then they are
+consistently renamed for clarity.
 }
 \seealso{
 Other parsers: 
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
+\code{\link{parse_dv8_clusters}()},
 \code{\link{parse_gitlog}()},
 \code{\link{parse_jira}()},
 \code{\link{parse_nvdfeed}()}

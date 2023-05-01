@@ -155,8 +155,8 @@ visIgraph(plot_project_commit_network,randomSeed = 1)
 ```{r}
 
 co_change_network <- bipartite_graph_projection(project_commit_network,
-                                                is_intermediate_projection = FALSE,
-                                                mode = FALSE)
+                                                mode = FALSE,
+                                                weight_scheme_function = weight_scheme_sum_edges)
 
 plot_co_change_network <- igraph::graph_from_data_frame(d=co_change_network[["edgelist"]], 
                       directed = FALSE, 
@@ -198,8 +198,8 @@ project_collaboration_network <- transform_gitlog_to_entity_bipartite_network(la
 #                                          which = TRUE) # FALSE is the file projection
 
 author_network <- bipartite_graph_projection(project_collaboration_network,
-                                                is_intermediate_projection = FALSE,
-                                                mode = TRUE)
+                                                mode = TRUE,
+                                                weight_scheme_function = weight_scheme_sum_edges)
 
 plot_author_network <- igraph::graph_from_data_frame(d=author_network[["edgelist"]], 
                       directed = FALSE, 

@@ -30,7 +30,8 @@ require(knitr)
 
 ```{r}
 tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/apr.yml")
+#conf <- yaml::read_yaml("../conf/apr.yml")
+conf <- yaml::read_yaml("../conf/helix.yml")
 git_repo_path <- conf[["version_control"]][["log"]]
 
 # Depends parameters
@@ -72,22 +73,34 @@ project_dependencies <- parse_dependencies(depends_jar_path,git_repo_path,langua
 # Filter files
 
 ```{r}
-project_dependencies <- project_dependencies  %>%
-  filter_by_file_extension(file_extensions,"src")  %>% 
-  filter_by_file_extension(file_extensions,"dest")  %>% 
-  filter_by_filepath_substring(substring_filepath,"src") %>%
-  filter_by_filepath_substring(substring_filepath,"dest")
+project_dependencies[["nodes"]] <- project_dependencies[["nodes"]]  %>%
+  filter_by_file_extension(file_extensions,"filepath")  %>% 
+  filter_by_filepath_substring(substring_filepath,"filepath")
+
+project_dependencies[["edgelist"]] <- project_dependencies[["edgelist"]]  %>%
+  filter_by_file_extension(file_extensions,"src_filepath")  %>% 
+  filter_by_file_extension(file_extensions,"dest_filepath")  %>% 
+  filter_by_filepath_substring(substring_filepath,"src_filepath") %>%
+  filter_by_filepath_substring(substring_filepath,"dest_filepath")
 ```
 
-## Example Viz with igraph
+## Example network visualization with igraph
 
 ```{r}
+# Plot only a sample, as file networks can be very large 
 project_dependencies_slice <- project_dependencies
+project_dependencies_slice[["edgelist"]] <- project_dependencies[["edgelist"]][1:500]
 
 
 project_file_network <- transform_dependencies_to_network(project_dependencies_slice,
                                                    weight_types = keep_dependencies_type)
 
-kable(head(project_file_network,10))
+kable(head(project_dependencies[["edgelist"]],10))
+```
+```{r}
+project_file_network <- igraph::graph_from_data_frame(d=project_file_network[["edgelist"]],
+                      directed = TRUE,
+                      vertices = project_file_network[["nodes"]])
+visIgraph(project_file_network,randomSeed = 1)
 ```
 

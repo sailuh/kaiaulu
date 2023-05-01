@@ -24,7 +24,7 @@ Please include the new package dependencies on the `DESCRIPTION` file **under Im
 
 ### 2.1.4 If you are proposing a new function 
 
-Kaiaulu uses Rdoxygen to automatically generate the package documentation (see http://itm0.shidler.hawaii.edu/kaiaulu). Please observe the formatting of function documentation in the various R/ functions in the package if you are creating one. Moreover, if the feature is expressive, you may want to include a new vignette (i.e. R Notebook) in your pull request showcasing the functionality.  Make sure you keep the `#' @export` line, that's what makes the function "public" for users to use. Also, please compile both the package and documentation before pushing the commit (the NAMESPACE file will be updated automatically).
+Kaiaulu uses Rdoxygen to automatically generate the package documentation (see http://itm0.shidler.hawaii.edu/kaiaulu). Please observe the formatting of function documentation in the various R/ functions in the package if you are creating one. Moreover, if the feature is expressive, you may want to include a new vignette (i.e. R Notebook) in your pull request showcasing the functionality.  Make sure you keep the `#' @export` line, that's what makes the function "public" for users to use. In addition, update the `_pkgdown.yml` file with the function(s) you added. Finally, please compile both the package and documentation before pushing the commit (the NAMESPACE file will be updated automatically).
 
 ### 2.1.5 If you are proposing a new 3rd party software integration
 

@@ -52,7 +52,7 @@ The parameters necessary for analysis are kept in a project configuration file t
 
 At the scope of this notebook, **only the first branch** (top) specified in the project configuration file will be analyzed. Refer to the CLI interface if you are interested in executing this analysis over multiple branches.
 
-We also provide the path for `tools.yml`. Kaiaulu does not implement all available functionality from scratch. Conversely, it will also not expect all dependencies to be installed. Every function defined in the API expects as parameter a filepath to the external dependency binary. Tools.yml is a convenience file that stores all the binary paths, so it can be set once during setup and reused multiple times for analysis. You can find an example of `tools.yml` on the github repo from Kaiaulu root directory.
+We also provide the path for `tools.yml`. Kaiaulu does not implement all available functionality from scratch. Conversely, it will also not expect all dependencies to be installed. Every function defined in the API expects as parameter a filepath to the external dependency binary. Tools.yml is a convenience file that stores all the binary paths, so it can be set once during setup and reused multiple times for analysis. You can find an example of `tools.yml` on the github repo from Kaiaulu root directory.  For this notebook, you will need to install Perceval (use version 0.12.24) and OSLOM. Instructions to do so are available in the Kaiaulu README.md. Once you are finished, set the "perceval," "oslom_dir," and "oslom_undir" paths in your `tools.yml`.
 
 ```{r}
 tools_path <- "../tools.yml"
@@ -298,6 +298,10 @@ for(j in 2:size_time_window){
   }
   
   
+  # Note: The start and end commits in your project config file should be set so 
+  # that the dates cover overlapping date ranges in bothproject_git_slice and project_reply_slice dates.
+  # Double-check your project_git and project_reply to ensure this is the case if an error arises.
+  
   # Obtain all commits from the gitlog which are within a particular window_size
   project_git_slice <- project_git[(author_datetimetz >= start_day) & 
                      (author_datetimetz < end_day)]
@@ -325,8 +329,8 @@ for(j in 2:size_time_window){
     # dev-thread => dev-dev, and dev-file => dev-dev. This creates both dev-dev via graph projections
     
     git_network_authors <- bipartite_graph_projection(network_git_slice,
-                                                      is_intermediate_projection = FALSE,
-                                                      mode = TRUE)
+                                                      mode = TRUE,
+                                                      weight_scheme_function = weight_scheme_sum_edges)
     
     code_clusters <- community_oslom(oslom_undir_path,
                                      git_network_authors,
@@ -340,8 +344,8 @@ for(j in 2:size_time_window){
     
     
     reply_network_authors <- bipartite_graph_projection(network_reply_slice,
-                                                      is_intermediate_projection = FALSE,
-                                                      mode = TRUE)    
+                                                      mode = TRUE,
+                                                      weight_scheme_function = weight_scheme_sum_edges)    
     
     # Community Detection
     

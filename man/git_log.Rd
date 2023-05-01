@@ -14,5 +14,5 @@ git_log(git_repo_path, flags, save_path)
 \item{save_path}{the filepath to save the file}
 }
 \description{
-Saves gitlog to a path
+Saves the `.git` of a github repository as a gitlog at the specified path
 }
