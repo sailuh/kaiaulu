@@ -3,9 +3,15 @@ test_that("Correct git repo path", {
   expect_equal(file.exists(git_repo_path), TRUE)
   suppressWarnings(git_delete_sample_log(git_repo_path))
 })
+
+test_that("Check perceval exist", {
+  result <- system('perceval --version', intern = TRUE)
+  expect_true(grepl("perceval", result))
+})
+
 test_that("Calling parse_gitlog with correct perceval and correct git log path returns a data table", {
   tools_path <- "../../tools.yml"
-  tools_path <- file.path(getwd(), tools_path)
+  tools_path <- file.path(tools_path)
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
   git_repo_path <- suppressWarnings(git_create_sample_log())
@@ -22,7 +28,7 @@ test_that("Calling parse_gitlog with incorrect perceval path returns correct err
 
 test_that("Calling parse_gitlog with incorrect git repo path returns correct error", {
   tools_path <- "../../tools.yml"
-  tools_path <- file.path(getwd(), tools_path)
+  tools_path <- file.path(tools_path)
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
   incorrect_repo_path <- "incorrect/path/to/git_repo.git"
