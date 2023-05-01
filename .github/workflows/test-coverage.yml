@@ -51,6 +51,7 @@ jobs:
         run: |
           pwd
           git clone https://github.com/sailuh/kaiaulu.git
+          ls
           pip3 install perceval==0.12.24
           sed -i -e 's/perceval: ~\/perceval\/bin\/perceval/perceval/g' tools.yml
         shell: bash

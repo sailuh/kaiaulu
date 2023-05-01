@@ -1,5 +1,5 @@
 test_that("Perceval version 0.12.24 is being used", {
-  tools_path <- "tools.yml"
+  tools_path <- "kaiaulu/tools.yml"
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
   perceval_path <- path.expand(perceval_path)
@@ -7,7 +7,7 @@ test_that("Perceval version 0.12.24 is being used", {
   expect_equal(perceval_version, "perceval 0.12.24")
 })
 test_that("Perceval path in tools.yml is specified correctly", {
-  tools_path <- "tools.yml"
+  tools_path <- "kaiaulu/tools.yml"
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
   perceval_path <- path.expand(perceval_path)
@@ -25,7 +25,7 @@ test_that("Incorrect perceval path fails parse_mbox", {
   expect_error(parse_mbox(incorrect_perceval_path, mbox_path), "error in running command")
 })
 test_that("Incorrect mbox path to parse_mbox returns empty table", {
-  tools_path <- "tools.yml"
+  tools_path <- "kaiaulu/tools.yml"
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
   perceval_path <- path.expand(perceval_path)
@@ -47,7 +47,7 @@ test_that("Correct git repo path", {
 })
 
 test_that("Calling parse_gitlog with correct perceval and correct git log path returns a data table", {
-  tools_path <- "tools.yml"
+  tools_path <- "kaiaulu/tools.yml"
   tools_path <- file.path(tools_path)
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
@@ -64,7 +64,7 @@ test_that("Calling parse_gitlog with incorrect perceval path returns correct err
 })
 
 test_that("Calling parse_gitlog with incorrect git repo path returns correct error", {
-  tools_path <- "tools.yml"
+  tools_path <- "kaiaulu/tools.yml"
   tools_path <- file.path(tools_path)
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
