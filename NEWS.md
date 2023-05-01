@@ -67,6 +67,7 @@ __kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in develo
  * New vignette for DV8 functions called "dv8.Rmd" [#168](https://github.com/sailuh/kaiaulu/issues/168) 
  * New configuration file for the Apache Thrift project called "thrift.yml". [#148](https://github.com/sailuh/kaiaulu/issues/148)
  * Adds unit tests for parse_mbox() and parse_jira(). [#154](https://github.com/sailuh/kaiaulu/issues/154)
+ * Adds unit tests for git_checkout() and parse_gitlog(). [#154](https://github.com/sailuh/kaiaulu/issues/154)
  * Fixed minor grammar mistakes and vague wording. [#151] (https://github.com/sailuh/kaiaulu/issues/151)
  
 __kaiaulu [0.0.0.9500](https://github.com/sailuh/kaiaulu/milestone/5) __
