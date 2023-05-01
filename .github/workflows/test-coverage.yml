@@ -1,10 +1,10 @@
 on:
   push:
     branches:
-      - master
+      - github_actions_debug4
   pull_request:
     branches:
-      - master
+      - github_actions_debug4
 
 name: test-coverage
 
@@ -49,6 +49,7 @@ jobs:
       - name: Install Perceval and Update tools.yml
         if: always()
         run: |
+          git clone https://github.com/sailuh/kaiaulu.git
           pip3 install perceval==0.12.24
           sed -i -e 's/perceval: ~\/perceval\/bin\/perceval/perceval/g' tools.yml
         shell: bash
