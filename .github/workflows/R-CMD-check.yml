@@ -58,7 +58,8 @@ jobs:
         if: always()
         run: |
           pip3 install perceval==0.12.24
-          sed -i -e 's/perceval: ~\/perceval\/bin\/perceval/perceval/g' tools.yml
+          sed -i -e 's/perceval: ~\/perceval\/bin\/perceval/perceval: perceval/g' tools.yml
+          head tools.yml
           cp tools.yml tests/testthat/testdata/tools.yml
         shell: bash
 
