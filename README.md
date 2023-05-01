@@ -6,7 +6,7 @@
 
 ## Overview
 
-Kaiaulu is an R package and common interface that helps with understanding evolving software development communities, and the artifacts (gitlog, mailing list, files, etc.) which developers collaborate and communicate about. 
+Kaiaulu is an R package and common interface that helps with understanding evolving software development communities, and the artifacts (gitlog, mailing list, files, etc.) which developers collaborate and communicate about. You can read more Kaiaulu's motivation and architecture [in our paper's pre-print](https://arxiv.org/abs/2304.14570).
 
 Kaiaulu provides:
 
@@ -39,9 +39,18 @@ Kaiaulu has been tested on OS X and Ubuntu. For Windows and other OS users, try 
  6. Run `vignettes/kaiaulu_architecture.Rmd` 
  7. See the Wiki's [Third Party Tools Setup](https://github.com/sailuh/kaiaulu/wiki/Third-Party-Tools-Setup) if you are using a Notebook that relies on them. These require very minimal overhead by downloading a binary file, and specifying their path on `tools.yml` (see example on the repository). 
  
-## Getting started
+### Getting started
 
 To get started, browse through [the docs](http://itm0.shidler.hawaii.edu/kaiaulu).
+
+### Cheatsheets
+
+
+| Social Smells | DV8 |
+| ------------- | ------------- |
+| <a href="https://github.com/sailuh/kaiaulu_cheatsheet/blob/main/cheatsheets/social-smells-cheatsheet.pdf"><img src="https://github.com/sailuh/kaiaulu_cheatsheet/blob/main/cheatsheets/social_smells_cheatsheet.png" width="543" height="420"/></a> |  <a href="https://github.com/sailuh/kaiaulu_cheatsheet/blob/main/cheatsheets/dv8-cheatsheet.pdf"><img src="https://github.com/sailuh/kaiaulu_cheatsheet/blob/main/cheatsheets/dv8_cheatsheet.png" width="543" height="420"/></a>   |
+
+
 
 ## Stay up-to-date
 
