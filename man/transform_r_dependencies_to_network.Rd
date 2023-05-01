@@ -10,7 +10,7 @@ transform_r_dependencies_to_network(
 )
 }
 \arguments{
-\item{r_dependencies_edgelist}{A parsed R folder by \code{parse_r_dependencies}.}
+\item{r_dependencies_edgelist}{A parsed R folder by \code{\link{parse_r_dependencies}}.}
 
 \item{dependency_type}{The type of dependency to be parsed: Function or File}
 }

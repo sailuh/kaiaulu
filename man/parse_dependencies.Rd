@@ -4,7 +4,12 @@
 \alias{parse_dependencies}
 \title{Parse dependencies from Depends}
 \usage{
-parse_dependencies(depends_jar_path, git_repo_path, language)
+parse_dependencies(
+  depends_jar_path,
+  git_repo_path,
+  language,
+  output_dir = "/tmp/"
+)
 }
 \arguments{
 \item{depends_jar_path}{path to depends jar}
@@ -12,6 +17,8 @@ parse_dependencies(depends_jar_path, git_repo_path, language)
 \item{git_repo_path}{path to git repo (ends in .git)}
 
 \item{language}{the language of the .git repo (accepts cpp, java, ruby, python, pom)}
+
+\item{output_dir}{path to output directory (formatted output_path/)}
 }
 \description{
 Parse dependencies from Depends
@@ -19,6 +26,7 @@ Parse dependencies from Depends
 \seealso{
 Other parsers: 
 \code{\link{parse_commit_message_id}()},
+\code{\link{parse_dv8_clusters}()},
 \code{\link{parse_gitlog}()},
 \code{\link{parse_jira}()},
 \code{\link{parse_mbox}()},

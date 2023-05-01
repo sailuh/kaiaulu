@@ -10,7 +10,7 @@ transform_gitlog_to_temporal_network(
 )
 }
 \arguments{
-\item{project_git}{A parsed git project by \code{parse_gitlog}. The
+\item{project_git}{A parsed git project by \code{\link{parse_gitlog}}. The
 name column will be used to label nodes.}
 
 \item{mode}{author, committer}
@@ -35,9 +35,11 @@ Other edgelists:
 \code{\link{transform_commit_message_id_to_network}()},
 \code{\link{transform_cve_cwe_file_to_network}()},
 \code{\link{transform_dependencies_to_network}()},
+\code{\link{transform_dependencies_to_sdsmj}()},
 \code{\link{transform_gitlog_to_bipartite_network}()},
 \code{\link{transform_gitlog_to_entity_bipartite_network}()},
 \code{\link{transform_gitlog_to_entity_temporal_network}()},
+\code{\link{transform_gitlog_to_hdsmj}()},
 \code{\link{transform_reply_to_bipartite_network}()}
 }
 \concept{edgelists}

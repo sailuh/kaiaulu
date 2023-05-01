@@ -385,7 +385,7 @@ for(cve_id in cve_ids){
       # dev-thread => dev-dev, and dev-file => dev-dev. This creates both dev-dev via graph projections
       
       git_network_authors <- bipartite_graph_projection(network_git_slice,
-                                                        is_intermediate_projection = FALSE,
+                                                        weight_scheme_function = weight_scheme_sum_edges,
                                                         mode = TRUE)
       
       code_clusters <- community_oslom(oslom_undir_path,
@@ -400,8 +400,8 @@ for(cve_id in cve_ids){
       
       
       reply_network_authors <- bipartite_graph_projection(network_reply_slice,
-                                                        is_intermediate_projection = FALSE,
-                                                        mode = TRUE)    
+                                                        mode = TRUE,
+                                                        weight_scheme_function = weight_scheme_sum_edges)    
       
       # Community Detection
       

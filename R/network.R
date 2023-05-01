@@ -4,9 +4,53 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+#' Transform parsed dependencies into a sdsmj file.
+#'
+#' # Creates a sdsm.json from a table of dependencies from Depends.
+#'
+#' @param depends_table A parsed depends project by \code{\link{parse_dependencies}}.
+#' @param is_sorted whether to sort the variables (filenames) in the dsm.json files
+#' @export
+#' @family edgelists
+#' @family dv8
+#' @seealso \code{\link{parse_dependencies}}, \code{\link{transform_gitlog_to_bipartite_network}},
+#' \code{\link{graph_to_dsmj}}
+transform_dependencies_to_sdsmj <- function(depends_table, is_sorted=FALSE){
+  # Rename "filepath" to "to"
+  colnames(depends_table$nodes)[1] = "name"
+  # Rename "src_filepath" to "from"
+  colnames(depends_table$edgelist)[1] = "from"
+  # Rename "dest_filepath" to "to"
+  colnames(depends_table$edgelist)[2] = "to"
+
+  graph_to_dsmj(depends_table, is_sorted)
+}
+
+#' Transform parsed git repo into a hdsmj file.
+#'
+#' # Creates a hdsm.json from a parsed gitlog table.
+#'
+#' @param project_git A parsed git project by \code{\link{parse_gitlog}}.
+#' @param is_sorted whether to sort the variables (filenames) in the dsm.json files
+#' @export
+#' @family edgelists
+#' @family dv8
+#' @seealso \code{\link{parse_gitlog}}, \code{\link{graph_to_dsmj}}
+transform_gitlog_to_hdsmj <- function(project_git, is_sorted=FALSE){
+  # Call preliminary functions to get graph and cochange for the files
+  git_bipartite <- transform_gitlog_to_bipartite_network(project_git, mode ="commit-file")
+  cochange_table <- bipartite_graph_projection(git_bipartite, mode = FALSE,
+                                               weight_scheme_function = weight_scheme_count_deleted_nodes)
+
+  ## Rename "weight" to "Cochange"
+  #colnames(cochange_table$edgelist)[3] = "Cochange"
+
+  graph_to_dsmj(cochange_table, is_sorted)
+}
+
 #' Transform parsed git repo into an edgelist
 #'
-#' @param project_git A parsed git project by \code{parse_gitlog}.
+#' @param project_git A parsed git project by \code{\link{parse_gitlog}}.
 #' @param mode The network of interest: author-entity, committer-entity, commit-entity, author-committer
 #' @export
 #' @family edgelists
@@ -51,7 +95,7 @@ transform_gitlog_to_bipartite_network <- function(project_git, mode = c("author-
 #' to the paper this definition is for files, not functions, and the weight
 #' of the edges is the number of changes to a file, not churn.
 #'
-#' @param project_git A parsed git project by \code{parse_gitlog}. The
+#' @param project_git A parsed git project by \code{\link{parse_gitlog}}. The
 #' name column will be used to label nodes.
 #' @param mode author, committer
 #' @export
@@ -119,7 +163,7 @@ transform_gitlog_to_temporal_network <- function(project_git,mode = c("author","
 }
 #' Transform parsed git repo into an edgelist
 #'
-#' @param project_git_entity A parsed git project by \code{parse_gitlog_entity}.
+#' @param project_git_entity A parsed git project by \code{\link{parse_gitlog_entity}}.
 #' @param mode The network of interest: author-entity, committer-entity, commit-entity, author-committer
 #' @export
 #' @family edgelists
@@ -164,7 +208,7 @@ transform_gitlog_to_entity_bipartite_network <- function(project_git_entity, mod
 #' file, and B modifies it chronologically immediately after. This implementation
 #' matches the one defined by Joblin et al.
 #'
-#' @param project_git_entity A parsed git project by \code{parse_gitlog_entity}.
+#' @param project_git_entity A parsed git project by \code{\link{parse_gitlog_entity}}.
 #' @param mode author, committer
 #' @export
 #' @family edgelists
@@ -271,7 +315,7 @@ transform_cve_cwe_file_to_network <- function(project_cve,nvd_feed){
 }
 #' Transform parsed mbox or parsed jira replies into a network
 #'
-#' @param project_reply A parsed mbox by \code{parse_mbox} or \code{parse_jira_comments}.
+#' @param project_reply A parsed mbox by \code{\link{parse_mbox}} or \code{\link{parse_jira_replies}}.
 #' @export
 #' @family edgelists
 transform_reply_to_bipartite_network <- function(project_reply){
@@ -284,7 +328,7 @@ transform_reply_to_bipartite_network <- function(project_reply){
 }
 #' Transform parsed git repo commit messages id and files into an edgelist
 #'
-#' @param project_git A parsed git project by \code{parse_gitlog}.
+#' @param project_git A parsed git project by \code{\link{parse_gitlog}}.
 #' @param commit_message_id_regex the regex to extract the id from the commit message
 #' @export
 #' @family edgelists
@@ -307,7 +351,7 @@ transform_commit_message_id_to_network <- function(project_git, commit_message_i
 }
 #' Transform parsed dependencies into a network
 #'
-#' @param depends_parsed A parsed mbox by \code{parse_dependencies}.
+#' @param depends_parsed A parsed mbox by \code{\link{parse_dependencies}}.
 #' @param weight_types The weight types as defined in Depends.
 #'
 #' @export
@@ -315,22 +359,29 @@ transform_commit_message_id_to_network <- function(project_git, commit_message_i
 transform_dependencies_to_network <- function(depends_parsed,weight_types=NA){
   src <- dest <- weight <- NULL # due to NSE notes in R CMD check
   # Can only include types user wants if Depends found them at least once on codebase
-  weight_types <- intersect(names(depends_parsed)[3:ncol(depends_parsed)],weight_types)
-  dependency_edgelist <- depends_parsed[,.(src,dest)]
+
+  nodes <- depends_parsed[["nodes"]]
+  edgelist <- depends_parsed[["edgelist"]]
+
+  weight_types <- intersect(names(edgelist)[3:ncol(edgelist)],weight_types)
+  dependency_edgelist <- edgelist[,.(src_filepath,dest_filepath)]
   if(any(is.na(weight_types))){
-    dependency_edgelist$weight <- rowSums(depends_parsed[,3:ncol(depends_parsed),with=FALSE])
+    dependency_edgelist$weight <- rowSums(edgelist[,3:ncol(edgelist),with=FALSE])
   }else{
-    dependency_edgelist$weight <- rowSums(depends_parsed[,weight_types,with=FALSE])
+    dependency_edgelist$weight <- rowSums(edgelist[,weight_types,with=FALSE])
   }
   # Remove dependencies not chosen by user
   dependency_edgelist <- dependency_edgelist[weight != 0]
   setnames(dependency_edgelist,
-           old=c("src","dest"),
+           old=c("src_filepath","dest_filepath"),
            new=c("from","to"))
   # Select relevant columns for nodes
-  dependency_nodes <- unique(c(dependency_edgelist$from,dependency_edgelist$to))
+  dependency_nodes <- nodes
+  setnames(x=dependency_nodes,
+           old="filepath",
+           new="name")
   # Color files yellow
-  dependency_nodes <- data.table(name=dependency_nodes,color="#f4dbb5")
+  dependency_nodes <- data.table(name=dependency_nodes$name,color="#f4dbb5")
   # Return the parsed JSON output as nodes and edgelist.
   file_network <- list()
   file_network[["nodes"]] <- dependency_nodes
@@ -338,7 +389,7 @@ transform_dependencies_to_network <- function(depends_parsed,weight_types=NA){
   return(file_network)
 }
 #' Transform parsed R dependencies into a graph
-#' @param r_dependencies_edgelist A parsed R folder by \code{parse_r_dependencies}.
+#' @param r_dependencies_edgelist A parsed R folder by \code{\link{parse_r_dependencies}}.
 #' @param dependency_type The type of dependency to be parsed: Function or File
 #' @export
 transform_r_dependencies_to_network <- function(r_dependencies_edgelist,dependency_type=c("function","file")){
