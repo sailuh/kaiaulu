@@ -40,6 +40,7 @@ Other edgelists:
 \code{\link{transform_gitlog_to_entity_bipartite_network}()},
 \code{\link{transform_gitlog_to_entity_temporal_network}()},
 \code{\link{transform_gitlog_to_hdsmj}()},
-\code{\link{transform_reply_to_bipartite_network}()}
+\code{\link{transform_reply_to_bipartite_network}()},
+\code{\link{transform_temporal_gitlog_to_adsmj}()}
 }
 \concept{edgelists}
