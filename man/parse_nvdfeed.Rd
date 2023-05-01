@@ -15,6 +15,8 @@ Parse NVD Feed CVEs, descriptions and CWE ids
 }
 \seealso{
 Other parsers: 
+\code{\link{parse_bugzilla_perceval_rest_issue_comments}()},
+\code{\link{parse_bugzilla_perceval_traditional_issue_comments}()},
 \code{\link{parse_bugzilla_rest_comments}()},
 \code{\link{parse_bugzilla_rest_issues_comments}()},
 \code{\link{parse_bugzilla_rest_issues}()},

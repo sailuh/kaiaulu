@@ -11,6 +11,11 @@ reference:
   - parse_mbox
   - parse_jira
   - parse_jira_replies
+  - parse_bugzilla_perceval_traditional_issue_comments
+  - parse_bugzilla_perceval_rest_issue_comments
+  - parse_bugzilla_rest_issues()
+  - parse_bugzilla_rest_comments()
+  - parse_bugzilla_rest_issues_comments()
   - parse_github_replies
   - parse_dependencies
   - parse_r_dependencies
@@ -40,6 +45,7 @@ reference:
   - transform_cve_cwe_file_to_network
   - transform_dependencies_to_sdsmj
   - transform_gitlog_to_hdsmj
+  - transform_temporal_gitlog_to_adsmj
 - title: __Graph__
   desc:  Provide graph models to construct networks and algorithms for graph analysis
 - contents:
@@ -132,6 +138,11 @@ reference:
 - title: __Download__
   desc:  Functions to download data from various websites and convert to formats used in Kaiaulu.
 - contents:
+  - download_bugzilla_perceval_traditional_issue_comments
+  - download_bugzilla_perceval_rest_issue_comments
+  - download_bugzilla_rest_issues()
+  - download_bugzilla_rest_comments()
+  - download_bugzilla_rest_issues_comments()
   - download_pipermail
   - convert_pipermail_to_mbox
   - download_mod_mbox

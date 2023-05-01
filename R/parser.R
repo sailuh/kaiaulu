@@ -4,10 +4,290 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+
+#' Parse Bugzilla data obtained from Perceval traditional Bugzilla backend
+#'
+#' @param bugzilla_json json object containing Bugzilla data
+#' @param comments if true, the comments are parsed along with the issues
+#' @seealso \code{\link{download_bugzilla_perceval_traditional_issue_comments}} a downloader function to download bugzilla data with perceval
+#' @return data table with parsed bugzilla data
+#' @export
+#' @family parsers
+parse_bugzilla_perceval_traditional_issue_comments <- function(bugzilla_json, comments=FALSE){
+  # Get table from the json
+  json_issue_comments <- data.table(jsonlite::stream_in(textConnection(bugzilla_json), verbose = FALSE))
+
+  # Comments list parser function. Comments may occur on any json issue.
+  bugzilla_parse_comment <- function(comment, bug_id){
+    num_comments <- length(comment[["commentid"]])
+
+    parsed_comment <- list()
+
+    # First comment is issue description, so we start indexing at 2
+    # Add the bug id as a column
+    parsed_comment[["issue_key"]] <- bug_id[[1]]
+    parsed_comment[["comment_id"]] <- comment[["commentid"]][[2]][[1]]
+    parsed_comment[["comment_author_id"]] <- comment[["who"]][[2]][[1]]
+    parsed_comment[["comment_author_name"]] <- comment[["who"]][[2]][[1]]
+    parsed_comment[["comment_body"]] <- comment[["thetext"]][[2]][[1]]
+    parsed_comment[["comment_created_datetimetz"]] <- comment[["bug_when"]][[2]][[1]]
+    parsed_comment[["comment_count"]] <- comment[["comment_count"]][[2]][[1]]
+    parsed_comment[["comment_is_private"]] <- comment[["isprivate"]][[2]][[1]]
+
+    parsed_comments <- list()
+    parsed_comments <- append(list(parsed_comments), list(parsed_comment))
+
+    # If there's more than one comment, parse it.
+    if (num_comments > 2) {
+      for (i in 3:num_comments){
+        parsed_comment <- list()
+        # Add the bug id as a column
+        parsed_comment[["issue_key"]] <- bug_id[[1]]
+        parsed_comment[["comment_id"]] <- comment[["commentid"]][[i]][[1]]
+        #print("comment_id")
+        parsed_comment[["comment_author_id"]] <- comment[["who"]][[i]][[1]]
+        #print("comment_author_id")
+        parsed_comment[["comment_author_name"]] <- comment[["who"]][[i]][[2]]
+        #print("comment_author_name")
+        parsed_comment[["comment_body"]] <- comment[["thetext"]][[i]][[1]]
+        #print("comment_body")
+        parsed_comment[["comment_created_datetimetz"]] <- comment[["bug_when"]][[i]][[1]]
+        #print("comment_created_datetimetz")
+        parsed_comment[["comment_count"]] <- comment[["comment_count"]][[i]][[1]]
+        #print("comment_count")
+        parsed_comment[["comment_is_private"]] <- comment[["isprivate"]][[i]][[1]]
+        #print("comment_is_private")
+
+        parsed_comments <- append(parsed_comments, list(parsed_comment))
+      }
+    }
+    return(parsed_comments)
+  }
+
+  # Issue parser function
+  bugzilla_parse_issue <- function(i) {
+    # Parse all relevant *issue* fields
+    issue_comment <- json_issue_comments
+
+    parsed_issue <- data.table(
+      issue_key = issue_comment[["data.bug_id"]][[i]],
+      issue_summary = issue_comment[["data.short_desc"]][[i]],
+      issue_type = issue_comment[["category"]][[i]],
+      issue_status = issue_comment[["data.bug_status"]][[i]],
+      issue_resolution = issue_comment[["data.resolution"]][[i]],
+      issue_components = issue_comment[["data.component"]][[i]],
+      issue_description = issue_comment[["data.long_desc"]][[i]][["thetext"]][[1]],
+      issue_classification = issue_comment[["data.classification"]][[i]], ##### ADDING
+
+      issue_created_datetimetz = issue_comment[["data.creation_ts"]][[i]],
+      issue_updated_datetimetz = issue_comment[["data.delta_ts"]][[i]],
+
+      issue_assignee_id = issue_comment[["data.assigned_to"]][[i]][["__text__"]],
+      issue_assignee_name = issue_comment[["data.assigned_to"]][[i]][["name"]],
+
+      issue_reporter_id = issue_comment[["data.reporter"]][[i]][["__text__"]],
+      issue_reporter_name = issue_comment[["data.reporter"]][[i]][["name"]],
+
+      issue_target_milestone = issue_comment[["data.target_milestone"]][[i]],
+      issue_rep_platform = issue_comment[["data.rep_platform"]][[i]],
+      issue_status_whiteboard = issue_comment[["data.status_whiteboard"]][[i]],
+      issue_keywords = issue_comment[["data.keywords"]][[i]],
+      issue_version = issue_comment[["data.version"]][[i]],
+      issue_severity = issue_comment[["data.bug_severity"]][[i]],
+      issue_priority = issue_comment[["data.priority"]][[i]],
+      issue_op_system = issue_comment[["data.op_sys"]][[i]],
+      issue_product = issue_comment[["data.product"]][[i]]
+    )
+
+    return(parsed_issue)
+  }
+
+  # Number of issues in table
+  n_issues <- length(unique(json_issue_comments[["data.bug_id"]]))
+
+  # Prepare two lists which will contain data.tables for all issues and all comments
+  # Both tables can share the issue_key, so they can be joined if desired.
+  all_issues <- list()
+  all_comments <- list()
+
+  # Get the issues and comments in a for loop
+  for (i in 1:n_issues) {
+    # Parse an issue
+    all_issues[[i]] <- bugzilla_parse_issue(i)
+    comments_i <- json_issue_comments[["data.long_desc"]][[i]]
+    if (length(comments_i[["commentid"]]) > 1){
+      # Parse the comments associated with the issue
+      all_comments <- append(all_comments, bugzilla_parse_comment(comments_i, json_issue_comments[["data.bug_id"]][[i]]))
+    }
+  }
+
+  # Convert list of issues & list of comments into tables
+  all_issues <- rbindlist(all_issues,fill=TRUE)
+  all_comments <- rbindlist(all_comments,fill=TRUE)
+
+  # Rename column names for the issues (remove the .__text__)
+  colnames(all_issues) <- gsub(".__text__", "", colnames(all_issues), fixed = TRUE)
+
+  # Return output
+  if (comments==TRUE) {
+    # Merge the issues and comments table
+    all_issue_comments <- merge.data.table(all_issues, all_comments, by = "issue_key", all.x = TRUE)
+    # Order by datetime
+    data.table::setorder(all_issue_comments, cols = "issue_created_datetimetz")
+    # Return table of issues and comments
+    return(all_issue_comments)
+
+  } else {
+    # Return just the issues in the table
+    # Order by datetime
+    data.table::setorder(all_issues, cols = "issue_created_datetimetz")
+    return(all_issues)
+  }
+}
+
+
+#' Parse Bugzilla data obtained from Perceval REST API Bugzilla backend
+#'
+#' @param bugzilla_json json object containing Bugzilla data
+#' @param comments if true, the comments are parsed along with the issues
+#' @seealso \code{\link{download_bugzilla_perceval_rest_issue_comments}} a donwoloader function download bugzilla data with perceval
+#' @return data table
+#' @export
+#' @family parsers
+parse_bugzilla_perceval_rest_issue_comments <- function(bugzilla_json, comments=FALSE){
+  # Get table from the json
+  json_issue_comments <- data.table(jsonlite::stream_in(textConnection(bugzilla_json), verbose = FALSE))
+
+  # Comments list parser function. Comments may occur on any json issue.
+  bugzilla_parse_comment <- function(comment){
+    num_comments <- length(comment[["commentid"]])
+
+    parsed_comment <- list()
+
+    # First comment is issue description, so we start indexing at 2
+    # Add the bug id as a column
+    parsed_comment[["issue_key"]] <- comment[["bug_id"]][[1]]
+    parsed_comment[["comment_id"]] <- comment[["id"]][[2]][[1]]
+    parsed_comment[["comment_author_id"]] <- comment[["creator_id"]][[2]][[1]]
+    parsed_comment[["comment_author_name"]] <- comment[["creator"]][[2]][[1]]
+    parsed_comment[["comment_body"]] <- comment[["text"]][[2]][[1]]
+    parsed_comment[["comment_created_datetimetz"]] <- comment[["creation_time"]][[2]][[1]]
+    parsed_comment[["comment_count"]] <- comment[["count"]][[2]][[1]]
+    parsed_comment[["comment_is_private"]] <- comment[["is_private"]][[2]][[1]]
+
+    parsed_comments <- list()
+    parsed_comments <- append(list(parsed_comments), list(parsed_comment))
+
+    # If there's more than one comment, parse it.
+    if (num_comments > 2) {
+      for (i in 3:num_comments){
+        parsed_comment <- list()
+        # Add the bug id as a column
+        parsed_comment[["issue_key"]] <- bug_id[[1]]
+        parsed_comment[["comment_id"]] <- comment[["id"]][[i]][[1]]
+        parsed_comment[["comment_author_id"]] <- comment[["creator_id"]][[i]][[1]]
+        parsed_comment[["comment_author_name"]] <- comment[["creator"]][[i]][[1]]
+        parsed_comment[["comment_body"]] <- comment[["text"]][[i]][[1]]
+        parsed_comment[["comment_created_datetimetz"]] <- comment[["creation_time"]][[i]][[1]]
+        parsed_comment[["comment_count"]] <- comment[["count"]][[i]][[1]]
+        parsed_comment[["comment_is_private"]] <- comment[["is_private"]][[i]][[1]]
+
+        parsed_comments <- append(parsed_comments, list(parsed_comment))
+      }
+    }
+    return(parsed_comments)
+  }
+
+  # Issue parser function
+  bugzilla_parse_issue <- function(i) {
+    # Parse all relevant *issue* fields
+    issue_comment <- json_issue_comments
+
+    parsed_issue <- data.table(
+      issue_key = issue_comment[["data.id"]][[i]][[1]],
+      issue_summary = issue_comment[["data.summary"]][[i]][[1]],
+      issue_type = issue_comment[["category"]][[i]][[1]],
+      issue_status = issue_comment[["data.status"]][[i]][[1]],
+      issue_resolution = issue_comment[["data.resolution"]][[i]][[1]],
+      issue_components = issue_comment[["data.component"]][[i]][[1]],
+      issue_description = issue_comment[["data.description"]][[i]][[1]],
+      issue_classification = issue_comment[["data.classification"]][[i]][[1]],
+
+      issue_created_datetimetz = issue_comment[["data.creation_time"]][[i]],
+      issue_creator_id = issue_comment[["data.creator_detail.id"]][[i]][[1]],
+      issue_creator_name = issue_comment[["data.creator"]][[i]],
+      issue_creator_real_name = issue_comment[["data.creator_detail.real_name"]][[i]][[1]],
+      issue_creator_active = issue_comment[["data.creator_detail.active"]][[i]][[1]],
+      issue_creator_email = issue_comment[["data.creator_detail.email"]][[i]][[1]],
+      issue_creator_insider = issue_comment[["data.creator_detail.insider"]][[i]][[1]],
+
+      issue_assignee_id = issue_comment[["data.assigned_to_detail.id"]][[i]][[1]],
+      issue_assignee_name = issue_comment[["data.assigned_to"]][[i]][[1]],
+      issue_assignee_real_name = issue_comment[["data.assigned_to_detail.real_name"]][[i]][[1]],
+      issue_assignee_active = issue_comment[["data.assigned_to_detail.active"]][[i]][[1]],
+      issue_assignee_email = issue_comment[["data.assigned_to_detail.email"]][[i]][[1]],
+      issue_assignee_insider = issue_comment[["data.assigned_to_detail.insider"]][[i]][[1]],
+
+      issue_target_milestone = issue_comment[["data.target_milestone"]][[i]][[1]],
+      issue_rep_platform = issue_comment[["data.platform"]][[i]][[1]],
+      issue_status_whiteboard = issue_comment[["data.whiteboard"]][[i]][[1]],
+      # In some cases, keywords may be equal to character(0), in which case issue_keywords should be set to NA to prevent a warning
+      issue_keywords = ifelse(length(issue_comment[["data.keywords"]][[i]]) > 0, issue_comment[["data.keywords"]][[i]], NA),
+      issue_version = issue_comment[["data.version"]][[i]][[1]],
+      issue_severity = issue_comment[["data.severity"]][[i]][[1]],
+      issue_priority = issue_comment[["data.priority"]][[i]][[1]],
+      issue_op_system = issue_comment[["data.op_sys"]][[i]][[1]],
+      issue_product = issue_comment[["data.product"]][[i]][[1]]
+    )
+
+    return(parsed_issue)
+  }
+
+  # Number of issues in table
+  n_issues <- length(unique(json_issue_comments[["data.id"]]))
+
+  # Prepare two lists which will contain data.tables for all issues and all comments
+  # Both tables can share the issue_key, so they can be joined if desired.
+  all_issues <- list()
+  all_comments <- list()
+
+  # Get the issues and comments in a for loop
+  for (i in 1:n_issues) {
+    # Parse an issue
+    all_issues[[i]] <- bugzilla_parse_issue(i)
+    comments_i <- json_issue_comments[["data.comments"]][[i]]
+
+    if (length(comments_i[["bug_id"]]) > 1){
+      # Parse the comments associated with the issue
+      all_comments <- append(all_comments, bugzilla_parse_comment(comments_i))
+    }
+  }
+
+  # Convert list of issues & list of comments into tables
+  all_issues <- rbindlist(all_issues,fill=TRUE)
+  all_comments <- rbindlist(all_comments,fill=TRUE)
+
+  # Return output
+  if (comments==TRUE) {
+    # Merge the issues and comments table
+    all_issue_comments <- merge.data.table(all_issues, all_comments, by = "issue_key", all.x = TRUE)
+    # Order by datetime
+    data.table::setorder(all_issue_comments, cols = "issue_created_datetimetz")
+    # Return table of issues and comments
+    return(all_issue_comments)
+
+  } else {
+    # Return just the issues in the table
+    # Order by datetime
+    data.table::setorder(all_issues, cols = "issue_created_datetimetz")
+    return(all_issues)
+  }
+}
+
 #' Parse Bugzilla issues data obtained from json files from Bugzilla crawler
 #'
 #' @param issues_folder_path path to the issue folder that contains json file with Bugzilla data inside
-#' @seealso \code{\link{download_bugzilla_rest_issues_comments}} a download function to parse Bugzilla issues and comments data
+#' @seealso \code{\link{download_bugzilla_rest_issues_comments}} a downloader function to parse Bugzilla issues and comments data
 #' @return data table with parsed Bugzilla issues data
 #' @export
 #' @family parsers
@@ -155,7 +435,7 @@ parse_bugzilla_rest_comments <- function(comments_folder_path){
 #'
 #' @param bugzilla_folder_path path to the folder that contains json file with Bugzilla data inside
 #' @seealso \code{\link{parse_bugzilla_rest_issues}} a parser function to parse Bugzilla issues data
-#' @seealso \code{\link{download_bugzilla_rest_issues_comments}} a download function to download Bugzilla issues and comments data
+#' @seealso \code{\link{download_bugzilla_rest_issues_comments}} a downloader function to parse Bugzilla issues and comments data
 #' @return data table with Bugzilla issue data and Bugzilla comments data
 #' @export
 #' @family parsers
@@ -209,7 +489,6 @@ parse_bugzilla_rest_issues_comments <- function(bugzilla_folder_path){
 
   return(result)
 }
-
 
 #' Parse gitlog from Perceval
 #'
@@ -786,6 +1065,7 @@ parse_dependencies <- function(depends_jar_path,git_repo_path,language,output_di
   folder_path <- stri_replace_last(git_repo_path,replacement="",regex=".git")
   project_name <- stri_split_regex(folder_path,pattern="/")[[1]]
   project_name <- project_name[length(project_name)-1]
+
   # Use Depends to parse the code folder.
   system2("java",
           args = c("-jar",depends_jar_path,
