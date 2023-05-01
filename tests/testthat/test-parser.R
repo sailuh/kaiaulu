@@ -5,7 +5,11 @@ test_that("Correct git repo path", {
 })
 
 test_that("Check perceval exist", {
-  result <- system('perceval --version', intern = TRUE)
+  tools_path <- "../../tools.yml"
+  tools_path <- file.path(tools_path)
+  tool <- yaml::read_yaml(tools_path)
+  perceval_path <- tool[["perceval"]]
+  result <- system(paste0(perceval_path,' --version'), intern = TRUE)
   expect_true(grepl("perceval", result))
 })
 
