@@ -1,5 +1,5 @@
 test_that("Perceval version 0.12.24 is being used", {
-  tools_path <- "tools.yml"
+  tools_path <- "../../tools.yml"
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
   perceval_path <- path.expand(perceval_path)
@@ -7,25 +7,25 @@ test_that("Perceval version 0.12.24 is being used", {
   expect_equal(perceval_version, "perceval 0.12.24")
 })
 test_that("Perceval path in tools.yml is specified correctly", {
-  tools_path <- "tools.yml"
+  tools_path <- "../../tools.yml"
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
   perceval_path <- path.expand(perceval_path)
   expect_equal(file.exists(perceval_path), TRUE)
 })
 test_that("Configuration files are placed on recommended path", {
-  conf_path <- "conf/thrift.yml"
+  conf_path <- "../../conf/thrift.yml"
   expect_equal(file.exists(conf_path), TRUE)
 })
 test_that("Incorrect perceval path fails parse_mbox", {
-  conf_path <-"conf/thrift.yml"
+  conf_path <-"../../conf/thrift.yml"
   conf <- yaml::read_yaml(conf_path)
   mbox_path <- conf[["mailing_list"]][["mbox"]]
   incorrect_perceval_path <- "/incorrect/path/to/perceval"
   expect_error(parse_mbox(incorrect_perceval_path, mbox_path), "error in running command")
 })
 test_that("Incorrect mbox path to parse_mbox returns empty table", {
-  tools_path <- "tools.yml"
+  tools_path <- "../../tools.yml"
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
   perceval_path <- path.expand(perceval_path)
