@@ -76,8 +76,8 @@ kable(head(project_git))
 We then transform it as a hsdsm JSON (i.e. hdsmj):
 
 ```{r}
-hdsmj_path <- gitlog_to_hdsmj(project_git,
-                             hdsmj_path = file.path(project_path,paste0(project_name,"-hdsm.json")))
+hdsmj_path <- transform_gitlog_to_hdsmj(project_git,
+                                        hdsmj_path = file.path(project_path,paste0(project_name,"-hdsm.json")))
 ```
 
 
@@ -97,7 +97,7 @@ project_dependencies[["edgelist"]] <- project_dependencies[["edgelist"]]  %>%
   filter_by_filepath_substring(substring_filepath,"dest_filepath")
 
 
-sdsmj_path <- dependencies_to_sdsmj(project_dependencies,
+sdsmj_path <- transform_dependencies_to_sdsmj(project_dependencies,
                                     sdsmj_path = file.path(project_path,paste0(project_name,"-sdsm.json")))
 
 list.files(project_path)
@@ -166,7 +166,7 @@ of the table exported is shown here. Note the clustering will not be displayed w
 R, as it is visually represented using black lines around the cells, something R does not display natively. The dsm files can also be loaded to DV8 GUI for inspection instead of exporting and opening in excel. To obtain cluster information in R, we will use other set of functions discussed towards the
 end of this Notebook. For now, we will present analysis that can be done with the -merge.dv8-dsm.
 
-```{r eval = FALSE}
+```{r}
 mdsmb_xlsx_table <- data.table(openxlsx::read.xlsx(mdsmb_xlsx))
 kable(mdsmb_xlsx_table[1:10,1:10,with=FALSE])
 ```

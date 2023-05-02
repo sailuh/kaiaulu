@@ -8,6 +8,7 @@ download_bugzilla_perceval_rest_issue_comments(
   perceval_path,
   bugzilla_site,
   datetime,
+  save_file_path,
   max_bugs = 500
 )
 }
@@ -17,6 +18,8 @@ download_bugzilla_perceval_rest_issue_comments(
 \item{bugzilla_site}{link to specific bugzilla site}
 
 \item{datetime}{fetch bugs updated since this date (in any ISO 8601 format, e.g., 'YYYY-MM-DD HH:mm:SS+|-HH:MM'))}
+
+\item{save_file_path}{the file path, name and extension (should be .json) to save the file.}
 
 \item{max_bugs}{the maximum number of bugs requested on the same query. This acts as the limit parameter
 in the Bugzilla REST API. Bugzilla sites may have specific limits set, so make sure to change the max_bugs

@@ -5,12 +5,12 @@
 \title{Parse Bugzilla data obtained from Perceval traditional Bugzilla backend}
 \usage{
 parse_bugzilla_perceval_traditional_issue_comments(
-  bugzilla_json,
+  bugzilla_json_path,
   comments = FALSE
 )
 }
 \arguments{
-\item{bugzilla_json}{json object containing Bugzilla data}
+\item{bugzilla_json_path}{json path for downloaded bugzilla JSON from \code{\link{download_bugzilla_perceval_traditional_issue_comments}}}
 
 \item{comments}{if true, the comments are parsed along with the issues}
 }

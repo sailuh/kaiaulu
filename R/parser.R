@@ -6,15 +6,16 @@
 
 #' Parse Bugzilla data obtained from Perceval traditional Bugzilla backend
 #'
-#' @param bugzilla_json json object containing Bugzilla data
+#' @param bugzilla_json_path json path for downloaded bugzilla JSON from \code{\link{download_bugzilla_perceval_traditional_issue_comments}}
 #' @param comments if true, the comments are parsed along with the issues
 #' @seealso \code{\link{download_bugzilla_perceval_traditional_issue_comments}} a downloader function to download bugzilla data with perceval
 #' @return data table with parsed bugzilla data
 #' @export
 #' @family parsers
-parse_bugzilla_perceval_traditional_issue_comments <- function(bugzilla_json, comments=FALSE){
+parse_bugzilla_perceval_traditional_issue_comments <- function(bugzilla_json_path, comments=FALSE){
+  bugzilla_json_path <- path.expand(bugzilla_json_path)
   # Get table from the json
-  json_issue_comments <- data.table(jsonlite::stream_in(textConnection(bugzilla_json), verbose = FALSE))
+  json_issue_comments <- data.table(jsonlite::stream_in(file(bugzilla_json_path), verbose = FALSE))
 
   # Comments list parser function. Comments may occur on any json issue.
   bugzilla_parse_comment <- function(comment, bug_id){
@@ -147,15 +148,16 @@ parse_bugzilla_perceval_traditional_issue_comments <- function(bugzilla_json, co
 
 #' Parse Bugzilla data obtained from Perceval REST API Bugzilla backend
 #'
-#' @param bugzilla_json json object containing Bugzilla data
+#' @param bugzilla_json_path json path for downloaded bugzilla JSON from \code{\link{download_bugzilla_perceval_rest_issue_comments}}
 #' @param comments if true, the comments are parsed along with the issues
 #' @seealso \code{\link{download_bugzilla_perceval_rest_issue_comments}} a donwoloader function download bugzilla data with perceval
 #' @return data table
 #' @export
 #' @family parsers
-parse_bugzilla_perceval_rest_issue_comments <- function(bugzilla_json, comments=FALSE){
+parse_bugzilla_perceval_rest_issue_comments <- function(bugzilla_json_path, comments=FALSE){
   # Get table from the json
-  json_issue_comments <- data.table(jsonlite::stream_in(textConnection(bugzilla_json), verbose = FALSE))
+  bugzilla_json_path <- path.expand(bugzilla_json_path)
+  json_issue_comments <- data.table(jsonlite::stream_in(file(bugzilla_json_path), verbose = FALSE))
 
   # Comments list parser function. Comments may occur on any json issue.
   bugzilla_parse_comment <- function(comment){

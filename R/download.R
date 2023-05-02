@@ -125,17 +125,20 @@ download_bugzilla_rest_comments <- function(bugzilla_site, bug_ids, save_folder_
 #' @param perceval_path path to perceval binary
 #' @param bugzilla_site link to specific bugzilla site
 #' @param datetime fetch bugs updated since this date (in any ISO 8601 format, e.g., 'YYYY-MM-DD HH:mm:SS+|-HH:MM'))
+#' @param save_file_path the file path, name and extension (should be .json) to save the file.
 #' @param max_bugs the maximum number of bugs requested on the same query. Note: Some sites might have restrictions on the number of bugs in one request.
 #' @seealso \code{\link{parse_bugzilla_perceval_traditional_issue_comments}} a parser function to parse bugzilla data
-#' @return json object with bugzilla data
+#' @return path to downloaded json file.
 #' @export
-download_bugzilla_perceval_traditional_issue_comments <- function(perceval_path, bugzilla_site, datetime, max_bugs=500){
+download_bugzilla_perceval_traditional_issue_comments <- function(perceval_path, bugzilla_site, datetime, save_file_path, max_bugs=500){
+  perceval_path <- path.expand(perceval_path)
+  save_file_path <- path.expand(save_file_path)
   json_data <- system2(perceval_path,
                          args = c('bugzilla', bugzilla_site, '--json-line', '--from-date', paste0('"',datetime,'"'),
-                                  "--max-bugs", max_bugs),
+                                  "--output",save_file_path,"--max-bugs", max_bugs),
                          stdout = TRUE,
                          stderr = FALSE)
-  return(json_data)
+  return(save_file_path)
 }
 
 #' Download Bugzilla issues and comments using Perceval REST API backend.
@@ -147,19 +150,24 @@ download_bugzilla_perceval_traditional_issue_comments <- function(perceval_path,
 #' @param perceval_path path to perceval binary
 #' @param bugzilla_site link to specific bugzilla site
 #' @param datetime fetch bugs updated since this date (in any ISO 8601 format, e.g., 'YYYY-MM-DD HH:mm:SS+|-HH:MM'))
+#' @param save_file_path the file path, name and extension (should be .json) to save the file.
 #' @param max_bugs the maximum number of bugs requested on the same query. This acts as the limit parameter
 #' in the Bugzilla REST API. Bugzilla sites may have specific limits set, so make sure to change the max_bugs
 #' parameter accordingly to correctly download the data when using the "bugzillarest" backend.
 #' @seealso \code{\link{parse_bugzilla_perceval_rest_issue_comments}} a parser function to parse bugzilla data
 #' @return json object with bugzilla data
 #' @export
-download_bugzilla_perceval_rest_issue_comments <- function(perceval_path, bugzilla_site, datetime, max_bugs=500){
+download_bugzilla_perceval_rest_issue_comments <- function(perceval_path, bugzilla_site, datetime, save_file_path, max_bugs=500){
+  perceval_path <- path.expand(perceval_path)
+  save_file_path <- path.expand(save_file_path)
   json_data <- system2(perceval_path,
-                       args = c('bugzillarest', bugzilla_site, '--json-line', '--from-date', paste0('"',datetime,'"'),
+                       args = c('bugzillarest', bugzilla_site, '--json-line',
+                                '--from-date', paste0('"',datetime,'"'),
+                                "--output",save_file_path,
                                 "--max-bugs", max_bugs),
                        stdout = TRUE,
                        stderr = FALSE)
-  return(json_data)
+  return(save_file_path)
 }
 
 #' Download project data (issues and comments) from bugzilla site

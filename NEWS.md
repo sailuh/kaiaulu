@@ -2,6 +2,21 @@ __kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in develo
 =========================
 
 ### NEW FEATURES
+
+### MINOR IMPROVEMENTS
+
+ * Bugzilla API now allows for output file to be specified. [#202](https://github.com/sailuh/kaiaulu/pull/202)
+ * Paired parser functions now expects a filepath instead of a json string character. [#202](https://github.com/sailuh/kaiaulu/pull/202)
+
+### BUG FIXES
+
+### DOCUMENTATION FIXES
+
+
+__kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) __
+=========================
+
+### NEW FEATURES
  * Adds Bugzilla Notebook showcasing various Bugzilla Functions. [#164](https://github.com/sailuh/kaiaulu/pull/164)
  * Adds bugzilla crawler downloader and parser functions `parse_bugzilla_rest_issues`, `parse_bugzilla_rest_comments`, `download_bugzilla_rest_issues_comments`, and `parse_bugzilla_rest_issues_comments`. [#164](https://github.com/sailuh/kaiaulu/pull/164)
  * Adds bugzilla crawler donwloader functions `download_bugzilla_rest_issues` and `download_bugzilla_rest_comments` to download project data from bugzilla site using REST API. [#177](https://github.com/sailuh/kaiaulu/pull/177)

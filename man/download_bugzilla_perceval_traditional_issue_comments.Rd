@@ -8,6 +8,7 @@ download_bugzilla_perceval_traditional_issue_comments(
   perceval_path,
   bugzilla_site,
   datetime,
+  save_file_path,
   max_bugs = 500
 )
 }
@@ -18,10 +19,12 @@ download_bugzilla_perceval_traditional_issue_comments(
 
 \item{datetime}{fetch bugs updated since this date (in any ISO 8601 format, e.g., 'YYYY-MM-DD HH:mm:SS+|-HH:MM'))}
 
+\item{save_file_path}{the file path, name and extension (should be .json) to save the file.}
+
 \item{max_bugs}{the maximum number of bugs requested on the same query. Note: Some sites might have restrictions on the number of bugs in one request.}
 }
 \value{
-json object with bugzilla data
+path to downloaded json file.
 }
 \description{
 Download Bugzilla issues and comments using Perceval traditional backend.
