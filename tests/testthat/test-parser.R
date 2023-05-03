@@ -82,15 +82,6 @@ test_that("Calling parse_gitlog with incorrect git repo path returns correct err
     expect_error(parse_gitlog(perceval_path, incorrect_repo_path))
   })
 })
-
-
-
-
-
-
-
-
-
 test_that("parse_bugzilla_rest_issues() returns correct error with incorrect issues_folder_path", {
   incorrect_issues_folder_path <- "nonexistent/path/to/issues/folder"
   expect_error(parse_bugzilla_rest_issues(incorrect_issues_folder_path))
