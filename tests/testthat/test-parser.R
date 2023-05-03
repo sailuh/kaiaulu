@@ -1,6 +1,30 @@
 tools_path <- test_path("testdata", "tools.yml")
 conf_path <- test_path("testdata", "thrift.yml")
 
+bugzilla_issues_comments_folder_path <- file.path('/tmp', 'bugzilla_issues_comments')
+samba_issues_comments_json_path <- file.path(bugzilla_issues_comments_folder_path, 'samba.json')
+redhat_issues_comments_json_path <- file.path(bugzilla_issues_comments_folder_path, 'redhat.json')
+
+suppressWarnings({
+  error <- system2('mkdir',
+                   args = c(bugzilla_issues_comments_folder_path),
+                   stdout = TRUE,
+                   stderr = FALSE)
+})
+
+tool <- yaml::read_yaml(tools_path)
+perceval_path <- tool[["perceval"]]
+perceval_path <- path.expand(perceval_path)
+datetime <- strftime(as.POSIXlt(Sys.time() - 86400, "UTC"), "%Y-%m-%dT%H:%M:%S%z")
+
+samba_bugzilla_site <- "https://bugzilla.samba.org/"
+redhat_bugzilla_site <- "https://bugzilla.redhat.com/"
+
+suppressWarnings({
+  download_bugzilla_perceval_traditional_issue_comments(perceval_path, samba_bugzilla_site, datetime, samba_issues_comments_json_path, max_bugs=1)
+  download_bugzilla_perceval_traditional_issue_comments(perceval_path, redhat_bugzilla_site, datetime, redhat_issues_comments_json_path, max_bugs=20)
+  })
+
 test_that("Perceval version 0.12.24 is being used", {
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
@@ -69,4 +93,47 @@ test_that("Calling parse_gitlog with incorrect git repo path returns correct err
     expect_error(parse_gitlog(perceval_path, incorrect_repo_path))
   })
 })
+test_that("Incorrect json input returns error from parse_bugzilla_perceval_traditional_issue_comments()", {
+  incorrect_bugzilla_json <- "incorrect/path/to/bugzilla/json"
+  expect_error(parse_bugzilla_perceval_traditional_issue_comments(incorrect_bugzilla_json_path))
+})
+test_that("parse_bugzilla_perceval_traditional_issue_comments() returns nonempty data.table", {
+  output_table <- parse_bugzilla_perceval_traditional_issue_comments(samba_issues_comments_json_path)
+  expect_equal(nrow(output_table) != 0, TRUE)
+})
+# ======================================== ERROR ========================================================
+# Cannot find merge.data.table function
+# ========================================
+# test_that("parse_bugzilla_perceval_traditional_issue_comments() with comments=TRUE returns nonempty data.table", {
+#   output_table <- parse_bugzilla_perceval_traditional_issue_comments(samba_issues_comments_json_path, comments=TRUE)
+#   expect_equal(nrow(output_table) != 0, TRUE)
+# })
+test_that("Incorrect json input returns error from parse_bugzilla_perceval_rest_issue_comments()", {
+  incorrect_bugzilla_json <- "incorrect/path/to/bugzilla/json"
+  suppressWarnings({
+    expect_error(parse_bugzilla_perceval_rest_issue_comments(incorrect_bugzilla_json))
+  })
+})
+# ======================================== ERROR ========================================================
+# Not sure yet, but I think there's an error with there being an NA value somewhere in the JSON based on research.
+# ========================================
+# test_that("parse_bugzilla_perceval_rest_issue_comments() returns nonempty data.table", {
+#   output_table <- parse_bugzilla_perceval_rest_issue_comments(redhat_issues_comments_json_path)
+#   expect_equal(nrow(output_table) != 0, TRUE)
+# })
+# ======================================== ERROR ========================================================
+# Not sure yet, but I think there's an error with there being an NA value somewhere in the JSON based on research.
+# ========================================
+# test_that("parse_bugzilla_perceval_rest_issue_comments() with comments on returns nonempty data.table", {
+#   output_table <- parse_bugzilla_perceval_rest_issue_comments(redhat_issues_comments_json_path, comments=TRUE)
+#   expect_equal(nrow(output_table) != 0, TRUE)
+# })
+
+# suppressWarnings({
+#   error <- system2('rm',
+#                    args = c('-r',
+#                             bugzilla_issues_comments_folder_path),
+#                    stdout = TRUE,
+#                    stderr = FALSE)
+# })
 
