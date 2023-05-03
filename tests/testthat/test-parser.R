@@ -129,11 +129,11 @@ test_that("Incorrect json input returns error from parse_bugzilla_perceval_rest_
 #   expect_equal(nrow(output_table) != 0, TRUE)
 # })
 
-# suppressWarnings({
-#   error <- system2('rm',
-#                    args = c('-r',
-#                             bugzilla_issues_comments_folder_path),
-#                    stdout = TRUE,
-#                    stderr = FALSE)
-# })
+suppressWarnings({
+  error <- system2('rm',
+                   args = c('-r',
+                            bugzilla_issues_comments_folder_path),
+                   stdout = TRUE,
+                   stderr = FALSE)
+})
 
