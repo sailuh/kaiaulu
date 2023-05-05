@@ -1,0 +1,202 @@
+---
+title: "Parsing Text from Source Code"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Parsing Text from Source Code}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Setup
+
+This notebook provides a brief introduction to the early version of the **Text** module. 
+
+We will use srcML for this first step in order to extract source code identifiers. You can install it through [this link](https://www.srcml.org/#download). Once installed, the command `srcml` should be available via terminal. Use `which srcml` to obtain its path, and include in your `tools.yml`. 
+
+You should also install the identifier splitter, [Spiral](https://github.com/casics/spiral), a Python library. The recommended method to setup is:
+
+`sudo pip3 install git+https://github.com/casics/spiral.git`
+
+Finally,because we require interacting with Python to use this library, you should install the `reticulate` R package. If `install.package('reticulate')` fails due to any error, try to `install.package('Rcpp')` and then re-attempt. You must specify the local Python version which you installed Spiral when using RStudio. See: https://stackoverflow.com/a/71044068/1260232 otherwise, `reticulate` will be unable to load the `Spiral` Python library for not being installed in the correct Python version.
+
+The setup needs only be done once.
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(data.table)
+require(yaml)
+require(stringi)
+require(knitr)
+require(reticulate)
+require(magrittr)
+```
+
+# Project Configuration File
+
+Analyzing open source projects often requires some manual work on your part to find where the open source project hosts its codebase and mailing list. Instead of hard-coding this on Notebooks, we keep this information in a project configuration file. Here's the minimal information this Notebook requires in a project configuration file:
+
+```
+data_path:
+  project_website: https://apr.apache.org/
+  git_url: https://github.com/apache/apr
+  git: ../rawdata/git_repo/APR/.git
+  
+filter:
+  keep_filepaths_ending_with:
+    - cpp
+    - c
+    - h
+    - java
+    - js
+    - py
+    - cc
+  remove_filepaths_containing:
+    - test
+    - java_code_examples
+
+tool:
+ # srcML allow to parse src code as text (e.g. identifiers)
+  srcml:
+    # The file path to where you wish to store the srcml output of the project
+    srcml_path: ../../analysis/depends/srcml_depends.xml
+    # Specify which types of Dependencies to keep - see the Depends tool README.md for details.
+# Analysis Configuration #
+analysis:
+  # A list of topic and keywords (see src_text_showcase.Rmd).
+  topics:
+    topic_1:
+      - Parser
+      - Lexer
+    topic_2:
+      - Python
+      - Ruby 
+```
+
+
+```{r}
+tool <- yaml::read_yaml("../tools.yml")
+conf <- yaml::read_yaml("../conf/depends.yml")
+srcml_path <- tool[["srcml"]]
+
+git_repo_path <- conf[["version_control"]][["log"]]
+folder_path <- stri_replace_last(git_repo_path,replacement="",regex=".git")
+
+# Tool Parameters 
+srcml_filepath <- conf[["tool"]][["srcml"]][["srcml_path"]]
+
+# Filters
+file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
+substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+
+# Analysis
+topics <- conf[["analysis"]][["topics"]]
+```
+
+This is all the project configuration files are used for. If you inspect the variables above, you will see they are just strings. As a reminder, the tools.yml is where you store the filepaths to third party software in your computer. Please see Kaiaulu's README.md for details. As a rule of thumb, any R Notebooks in Kaiaulu load the project configuration file at the start, much like you would normally initialize variables at the start of your source code.
+
+# Parsing Source Code as Text
+
+To use srcml, we leverage the git path to specify the folder which srcml should execute. The `srcml` library will then generate a single file, saved on `srcml_filepath` that contains all the information of the project.
+
+```{r}
+srcml_filepath <- annotate_src_text(srcml_path = srcml_path,
+                                     src_folder = folder_path,
+                                     srcml_filepath)
+```
+
+
+We can then use `srcml` to query against this generated XML file. For example, we can query the class names. There is much more that can be parsed. Indeed, you can even use `srcml` to modify the source code, and output runnable code out of it. The following is a convenience function that will also tabulate the output as a R table:
+
+```{r}
+query_table <- query_src_text_class_names(srcml_path = srcml_path,
+                                     srcml_filepath = srcml_filepath)
+kable(head(query_table))
+```
+
+# Using Spiral's Ronin to Split Identfiers
+We can see that both the file name and class name were output here. To perform keyword matching, we must now split the class name identifiers into tokens. This is where the Spiral Python library comes in. First, we load the `Ronin` method in R, via the `reticulate` library:
+
+```{r}
+spiral_library <-reticulate::import("spiral.ronin", convert = TRUE)
+```
+
+Then, we use Spiral's split method over each classname in our prior table. To maintain the table format, we combine the tokens with ";" in each row, but they can be split again for token matching.
+
+```{r}
+split_token_list <- sapply(query_table$classname,spiral_library$split)
+query_table$tokens <-  sapply(split_token_list,stringi::stri_c,collapse=";")
+kable(head(query_table))
+```
+
+# File Filtering 
+
+Since we have a table, we can actually use Kaiaulu filter functions to do some pre-processing. For Depends in particular, some files are provided as example. This can be inferred looking through the filepaths above, when observing this filepath:
+
+`/depends/src/test/resources/java-code-examples/`
+
+Note the depends project configuration file accounted for that pattern to be removed: 
+
+```{r}
+substring_filepath
+```
+
+
+Should we wish to remove such filepaths, we can do so as follows:
+
+```{r}
+nrow(query_table)
+```
+
+
+```{r}
+query_table <- query_table  %>%
+    filter_by_file_extension(file_extensions,"filepath")  %>%
+  filter_by_filepath_substring(substring_filepath,"filepath")
+nrow(query_table)
+```
+
+
+# Token Matching
+
+What is left is to use the `tokens` column and the list of topics provided in the project configuration file for comparison.
+
+```{r}
+topics
+```
+
+In this case, our two topics capture data ingestion, and code language respectively. We can then apply then to our table, to identify which cases belong to which topic. 
+
+First, let's split the tokens again. Here's a sample for clarity:
+
+```{r}
+split_tokens <- stringi::stri_split_regex(query_table$tokens,pattern = ";")
+split_tokens[1:2]
+```
+
+
+```{r}
+is_a_topic_match <- function(split_token,topic){
+  is_match <- any(topic %in% split_token)  
+  return(is_match)
+}
+
+query_table$is_topic_1 <- sapply(split_tokens,is_a_topic_match,topics$topic_1)
+query_table$is_topic_2 <- sapply(split_tokens,is_a_topic_match,topics$topic_2)
+```
+
+And finally, a sample of the final table:
+
+```{r}
+kable(query_table[50:55])
+```
+
+

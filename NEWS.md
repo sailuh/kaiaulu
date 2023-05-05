@@ -1,7 +1,9 @@
-__kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) (in development)__
+__kaiaulu 0.0.0.9700 (in development)__
 =========================
 
 ### NEW FEATURES
+
+ * A new text module was added. The module allows for extracting identifiers from source code. See the new `src_text_showcase.Rmd` for details. [#206](https://github.com/sailuh/kaiaulu/issues/206)
 
 ### MINOR IMPROVEMENTS
 
