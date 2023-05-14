@@ -1,0 +1,331 @@
+---
+title: "Motif Analysis"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Motif Analysis}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Introduction
+
+Please ensure the following R packages are installed on your computer. 
+
+```{r warning = FALSE, message = FALSE}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+
+require(kaiaulu)
+require(stringi)
+require(data.table)
+require(knitr)
+require(visNetwork)
+require(igraph)
+```
+
+# Introduction
+
+This notebook re-implements in Kaiaulu the motif analysis presented in our prior work from Codeface:
+
+> W. Mauerer, M. Joblin, D. A. Tamburri, C. Paradis, R. Kazman and S. Apel, "In Search of Socio-Technical Congruence: A Large-Scale Longitudinal Study," in IEEE Transactions on Software Engineering, vol. 48, no. 8, pp. 3159-3184, 1 Aug. 2022, doi: 10.1109/TSE.2021.3082074.
+
+Kaiaulu re-implementation is easy to extend, and allow for any combination of motifs across the various networks already supported, such as dependency networks (file, function, class, etc.), communication networks (mailing lists, issue trackers (bugzilla, JIRA, GitHub)), and collaboration (git log at file, function, class, etc). 
+
+We demonstrate here both the triangle and square motif as originally defined in our paper, which leverages all 3 types of the networks. The project of analysis is Kaiaulu itself, however, this can be applied to other open source projects!
+
+```{r}
+tools_path <- "../tools.yml"
+conf_path <- "../conf/kaiaulu.yml"
+
+tool <- yaml::read_yaml(tools_path)
+scc_path <- tool[["scc"]]
+
+oslom_dir_path <- tool[["oslom_dir"]]
+oslom_undir_path <- tool[["oslom_undir"]]
+
+conf <- yaml::read_yaml(conf_path)
+
+perceval_path <- tool[["perceval"]]
+git_repo_path <- conf[["version_control"]][["log"]]
+git_branch <- conf[["version_control"]][["branch"]][1]
+
+github_replies_path <- conf[["issue_tracker"]][["github"]][["replies"]]
+
+# Filters
+file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
+substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+```
+
+## Parse Gitlog
+
+To get started, we use the `parse_gitlog` function to extract a table from the git log. You can inspect the `project_git` variable to observe what information is available from the git log. Note we also apply filter functions. The patterns of what we wish to filter are specified on the project configuration file. 
+
+```{r}
+git_checkout(git_branch,git_repo_path)
+project_git <- parse_gitlog(perceval_path,git_repo_path)
+project_git <- project_git  %>%
+  filter_by_file_extension(file_extensions,"file_pathname")  %>% 
+  filter_by_filepath_substring(substring_filepath,"file_pathname")
+```
+
+We also can normalize the timezone across the different projects, although we do not use the time information in this notebook.
+
+```{r}
+project_git$author_tz <- sapply(stringi::stri_split(project_git$author_datetimetz,
+                                                          regex=" "),"[[",6)
+project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
+                                            format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
+
+
+project_git$committer_tz <- sapply(stringi::stri_split(project_git$committer_datetimetz,
+                                                          regex=" "),"[[",6)
+project_git$committer_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
+                                            format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
+```
+
+## Parse Replies
+
+Next, we parse the various communication channels the project use. Similarly to `parse_gitlog`, the returned object is a table, which we can browse directly in R to see what information is available.
+
+In this Notebook, we only use GitHub replies (issue and pull requests commentary) since Kaiaulu does not use mailing lists. However, download and parser functions for mbox, jira, and bugzilla are available. Refer to the API for details.
+
+```{r}
+project_github_replies <- parse_github_replies(github_replies_path)  
+
+
+# Timezone is not available on GitHub timestamp, all in UTC
+project_github_replies$reply_tz <- "0000"
+
+project_github_replies$reply_datetimetz <- as.POSIXct(project_github_replies$reply_datetimetz,
+                                      format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
+```
+
+For projects which use more than one communication channel (e.g. a developer mailing list, and a issue tracker), Kaiaulu abstracts the various communication channels as a table of replies. Refer to `vignettes/reply_communicaton_showcase.Rmd` for details. 
+
+```{r}
+# All replies are combined into a single reply table. 
+project_reply <- project_github_replies
+
+project_git <- project_git[order(author_datetimetz)]
+ 
+project_reply <- project_reply[order(reply_datetimetz)]
+
+#project_reply <- project_reply[reply_datetimetz >= start_date & reply_datetimetz <= end_date]
+```
+
+# Identity Match 
+
+Because developers may use different identities across git log, and the communication channel (s), we apply a number of heuristics (encoded as unit tests in Kaiaulu) to assign a single ID. You can also inspect the generated table to perform manual corrections.
+
+```{r}
+#Identity matching
+project_log <- list(project_git=project_git,project_reply=project_reply)
+project_log <- identity_match(project_log,
+                                name_column = c("author_name_email","reply_from"),
+                                assign_exact_identity,
+                                use_name_only=FALSE,
+                                label = "raw_name")
+
+project_git <- project_log[["project_git"]]
+project_reply <- project_log[["project_reply"]]
+```
+
+# Networks
+
+Having performed the necessary transformations on our data sources, we are ready to transform them to networks. Our goal is to create a single graph containing all the information of interest in order to search for sub-graphs of interest (i.e. our defined motifs).
+
+A number of transformation functions are available in Kaiaulu to transform the various logs into networks. First, we transform our git log data into a bipartite author-file network:
+
+```{r}
+git_network <- transform_gitlog_to_bipartite_network(project_git,
+                                                     mode="author-file")
+```
+
+Next we apply the same transformation to obtain our reply network. Note this reply network is also a bipartite graph, of the type `developer-thread`. Since the communication is occurring in GitHub, an issue is equivalent to an e-mail thread. Because we wish to "add" communication edges between developers to the git log network, we perform a bipartite projection over `developer-thread` to obtain a `developer-developer` network. Here, we chose the weight scheme that sums the existing edge weights (i.e. number of replies to a thread) to the deleted thread node together. 
+
+```{r}
+
+reply_network <- transform_reply_to_bipartite_network(project_reply)
+
+reply_network <- bipartite_graph_projection(reply_network,
+                                                      mode = TRUE,
+                                                      weight_scheme_function = weight_scheme_sum_edges)   
+```
+
+We can then add the `developer-developer` network nodes and edges to the `developer-file` network:
+
+```{r}
+git_reply_network <- list()
+
+git_reply_network[["nodes"]] <- unique(rbind(git_network[["nodes"]],
+                                             reply_network[["nodes"]]))
+
+git_reply_network[["edgelist"]] <- rbind(git_network[["edgelist"]],
+                                         reply_network[["edgelist"]])
+```
+
+# Triangle Motif
+
+To perform motif search, we rely on the `igraph` library. First, we transform the networks to igraph's network representation:
+
+```{r}
+i_git_reply_network <- igraph::graph_from_data_frame(d=git_reply_network[["edgelist"]], 
+                      directed = FALSE, 
+                      vertices = git_reply_network[["nodes"]])
+```
+
+```{r}
+visIgraph(i_git_reply_network,randomSeed = 1)
+```
+
+We also create our motif triangle sub-graph and display:
+
+```{r}
+motif_triangle <- motif_factory("triangle")
+i_triangle_motif <- igraph::graph_from_data_frame(d=motif_triangle[["edgelist"]], 
+                      directed = FALSE, 
+                      vertices = motif_triangle[["nodes"]])
+```
+
+```{r}
+visIgraph(i_triangle_motif)
+```
+
+Because the motif search expects the "color" node attribute to be numeric, we convert the node color to 1 if black, or 2 otherwise in the igraph network representation:
+
+```{r}
+V(i_triangle_motif)$color <- ifelse(V(i_triangle_motif)$color == "black",1,2)
+V(i_git_reply_network)$color <- ifelse(V(i_git_reply_network)$color == "black",1,2)
+```
+
+We can then count the motifs:
+
+```{r}
+## Count subgraph isomorphisms
+motif_count <- igraph::count_subgraph_isomorphisms(i_triangle_motif, i_git_reply_network, method="vf2",
+                                           edge.color1 = NULL,
+                                           edge.color2 = NULL)
+motif_count
+```
+
+Or obtain the list of every sub-graph match of the triangle motif: 
+
+```{r}
+i_motif_vertice_sequence <- subgraph_isomorphisms(i_triangle_motif, i_git_reply_network, method="vf2",
+                                           edge.color1 = NULL,
+                                           edge.color2 = NULL)
+motif_vertice_sequence <- lapply(i_motif_vertice_sequence,igraph::as_ids)
+
+motif_triangle_dt <- rbindlist(lapply((lapply(motif_vertice_sequence,t)),data.table))
+kable(motif_triangle_dt)
+```
+
+# Square Motif 
+
+For square motif, we now also consider the file dependencies. In this Notebook, we use Kaiaulu's built in R parser. However, the `parse_dependencies()` can be used to obtain dependencies for languages which Depends support.
+
+```{r}
+folder_path <- "../R"
+dependencies <- parse_r_dependencies(folder_path)
+
+file_network <- transform_r_dependencies_to_network(dependencies,dependency_type="file")
+file_network[["nodes"]]$name <- paste0("R/",file_network[["nodes"]]$name)
+file_network[["edgelist"]]$from <- paste0("R/",file_network[["edgelist"]]$from)
+file_network[["edgelist"]]$to <- paste0("R/",file_network[["edgelist"]]$to)
+```
+
+Similar to before,  we combime the networks, now also including the file network.
+
+```{r}
+
+file_git_reply_network <- list()
+
+file_git_reply_network[["nodes"]] <- unique(rbind(git_network[["nodes"]],
+                                             reply_network[["nodes"]],
+                                             file_network[["nodes"]]))
+
+file_git_reply_network[["edgelist"]] <- rbind(git_network[["edgelist"]],
+                                         reply_network[["edgelist"]],
+                                         file_network[["edgelist"]])
+```
+
+We then use igraph for visualization and calculating the motif. First of the network:
+
+```{r}
+i_file_git_reply_network <- igraph::graph_from_data_frame(d=file_git_reply_network[["edgelist"]], 
+                      directed = FALSE, 
+                      vertices = file_git_reply_network[["nodes"]])
+
+visIgraph(i_file_git_reply_network,randomSeed = 1)
+```
+
+And then of the square motif:
+
+```{r}
+motif_square <- motif_factory("square")
+i_square_motif <- igraph::graph_from_data_frame(d=motif_square[["edgelist"]], 
+                      directed = FALSE, 
+                      vertices = motif_square[["nodes"]])
+
+visIgraph(i_square_motif)
+```
+
+Once more, we transform the color of the nodes to numeric to perform the motif search.
+
+```{r}
+V(i_square_motif)$color <- ifelse(V(i_square_motif)$color == "black",1,2)
+V(i_file_git_reply_network)$color <- ifelse(V(i_file_git_reply_network)$color == "black",1,2)
+```
+
+We can then count the motif ocurrences:
+
+```{r}
+## Count subgraph isomorphisms
+motif_count <- count_subgraph_isomorphisms(i_square_motif, i_file_git_reply_network, method="vf2",
+                                           edge.color1 = NULL,
+                                           edge.color2 = NULL)
+motif_count
+```
+
+Or enumerate where it occurred:
+
+```{r}
+i_motif_vertice_sequence <- subgraph_isomorphisms(i_square_motif, i_file_git_reply_network, method="vf2",
+                                           edge.color1 = NULL,
+                                           edge.color2 = NULL)
+motif_vertice_sequence <- lapply(i_motif_vertice_sequence,igraph::as_ids)
+
+motif_square_dt <- rbindlist(lapply((lapply(motif_vertice_sequence,t)),data.table))
+kable(motif_square_dt)
+```
+
+# Highlighting Motifs
+
+We can also very easily highlight a particular set of motifs of interest in the graph. For example, consider the following detected motif:
+
+```{r}
+kable(motif_triangle_dt[1])
+```
+
+We can color the associated nodes it on the original network for further exploration in red as follows:
+
+```{r}
+triangle_motif_example <- unlist(motif_triangle_dt[1])
+
+colored_git_reply_network <- git_reply_network
+
+is_in_motif_example <- colored_git_reply_network[["nodes"]]$name %in% triangle_motif_example 
+
+colored_git_reply_network[["nodes"]][is_in_motif_example]$color <- "red"
+
+i_git_reply_network <- igraph::graph_from_data_frame(d=colored_git_reply_network[["edgelist"]], 
+                      directed = FALSE, 
+                      vertices = colored_git_reply_network[["nodes"]])
+
+visIgraph(i_git_reply_network,randomSeed = 1)
+```
+

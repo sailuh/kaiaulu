@@ -56,6 +56,12 @@ reference:
   - community_oslom
   - recolor_network_by_community
   - graph_to_dsmj
+- title: __Motif__
+  desc:  Sub-graphs used in Software Engineering literature for socio-technical metrics.
+- contents:
+  - motif_factory
+  - motif_factory_triangle
+  - motif_factory_square
 - title: __Identity__
   desc:  Provide the same id to authors who use variations of names or emails.
 - contents:
