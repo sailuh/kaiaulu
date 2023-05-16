@@ -3,6 +3,8 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+
+ * Adds Gang of Four parser for Tsantalis' parser4.jar [#211](https://github.com/sailuh/kaiaulu/issues/211)
  * A new text module was added. The module allows for extracting identifiers from source code. See the new `src_text_showcase.Rmd` for details. [#206](https://github.com/sailuh/kaiaulu/issues/206)
 
 ### MINOR IMPROVEMENTS

@@ -1,18 +1,22 @@
 ---
-title: "Parsing Text from Source Code"
+title: "Identifying GoF Patterns: Text and Graph Approach"
 output: 
   html_document:
     toc: true
     number_sections: true
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{Parsing Text from Source Code}
+  %\VignetteIndexEntry{Identifying GoF Patterns: Text and Graph Approach}
   %\VignetteEncoding{UTF-8}
 ---
 
+# Introduction
+
+This notebook provides a brief introduction to the early version of the **Text** module, and Tsantalis pattern4.jar to identify some of the Gang of Four (GoF) Design Patterns in source code [pattern4.jar](https://users.encs.concordia.ca/~nikolaos/pattern_detection.html).
+
 # Setup
 
-This notebook provides a brief introduction to the early version of the **Text** module. 
+## Text Approach
 
 We will use srcML for this first step in order to extract source code identifiers. You can install it through [this link](https://www.srcml.org/#download). Once installed, the command `srcml` should be available via terminal. Use `which srcml` to obtain its path, and include in your `tools.yml`. 
 
@@ -22,7 +26,9 @@ You should also install the identifier splitter, [Spiral](https://github.com/cas
 
 Finally,because we require interacting with Python to use this library, you should install the `reticulate` R package. If `install.package('reticulate')` fails due to any error, try to `install.package('Rcpp')` and then re-attempt. You must specify the local Python version which you installed Spiral when using RStudio. See: https://stackoverflow.com/a/71044068/1260232 otherwise, `reticulate` will be unable to load the `Spiral` Python library for not being installed in the correct Python version.
 
-The setup needs only be done once.
+## Graph Approach
+
+The graph approach uses Tsantalis [pattern4.jar](https://users.encs.concordia.ca/~nikolaos/pattern_detection.html). As with other third party tools, you should specify the path to the jar in the `tools.yml` and provide the necessary parameters of the project configuration file. 
 
 ```{r}
 rm(list = ls())
@@ -30,26 +36,26 @@ seed <- 1
 set.seed(seed)
 ```
 
-```{r warning=FALSE,message=FALSE}
-require(kaiaulu)
-require(data.table)
-require(yaml)
-require(stringi)
-require(knitr)
-require(reticulate)
-require(magrittr)
-```
-
 # Project Configuration File
 
 Analyzing open source projects often requires some manual work on your part to find where the open source project hosts its codebase and mailing list. Instead of hard-coding this on Notebooks, we keep this information in a project configuration file. Here's the minimal information this Notebook requires in a project configuration file:
 
-```
-data_path:
-  project_website: https://apr.apache.org/
-  git_url: https://github.com/apache/apr
-  git: ../rawdata/git_repo/APR/.git
-  
+```yaml
+project:
+  website: https://github.com/junit-team/junit5/
+  #openhub: https://www.openhub.net/p/apache_portable_runtime
+
+version_control:
+  # Where is the git log located locally?
+  # This is the path to the .git of the project repository you are analyzing.
+  # The .git is hidden, so you can see it using `ls -a`
+  log: ../../rawdata/git_repo/junit5/.git
+  # From where the git log was downloaded?
+  log_url: https://github.com/junit-team/junit5/
+  # List of branches used for analysis
+  branch:
+    - main
+    
 filter:
   keep_filepaths_ending_with:
     - cpp
@@ -68,30 +74,68 @@ tool:
   srcml:
     # The file path to where you wish to store the srcml output of the project
     srcml_path: ../../analysis/depends/srcml_depends.xml
-    # Specify which types of Dependencies to keep - see the Depends tool README.md for details.
+  pattern4:
+    # The file path to where you wish to store the srcml output of the project
+    class_folder_path: ../../rawdata/git_repo/junit5/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
+    compile_note: >
+      1. Switch Java version to Java 17:
+         https://stackoverflow.com/questions/69875335/macos-how-to-install-java-17
+      2. Disable VPN to pull modules from Gradle Plugin Portal.
+      3. Use sudo ./gradlew build
+      4. After building, locate the engine class files and specify as the class_folder_path:
+         in this case they are in: /path/to/junit5/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
 # Analysis Configuration #
 analysis:
   # A list of topic and keywords (see src_text_showcase.Rmd).
   topics:
     topic_1:
-      - Parser
-      - Lexer
+      - model
+      - view
+      - controller
     topic_2:
-      - Python
-      - Ruby 
+      - visitor
+    topic_3:
+      - observer
+      - listener
+    topic_4:
+      - adapter
+    topic_5:
+      - decorator
+    topic_6:
+      - factory
+      - builder
+    topic_7:
+      - facade
+    topic_8:
+      - strategy
+    topic_9:
+      - command
+```
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(data.table)
+require(yaml)
+require(stringi)
+require(knitr)
+require(reticulate)
+require(magrittr)
+require(gt)
 ```
 
 
 ```{r}
 tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/depends.yml")
+conf <- yaml::read_yaml("../conf/junit5.yml")
 srcml_path <- tool[["srcml"]]
+pattern4_path <- tool[["pattern4"]]
 
 git_repo_path <- conf[["version_control"]][["log"]]
 folder_path <- stri_replace_last(git_repo_path,replacement="",regex=".git")
 
 # Tool Parameters 
 srcml_filepath <- conf[["tool"]][["srcml"]][["srcml_path"]]
+class_folder_path <- conf[["tool"]][["pattern4"]][["class_folder_path"]]
 
 # Filters
 file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
@@ -119,14 +163,20 @@ We can then use `srcml` to query against this generated XML file. For example, w
 ```{r}
 query_table <- query_src_text_class_names(srcml_path = srcml_path,
                                      srcml_filepath = srcml_filepath)
-kable(head(query_table))
+head(query_table)  %>%
+  gt(auto_align = FALSE) 
 ```
 
 # Using Spiral's Ronin to Split Identfiers
 We can see that both the file name and class name were output here. To perform keyword matching, we must now split the class name identifiers into tokens. This is where the Spiral Python library comes in. First, we load the `Ronin` method in R, via the `reticulate` library:
 
 ```{r}
+reticulate::use_python("/usr/local/bin/python3")
 spiral_library <-reticulate::import("spiral.ronin", convert = TRUE)
+collections_library <-reticulate::import("collections", convert = TRUE) 
+
+# May be required for newer Python versions. Comment if causes errors.
+collections_library$Iterable <- collections_library$abc$Iterable
 ```
 
 Then, we use Spiral's split method over each classname in our prior table. To maintain the table format, we combine the tokens with ";" in each row, but they can be split again for token matching.
@@ -134,7 +184,8 @@ Then, we use Spiral's split method over each classname in our prior table. To ma
 ```{r}
 split_token_list <- sapply(query_table$classname,spiral_library$split)
 query_table$tokens <-  sapply(split_token_list,stringi::stri_c,collapse=";")
-kable(head(query_table))
+head(query_table)  %>%
+  gt(auto_align = FALSE) 
 ```
 
 # File Filtering 
@@ -164,16 +215,20 @@ query_table <- query_table  %>%
 nrow(query_table)
 ```
 
+Finally, we lower case all class name tokens for topic matching:
 
-# Token Matching
+```{r}
+query_table$tokens <- tolower(query_table$tokens)
+```
 
-What is left is to use the `tokens` column and the list of topics provided in the project configuration file for comparison.
+
+# Topic Matching
+
+What is left is to use each class' `tokens` column and the list of topics provided in the project configuration file for comparison.
 
 ```{r}
 topics
 ```
-
-In this case, our two topics capture data ingestion, and code language respectively. We can then apply then to our table, to identify which cases belong to which topic. 
 
 First, let's split the tokens again. Here's a sample for clarity:
 
@@ -182,6 +237,7 @@ split_tokens <- stringi::stri_split_regex(query_table$tokens,pattern = ";")
 split_tokens[1:2]
 ```
 
+Each topic's tokens will be compared against a class' tokens. If there is a match between any topic and class token, we consider the topic to be true. 
 
 ```{r}
 is_a_topic_match <- function(split_token,topic){
@@ -189,14 +245,66 @@ is_a_topic_match <- function(split_token,topic){
   return(is_match)
 }
 
-query_table$is_topic_1 <- sapply(split_tokens,is_a_topic_match,topics$topic_1)
-query_table$is_topic_2 <- sapply(split_tokens,is_a_topic_match,topics$topic_2)
+for(i in 1:length(topics)){
+  topic_column_name <- paste0("is_topic_",as.character(i))
+  query_table[[topic_column_name]] <-
+    sapply(split_tokens,is_a_topic_match,topics[[topic_column_name]])  
+}
 ```
 
 And finally, a sample of the final table:
 
 ```{r}
-kable(query_table[50:55])
+head(query_table)   %>%
+  gt(auto_align = FALSE) 
+```
+The full list of identified matched classes is given in the following code block, where we check if any class has any topic as `TRUE`:
+
+```{r}
+any_topic_true <- apply(query_table[, 4:length(topics), with=FALSE],1,sum)
+any_topic_true <- ifelse(any_topic_true == 0,FALSE,TRUE)
+query_table[any_topic_true]   %>%
+  gt(auto_align = FALSE) 
 ```
 
 
+# GoF Graph Matching 
+
+This approach uses Tsantali's [pattern4.jar](https://users.encs.concordia.ca/~nikolaos/pattern_detection.html) to identify GoF patterns.
+
+```{r}
+gof_patterns <- parse_gof_patterns(pattern4_path = pattern4_path,
+                                   class_folder_path = class_folder_path)
+
+```
+
+
+
+```{r}
+
+#parse_last_list_element <- function(x){
+#  return(tail(unlist(x),1))
+#}
+
+#is_method <- stringi::stri_detect_regex(gof_patterns$role_name,pattern="\\(\\)")
+
+#gof_patterns_classes <- gof_patterns[!is_method]
+
+#gof_patterns_classes$class_name <- sapply(stringi::stri_split_regex(gof_patterns_classes$class_path,pattern="\\."),parse_last_list_element)
+
+
+gof_patterns[,.(class_path,pattern_name,role_name)] %>%
+  gt(auto_align = FALSE) %>%
+  tab_header(
+    title = "GoF Patterns",
+    subtitle = glue::glue("Tsantalis' et al. Graph Method") 
+  ) %>% 
+   cols_align(
+    align = "right",
+    columns = c("class_path")
+  ) %>%
+    cols_align(
+    align = "left",
+    columns = c("pattern_name","role_name")
+  )
+```
