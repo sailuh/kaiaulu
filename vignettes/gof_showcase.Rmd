@@ -136,6 +136,7 @@ folder_path <- stri_replace_last(git_repo_path,replacement="",regex=".git")
 # Tool Parameters 
 srcml_filepath <- conf[["tool"]][["srcml"]][["srcml_path"]]
 class_folder_path <- conf[["tool"]][["pattern4"]][["class_folder_path"]]
+output_filepath <- conf[["tool"]][["pattern4"]][["output_filepath"]]
 
 # Filters
 file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]

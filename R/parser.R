@@ -1510,10 +1510,11 @@ parse_r_dependencies <- function(folder_path){
 #' IEEE Transactions on Software Engineering,
 #' vol. 32, no. 11, pp. 896-909, November, 2006.
 #' @export
-parse_gof_patterns <- function(pattern4_path,class_folder_path,output_filepath='/tmp/gof.xml'){
+parse_gof_patterns <- function(pattern4_path,class_folder_path,output_filepath){
 
   pattern4_path <- path.expand(pattern4_path)
   class_folder_path <- path.expand(class_folder_path)
+  output_filepath <- path.expand(output_filepath)
 
   if(!file.exists(pattern4_path)) stop("The specified pattern4_path does not exist!")
   if(!dir.exists(class_folder_path)) stop("The specified class_folder_path does not exist!")
