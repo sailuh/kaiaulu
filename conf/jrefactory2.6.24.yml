@@ -100,7 +100,7 @@ tool:
     # In order to convert all class files to java source code, you will need to use java decompiler
     # e.g. http://www.javadecompilers.com/
     class_folder_path: ../../rawdata/git_repo/jrefactory-2.6.24-binary
-    output_filepath: ../../rawdata/jrefactory_gof.xml
+    output_filepath: output_filepath: ../../analysis/pattern4/jrefactory2.6.24_gof.xml
 
 # Analysis Configuration #
 analysis:

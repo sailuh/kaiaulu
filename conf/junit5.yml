@@ -168,6 +168,7 @@ tool:
   pattern4:
     # The file path to where you wish to store the srcml output of the project
     class_folder_path: ../../rawdata/git_repo/junit5/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
+    output_filepath: ../../analysis/pattern4/junit5_gof.xml
     compile_note: >
       1. Switch Java version to Java 17:
          https://stackoverflow.com/questions/69875335/macos-how-to-install-java-17

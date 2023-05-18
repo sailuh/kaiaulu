@@ -101,7 +101,7 @@ tool:
     srcml_path: ../../analysis/jhotdraw/srcml_jhotdraw5.1.xml
   pattern4:
     class_folder_path: ../../rawdata/git_repo/draw/
-    output_filepath: ../../rawdata/jhotdraw5.1_gof.xml
+    output_filepath: ../../analysis/pattern4/jhotdraw5.1_gof.xml
 
 # Analysis Configuration #
 analysis:

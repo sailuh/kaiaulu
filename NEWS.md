@@ -11,7 +11,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
  * Bugzilla API now allows for output file to be specified. [#202](https://github.com/sailuh/kaiaulu/pull/202)
  * Paired parser functions now expects a filepath instead of a json string character. [#202](https://github.com/sailuh/kaiaulu/pull/202)
-
+ * Pass output file path into config file instead of specifying in parser.R to avoid output overriding for different projects [#206](https://github.com/sailuh/kaiaulu/pull/212)
 ### BUG FIXES
 
 ### DOCUMENTATION FIXES

@@ -98,7 +98,7 @@ tool:
     srcml_path: ../../analysis/junit/srcml_junit3.7.xml
   pattern4:
     class_folder_path: ../../rawdata/git_repo/junit3.7/junit
-    output_filepath: ../../rawdata/junit3.7_gof.xml
+    output_filepath: ../../analysis/pattern4/junit3.7_gof.xml
     compile_note: >
       1. Switch Java version to Java 17:
          https://stackoverflow.com/questions/69875335/macos-how-to-install-java-17
