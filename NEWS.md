@@ -13,6 +13,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 ### BUG FIXES
 
 ### DOCUMENTATION FIXES
+ * Moved learning resources to the wiki. Minor editing to guidelines for clarity and common mistakes. [#150](https://github.com/sailuh/kaiaulu/issues/150)
 
 
 __kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) __

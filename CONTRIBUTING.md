@@ -28,23 +28,24 @@ Kaiaulu uses Rdoxygen to automatically generate the package documentation (see h
 
 ### 2.1.5 If you are proposing a new 3rd party software integration
 
-Kaiaulu interacts with 3rd party software by system calls and bypassing the tool's binary path to an R function. In general, this interaction is kept simple: The function responsibility is just to pass a request, and format the response as a table which can be easy to join to other data in Kaiaulu. If obtaining the 3rd party software binary during setup is relatively simple, please open an issue so we can discuss how to add an interface function. 
+Kaiaulu interacts with 3rd party software by system calls and by passing the tool's binary path to an R function. In general, this interaction is kept simple: The function responsibility is just to pass a request, and format the response as a table which can be easy to join to other data in Kaiaulu. If obtaining the 3rd party software binary during setup is relatively simple, please open an issue so we can discuss how to add an interface function. 
 
 ## 3. Making Pull Requests
 
-If you are unsure on how to perform the below steps or are new to Git and Github, please see the **Learning Resources** (Section 5.) at the bottom of this document for some learning material, including free video lectures.
+If you are unsure on how to perform the below steps or are new to Git and Github, please see the **Learning Resources** (Section 5.) at the bottom of this document for some learning material.
 
 The step-by-step process is as follows:
 
 1. **Create an issue** describing what is wrong, or with a new feature proposal you wish to implement. 
-   1. You can use the issue to discuss and agree on **what** files will be submitted, **where** in the repository **before** submitting a Pull Request.
+   1. You can use the issue to discuss and agree on **what** files will be submitted, and **where** in the repository it will be added **before** submitting a Pull Request.
    1. It is ok to attach to the issue example files or images to clarify your point during an issue discussion, but it is **not** ok to submit entire datasets to either issue or as pull requests. Data should be hosted separately and discussed in the issue.
 1. **Fork the repo**, develop and test your code changes.
    1. After cloning your fork, **before starting to modify any file**, please create a topic branch. A topic branch has the following format: `<issue-id>-<meaningful name associated to **what** you are trying to do>`.
-      * Example: If the issue `ID #27` is about creating histograms of full disclosure word counts, then your branch should be `27-full-disclosure-word-count-histogram` (note the # symbol is **not** included in the branch name).
-   1. Please **include the issue ID in all commits** (e.g. `i #27`). Your commits should follow the format `i <issue-id> <meaningful commit name>`. Note the leading `i` followed by a single whitespace is required so GitHub can parse it. 
+      * Example: If the issue `#27` is about creating histograms of full disclosure word counts, then your branch should be `27-full-disclosure-word-count-histogram` (note the # symbol is **not** included in the branch name).
+   1. Please **include the issue ID in all commits** (i.e. `i #27`). Your commits should follow the format `i <issue-id> <meaningful commit name>`. Note the leading `i` followed by a single whitespace is required so GitHub can parse it. 
        * Example: Continuing the example above, as you work in branch `27-full-disclosure-word-count-histogram`, one of your commits may be `i #27 parse input data into data frames`, followed by `i #27 plot and specify histogram ranges`. Note that, different from topic branches, **the i and # symbol must be included** in all commit labels.
    1. Please strive for good commit messages. A quick google search will provide many examples of good and bad commits.  
+   1. Keep commit message titles short (50 characters or less). Use the commit body for details, and wrap commit body lines at 72 characters. **Please avoid titles such as "modified R/file.R"**. 
 1. **Submit a pull request** using the created topic branch in step 3.2.1.
    1. Git will prompt the commit message to be used as the title of your Pull Request. **Please remove the issue number from the pull request title**, as it becomes confusing to read with the Pull Request own number.
    1. Ensure that after clicking `New Pull Request` you select the correct branch of your fork. Ensure you are **not** using your fork's master branch, but instead the topic branch.
@@ -117,17 +118,5 @@ This does not constitute legal advice. The aforementioned decisions were done in
 
 # 5. Learning Resources
 
-The videos listed below are available for free by Udacity and may require an account to be created.
-
-If you are completely new to Git, I recommend the [introdutory Git course](https://www.udacity.com/course/version-control-with-git--ud123) by Udacity first. This course will teach you how to use git on your computer, but not to contribute code to this repository.
-
-If you are comfortable using git locally, but are new to Github, [I recommend the follow-up course by the same author, also from Udacity](https://www.udacity.com/course/github-collaboration--ud456).
-
-Going through both courseworks should take less than a weekend if following only the videos, or no more than 1 week and a half if doing the homework of both courses and videos.
-
-If you are used to Git and Github, but only need to brush up or review material as required, here are the relevant lecture pointers:
-
-- [Create a Pull Request](https://classroom.udacity.com/courses/ud456/lessons/e295524f-87b6-4981-af74-6b20231dc7c1/concepts/9c0c0dd5-225e-44a4-9257-a584a7829207)
-- [Stay in Sync with Code Repository](https://classroom.udacity.com/courses/ud456/lessons/e295524f-87b6-4981-af74-6b20231dc7c1/concepts/48825e17-72c6-4c3e-9c98-1add66bf1c86)
-- [Commit Squash and Relabel](https://classroom.udacity.com/courses/ud456/lessons/e295524f-87b6-4981-af74-6b20231dc7c1/concepts/3d9fb9c8-47bc-4dbd-a6d3-09b006be24e4)
+If you are new to collaborating on GitHub, or need to brush up, see the [Wiki's](https://github.com/sailuh/kaiaulu/wiki) `Learning Resources` section.
 
