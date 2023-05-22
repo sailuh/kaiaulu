@@ -1,3 +1,37 @@
+# -*- yaml -*-
+# https://github.com/sailuh/kaiaulu
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
+# Project Configuration File #
+#
+# To perform analysis on open source projects, you need to manually
+# collect some information from the project's website. As there is
+# no standardized website format, this file serves to distill
+# important data source information so it can be reused by others
+# and understood by Kaiaulu.
+#
+# Please check https://github.com/sailuh/kaiaulu/tree/master/conf to
+# see if a project configuration file already exists. Otherwise, we
+# would appreciate if you share your curated file with us by sending a
+# Pull Request: https://github.com/sailuh/kaiaulu/pulls
+#
+# Note, you do NOT need to specify this entire file to conduct analysis.
+# Each R Notebook uses a different portion of this file. To know what
+# information is used, see the project configuration file section at
+# the start of each R Notebook.
+#
+# Please comment unused parameters instead of deleting them for clarity.
+# If you have questions, please open a discussion:
+# https://github.com/sailuh/kaiaulu/discussions
+
+project:
+  website: https://jrefactory.soft112.com/
+  #openhub: https://www.openhub.net/p/jrefactory
+
 version_control:
   # Where is the git log located locally?
   # This is the path to the .git of the project repository you are analyzing.
@@ -12,6 +46,43 @@ version_control:
   # branch:
   # - main
 
+#mailing_list:
+  # Where is the mbox located locally?
+  # This project has no mbox
+
+  # What is the domain of the chosen mailing list archive?
+  # Which lists of the domain will be used?
+#  list_key:
+#    
+
+#issue_tracker:
+# This project has no issue tracker
+
+#  jira:
+    # Obtained from the project's JIRA URL
+#    domain: 
+    #project_key: 
+    # Download using `download_jira_data.Rmd`
+    #issues: 
+    #issue_comments: 
+#  github:
+    # Obtained from the project's GitHub URL
+#    owner: 
+#    repo: 
+    # Download using `download_github_comments.Rmd`
+#    replies: 
+
+#vulnerabilities:
+  # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
+  # Download at: 
+  #nvd_feed: 
+
+# Commit message CVE or Issue Regular Expression (regex)
+# See project's commit message for examples to create the regex
+#commit_message_id_regex:
+#  issue_id: \#[0-9]+
+  #cve_id: ?
+  
 filter:
   keep_filepaths_ending_with:
     - cpp
@@ -101,6 +172,11 @@ tool:
     # e.g. http://www.javadecompilers.com/
     class_folder_path: ../../rawdata/git_repo/newJrefactory
     output_filepath: ../../analysis/pattern4/jrefactory2.9_gof.xml
+    compile_note: >
+      1. Download the project from https://jrefactory.soft112.com/
+      2. Extract the jar file by running: jar xf JavaStyle 2.jar
+      3. Utilize Java decompiler to convert class files to java files. e.g. http://www.javadecompilers.com (Use it at your own discretion)
+      4. By now you should have class files and java files in one directory that can be analyzed by both pattern4.jar and gof_showcase notebook
 
 # Analysis Configuration #
 analysis:
