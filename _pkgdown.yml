@@ -31,6 +31,7 @@ reference:
   - filter_by_filepath_substring
   - filter_by_commit_interval
   - filter_by_last_files_change
+  - filter_by_commit_size
 - title: __Networks__
   desc:  Transforms parsed data into a format suitable to network libraries
 - contents:
