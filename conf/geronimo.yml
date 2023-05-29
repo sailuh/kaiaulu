@@ -89,6 +89,8 @@ filter:
     - cc
   remove_filepaths_containing:
     - test
+  remove_filepaths_on_commit_size_greather_than:
+    - 30
 
 
 # Third Party Tools Configuration #
@@ -115,6 +117,32 @@ tool:
       - Throw
       - Parameter
       - Contain
+  dv8:
+    # The project folder path to store various intermediate
+    # files for DV8 Analysis
+    # The folder name will be used in the file names.
+    folder_path: ../../analysis/dv8/geronimo
+    # the architectural flaws thresholds that should be used
+    architectural_flaws:
+      cliqueDepends:
+        - call
+        - use
+      crossingCochange: 2
+      crossingFanIn: 4
+      crossingFanOut: 4
+      mvCochange: 2
+      uiCochange: 2
+      uihDepends:
+        - call
+        - use
+      uihInheritance:
+        - extend
+        - implement
+        - public
+        - private
+        - virtual
+      uiHistoryImpact: 10
+      uiStructImpact: 0.01
   # Uctags allows finer file-file dependency parsing (e.g. functions, classes, structs)
   uctags:
     # See https://github.com/sailuh/kaiaulu/wiki/Universal-Ctags for details

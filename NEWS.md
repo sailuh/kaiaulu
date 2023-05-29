@@ -3,10 +3,14 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+
+ * A new filter, `filter_by_commit_size()`, has been added. This filter mitigates outline co-change resulting from git log projections, which may lead to a "all-vs-all" explosion of edges. E.g. Apache Geronimo SVN to Git migration contains a [commit](https://github.com/apache/geronimo/commit/b60bf0a205e0257cb3279b08fb6c8d48bc7ce67a) which modifies 1522 files. Said 1522 files would be co-changed with each other generating 1522 Choose 2 = 1,157,481 alone, which not accurately reflect actual "co-change". Use of this filter is strongly encouraged for `graph_to_dsmj` or any operations that require git log projection. [#209](https://github.com/sailuh/kaiaulu/issues/209)
  * Re-Implements Motif Analysis from prior [TSE paper](https://ieeexplore.ieee.org/document/9436025).  [#210](https://github.com/sailuh/kaiaulu/issues/210)
 
 ### MINOR IMPROVEMENTS
 
+ * A progress bar has been added to `parse_dv8_architectural_flaws()`. Each tick tracks one folder of flaws (progressBar auto resets the tick to 0 on loop completion, so instance progress bar requires further function refactoring and is deferred for now). [#209](https://github.com/sailuh/kaiaulu/issues/209)
+ * graph_to_dsmj is now vectorized, increasing performance [#209](https://github.com/sailuh/kaiaulu/issues/209)
  * Bugzilla API now allows for output file to be specified. [#202](https://github.com/sailuh/kaiaulu/issues/202)
  * Paired parser functions now expects a filepath instead of a json string character. [#202](https://github.com/sailuh/kaiaulu/issues/202)
 

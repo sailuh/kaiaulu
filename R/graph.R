@@ -33,61 +33,52 @@ graph_to_dsmj <- function(graph, dsmj_path, dsmj_name, is_directed, is_sorted=FA
   # Make named list with file names as keys and indices as values
   names(variables_indices) <- variables
 
-  # Group data into cells by the "from" and "to" files and get their labels and weights.
-  grouped_cells <- edgelist_table[, .(labels=list(label), weights=list(weight)),
-                                                by =.(from, to)]
+  e_src <- edgelist_table$from
+  e_dest <- edgelist_table$to
+  edgelist_table$from <- variables_indices[e_src] - 1
+  edgelist_table$to <- variables_indices[e_dest] - 1
 
-  # List to hold cells' indices
-  cells_indices <- 1:nrow(grouped_cells)
+  # ensure no 0 weight edges are recorded.
+  edgelist_table <- edgelist_table[weight > 0]
 
-  getCell <- function(i) {
-    src <- grouped_cells[["from"]][[i]]
-    dest <- grouped_cells[["to"]][[i]]
+  convert_to_list_of_dataframes <- function(s_grouped_cells){
+    #s_grouped_cells is a data.frame of the form:
+    # Call  Import  Implement Contain Create  ... Annotation
+    # Not every pair of files has all types of dependencies. The global dcast will generate columns with NAs.
+    # We remove them here and also collapses all column types into a single values column which contains
+    # all the types of edges that occur, consistent to the DSMJ.
 
-    src_index <- variables_indices[src] - 1
-    dest_index <- variables_indices[dest] - 1
-
-    values <- list()
-    # Get all the parameter values for a specific cell
-    parameters <- grouped_cells[["labels"]][[i]]
-    for (j in 1: length(parameters)) {
-      current_param <- grouped_cells[["weights"]][[i]][[j]]
-      if (current_param > 0){
-        values[[as.character(parameters[[j]])]] <- current_param
-      }
-    }
-
-    return(list(src=src_index, dest=dest_index, values=as.data.table(values)))
+    # Delete columns which values are all NA.
+    s_grouped_cells <- s_grouped_cells[,which(unlist(lapply(s_grouped_cells,
+                                                            function(x)!all(is.na(x))))),with=F]
+    return(list(as.data.frame(s_grouped_cells)))
   }
 
-  getCellReverse <- function(i) {
-    src <- grouped_cells[["to"]][[i]]
-    dest <- grouped_cells[["from"]][[i]]
+  edgelist_dcast <- dcast(edgelist_table,formula = from + to ~ label,
+                          value.var = "weight")
 
-    src_index <- variables_indices[src] - 1
-    dest_index <- variables_indices[dest] - 1
 
-    values <- list()
-    # Get all the parameter values for a specific cell
-    parameters <- grouped_cells[["labels"]][[i]]
-    for (j in 1: length(parameters)) {
-      current_param <- grouped_cells[["weights"]][[i]][[j]]
-      if (current_param > 0){
-        values[[as.character(parameters[[j]])]] <- current_param
-      }
-    }
+  dsmj_list <- edgelist_dcast[,.(values = convert_to_list_of_dataframes(.SD)),
+                              by = .(from,to)]
 
-    return(list(src=src_index, dest=dest_index, values=as.data.table(values)))
-  }
+  # We should not record edges which contain not a single type with weight > 0
+  n_dependency_type <- sapply(dsmj_list$values,nrow)
+  dsmj_list <- dsmj_list[n_dependency_type > 0]
 
-  # Sorted list
-  cells <- lapply(cells_indices, getCell)
-  cells_df <- data.table::data.table(jsonlite::fromJSON(jsonlite::toJSON(cells, auto_unbox = TRUE)))
+  #DSMJ uses "src" and "dest" instead of "from" and "to"
+  setnames(x = dsmj_list,
+           old = c("from","to"),
+           new = c("src","dest"))
 
-  # Double the cells (switching src/dest) if not a directed graph
+  cells_df <- dsmj_list
+
+
+  # Double the cells (switching src/dest) if not a directed graph according to DSMJ specification
+
   if (is_directed == FALSE){
-    cells_reverse <- lapply(cells_indices, getCellReverse)
-    cells_reverse_df <- data.table::data.table(jsonlite::fromJSON(jsonlite::toJSON(cells_reverse, auto_unbox = TRUE)))
+    cells_reverse_df <- copy(cells_df)
+    cells_reverse_df$src <- cells_df$dest
+    cells_reverse_df$dest <- cells_df$src
     cells_df <- rbind(cells_df, cells_reverse_df)
   }
 
@@ -169,6 +160,9 @@ bipartite_graph_projection <- function(graph,mode,weight_scheme_function = NULL)
     }
     from <- unique(dt$from)
     # If projection of isolated node, there is nothing to connect it to
+    # (E.g. isolated node: Commit with 1 file)
+    # or if the deleted node degree is greater than threshold we do not
+    # generate edges
     if(length(from) < 2){
       combinations <- data.table(NA_character_,NA_character_)
     }else{

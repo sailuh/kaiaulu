@@ -53,6 +53,7 @@ flaws_params <- conf[["tool"]][["dv8"]][["architectural_flaws"]]
 # Filters
 file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
 substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+filter_commit_size <- conf[["filter"]][["remove_filepaths_on_commit_size_greather_than"]]
 ```
 
 # Preparing Gitlog and Dependencies for DV8
@@ -68,7 +69,8 @@ For the git log, we first parse it into Kaiaulu as a table, and filter based on 
 project_git <- parse_gitlog(perceval_path,git_repo_path)
 project_git <- project_git  %>%
   filter_by_file_extension(file_extensions,"file_pathname")  %>% 
-  filter_by_filepath_substring(substring_filepath,"file_pathname")
+  filter_by_filepath_substring(substring_filepath,"file_pathname") %>% 
+  filter_by_commit_size(commit_size = filter_commit_size)
 
 kable(head(project_git))
 ```
@@ -188,7 +190,7 @@ flaws_params$uihInheritance <- stringi::stri_c(flaws_params$uihInheritance,colla
 
 flaws_folder <- dv8_mdsmb_to_flaws(dv8_path = dv8_path, 
                                     mdsmb_path = mdsmb_path,
-                                    flaws_path = file.path(project_path,"apr_flaws"),
+                                    flaws_path = file.path(project_path,paste0(project_name,"_flaws")),
                                     cliqueDepends=flaws_params$cliqueDepends,
                                     crossingCochange=flaws_params$crossingCochange,
                                     crossingFanIn=flaws_params$crossingFanIn,
@@ -218,18 +220,18 @@ Describes two types of architectural flaws were found in APR, modularity violati
 ```
 apr_flaws/
 ├── modularity-violation
-│   ├── 1
-│   │   ├── 1-clsx.dv8-clsx
-│   │   ├── 1-hdsm.dv8-dsm
-│   │   ├── 1-merge.dv8-dsm
-│   │   ├── 1-sdsm.dv8-dsm
-│   │   └── 1.dv8-issue
-│   ├── 10
-│   │   ├── 10-clsx.dv8-clsx
-│   │   ├── 10-hdsm.dv8-dsm
-│   │   ├── 10-merge.dv8-dsm
-│   │   ├── 10-sdsm.dv8-dsm
-│   │   └── 10.dv8-issue
+│   ├── 1
+│   │   ├── 1-clsx.dv8-clsx
+│   │   ├── 1-hdsm.dv8-dsm
+│   │   ├── 1-merge.dv8-dsm
+│   │   ├── 1-sdsm.dv8-dsm
+│   │   └── 1.dv8-issue
+│   ├── 10
+│   │   ├── 10-clsx.dv8-clsx
+│   │   ├── 10-hdsm.dv8-dsm
+│   │   ├── 10-merge.dv8-dsm
+│   │   ├── 10-sdsm.dv8-dsm
+│   │   └── 10.dv8-issue
 ```
 
 Each numbered folder represents an architectural flaw ID. For example, above we have the modularity violation flaws ID 1 and ID 10. We can further see the sdsm, hdsm, merge dsm, and cluster files occur within both folder ids. If load on DV8 GUI or export to excel (as done in the prior section) any of these files, we can see which files participate in these architectural flaws, and the clusters they are assigned. We will now see how to represent this information as a table we can parse in R, or more specifically the file-architectural flaw assignment, so it can be combined to other analysis in Kaiaulu.
@@ -238,7 +240,8 @@ Each numbered folder represents an architectural flaw ID. For example, above we 
 ### Creating a Flaws Mapping
 
 ```{r}
-file_to_flaws_map <- parse_dv8_architectural_flaws(dv8_path, flaws_folder)
+file_to_flaws_map <- parse_dv8_architectural_flaws(dv8_path, flaws_folder,progress_bar = TRUE)
+fwrite(file_to_flaws_map,file.path(project_path,paste0(project_name,"-flaws_map.csv")))
 kable(head(file_to_flaws_map))
 ```
 
@@ -329,4 +332,3 @@ sdsmb_path <- dv8_dsmj_to_dsmb(dv8_path = dv8_path,
 
 list.files(project_path)
 ```
-

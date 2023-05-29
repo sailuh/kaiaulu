@@ -89,7 +89,8 @@ filter:
     - cc
   remove_filepaths_containing:
     - test
-
+  remove_filepaths_on_commit_size_greather_than:
+    - 300 # Calculator is a toy project, hence co-change threshold is set high to allow for migrations.
 
 # Third Party Tools Configuration #
 #

@@ -24,6 +24,7 @@ all filepaths which contain the word 'test' anywhere in it)
 \code{\link{parse_gitlog}} and \code{\link{parse_dependencies}} to create dt_file
 
 Other filters: 
-\code{\link{filter_by_commit_interval}()}
+\code{\link{filter_by_commit_interval}()},
+\code{\link{filter_by_commit_size}()}
 }
 \concept{filters}
