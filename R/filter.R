@@ -71,3 +71,23 @@ filter_by_last_files_change <- function(git_log,p_commit_hash){
   last_changes_per_file <- git_log[,last(.SD),by=file_pathname]
   return(last_changes_per_file)
 }
+#' Filter by number of files in commit
+#'
+#' If a commit modified more than `commit_size` files, then all file changes in `project_git`
+#' associated to the commit are deleted from the table. Specifying a `commit_size` is useful
+#' to decrease threats to validity on "migration commits" when performing a graph projection
+#' on a file-commit network to obtain co-change.(e.g. \code{\link{transform_gitlog_to_hdsmj}}).
+#'
+#'
+#' @param project_git The parsed `project_git` file obtained from \code{\link{parse_gitlog}}.
+#' @param commit_size Commits which modify a number of files greater than this threshold are deleted from
+#' `project_git`.
+#' @return a data.table which only contain file changes to commits less or equal than `commit_size.
+#' @export
+#' @family filters
+filter_by_commit_size <- function(project_git,commit_size = 30){
+  nfiles_less_threshold <- project_git[,.(frequency=.N),by="commit_hash"][frequency <= commit_size]$commit_hash
+  is_less_than_threshold_files <- project_git$commit_hash %in% nfiles_less_threshold
+  project_git <- project_git[is_less_than_threshold_files]
+  return(project_git)
+}

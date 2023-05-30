@@ -32,6 +32,7 @@ reference:
   - filter_by_filepath_substring
   - filter_by_commit_interval
   - filter_by_last_files_change
+  - filter_by_commit_size
 - title: __Networks__
   desc:  Transforms parsed data into a format suitable to network libraries
 - contents:
@@ -57,6 +58,12 @@ reference:
   - community_oslom
   - recolor_network_by_community
   - graph_to_dsmj
+- title: __Motif__
+  desc:  Sub-graphs used in Software Engineering literature for socio-technical metrics.
+- contents:
+  - motif_factory
+  - motif_factory_triangle
+  - motif_factory_square
 - title: __Identity__
   desc:  Provide the same id to authors who use variations of names or emails.
 - contents:
