@@ -1,12 +1,12 @@
 ---
-title: "Identifying GoF Patterns: Text and Graph Approach"
+title: "GoF Patterns: Identifying Patterns via Text and Graph Methods"
 output: 
   html_document:
     toc: true
     number_sections: true
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{Identifying GoF Patterns: Text and Graph Approach}
+  %\VignetteIndexEntry{GoF Patterns: Identifying Patterns via Text and Graph Methods}
   %\VignetteEncoding{UTF-8}
 ---
 
@@ -293,18 +293,14 @@ gof_patterns <- parse_gof_patterns(pattern4_path = pattern4_path,
 #gof_patterns_classes$class_name <- sapply(stringi::stri_split_regex(gof_patterns_classes$class_path,pattern="\\."),parse_last_list_element)
 
 
-gof_patterns[,.(class_path,pattern_name,role_name)] %>%
+gof_patterns %>%
   gt(auto_align = FALSE) %>%
   tab_header(
     title = "GoF Patterns",
     subtitle = glue::glue("Tsantalis' et al. Graph Method") 
-  ) %>% 
-   cols_align(
-    align = "right",
-    columns = c("class_path")
   ) %>%
     cols_align(
     align = "left",
-    columns = c("pattern_name","role_name")
+    columns = c("pattern_name","role_name","element")
   )
 ```

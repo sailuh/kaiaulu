@@ -9,6 +9,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### MINOR IMPROVEMENTS
 
+ * parse_gof_patterns() now includes the instance id of a given pattern. The column names were also renamed to match the XML. This should now fully tabulate all information provided by the XML. Note patterns which at least one instance are not reported are not included in the table (in the XML they occur but with no instances reported). [#206](https://github.com/sailuh/kaiaulu/issues/206)
  * Bugzilla API now allows for output file to be specified. [#202](https://github.com/sailuh/kaiaulu/pull/202)
  * Paired parser functions now expects a filepath instead of a json string character. [#202](https://github.com/sailuh/kaiaulu/pull/202)
 

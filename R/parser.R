@@ -1536,21 +1536,31 @@ parse_gof_patterns <- function(pattern4_path,class_folder_path,output_filepath='
   patterns <- XML::xmlChildren(gof_root) #class => XMLNodeList (lapply safe)
 
   parse_instance <- function(instance){
+
     roles <- XML::xmlChildren(instance)
     role_names <- lapply(roles,XML::xmlGetAttr,"name")
-    role_element <- lapply(roles,XML::xmlGetAttr,"element")
-    return(data.table(role_name = role_names,
-                      class_path = role_element))
+    element <- lapply(roles,XML::xmlGetAttr,"element")
+
+    instance <- data.table(instance_id,
+                           role_name = role_names,
+                           element = element)
+
+    instance_id <<- instance_id + 1
+
+    return(instance)
   }
 
   parse_pattern <- function(pattern){
-
-    # Each GoF pattern, if ocurring on the code, is assigned an instance
+    # Each GoF pattern, if occurring on the code, is assigned an instance
     n_instances <- XML::xmlSize(pattern)
 
     # The XML mentions the pattern name even with no instances detected. We do not
-    # include te pattern name if no instances are detected.
+    # include the pattern name if no instances are detected.
     if(n_instances > 0){
+
+      # Note counter bypasses lapply scope <<-
+      instance_id <<- 1
+
       pattern_name <- XML::xmlGetAttr(pattern,"name")
 
       instances <- XML::xmlChildren(pattern)
@@ -1563,7 +1573,7 @@ parse_gof_patterns <- function(pattern4_path,class_folder_path,output_filepath='
   }
   patterns_dt <- rbindlist(lapply(patterns,parse_pattern))
 
-  patterns_dt <- patterns_dt[,.(class_path,pattern_name,role_name)]
+  patterns_dt <- patterns_dt[,.(pattern_name,instance_id,role_name,element)]
   return(patterns_dt)
 }
 
