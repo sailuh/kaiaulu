@@ -3,7 +3,14 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ * Adds Gang of Four parser for Tsantalis' parser4.jar [#211](https://github.com/sailuh/kaiaulu/issues/211)
+ * A new text module was added. The module allows for extracting identifiers from source code. See the new `src_text_showcase.Rmd` for details. [#206](https://github.com/sailuh/kaiaulu/issues/206)
 
+### MINOR IMPROVEMENTS
+
+ * parse_gof_patterns() now includes the instance id of a given pattern. The column names were also renamed to match the XML. This should now fully tabulate all information provided by the XML. Note patterns which at least one instance are not reported are not included in the table (in the XML they occur but with no instances reported). [#206](https://github.com/sailuh/kaiaulu/issues/206)
+ * Bugzilla API now allows for output file to be specified. [#202](https://github.com/sailuh/kaiaulu/pull/202)
+ * Paired parser functions now expects a filepath instead of a json string character. [#202](https://github.com/sailuh/kaiaulu/pull/202)
  * A new filter, `filter_by_commit_size()`, has been added. This filter mitigates outline co-change resulting from git log projections, which may lead to a "all-vs-all" explosion of edges. E.g. Apache Geronimo SVN to Git migration contains a [commit](https://github.com/apache/geronimo/commit/b60bf0a205e0257cb3279b08fb6c8d48bc7ce67a) which modifies 1522 files. Said 1522 files would be co-changed with each other generating 1522 Choose 2 = 1,157,481 alone, which not accurately reflect actual "co-change". Use of this filter is strongly encouraged for `graph_to_dsmj` or any operations that require git log projection. [#209](https://github.com/sailuh/kaiaulu/issues/209)
  * Re-Implements Motif Analysis from prior [TSE paper](https://ieeexplore.ieee.org/document/9436025).  [#210](https://github.com/sailuh/kaiaulu/issues/210)
 

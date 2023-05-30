@@ -13,3 +13,7 @@ dv8: /Applications/DV84/bin/dv8-console
 # OSLOM: http://oslom.org/
 oslom_dir: ~/OSLOM2/oslom_dir
 oslom_undir: ~/OSLOM2/oslom_undir
+# srcML: https://www.srcml.org/
+srcml: /usr/local/bin/srcml
+# pattern4: https://users.encs.concordia.ca/~nikolaos/pattern_detection.html
+pattern4: ~/Desktop/kaiaulu/tools/pattern4.jar
