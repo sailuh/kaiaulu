@@ -4,6 +4,108 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+#' File Bug Frequency
+#'
+#' The total number of commits of all closed bug type issues the file was involved.
+#'
+#' @param project_git a parsed git log obtained from \code{\link{parse_commit_message_id}}
+#' @param jira_issues a parsed jira issue log obtained from \code{\link{parse_jira}}
+#' @return a two column data.table of the form file_pathname | file_bug_frequency
+#' @export
+#' @family {metrics}
+metric_file_bug_frequency <- function(project_git,jira_issues){
+
+  jira_issues_bug <- jira_issues[issue_status == "Closed" & issue_type == "Bug"][,.(issue_key,issue_type)]
+  file_bug_frequency <- merge(project_git[,.(file_pathname,commit_message_id)],
+                              jira_issues_bug,all.x=TRUE,by.x="commit_message_id",
+                              by.y="issue_key")
+  file_bug_frequency <- file_bug_frequency[!is.na(issue_type)]
+  file_bug_frequency <- file_bug_frequency[,.(file_bug_frequency=.N),by = "file_pathname"]
+  return(file_bug_frequency[,.(file_pathname,file_bug_frequency)])
+
+}
+
+#' File Non Bug Frequency
+#'
+#' The total number of commits of all closed non-bug type issues the file was involved.
+#'
+#' @param project_git a parsed git log obtained from \code{\link{parse_commit_message_id}}
+#' @param jira_issues a parsed jira issue log obtained from \code{\link{parse_jira}}
+#' @return a two column data.table of the form file_pathname | non_file_bug_frequency
+#' @export
+#' @family {metrics}
+metric_file_non_bug_frequency <- function(project_git,jira_issues){
+
+  jira_issues_non_bug <- jira_issues[issue_status == "Closed" & issue_type != "Bug"][,.(issue_key,issue_type)]
+  file_non_bug_frequency <- merge(project_git[,.(file_pathname,commit_message_id)],
+                                  jira_issues_non_bug,all.x=TRUE,by.x="commit_message_id",
+                              by.y="issue_key")
+  file_non_bug_frequency <- file_non_bug_frequency[!is.na(issue_type)]
+  file_non_bug_frequency <- file_non_bug_frequency[,.(file_non_bug_frequency=.N),by = "file_pathname"]
+  return(file_non_bug_frequency[,.(file_pathname,file_non_bug_frequency)])
+
+}
+
+#' File Bug Churn
+#'
+#' The total churn sum of commits of all closed bug type issues the file was involved.
+#'
+#' @param project_git a parsed git log obtained from \code{\link{parse_commit_message_id}}
+#' @param jira_issues a parsed jira issue log obtained from \code{\link{parse_jira}}
+#' @return a two column data.table of the form file_pathname | file_bug_churn
+#' @export
+#' @family {metrics}
+metric_file_bug_churn <- function(project_git,jira_issues){
+
+  project_git <- metric_churn_per_commit_per_file(project_git)
+  jira_issues_bug <- jira_issues[issue_status == "Closed" & issue_type == "Bug"][,.(issue_key,issue_type)]
+  file_bug_churn <- merge(project_git[,.(file_pathname,churn,commit_message_id)],
+                              jira_issues_bug,all.x=TRUE,by.x="commit_message_id",
+                              by.y="issue_key")
+  file_bug_churn <- file_bug_churn[!is.na(issue_type)]
+  file_bug_churn <- file_bug_churn[,.(file_bug_churn=sum(churn,na.rm=TRUE)),by = "file_pathname"]
+  return(file_bug_churn[,.(file_pathname,file_bug_churn)])
+
+}
+
+#' File Non Bug Churn
+#'
+#' The total churn sum of commits of all closed non-bug type issues the file was involved.
+#'
+#' @param project_git a parsed git log obtained from \code{\link{parse_commit_message_id}}
+#' @param jira_issues a parsed jira issue log obtained from \code{\link{parse_jira}}
+#' @return a two column data.table of the form file_pathname | file_non_bug_churn
+#' @export
+#' @family {metrics}
+metric_file_non_bug_churn <- function(project_git,jira_issues){
+
+  project_git <- metric_churn_per_commit_per_file(project_git)
+  jira_issues_non_bug <- jira_issues[issue_status == "Closed" & issue_type != "Bug"][,.(issue_key,issue_type)]
+  file_non_bug_churn <- merge(project_git[,.(file_pathname,churn,commit_message_id)],
+                          jira_issues_non_bug,all.x=TRUE,by.x="commit_message_id",
+                          by.y="issue_key")
+  file_non_bug_churn <- file_non_bug_churn[!is.na(issue_type)]
+  file_non_bug_churn <- file_non_bug_churn[,.(file_non_bug_churn=sum(churn,na.rm=TRUE)),by = "file_pathname"]
+  return(file_non_bug_churn[,.(file_pathname,file_non_bug_churn)])
+
+}
+
+#' File Churn
+#'
+#' The total churn of a file
+#'
+#' @param project_git a parsed git log obtained from \code{\link{parse_gitlog}}
+#' @return a two column data.table of the form file_pathname | file_churn
+#' @export
+#' @family {metrics}
+metric_file_churn <- function(project_git){
+
+  project_file_churn <- metric_churn_per_commit_per_file(project_git)
+  project_file_churn <- project_file_churn[,.(file_churn=sum(churn)),by="file_pathname"]
+  return(project_file_churn[,.(file_pathname,file_churn)])
+
+}
+
 #' Churn Metric
 #'
 #' Simply adds two columns, expected to be additions and deletions from a file.

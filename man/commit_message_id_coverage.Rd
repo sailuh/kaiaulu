@@ -24,6 +24,11 @@ Calculates the number of commits from the git log which contains the message id.
 Other {metrics}: 
 \code{\link{metric_churn_per_commit_interval}()},
 \code{\link{metric_churn_per_commit_per_file}()},
-\code{\link{metric_churn}()}
+\code{\link{metric_churn}()},
+\code{\link{metric_file_bug_churn}()},
+\code{\link{metric_file_bug_frequency}()},
+\code{\link{metric_file_churn}()},
+\code{\link{metric_file_non_bug_churn}()},
+\code{\link{metric_file_non_bug_frequency}()}
 }
 \concept{{metrics}}

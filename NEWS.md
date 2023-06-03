@@ -3,6 +3,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ * Adds `metric_file_bug_frequency()`, `metric_file_non_bug_frequency()`, `metric_file_bug_churn()`, `metric_file_non_bug_churn()`, `metric_file_churn()` to `R/metric.R` [#214](https://github.com/sailuh/kaiaulu/issues/214)
  * Adds Gang of Four parser for Tsantalis' parser4.jar [#211](https://github.com/sailuh/kaiaulu/issues/211)
  * A new text module was added. The module allows for extracting identifiers from source code. See the new `src_text_showcase.Rmd` for details. [#206](https://github.com/sailuh/kaiaulu/issues/206)
 

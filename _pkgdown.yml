@@ -80,6 +80,11 @@ reference:
 - title: __Metrics__
   desc:  Various metrics used to estimate code quality, complexity and effort
 - contents:
+  - metric_file_bug_frequency
+  - metric_file_non_bug_frequency
+  - metric_file_bug_churn
+  - metric_file_non_bug_churn
+  - metric_file_churn
   - metric_churn_per_commit_interval
   - metric_churn_per_commit_per_file
   - commit_message_id_coverage
