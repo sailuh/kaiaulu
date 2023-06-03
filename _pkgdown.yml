@@ -24,6 +24,7 @@ reference:
   - parse_line_metrics
   - parse_line_type_file
   - parse_commit_message_id
+  - parse_gof_patterns
 - title: __Filters__
   desc:  Filters for file extensions, and substrings, such as test files, and time intervals.
 - contents:
@@ -194,3 +195,9 @@ reference:
   - dv8_clsxb_to_clsxj
   - dv8_clsxj_to_clsxb
   - parse_dv8_clusters
+- title: __Text__
+  desc:  Parses source code identifier for text analysis
+- contents:
+  - annotate_src_text
+  - query_src_text
+  - query_src_text_class_names
