@@ -3,7 +3,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
-
+ * Adds `metric_file_bug_frequency()`, `metric_file_non_bug_frequency()`, `metric_file_bug_churn()`, `metric_file_non_bug_churn()`, `metric_file_churn()` to `R/metric.R` [#214](https://github.com/sailuh/kaiaulu/issues/214)
  * A new filter, `filter_by_commit_size()`, has been added. This filter mitigates outline co-change resulting from git log projections, which may lead to a "all-vs-all" explosion of edges. E.g. Apache Geronimo SVN to Git migration contains a [commit](https://github.com/apache/geronimo/commit/b60bf0a205e0257cb3279b08fb6c8d48bc7ce67a) which modifies 1522 files. Said 1522 files would be co-changed with each other generating 1522 Choose 2 = 1,157,481 alone, which not accurately reflect actual "co-change". Use of this filter is strongly encouraged for `graph_to_dsmj` or any operations that require git log projection. [#209](https://github.com/sailuh/kaiaulu/issues/209)
  * Re-Implements Motif Analysis from prior [TSE paper](https://ieeexplore.ieee.org/document/9436025).  [#210](https://github.com/sailuh/kaiaulu/issues/210)
 
