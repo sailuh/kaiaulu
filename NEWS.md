@@ -17,6 +17,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### MINOR IMPROVEMENTS
 
+ * Adds tags column to `github_parse_project_issue()`, `github_parse_project_pull_request()` so bug count can also be computed from GitHub API. [#216](https://github.com/sailuh/kaiaulu/issues/216)
  * A progress bar has been added to `parse_dv8_architectural_flaws()`. Each tick tracks one folder of flaws (progressBar auto resets the tick to 0 on loop completion, so instance progress bar requires further function refactoring and is deferred for now). [#209](https://github.com/sailuh/kaiaulu/issues/209)
  * graph_to_dsmj is now vectorized, increasing performance [#209](https://github.com/sailuh/kaiaulu/issues/209)
  * Bugzilla API now allows for output file to be specified. [#202](https://github.com/sailuh/kaiaulu/issues/202)

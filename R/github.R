@@ -110,6 +110,13 @@ github_parse_project_issue <- function(api_responses){
     parsed_response[["title"]] <- api_response[["title"]]
     parsed_response[["body"]] <- api_response[["body"]]
 
+    parsed_response[["labels"]] <- api_response[["labels"]]
+    if(length(parsed_response[["labels"]]) > 0){
+      parsed_response[["labels"]] <- stringi::stri_c(sapply(parsed_response[["labels"]],"[[","name"),collapse = ",")
+    }else{
+      parsed_response[["labels"]] <- NA_character_
+    }
+
     parsed_response <- as.data.table(parsed_response)
 
     return(parsed_response)
@@ -156,6 +163,13 @@ github_parse_project_pull_request <- function(api_responses){
     parsed_response[["author_association"]] <- api_response[["author_association"]]
     parsed_response[["title"]] <- api_response[["title"]]
     parsed_response[["body"]] <- api_response[["body"]]
+
+    parsed_response[["labels"]] <- api_response[["labels"]]
+    if(length(parsed_response[["labels"]]) > 0){
+      parsed_response[["labels"]] <- stringi::stri_c(sapply(parsed_response[["labels"]],"[[","name"),collapse = ",")
+    }else{
+      parsed_response[["labels"]] <- NA_character_
+    }
 
     parsed_response <- as.data.table(parsed_response)
 

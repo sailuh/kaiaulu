@@ -23,6 +23,8 @@ require(kaiaulu)
 require(data.table)
 require(jsonlite)
 require(knitr)
+require(magrittr)
+require(gt)
 ```
 
 
@@ -42,7 +44,7 @@ Therefore, in this Notebook we have to rely on three endpoints from the GitHub A
 To use the pipeline, you must specify the organization and project of interest, and your token. Obtain a github token following the instructions [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
 
 ```{r}
-conf <- yaml::read_yaml("../conf/helix.yml")
+conf <- yaml::read_yaml("../conf/kaiaulu.yml")
 save_path <- path.expand(conf[["issue_tracker"]][["github"]][["replies"]]) # Path you wish to save all raw data. A folder with the repo name and sub-folders will be created.
 owner <- conf[["issue_tracker"]][["github"]][["owner"]] # Has to match github organization (e.g. github.com/sailuh)
 repo <- conf[["issue_tracker"]][["github"]][["repo"]] # Has to match github repository (e.g. github.com/sailuh/perceive)
@@ -135,6 +137,8 @@ Note the parsed data will include the **body** column, but it is not shown in th
 
 ## Issues 
 
+The issue endpoint provides issue-related metadata such as labels. This can be helpful for the analysis of bug counts, if the project uses bug labels.
+
 ```{r}
 all_issue <- lapply(list.files(save_path_issue,
                                      full.names = TRUE),read_json)
@@ -142,12 +146,13 @@ all_issue <- lapply(all_issue,
                                    github_parse_project_issue)
 all_issue <- rbindlist(all_issue,fill=TRUE)
 
-all_issue_display <- all_issue
-all_issue_display[,body:=NULL]
-kable(head(all_issue_display))
+head(all_issue)  %>%
+  gt(auto_align = FALSE) 
 ```
 
 ## Pull Requests
+
+Similarly to the Issue API, we can also obtain other metadata from pull requests, including their labels.
 
 ```{r}
 all_pr <- lapply(list.files(save_path_pull_request,
@@ -156,9 +161,8 @@ all_pr <- lapply(all_pr,
                                    github_parse_project_pull_request)
 all_pr <- rbindlist(all_pr,fill=TRUE)
 
-all_pr_display <- all_pr 
-all_pr_display[,body:=NULL]
-kable(head(all_pr_display))
+tail(all_pr,1)  %>%
+  gt(auto_align = FALSE) 
 ```
 
 ## Issue or PR Comments
@@ -170,9 +174,8 @@ all_issue_or_pr_comments <- lapply(all_issue_or_pr_comments,
                                    github_parse_project_issue_or_pr_comments)
 all_issue_or_pr_comments <- rbindlist(all_issue_or_pr_comments,fill=TRUE)
 
-all_issue_or_pr_comments_display <- all_issue_or_pr_comments
-all_issue_or_pr_comments_display[,body:=NULL]
-kable(head(all_issue_or_pr_comments_display))
+head(all_issue_or_pr_comments,2)  %>%
+  gt(auto_align = FALSE) 
 ```
 
 
@@ -188,9 +191,9 @@ Below we show the result of such merge, including the name and e-mail fields obt
 
 ```{r}
 replies <- parse_github_replies(save_path)
-replies_display <- replies
-replies_display[,reply_body:=NULL]
-kable(head(replies_display,10))
+
+tail(replies,2)  %>%
+  gt(auto_align = FALSE) 
 ```
 
 
