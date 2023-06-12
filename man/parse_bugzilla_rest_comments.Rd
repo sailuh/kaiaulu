@@ -25,6 +25,7 @@ Other parsers:
 \code{\link{parse_dependencies}()},
 \code{\link{parse_dv8_clusters}()},
 \code{\link{parse_gitlog}()},
+\code{\link{parse_jira_rss_xml}()},
 \code{\link{parse_jira}()},
 \code{\link{parse_mbox}()},
 \code{\link{parse_nvdfeed}()}

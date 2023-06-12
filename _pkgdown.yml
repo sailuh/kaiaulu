@@ -11,6 +11,7 @@ reference:
   - parse_mbox
   - parse_jira
   - parse_jira_replies
+  - parse_jira_rss_xml
   - parse_bugzilla_perceval_traditional_issue_comments
   - parse_bugzilla_perceval_rest_issue_comments
   - parse_bugzilla_rest_issues

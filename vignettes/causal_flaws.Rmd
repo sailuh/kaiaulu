@@ -1,12 +1,12 @@
 ---
-title: "DV8 Showcase"
+title: "Causal Analysis of Architectural Flaw and Outcome Metrics"
 output: 
   html_document:
     toc: true
     number_sections: true
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{DV8 Showcase}
+  %\VignetteIndexEntry{Causal Analysis of Architectural Flaw and Outcome Metrics}
   %\VignetteEncoding{UTF-8}
 ---
 
@@ -26,12 +26,11 @@ require(gh)
 require(yaml)
 require(magrittr)
 require(knitr)
-require(openxlsx)
 ```
 
 ```{r}
 tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/calculator.yml")
+conf <- yaml::read_yaml("../conf/tse_apex.yml")
 perceval_path <- tool[["perceval"]]
 dv8_path <- tool[["dv8"]]
 
@@ -54,6 +53,13 @@ flaws_params <- conf[["tool"]][["dv8"]][["architectural_flaws"]]
 file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
 substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
 filter_commit_size <- conf[["filter"]][["remove_filepaths_on_commit_size_greather_than"]]
+
+
+# Issue ID Regex on Commit Messages
+issue_id_regex <- conf[["commit_message_id_regex"]][["issue_id"]]
+# Path to Jira Issues (obtained using `download_jira_data Notebook`)
+jira_issues_path <- conf[["issue_tracker"]][["jira"]][["issues"]]
+
 ```
 
 # Preparing Gitlog and Dependencies for DV8
@@ -63,6 +69,7 @@ Our first step is to parse the Git log and Dependencies for DV8. These will used
 ## Git Log 
 
 For the git log, we first parse it into Kaiaulu as a table, and filter based on the project configuration files criteria. Here's a sample:
+
 
 ```{r}
 #git_repo_path <- "~/Downloads/testing-cochange/.git"
@@ -74,6 +81,20 @@ project_git <- project_git  %>%
 
 kable(head(project_git))
 ```
+
+Checking the git log last timestamp is also advised, as git logs on GitHub are sometimes mirrors which have not been updated for years (e.g. Geronimo's), or your local copy may not be up to date. 
+
+```{r}
+project_git[order(author_datetimetz)]$author_datetimetz[1]
+```
+
+Earliest Date:
+
+```{r}
+project_git[order(-author_datetimetz)]$author_datetimetz[1]
+```
+
+
 
 We then transform it as a hsdsm JSON (i.e. hdsmj):
 
@@ -104,6 +125,8 @@ sdsmj_path <- transform_dependencies_to_sdsmj(project_dependencies,
 
 list.files(project_path)
 ```
+
+
 
 # Converting to DV8 Binaries
 
@@ -152,27 +175,6 @@ hierclsxb_path <- dv8_mdsmb_to_hierclsxb(dv8_path = dv8_path,
 list.files(project_path)
 ```
 
-We then export the file as a .xlsx, including the clusters just generated like so: 
-
-```{r}
-mdsmb_xlsx <- dv8_mdsmb_drhier_to_excel(dv8_path = dv8_path,
-                                         mdsmb_path = mdsmb_path,
-                                         excel_path = file.path(project_path,paste0(project_name,"-mdsm.xlsx"))#,
-                                         #hierclsxm_path = hierclsxb_path
-                                        )
-list.files(project_path)
-```
-
-Once the .xlsx is exported, we can open it in excel or load it in R. Observe only a small sample
-of the table exported is shown here. Note the clustering will not be displayed when loading in
-R, as it is visually represented using black lines around the cells, something R does not display natively. The dsm files can also be loaded to DV8 GUI for inspection instead of exporting and opening in excel. To obtain cluster information in R, we will use other set of functions discussed towards the
-end of this Notebook. For now, we will present analysis that can be done with the -merge.dv8-dsm.
-
-```{r eval = FALSE}
-mdsmb_xlsx_table <- data.table(openxlsx::read.xlsx(mdsmb_xlsx))
-kable(mdsmb_xlsx_table[1:10,1:10,with=FALSE])
-```
-
 # DV8 Analysis
 
 Now we have a merged DSM, we can perform various analysis in DV8. 
@@ -207,10 +209,10 @@ list.files(project_path)
 
 ### Exploring Flaws DSMs 
 
-We can see a folder of Architectural Flaws was generated. The folder organization provides us with means to understand what files are assigned to various types of architectural flaws. The following is a general  example used for APR (not computed here, but the structure carries over for other larger projects):
+We can see a folder of Architectural Flaws was generated. The folder organization provides us with means to understand what files are assigned to various types of architectural flaws. The following is a general  example used for geronimo (not computed here, but the structure carries over for other larger projects):
 
 ```
-apr_flaws/
+geronimo_flaws/
 ├── modularity-violation
 └── package-cycle
 ```
@@ -218,20 +220,20 @@ apr_flaws/
 Describes two types of architectural flaws were found in APR, modularity violation and package-cycle. Moreover inside each of the folders we see numbered folders:
 
 ```
-apr_flaws/
+geronimo_flaws/
 ├── modularity-violation
-│   ├── 1
-│   │   ├── 1-clsx.dv8-clsx
-│   │   ├── 1-hdsm.dv8-dsm
-│   │   ├── 1-merge.dv8-dsm
-│   │   ├── 1-sdsm.dv8-dsm
-│   │   └── 1.dv8-issue
-│   ├── 10
-│   │   ├── 10-clsx.dv8-clsx
-│   │   ├── 10-hdsm.dv8-dsm
-│   │   ├── 10-merge.dv8-dsm
-│   │   ├── 10-sdsm.dv8-dsm
-│   │   └── 10.dv8-issue
+│   ├── 1
+│   │   ├── 1-clsx.dv8-clsx
+│   │   ├── 1-hdsm.dv8-dsm
+│   │   ├── 1-merge.dv8-dsm
+│   │   ├── 1-sdsm.dv8-dsm
+│   │   └── 1.dv8-issue
+│   ├── 10
+│   │   ├── 10-clsx.dv8-clsx
+│   │   ├── 10-hdsm.dv8-dsm
+│   │   ├── 10-merge.dv8-dsm
+│   │   ├── 10-sdsm.dv8-dsm
+│   │   └── 10.dv8-issue
 ```
 
 Each numbered folder represents an architectural flaw ID. For example, above we have the modularity violation flaws ID 1 and ID 10. We can further see the sdsm, hdsm, merge dsm, and cluster files occur within both folder ids. If load on DV8 GUI or export to excel (as done in the prior section) any of these files, we can see which files participate in these architectural flaws, and the clusters they are assigned. We will now see how to represent this information as a table we can parse in R, or more specifically the file-architectural flaw assignment, so it can be combined to other analysis in Kaiaulu.
@@ -245,90 +247,99 @@ fwrite(file_to_flaws_map,file.path(project_path,paste0(project_name,"-flaws_map.
 kable(head(file_to_flaws_map))
 ```
 
-
-We can see in the output above, the CHANGES file was included as part of the DV8 analysis. We discuss filtering in subsequent sections. For now, let's continue building on this analysis. With the file mapping, we can now aggregate the number of flaws a single file participate. For example, grouping by file_path and architectural issue type (the following shows a sample of the table):
+```{r}
+file_to_flaws_map <- fread(file.path(project_path,paste0(project_name,"-flaws_map.csv")))
+```
 
 
 ```{r}
-head(file_to_flaws_map[,.(n_flaws=length(architecture_issue_id)),by=c("file_path",
-                                                                 "architecture_issue_type")])
+file_flaws <- file_to_flaws_map[,.(n_flaws=length(architecture_issue_id)),by=c("file_path",
+                                                                 "architecture_issue_type")]
+file_flaws <- dcast(file_flaws, file_path ~ ...,value.var = "n_flaws")
 ```
 
-Gives us the same information as `anti-pattern-summary.csv`. However, we can also perform other aggregations, whereas this would be incorrect to be done to `anti-pattern-summary` as a file would be then counted twice on further aggregation. 
 
-For example, for social smells, we compute the total number of flaws of each type that ocurred:
+# Identifying Issue IDs in Commit Messages 
+
+We can use a built-in Kaiaulu function to search for a regular expression (regex) of the issue id. First we use the regex to calculate how many commits contain issue ids. Ideally, you should consider projects with a high enough coverage, or the results may not be representative.
+
+The total number of commits with issue ids in the chosen git slice is:
 
 ```{r}
-file_to_flaws_map[,.(n_flaws=max(architecture_issue_id)),by=c(                                      "architecture_issue_type")]
+commit_message_id_coverage(project_git,issue_id_regex)
 ```
-Note the value above differs from asking the total number of unique files that participated in each architectural flaw: 
+
+Proportion of commit messages containing issue ids relative to all commits in the slice:
 
 ```{r}
-file_to_flaws_map[,.(n_flaws=length(architecture_issue_id)),by=c(                          "architecture_issue_type")]
+normalized_coverage <- commit_message_id_coverage(project_git,issue_id_regex)/length(unique(project_git$commit_hash))
+normalized_coverage
 ```
-### Augmenting a Flaws Mapping with Clustering
 
-We can augment the Flaws Mapping with cluster assignment information. Recall we already calculated the cluster assignment of every file, in order to generate the excel output of -merge.dv8-dsm, resulting in the -clsx.dv8-clsx file. To utilize it, we must first convert this binary file to json, and subsequently convert it into a table:
+# Calculating Outcome Metrics
+
+We will calculate four metrics:
+
+ * **file bug frequency**: the total number of commits of all bug type issues the file was involved
+ * **file bug churn**: the total churn sum of commits of all bug type issues the file was involved
+ * **file non-bug frequency**: the total number of commits of all non-bug type issues the file was involved
+ * **file non-bug churn:** the total churn sum of commits of all non-bug type issues the file was involved
+
+
+First, we parse out of the `project_git`'s commit messages, the issue ids and add to a separate column. Note, as mentioned above, not every commit will have an issue anotated to it. 
+
 
 ```{r}
-hierclsxj_path <- dv8_clsxb_to_clsxj(dv8_path,
-                                     clsxb_path = hierclsxb_path,
-                                     clsxj_path = file.path(project_path,paste0(project_name,
-                                                                                "-clsxj.json")))
-hierclsxj_table <- parse_dv8_clusters(hierclsxj_path)
-kable(head(hierclsxj_table))
+project_git <- parse_commit_message_id(project_git, issue_id_regex)
+#jira_issues <- parse_jira(jira_issues_path)[["issues"]]
+
+jira_issues <- parse_jira_rss_xml(jira_issues_path)
 ```
 
-We can now combine this information to the mapping obtained before by simple joining both tables:
 
 ```{r}
-file_to_flaws_to_cluster_map <- merge(file_to_flaws_map,hierclsxj_table,by="file_path",all.x=TRUE,all.y=TRUE)
+file_churn <- metric_file_churn(project_git)
+file_bug_frequency <- metric_file_bug_frequency(project_git,jira_issues)
+file_non_bug_frequency <- metric_file_non_bug_frequency(project_git,jira_issues)
+file_bug_churn <- metric_file_bug_churn(project_git,jira_issues)
+file_non_bug_churn <- metric_file_non_bug_churn(project_git,jira_issues)
 
-kable(head(file_to_flaws_to_cluster_map))
+
+#kable(head(file_non_bug_frequency[order(-file_bug_frequency)],20))
 ```
 
-Observe in this join that all files should be assigned a module (there should not any NA cells under module column), but it may be the case that some files may not be assigned an architectural type flaws Indeed, one would hope the architectural flaws to be kept to a minimum! 
+# Merge
 
-## DL Metrics
+The left join table is the `project_dependencies` nodes table. Any other tables should be left joined to it, including git log ones. Otherwise, files no longer present in a snapshot will be included via the git log, which is incorrect. 
 
-An additional metric that can be computed from our merge DSM are DL Metrics. We can do so as follows:
 
 ```{r}
-dl_metrics <- dv8_mdsmb_to_decoupling_level(dv8_path = dv8_path,
-                                             mdsmb_path = mdsmb_path,
-                                            dl_path = file.path(project_path,paste0(project_name,
-                                                                                       "-dl.json")))
+flaws_and_outcomes_dt <- project_dependencies[["nodes"]]
 
-dl_metrics_table <- parse_dv8_metrics_decoupling_level(dl_metrics)
-kable(dl_metrics_table)
+setnames(flaws_and_outcomes_dt,
+         old = "filepath",
+         new = "file_pathname")
+
+setnames(file_flaws,
+         old = "file_path",
+         new = "file_pathname")
+
+flaws_and_outcomes_dt <- merge(flaws_and_outcomes_dt,file_flaws, by = "file_pathname", all.x = TRUE)
+flaws_and_outcomes_dt <- merge(flaws_and_outcomes_dt,file_churn, by = "file_pathname", all.x = TRUE)
+flaws_and_outcomes_dt <- merge(flaws_and_outcomes_dt,file_bug_frequency, by = "file_pathname", all.x = TRUE)
+flaws_and_outcomes_dt <- merge(flaws_and_outcomes_dt,file_non_bug_frequency, by = "file_pathname", all.x = TRUE)
+flaws_and_outcomes_dt <- merge(flaws_and_outcomes_dt,file_bug_churn, by = "file_pathname", all.x = TRUE)
+flaws_and_outcomes_dt <- merge(flaws_and_outcomes_dt,file_non_bug_churn, by = "file_pathname", all.x = TRUE)
 ```
 
-# (Legacy) Preparing Gitlog and Dependencies for DV8
+# Fill Non Join Match with 0s 
 
-This section documents the legacy approach to construct both datasets for DV8. The code below is not executed in the Notebook. 
+When combining tables, if a file was not listed in a metric calculated from the git log, it is because no file change was associated with the bug. The same is true in `file_flaws`: If the file was not assigned to an architectural flaw, it will not occur. 
 
-## Git Log 
-
-For the git log, this is done in two steps. First we obtain a gitlog numstat .txt file out of the git log, then we convert it to a DV8 Historical Dependency Matrix binary, or *-dv8.sdsm for short. Since DV8 can represent a sdsm in both json and binary format, we differentiate the function names in Kaiaulu with the suffix "j" and "b" respectively. 
-
-
-```{r eval=FALSE}
-numstat_path <- dv8_gitlog_to_gitnumstat(git_repo_path,file.path(project_path,
-                                                                 paste0(project_name,"-numstat.txt")))
-hdsmb_path <- dv8_gitnumstat_to_hdsmb(dv8_path,numstat_path,hdsmb_path = file.path(project_path,paste0(project_name,"_flaws")))
+```{r}
+setnafill(flaws_and_outcomes_dt, 
+          cols = colnames(flaws_and_outcomes_dt)[2:length(colnames(flaws_and_outcomes_dt))]
+          , fill = 0)
+fwrite(flaws_and_outcomes_dt,file.path(project_path,paste0(project_name,"-flaws_vs_outcome_metrics.csv")))
 ```
 
-Next, we parse file dependencies using Depends, and proceed to convert it into a DV8 Structural Dependency Matrix binary. 
-
-```{r eval = FALSE}
-sdsmj_path <- dv8_depends_to_sdsmj(depends_jar=depends_jar_path,
-                                   git_repo_path = git_repo_path,
-                                   language = language,
-                                   sdsmj_path = file.path(project_path,paste0(project_name,"-sdsm.json")))
-sdsmb_path <- dv8_dsmj_to_dsmb(dv8_path = dv8_path,
-                                     dsmj_path = sdsmj_path, 
-                                     dsmb_path = file.path(project_path,paste0(project_name,
-                                                                               "-sdsm.dv8-dsm")))
-
-list.files(project_path)
-```

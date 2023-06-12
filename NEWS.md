@@ -3,6 +3,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ * Adds `parse_jira_rss_xml()`, which enables reusing the full 26 projects dataset of our prior TSE work. [#218](https://github.com/sailuh/kaiaulu/issues/218)
  * Adds `metric_file_bug_frequency()`, `metric_file_non_bug_frequency()`, `metric_file_bug_churn()`, `metric_file_non_bug_churn()`, `metric_file_churn()` to `R/metric.R` [#214](https://github.com/sailuh/kaiaulu/issues/214)
  * Adds Gang of Four parser for Tsantalis' parser4.jar [#211](https://github.com/sailuh/kaiaulu/issues/211)
  * A new text module was added. The module allows for extracting identifiers from source code. See the new `src_text_showcase.Rmd` for details. [#206](https://github.com/sailuh/kaiaulu/issues/206)
@@ -24,6 +25,8 @@ __kaiaulu 0.0.0.9700 (in development)__
  * Paired parser functions now expects a filepath instead of a json string character. [#202](https://github.com/sailuh/kaiaulu/issues/202)
 
 ### BUG FIXES
+
+* Fixes mismatch of filepath due to leading `/` remaining in relative filepath of `parse_dependencies()`. [#219](https://github.com/sailuh/kaiaulu/issues/219)
 
 ### DOCUMENTATION FIXES
  * Moved learning resources to the wiki. Minor editing to guidelines for clarity and common mistakes. [#150](https://github.com/sailuh/kaiaulu/issues/150)
