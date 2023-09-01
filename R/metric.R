@@ -15,7 +15,7 @@
 #' @family {metrics}
 metric_file_bug_frequency <- function(project_git,jira_issues){
 
-  jira_issues_bug <- jira_issues[issue_status == "Closed" & issue_type == "Bug"][,.(issue_key,issue_type)]
+  jira_issues_bug <- jira_issues[(issue_status == "Closed" | issue_status == "Resolved") & issue_type == "Bug"][,.(issue_key,issue_type)]
   file_bug_frequency <- merge(project_git[,.(file_pathname,commit_message_id)],
                               jira_issues_bug,all.x=TRUE,by.x="commit_message_id",
                               by.y="issue_key")
@@ -36,7 +36,7 @@ metric_file_bug_frequency <- function(project_git,jira_issues){
 #' @family {metrics}
 metric_file_non_bug_frequency <- function(project_git,jira_issues){
 
-  jira_issues_non_bug <- jira_issues[issue_status == "Closed" & issue_type != "Bug"][,.(issue_key,issue_type)]
+  jira_issues_non_bug <- jira_issues[(issue_status == "Closed" | issue_status == "Resolved") & issue_type != "Bug"][,.(issue_key,issue_type)]
   file_non_bug_frequency <- merge(project_git[,.(file_pathname,commit_message_id)],
                                   jira_issues_non_bug,all.x=TRUE,by.x="commit_message_id",
                               by.y="issue_key")
@@ -58,7 +58,7 @@ metric_file_non_bug_frequency <- function(project_git,jira_issues){
 metric_file_bug_churn <- function(project_git,jira_issues){
 
   project_git <- metric_churn_per_commit_per_file(project_git)
-  jira_issues_bug <- jira_issues[issue_status == "Closed" & issue_type == "Bug"][,.(issue_key,issue_type)]
+  jira_issues_bug <- jira_issues[(issue_status == "Closed" | issue_status == "Resolved") & issue_type == "Bug"][,.(issue_key,issue_type)]
   file_bug_churn <- merge(project_git[,.(file_pathname,churn,commit_message_id)],
                               jira_issues_bug,all.x=TRUE,by.x="commit_message_id",
                               by.y="issue_key")
@@ -80,7 +80,7 @@ metric_file_bug_churn <- function(project_git,jira_issues){
 metric_file_non_bug_churn <- function(project_git,jira_issues){
 
   project_git <- metric_churn_per_commit_per_file(project_git)
-  jira_issues_non_bug <- jira_issues[issue_status == "Closed" & issue_type != "Bug"][,.(issue_key,issue_type)]
+  jira_issues_non_bug <- jira_issues[(issue_status == "Closed" | issue_status == "Resolved") & issue_type != "Bug"][,.(issue_key,issue_type)]
   file_non_bug_churn <- merge(project_git[,.(file_pathname,churn,commit_message_id)],
                           jira_issues_non_bug,all.x=TRUE,by.x="commit_message_id",
                           by.y="issue_key")

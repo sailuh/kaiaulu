@@ -10,7 +10,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### MINOR IMPROVEMENTS
 
- 
++ * Adds additional label to reflect an issue is closed (i.e. "Resolved" used in Cassandra) [#221](https://github.com/sailuh/kaiaulu/issues/221) 
  * Added line metrics, triangle and square motifs to `causal_flaws.Rmd` notebook [#220](https://github.com/sailuh/kaiaulu/issues/220)
  * Added Anti-Motif from prior paper analysis [#210](https://github.com/sailuh/kaiaulu/issues/210)
  * parse_gof_patterns() now includes the instance id of a given pattern. The column names were also renamed to match the XML. This should now fully tabulate all information provided by the XML. Note patterns which at least one instance are not reported are not included in the table (in the XML they occur but with no instances reported). [#206](https://github.com/sailuh/kaiaulu/issues/206)
