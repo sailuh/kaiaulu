@@ -273,8 +273,11 @@ query_table[any_topic_true]   %>%
 This approach uses Tsantali's [pattern4.jar](https://users.encs.concordia.ca/~nikolaos/pattern_detection.html) to identify GoF patterns.
 
 ```{r}
-gof_patterns <- parse_gof_patterns(pattern4_path = pattern4_path,
+
+gof_patterns <- write_gof_patterns(pattern4_path = pattern4_path,
                                    class_folder_path = class_folder_path)
+
+gof_patterns <- parse_gof_patterns()
 
 ```
 

@@ -107,3 +107,56 @@ query_src_text_class_names <- function(srcml_path,srcml_filepath){
   return(dt_filepath_classname)
 
 }
+
+#' Query srcML Namespace
+#'
+#' This is a convenience function to parse namespace names out of a project.
+#' \url{https://www.srcml.org/documentation.html}.
+#'
+#'
+#' @param srcml_path The path to srcML binary
+#' @param srcml_filepath The path to the srcML file to be queried
+#' (see \code{\link{annotate_src_text}}).
+#'
+#' @return A data.table containing Namespace.
+#' @references For details, see \url{https://www.srcml.org/documentation.html}.
+#' @export
+query_src_text_namespace <- function(srcml_path,srcml_filepath){
+  srcml_path <- path.expand(srcml_path)
+  srcml_filepath <- path.expand(srcml_filepath)
+
+  xpath_query <- "//src:package"
+
+  srcml_output <- query_src_text(srcml_path,xpath_query,srcml_filepath)
+
+  srcml_output <- XML::xmlTreeParse(srcml_output)
+  srcml_root <- XML::xmlRoot(srcml_output)
+
+  # The children of the root node is a list of unit nodes
+  srcml_class_names <- XML::xmlChildren(srcml_root)
+  # Each unit node is of the form:
+  # <unit revision="1.0.0" language="Java" filename="/Users/lzhan/Desktop/rawdata/git_repo/iotdb/tsfile/src/test/java/org/apache/iotdb/tsfile/read/reader/FakedMultiBatchReader.java" item="1"><package>package <name><name>org</name><operator>.</operator><name>apache</name><operator>.</operator><name>iotdb</name><operator>.</operator><name>tsfile</name><operator>.</operator><name>read</name><operator>.</operator><name>reader</name></name>;</package></unit>
+
+
+  parse_namespace <- function(unit){
+    # The class name is a child node of each node
+    class_name <- XML::xmlValue(unit[[1]])
+    class_name <- sub("^package", "", class_name)
+    class_name <- sub(";$","",class_name)
+    # The attribute filename contains the filename the class belongs to
+    filepath <- XML::xmlGetAttr(unit,"filename")
+
+    project_name <- 'iotdb'
+    # Create a regular expression pattern using project_name
+    pattern <- paste0('.*?', project_name, '/')
+    # Get relative path
+    filepath <- sub(pattern, '', filepath)
+
+    filename <- sub("\\.java$", "", basename(filepath))
+    full_path <- paste(class_name, filename, sep=".")
+    return(data.table(filepath=filepath, namespace=full_path))
+  }
+  dt_filepath_classname <- rbindlist(lapply(srcml_class_names,parse_namespace))
+
+  return(dt_filepath_classname)
+}

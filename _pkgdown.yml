@@ -25,7 +25,6 @@ reference:
   - parse_line_metrics
   - parse_line_type_file
   - parse_commit_message_id
-  - parse_gof_patterns
 - title: __Filters__
   desc:  Filters for file extensions, and substrings, such as test files, and time intervals.
 - contents:
@@ -65,6 +64,8 @@ reference:
   - motif_factory
   - motif_factory_triangle
   - motif_factory_square
+  - motif_factory_anti_triangle
+  - motif_factory_anti_square
 - title: __Identity__
   desc:  Provide the same id to authors who use variations of names or emails.
 - contents:
@@ -202,3 +203,11 @@ reference:
   - annotate_src_text
   - query_src_text
   - query_src_text_class_names
+  - query_src_text_namespace
+
+- title: __Gang of Four Patterns__
+  desc:  Functions related to Gang of Four Patterns
+- contents:
+  - parse_gof_patterns
+  - write_gof_patterns
+  - subset_gof_class
