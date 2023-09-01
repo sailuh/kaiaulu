@@ -1,0 +1,240 @@
+---
+title: "Graph GoF Patterns: Identifying Patterns via Graph Methods"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Graph GoF Patterns: Identifying Patterns via Graph Methods}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Introduction
+
+This notebook provides a brief introduction to the early version of the **GoF** module (in particular Tsantalis pattern4.jar), using some parts of the **Text** module to identify some of the Gang of Four (GoF) Design Patterns in source code [pattern4.jar](https://users.encs.concordia.ca/~nikolaos/pattern_detection.html).
+
+# Setup
+
+## Graph Approach
+
+The graph approach uses Tsantalis [pattern4.jar](https://users.encs.concordia.ca/~nikolaos/pattern_detection.html). As with other third party tools, you should specify the path to the jar in the `tools.yml` and provide the necessary parameters of the project configuration file. 
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+# Project Configuration File
+
+Analyzing open source projects often requires some manual work on your part to find where the open source project hosts its codebase and mailing list. Instead of hard-coding this on Notebooks, we keep this information in a project configuration file. Here's the minimal information this Notebook requires in a project configuration file:
+
+```yaml
+project:
+  website: https://github.com/junit-team/junit5/
+  #openhub: https://www.openhub.net/p/apache_portable_runtime
+
+version_control:
+  # Where is the git log located locally?
+  # This is the path to the .git of the project repository you are analyzing.
+  # The .git is hidden, so you can see it using `ls -a`
+  log: ../../rawdata/git_repo/junit5/.git
+  # From where the git log was downloaded?
+  log_url: https://github.com/junit-team/junit5/
+  # List of branches used for analysis
+  branch:
+    - main
+    
+filter:
+  keep_filepaths_ending_with:
+    - cpp
+    - c
+    - h
+    - java
+    - js
+    - py
+    - cc
+  remove_filepaths_containing:
+    - test
+    - java_code_examples
+
+tool:
+ # srcML allow to parse src code as text (e.g. identifiers)
+  srcml:
+    # The file path to where you wish to store the srcml output of the project
+    srcml_path: ../../analysis/depends/srcml_depends.xml
+  pattern4:
+    # The file path to where you wish to store the srcml output of the project
+    class_folder_path: ../../rawdata/git_repo/junit5/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
+    compile_note: >
+      1. Switch Java version to Java 17:
+         https://stackoverflow.com/questions/69875335/macos-how-to-install-java-17
+      2. Disable VPN to pull modules from Gradle Plugin Portal.
+      3. Use sudo ./gradlew build
+      4. After building, locate the engine class files and specify as the class_folder_path:
+         in this case they are in: /path/to/junit5/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
+```
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(data.table)
+require(yaml)
+require(stringi)
+require(knitr)
+require(reticulate)
+require(magrittr)
+require(gt)
+```
+
+
+```{r}
+tool <- yaml::read_yaml("../tools.yml")
+conf <- yaml::read_yaml("../conf/junit5.yml")
+srcml_path <- tool[["srcml"]]
+pattern4_path <- tool[["pattern4"]]
+
+git_repo_path <- conf[["version_control"]][["log"]]
+folder_path <- stri_replace_last(git_repo_path,replacement="",regex=".git")
+
+# Tool Parameters 
+srcml_filepath <- conf[["tool"]][["srcml"]][["srcml_path"]]
+class_folder_path <- conf[["tool"]][["pattern4"]][["class_folder_path"]]
+pattern4_output_filepath <- conf[["tool"]][["pattern4"]][["output_filepath"]]
+
+# Filters
+file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
+substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+```
+
+This is all the project configuration files are used for. If you inspect the variables above, you will see they are just strings. As a reminder, the tools.yml is where you store the filepaths to third party software in your computer. Please see Kaiaulu's README.md for details. As a rule of thumb, any R Notebooks in Kaiaulu load the project configuration file at the start, much like you would normally initialize variables at the start of your source code.
+
+# Obtaining GoF Patterns
+
+This approach uses Tsantali's [pattern4.jar](https://users.encs.concordia.ca/~nikolaos/pattern_detection.html) to identify GoF patterns. Pattern4 expects a folder with .class files. These can be obtained by compiling the project using Maven. The process is not always trivial. Some project configuration files exemplify how they can be obtained. Once the folder with binaries is available, we can use the `write_gof_patterns` to instruct pattern4 to generate its XML output. Then, `parse_gof_patterns` can be used to format it into a table containing all the information. When the output path and associated input path are not specified, the file is saved and read from `/tmp`.
+
+```{r}
+
+gof_patterns <- write_gof_patterns(pattern4_path = pattern4_path,
+                                   class_folder_path = class_folder_path)
+
+gof_patterns <- parse_gof_patterns()
+
+```
+
+We can then display the table:
+
+```{r}
+gof_patterns %>%
+  gt(auto_align = FALSE) %>%
+  tab_header(
+    title = "GoF Patterns",
+    subtitle = glue::glue("Tsantalis' et al. Graph Method") 
+  ) %>%
+    cols_align(
+    align = "left",
+    columns = c("pattern_name","role_name","element")
+  )
+```
+
+Note the patterns identified may contain not only the class name, but also methods and variables that constitute part of the pattern. To subset the table to contain only classes we can do the following:
+
+```{r}
+gof_patterns <- subset_gof_class(gof_patterns)
+```
+
+And once again inspect the table:
+
+```{r}
+gof_patterns %>%
+  gt(auto_align = FALSE) %>%
+  tab_header(
+    title = "GoF Patterns",
+    subtitle = glue::glue("Tsantalis' et al. Graph Method") 
+  ) %>%
+    cols_align(
+    align = "left",
+    columns = c("pattern_name","role_name","element")
+  )
+```
+
+Because Pattern4 uses bytecode for analysis, the filepath is not available in the output, but rather the namespace. We can rely on `srcml`, another tool, to provide us with the mapping needed to filepath. 
+
+# Obtaining the Mapping of Namespace to File Paths
+
+To use srcml, we leverage the git path to specify the folder which srcml should execute. The `srcml` library will then generate a single file, saved on `srcml_filepath` that contains all the information of the project.
+
+```{r}
+srcml_filepath <- annotate_src_text(srcml_path = srcml_path,
+                                     src_folder = folder_path,
+                                     srcml_filepath)
+```
+
+
+We can then use `srcml` to query against this generated XML file. Here, our interest is to obtain the namespaces to file path mapping: 
+
+```{r}
+query_table <- query_src_text_namespace(srcml_path = srcml_path,
+                                     srcml_filepath = srcml_filepath)
+
+
+head(query_table)  %>%
+  gt(auto_align = FALSE) 
+```
+
+# File Filtering 
+
+Since we have a table, we can actually use Kaiaulu filter functions to do some pre-processing. For Depends in particular, some files are provided as example. This can be inferred looking through the filepaths above, when observing this filepath:
+
+`/depends/src/test/resources/java-code-examples/`
+
+Note the depends project configuration file accounted for that pattern to be removed: 
+
+```{r}
+substring_filepath
+```
+
+
+Should we wish to remove such filepaths, we can do so as follows:
+
+```{r}
+nrow(query_table)
+```
+
+
+```{r}
+query_table <- query_table  %>%
+    filter_by_file_extension(file_extensions,"filepath")  %>%
+  filter_by_filepath_substring(substring_filepath,"filepath")
+nrow(query_table)
+```
+
+We can now combine both tables, such that pattern4 contains the filepaths. It is suggested left joins are also performed to verify for any inconsistencies where filepaths are not available for namespaces. 
+
+```{r}
+#gof_patterns <- merge(x=gof_patterns, y=query_table, by.x='element', by.y='namespace',all.x=TRUE)
+gof_patterns <- merge(x=gof_patterns, y=query_table, by.x='element', by.y='namespace')
+
+head(gof_patterns)  %>%
+  gt(auto_align = FALSE) 
+```
+
+# File Participation in GoF Patterns
+
+Note the table generated by pattern4 is long format: If a file participates in multiple pattern instances, then the filepath wiill be repeated multiple times in the table. Generally, we want to look at these tables in wide format, at 1 filepath per row when combining against other metrics. This can be obtained performing a dcast:
+
+```{r}
+# This table is in long form, we have to dcast it into wide form.
+gof_patterns <- gof_patterns[,.(n_gof_patterns=length(instance_id)),by=c("filepath",
+                                                                                           "role_name")]
+
+gof_patterns <- dcast(gof_patterns, filepath ~ ...,value.var = "n_gof_patterns")
+
+setnafill(gof_patterns, 
+          cols = colnames(gof_patterns)[2:length(colnames(gof_patterns))], 
+          fill = 0)
+
+head(gof_patterns)  %>%
+  gt(auto_align = FALSE) 
+```
+

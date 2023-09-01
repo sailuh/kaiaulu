@@ -1,18 +1,18 @@
 ---
-title: "GoF Patterns: Identifying Patterns via Text and Graph Methods"
+title: "Text GoF Patterns: Identifying Patterns via Text Methods"
 output: 
   html_document:
     toc: true
     number_sections: true
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{GoF Patterns: Identifying Patterns via Text and Graph Methods}
+  %\VignetteIndexEntry{Text GoF Patterns: Identifying Patterns via Text Methods}
   %\VignetteEncoding{UTF-8}
 ---
 
 # Introduction
 
-This notebook provides a brief introduction to the early version of the **Text** module, and Tsantalis pattern4.jar to identify some of the Gang of Four (GoF) Design Patterns in source code [pattern4.jar](https://users.encs.concordia.ca/~nikolaos/pattern_detection.html).
+This notebook provides a brief introduction to the **Text** module and how it can be used to identify Patterns and other keywords on class names.
 
 # Setup
 
@@ -26,9 +26,6 @@ You should also install the identifier splitter, [Spiral](https://github.com/cas
 
 Finally,because we require interacting with Python to use this library, you should install the `reticulate` R package. If `install.package('reticulate')` fails due to any error, try to `install.package('Rcpp')` and then re-attempt. You must specify the local Python version which you installed Spiral when using RStudio. See: https://stackoverflow.com/a/71044068/1260232 otherwise, `reticulate` will be unable to load the `Spiral` Python library for not being installed in the correct Python version.
 
-## Graph Approach
-
-The graph approach uses Tsantalis [pattern4.jar](https://users.encs.concordia.ca/~nikolaos/pattern_detection.html). As with other third party tools, you should specify the path to the jar in the `tools.yml` and provide the necessary parameters of the project configuration file. 
 
 ```{r}
 rm(list = ls())
@@ -74,16 +71,6 @@ tool:
   srcml:
     # The file path to where you wish to store the srcml output of the project
     srcml_path: ../../analysis/depends/srcml_depends.xml
-  pattern4:
-    # The file path to where you wish to store the srcml output of the project
-    class_folder_path: ../../rawdata/git_repo/junit5/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
-    compile_note: >
-      1. Switch Java version to Java 17:
-         https://stackoverflow.com/questions/69875335/macos-how-to-install-java-17
-      2. Disable VPN to pull modules from Gradle Plugin Portal.
-      3. Use sudo ./gradlew build
-      4. After building, locate the engine class files and specify as the class_folder_path:
-         in this case they are in: /path/to/junit5/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
 # Analysis Configuration #
 analysis:
   # A list of topic and keywords (see src_text_showcase.Rmd).
@@ -128,14 +115,12 @@ require(gt)
 tool <- yaml::read_yaml("../tools.yml")
 conf <- yaml::read_yaml("../conf/junit5.yml")
 srcml_path <- tool[["srcml"]]
-pattern4_path <- tool[["pattern4"]]
 
 git_repo_path <- conf[["version_control"]][["log"]]
 folder_path <- stri_replace_last(git_repo_path,replacement="",regex=".git")
 
 # Tool Parameters 
 srcml_filepath <- conf[["tool"]][["srcml"]][["srcml_path"]]
-class_folder_path <- conf[["tool"]][["pattern4"]][["class_folder_path"]]
 
 # Filters
 file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
@@ -147,7 +132,7 @@ topics <- conf[["analysis"]][["topics"]]
 
 This is all the project configuration files are used for. If you inspect the variables above, you will see they are just strings. As a reminder, the tools.yml is where you store the filepaths to third party software in your computer. Please see Kaiaulu's README.md for details. As a rule of thumb, any R Notebooks in Kaiaulu load the project configuration file at the start, much like you would normally initialize variables at the start of your source code.
 
-# Parsing Source Code as Text
+# Extracting Class Names for Token Matching
 
 To use srcml, we leverage the git path to specify the folder which srcml should execute. The `srcml` library will then generate a single file, saved on `srcml_filepath` that contains all the information of the project.
 
@@ -190,9 +175,7 @@ head(query_table)  %>%
 
 # File Filtering 
 
-Since we have a table, we can actually use Kaiaulu filter functions to do some pre-processing. For Depends in particular, some files are provided as example. This can be inferred looking through the filepaths above, when observing this filepath:
-
-`/depends/src/test/resources/java-code-examples/`
+Since we have a table, we can actually use Kaiaulu filter functions to do some pre-processing.
 
 Note the depends project configuration file accounted for that pattern to be removed: 
 
@@ -246,7 +229,7 @@ is_a_topic_match <- function(split_token,topic){
 }
 
 for(i in 1:length(topics)){
-  topic_column_name <- paste0("is_topic_",as.character(i))
+  topic_column_name <- paste0("topic_",as.character(i))
   query_table[[topic_column_name]] <-
     sapply(split_tokens,is_a_topic_match,topics[[topic_column_name]])  
 }
@@ -265,45 +248,4 @@ any_topic_true <- apply(query_table[, 4:length(topics), with=FALSE],1,sum)
 any_topic_true <- ifelse(any_topic_true == 0,FALSE,TRUE)
 query_table[any_topic_true]   %>%
   gt(auto_align = FALSE) 
-```
-
-
-# GoF Graph Matching 
-
-This approach uses Tsantali's [pattern4.jar](https://users.encs.concordia.ca/~nikolaos/pattern_detection.html) to identify GoF patterns.
-
-```{r}
-
-gof_patterns <- write_gof_patterns(pattern4_path = pattern4_path,
-                                   class_folder_path = class_folder_path)
-
-gof_patterns <- parse_gof_patterns()
-
-```
-
-
-
-```{r}
-
-#parse_last_list_element <- function(x){
-#  return(tail(unlist(x),1))
-#}
-
-#is_method <- stringi::stri_detect_regex(gof_patterns$role_name,pattern="\\(\\)")
-
-#gof_patterns_classes <- gof_patterns[!is_method]
-
-#gof_patterns_classes$class_name <- sapply(stringi::stri_split_regex(gof_patterns_classes$class_path,pattern="\\."),parse_last_list_element)
-
-
-gof_patterns %>%
-  gt(auto_align = FALSE) %>%
-  tab_header(
-    title = "GoF Patterns",
-    subtitle = glue::glue("Tsantalis' et al. Graph Method") 
-  ) %>%
-    cols_align(
-    align = "left",
-    columns = c("pattern_name","role_name","element")
-  )
 ```
