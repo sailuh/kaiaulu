@@ -26,21 +26,43 @@ require(gh)
 require(yaml)
 require(magrittr)
 require(knitr)
+require(gt)
 ```
+
+# Introduction 
+
+This notebook computes three sets of metrics: 
+
+ * Architectural Flaws (DV8)
+ * Social Smells Anti-Motifs: Triangle and Square (Kaiaulu/igraph)
+ * Line Metrics (scc)
+ 
+For implementation details, please refer to the function reference documentation. If this is being read on the package documentation, you can simply click the function to access it.
+
+# Project Configuration File
+
+The first step is loading the project configuration file, which contains information for both the project data provenance, and the various parameters used for all the tools. Refer to [Kaiaulu's repo conf folder](https://github.com/sailuh/kaiaulu/tree/master/conf) for the configuration file of interest used in the code block below. 
 
 ```{r}
 tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/tse_apex.yml")
+#conf <- yaml::read_yaml("../conf/tse_cassandra.yml")
+conf <- yaml::read_yaml("../conf/camel.yml")
 perceval_path <- tool[["perceval"]]
 dv8_path <- tool[["dv8"]]
+scc_path <- tool[["scc"]]
 
 # Gitlog parameters
 git_repo_path <- conf[["version_control"]][["log"]]
+git_branch <- conf[["version_control"]][["branch"]][1]
+
 
 # Depends parameters
 depends_jar_path <- tool[["depends"]]
 language <- conf[["tool"]][["depends"]][["code_language"]]
 keep_dependencies_type <- conf[["tool"]][["depends"]][["keep_dependencies_type"]]
+
+# Mailing List
+mbox_path <- conf[["mailing_list"]][["mbox"]]
 
 # DV8 parameters 
 project_path <- conf[["tool"]][["dv8"]][["folder_path"]]
@@ -59,12 +81,14 @@ filter_commit_size <- conf[["filter"]][["remove_filepaths_on_commit_size_greathe
 issue_id_regex <- conf[["commit_message_id_regex"]][["issue_id"]]
 # Path to Jira Issues (obtained using `download_jira_data Notebook`)
 jira_issues_path <- conf[["issue_tracker"]][["jira"]][["issues"]]
+jira_issue_comments_path <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
+
 
 ```
 
-# Preparing Gitlog and Dependencies for DV8
+# Raw Data Pre-Processing for DV8
 
-Our first step is to parse the Git log and Dependencies for DV8. These will used to construct historical and structural dependencies in DV8. There are two ways to perform this step. The legacy approach is deferred to the end of this notebook for completeness sake, however does not allow for customizing the filtering step in Kaiaulu. 
+In order to compute architectural flaws, our first step is to parse the Git log and Dependencies for DV8. These will used to construct historical and structural dependencies in DV8.  
 
 ## Git Log 
 
@@ -73,11 +97,17 @@ For the git log, we first parse it into Kaiaulu as a table, and filter based on 
 
 ```{r}
 #git_repo_path <- "~/Downloads/testing-cochange/.git"
+git_checkout(git_branch,git_repo_path)
 project_git <- parse_gitlog(perceval_path,git_repo_path)
 project_git <- project_git  %>%
   filter_by_file_extension(file_extensions,"file_pathname")  %>% 
   filter_by_filepath_substring(substring_filepath,"file_pathname") %>% 
   filter_by_commit_size(commit_size = filter_commit_size)
+
+project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
+                                              format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
+project_git$committer_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
+                                              format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
 
 kable(head(project_git))
 ```
@@ -96,13 +126,14 @@ project_git[order(-author_datetimetz)]$author_datetimetz[1]
 
 
 
-We then transform it as a hsdsm JSON (i.e. hdsmj):
+We then transform it as a hdsm JSON (i.e. hdsmj):
 
 ```{r}
 hdsmj_path <- transform_gitlog_to_hdsmj(project_git,
                                         hdsmj_path = file.path(project_path,paste0(project_name,"-hdsm.json")))
 ```
 
+## Dependencies 
 
 Next, we parse file dependencies using Depends, filter the files by the project configuration file criteria, and proceed to convert it into a DV8 Structural Dependency Matrix binary. 
 
@@ -125,7 +156,6 @@ sdsmj_path <- transform_dependencies_to_sdsmj(project_dependencies,
 
 list.files(project_path)
 ```
-
 
 
 # Converting to DV8 Binaries
@@ -243,7 +273,7 @@ Each numbered folder represents an architectural flaw ID. For example, above we 
 
 ```{r}
 file_to_flaws_map <- parse_dv8_architectural_flaws(dv8_path, flaws_folder,progress_bar = TRUE)
-fwrite(file_to_flaws_map,file.path(project_path,paste0(project_name,"-flaws_map.csv")))
+#fwrite(file_to_flaws_map,file.path(project_path,paste0(project_name,"-flaws_map.csv")))
 kable(head(file_to_flaws_map))
 ```
 
@@ -252,16 +282,305 @@ file_to_flaws_map <- fread(file.path(project_path,paste0(project_name,"-flaws_ma
 ```
 
 
+With the flaws mapping, we can then group by the table over the file paths and type of flaw, to obtain the primary granularity of this analysis: I.e. metrics per file. This table provides us with the flaws metrics per file.  
+
 ```{r}
 file_flaws <- file_to_flaws_map[,.(n_flaws=length(architecture_issue_id)),by=c("file_path",
                                                                  "architecture_issue_type")]
 file_flaws <- dcast(file_flaws, file_path ~ ...,value.var = "n_flaws")
 ```
 
+With flaws computed, we moved on to the next file metrics of this analysis. 
 
-# Identifying Issue IDs in Commit Messages 
+# File Social Smell Motif Metrics
 
-We can use a built-in Kaiaulu function to search for a regular expression (regex) of the issue id. First we use the regex to calculate how many commits contain issue ids. Ideally, you should consider projects with a high enough coverage, or the results may not be representative.
+To compute the social smell motifs, we require communication data. For this dataset, we will use mailiing list communication.
+
+```{r for Legacy codeface Data, eval = FALSE}
+project_mbox <- parse_mbox(perceval_path,mbox_path)
+```
+
+```{r}
+project_jira <- parse_jira_replies(parse_jira(jira_issue_comments_path)) 
+
+# Timezone is embedded on separated field. All times shown in UTC.
+project_jira$reply_tz <- "0000"
+
+project_jira$reply_datetimetz <- as.POSIXct(project_jira$reply_datetimetz,
+                                      format = "%Y-%m-%dT%H:%M:%S.000+0000", tz = "UTC")
+```
+
+
+```{r for Legacy Codeface Data, eval = FALSE}
+# All replies are combined into a single reply table. 
+project_reply <- project_mbox
+
+project_git <- project_git[order(author_datetimetz)]
+ 
+project_reply <- project_reply[order(reply_datetimetz)]
+
+#project_reply <- project_reply[reply_datetimetz >= start_date & reply_datetimetz <= end_date]
+```
+
+```{r}
+project_reply <- project_jira
+
+project_git <- project_git[order(author_datetimetz)]
+ 
+project_reply <- project_reply[order(reply_datetimetz)]
+```
+
+The Git, Reply and Source Code (va git_checkout) Snapshot Time Windows must align
+
+```{r}
+start_timestamp <- max(min(project_git$author_datetimetz,na.rm = TRUE),
+                       min(project_reply$reply_datetimetz,na.rm = TRUE))
+
+end_timestamp <- min(max(project_git$author_datetimetz,na.rm = TRUE),
+                     max(project_reply$reply_datetimetz,na.rm = TRUE))
+
+project_git <- project_git[(author_datetimetz >= start_timestamp) &
+                             (author_datetimetz <= end_timestamp )]
+
+project_reply <- project_reply[(reply_datetimetz >= start_timestamp) &
+                             (reply_datetimetz <= end_timestamp )]
+```
+
+
+
+# Identity Match
+
+Because developers may utilize different e-mails within Git and between Git and Mailing List, we use a set of heuristics to unify their identity across different e-mails.
+
+```{r}
+
+project_log <- list(project_git=project_git,project_reply=project_reply)
+project_log <- identity_match(project_log,
+                                name_column = c("author_name_email","reply_from"),
+                                assign_exact_identity,
+                               # use_name_only=FALSE,
+                                label = "raw_name")
+
+project_git <- project_log[["project_git"]]
+project_reply <- project_log[["project_reply"]]
+```
+
+## Networks
+
+Having performed the necessary transformations on our data sources, we are ready to transform them to networks, where our motifs will be computed. Our goal is to create a single graph containing all the information of interest in order to search for sub-graphs of interest (i.e. our defined motifs).
+
+A number of transformation functions are available in Kaiaulu to transform the various logs into networks. First, we transform our git log data into a bipartite author-file network:
+
+```{r}
+git_network <- transform_gitlog_to_bipartite_network(project_git,
+                                                     mode="author-file")
+```
+
+Next we apply the same transformation to obtain our reply network. Note this reply network is also a bipartite graph, of the type `developer-thread`. Since the communication is occurring in GitHub, an issue is equivalent to an e-mail thread. Because we wish to "add" communication edges between developers to the git log network, we perform a bipartite projection over `developer-thread` to obtain a `developer-developer` network. Here, we chose the weight scheme that sums the existing edge weights (i.e. number of replies to a thread) to the deleted thread node together. 
+
+```{r}
+
+reply_network <- transform_reply_to_bipartite_network(project_reply)
+
+reply_network <- bipartite_graph_projection(reply_network,
+                                                      mode = TRUE,
+                                                      weight_scheme_function = weight_scheme_sum_edges)   
+```
+
+We can then add the `developer-developer` network nodes and edges to the `developer-file` network:
+
+```{r}
+git_reply_network <- list()
+
+git_reply_network[["nodes"]] <- unique(rbind(git_network[["nodes"]],
+                                             reply_network[["nodes"]]))
+
+git_reply_network[["edgelist"]] <- rbind(git_network[["edgelist"]],
+                                         reply_network[["edgelist"]])
+```
+
+
+### Anti Triangle Motif
+
+To perform motif search, we rely on the `igraph` library. First, we transform the networks to igraph's network representation:
+
+```{r}
+i_git_reply_network <- igraph::graph_from_data_frame(d=git_reply_network[["edgelist"]], 
+                      directed = FALSE, 
+                      vertices = git_reply_network[["nodes"]])
+```
+
+```{r}
+#visIgraph(i_git_reply_network,randomSeed = 1)
+```
+
+We also create our anti-motif triangle sub-graph and display:
+
+```{r}
+motif_triangle <- motif_factory("anti_triangle")
+i_triangle_motif <- igraph::graph_from_data_frame(d=motif_triangle[["edgelist"]], 
+                      directed = FALSE, 
+                      vertices = motif_triangle[["nodes"]])
+```
+
+```{r}
+visIgraph(i_triangle_motif)
+```
+
+Because the motif search expects the "color" node attribute to be numeric, we convert the node color to 1 if black, or 2 otherwise in the igraph network representation:
+
+```{r}
+V(i_triangle_motif)$color <- ifelse(V(i_triangle_motif)$color == "black",1,2)
+V(i_git_reply_network)$color <- ifelse(V(i_git_reply_network)$color == "black",1,2)
+```
+
+We can then count the motifs:
+
+```{r}
+## Count subgraph isomorphisms
+motif_count <- igraph::count_subgraph_isomorphisms(i_triangle_motif, i_git_reply_network, method="vf2",
+                                           edge.color1 = NULL,
+                                           edge.color2 = NULL)
+motif_count
+```
+
+Or obtain the list of every sub-graph match of the triangle motif: 
+
+```{r}
+i_motif_vertice_sequence <- subgraph_isomorphisms(i_triangle_motif, i_git_reply_network, method="vf2",
+                                           edge.color1 = NULL,
+                                           edge.color2 = NULL)
+motif_vertice_sequence <- lapply(i_motif_vertice_sequence,igraph::as_ids)
+
+motif_anti_triangle_dt <- rbindlist(lapply((lapply(motif_vertice_sequence,t)),data.table))
+#kable(motif_anti_triangle_dt)
+```
+
+The anti-motif triangle metric is then the number of times a file participates in an instance of triangle anti-motif:
+
+```{r}
+setnames(motif_anti_triangle_dt,
+         old=c("V1","V2","V3"),
+         new=c("dev1","dev2","file_pathname"))
+motif_anti_triangle_count_dt <- motif_anti_triangle_dt[,.(anti_triangle_motif=.N),by="file_pathname"]
+```
+
+### Anti Square Motif
+
+For square motif, we now also consider the file dependencies. Similar to before,  we combine the networks, now also including the file network.
+
+```{r}
+file_network <- copy(project_dependencies)
+setnames(file_network[["nodes"]],
+         old = "filepath",
+         new = "name")
+file_network[["nodes"]]$type <- FALSE
+file_network[["nodes"]]$color <- "#f4dbb5"
+
+edgelist <- file_network[["edgelist"]][,.(from=src_filepath,
+                                          to=dest_filepath)]
+edgelist$weight <- rowSums(file_network[["edgelist"]][,3:ncol(file_network[["edgelist"]]),with=FALSE])
+file_network[["edgelist"]] <- edgelist
+```
+
+
+```{r}
+
+file_git_reply_network <- list()
+
+file_git_reply_network[["nodes"]] <- unique(rbind(git_network[["nodes"]],
+                                             reply_network[["nodes"]],
+                                             file_network[["nodes"]]))
+
+file_git_reply_network[["edgelist"]] <- rbind(git_network[["edgelist"]],
+                                         reply_network[["edgelist"]],
+                                         file_network[["edgelist"]])
+```
+
+We then use igraph for visualization and calculating the motif. First of the network:
+
+```{r}
+i_file_git_reply_network <- igraph::graph_from_data_frame(d=file_git_reply_network[["edgelist"]], 
+                      directed = FALSE, 
+                      vertices = file_git_reply_network[["nodes"]])
+
+#visIgraph(i_file_git_reply_network,randomSeed = 1)
+```
+
+And then of the square motif:
+
+```{r}
+motif_square <- motif_factory("anti_square")
+i_square_motif <- igraph::graph_from_data_frame(d=motif_square[["edgelist"]], 
+                      directed = FALSE, 
+                      vertices = motif_square[["nodes"]])
+
+visIgraph(i_square_motif)
+```
+
+Once more, we transform the color of the nodes to numeric to perform the motif search.
+
+```{r}
+V(i_square_motif)$color <- ifelse(V(i_square_motif)$color == "black",1,2)
+V(i_file_git_reply_network)$color <- ifelse(V(i_file_git_reply_network)$color == "black",1,2)
+```
+
+We can then count the motif ocurrences:
+
+```{r}
+## Count subgraph isomorphisms
+motif_count <- count_subgraph_isomorphisms(i_square_motif, i_file_git_reply_network, method="vf2",
+                                           edge.color1 = NULL,
+                                           edge.color2 = NULL)
+motif_count
+```
+
+Or enumerate where it occurred:
+
+```{r}
+i_motif_vertice_sequence <- subgraph_isomorphisms(i_square_motif, i_file_git_reply_network, method="vf2",
+                                           edge.color1 = NULL,
+                                           edge.color2 = NULL)
+motif_vertice_sequence <- lapply(i_motif_vertice_sequence,igraph::as_ids)
+
+motif_anti_square_dt <- rbindlist(lapply((lapply(motif_vertice_sequence,t)),data.table))
+#kable(motif_anti_square_dt)
+
+setnames(motif_anti_square_dt,
+         old=c("V1","V2","V3","V4"),
+         new=c("dev1","dev2","file_pathname1","file_pathname2"))
+motif_anti_square_count_dt_1 <- motif_anti_square_dt[,.(anti_motif_square=.N),by="file_pathname1"]
+setnames(motif_anti_square_count_dt_1,
+         old = "file_pathname1",
+         new = "file_pathname")
+motif_anti_square_count_dt_2 <- motif_anti_square_dt[,.(anti_motif_square=.N),by="file_pathname2"]
+setnames(motif_anti_square_count_dt_2,
+         old = "file_pathname2",
+         new = "file_pathname")
+motif_anti_square_count_dt <- rbind(motif_anti_square_count_dt_1,
+                                    motif_anti_square_count_dt_2)
+motif_anti_square_count_dt <- motif_anti_square_count_dt[,.(anti_motif_square=sum(anti_motif_square)),by = file_pathname]
+```
+
+
+# Line Metrics
+
+```{r}
+line_metrics_dt <- parse_line_metrics(scc_path,git_repo_path)
+line_metrics_dt <- line_metrics_dt[,.(file_pathname=Location,
+                                      lines=Lines,
+                                      code=Code,
+                                      comments=Comments,
+                                      blanks=Blanks,
+                                      complexity=Complexity)]
+```
+
+
+# Calculating Outcome Metrics
+
+## Identifying Issue IDs in Commit Messages
+
+The various outcome metrics used in this Notebook rely on the traceability between file and issues. This is obtained from the commit messages. We can use a built-in Kaiaulu function to search for a regular expression (regex) of the issue id. First we use the regex to calculate how many commits contain issue ids. Ideally, you should consider projects with a high enough coverage, or the results may not be representative.
 
 The total number of commits with issue ids in the chosen git slice is:
 
@@ -276,7 +595,7 @@ normalized_coverage <- commit_message_id_coverage(project_git,issue_id_regex)/le
 normalized_coverage
 ```
 
-# Calculating Outcome Metrics
+
 
 We will calculate four metrics:
 
@@ -286,15 +605,33 @@ We will calculate four metrics:
  * **file non-bug churn:** the total churn sum of commits of all non-bug type issues the file was involved
 
 
-First, we parse out of the `project_git`'s commit messages, the issue ids and add to a separate column. Note, as mentioned above, not every commit will have an issue anotated to it. 
+First, we parse out of the `project_git`'s commit messages, the issue ids and add to a separate column. Note, as mentioned above, not every commit will have an issue annotated to it. 
+
+```{r Legacy data TSE, eval = FALSE}
+project_git <- parse_commit_message_id(project_git, issue_id_regex)
+jira_issues <- parse_jira_rss_xml(jira_issues_path)
+```
 
 
 ```{r}
 project_git <- parse_commit_message_id(project_git, issue_id_regex)
-#jira_issues <- parse_jira(jira_issues_path)[["issues"]]
+jira_issues <- parse_jira(jira_issues_path)[["issues"]]
 
-jira_issues <- parse_jira_rss_xml(jira_issues_path)
+
+# Timezone is embedded on separated field. All times shown in UTC.
+jira_issues$issue_tz <- "0000"
+
+jira_issues$issue_updated_datetimetz <- as.POSIXct(jira_issues$issue_updated_datetimetz,
+                                      format = "%Y-%m-%dT%H:%M:%S.000+0000", tz = "UTC")
 ```
+
+Time Window Alignment 
+
+```{r}
+jira_issues <- jira_issues[(issue_updated_datetimetz >= start_timestamp) &
+                             (issue_updated_datetimetz <= end_timestamp )]
+```
+
 
 
 ```{r}
@@ -314,7 +651,7 @@ The left join table is the `project_dependencies` nodes table. Any other tables 
 
 
 ```{r}
-flaws_and_outcomes_dt <- project_dependencies[["nodes"]]
+flaws_and_outcomes_dt <- copy(project_dependencies[["nodes"]])
 
 setnames(flaws_and_outcomes_dt,
          old = "filepath",
@@ -324,12 +661,16 @@ setnames(file_flaws,
          old = "file_path",
          new = "file_pathname")
 
+flaws_and_outcomes_dt <- merge(flaws_and_outcomes_dt,line_metrics_dt, by = "file_pathname", all.x = TRUE)
 flaws_and_outcomes_dt <- merge(flaws_and_outcomes_dt,file_flaws, by = "file_pathname", all.x = TRUE)
+flaws_and_outcomes_dt <- merge(flaws_and_outcomes_dt,motif_anti_triangle_count_dt, by = "file_pathname", all.x = TRUE)
+flaws_and_outcomes_dt <- merge(flaws_and_outcomes_dt,motif_anti_square_count_dt, by = "file_pathname", all.x = TRUE)
 flaws_and_outcomes_dt <- merge(flaws_and_outcomes_dt,file_churn, by = "file_pathname", all.x = TRUE)
 flaws_and_outcomes_dt <- merge(flaws_and_outcomes_dt,file_bug_frequency, by = "file_pathname", all.x = TRUE)
 flaws_and_outcomes_dt <- merge(flaws_and_outcomes_dt,file_non_bug_frequency, by = "file_pathname", all.x = TRUE)
 flaws_and_outcomes_dt <- merge(flaws_and_outcomes_dt,file_bug_churn, by = "file_pathname", all.x = TRUE)
 flaws_and_outcomes_dt <- merge(flaws_and_outcomes_dt,file_non_bug_churn, by = "file_pathname", all.x = TRUE)
+
 ```
 
 # Fill Non Join Match with 0s 
@@ -340,6 +681,14 @@ When combining tables, if a file was not listed in a metric calculated from the 
 setnafill(flaws_and_outcomes_dt, 
           cols = colnames(flaws_and_outcomes_dt)[2:length(colnames(flaws_and_outcomes_dt))]
           , fill = 0)
-fwrite(flaws_and_outcomes_dt,file.path(project_path,paste0(project_name,"-flaws_vs_outcome_metrics.csv")))
 ```
+
+A sample of the final table is shown below: 
+
+```{r}
+head(flaws_and_outcomes_dt)  %>%
+  gt(auto_align = FALSE) 
+#fwrite(flaws_and_outcomes_dt,file.path(project_path,paste0(project_name,"-flaws_smells_vs_outcome_metrics.csv")))
+```
+
 

@@ -10,9 +10,12 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### MINOR IMPROVEMENTS
 
+ 
+ * Added line metrics, triangle and square motifs to `causal_flaws.Rmd` notebook [#220](https://github.com/sailuh/kaiaulu/issues/220)
+ * Added Anti-Motif from prior paper analysis [#210](https://github.com/sailuh/kaiaulu/issues/210)
  * parse_gof_patterns() now includes the instance id of a given pattern. The column names were also renamed to match the XML. This should now fully tabulate all information provided by the XML. Note patterns which at least one instance are not reported are not included in the table (in the XML they occur but with no instances reported). [#206](https://github.com/sailuh/kaiaulu/issues/206)
- * Bugzilla API now allows for output file to be specified. [#202](https://github.com/sailuh/kaiaulu/pull/202)
- * Paired parser functions now expects a filepath instead of a json string character. [#202](https://github.com/sailuh/kaiaulu/pull/202)
+ * Bugzilla API now allows for output file to be specified. [#202](https://github.com/sailuh/kaiaulu/issues/202)
+ * Paired parser functions now expects a filepath instead of a json string character. [#202](https://github.com/sailuh/kaiaulu/issues/202)
  * A new filter, `filter_by_commit_size()`, has been added. This filter mitigates outline co-change resulting from git log projections, which may lead to a "all-vs-all" explosion of edges. E.g. Apache Geronimo SVN to Git migration contains a [commit](https://github.com/apache/geronimo/commit/b60bf0a205e0257cb3279b08fb6c8d48bc7ce67a) which modifies 1522 files. Said 1522 files would be co-changed with each other generating 1522 Choose 2 = 1,157,481 alone, which not accurately reflect actual "co-change". Use of this filter is strongly encouraged for `graph_to_dsmj` or any operations that require git log projection. [#209](https://github.com/sailuh/kaiaulu/issues/209)
  * Re-Implements Motif Analysis from prior [TSE paper](https://ieeexplore.ieee.org/document/9436025).  [#210](https://github.com/sailuh/kaiaulu/issues/210)
 
@@ -29,6 +32,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 * Fixes mismatch of filepath due to leading `/` remaining in relative filepath of `parse_dependencies()`. [#219](https://github.com/sailuh/kaiaulu/issues/219)
 
 ### DOCUMENTATION FIXES
+ * Documentation was improved for the Causal Flaws Notebook [#220](https://github.com/sailuh/kaiaulu/issues/220)
  * Moved learning resources to the wiki. Minor editing to guidelines for clarity and common mistakes. [#150](https://github.com/sailuh/kaiaulu/issues/150)
 
 

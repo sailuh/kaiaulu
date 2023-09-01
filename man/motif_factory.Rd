@@ -15,6 +15,8 @@ motifs.
 }
 \seealso{
 Other motif: 
+\code{\link{motif_factory_anti_square}()},
+\code{\link{motif_factory_anti_triangle}()},
 \code{\link{motif_factory_square}()},
 \code{\link{motif_factory_triangle}()}
 }
