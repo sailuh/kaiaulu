@@ -49,7 +49,7 @@ save_path_issue_tracker_issue_comments <- conf[["issue_tracker"]][["jira"]][["is
 
 In the project configuration file, we define the domain which JIRA is hosted. The example configuration file uses the domain for Apache Software Foundation. We can use this information to queue the domain to identify all project keys available in its JIRA:
 
-```{r eval = FALSE}
+```{r}
 # Save credentials to pass them only one time
 save_jira_credentials(domain = issue_tracker_domain)
 
@@ -69,7 +69,7 @@ The following function will download all the available issues. For more details,
 
 We will download the data on `verbose`, and as json (`as.data.frame = FALSE`), as the turning the later appears to cause column names to not match values, ignores the requested fields, and gives inconsistent column names. Kaiaulu implements its own parser for the json file, so you will still be able to obtain a table in the end without the associated issues. 
 
-```{r eval = FALSE}
+```{r}
 # Retrieve the issues from a single project - in this case the project QTWB from bugreports.qt.io. See documentation to define which fields to see
 json_issues <- get_jira_issues(jql_query = paste0("project='",issue_tracker_project_key,"'"),
                 fields = c("summary",
@@ -105,7 +105,7 @@ In the same manner as before, we can perform the same function call, but includi
 
 The data of this table can be used to calculate `social smell metrics`, as it represents a form of developer communication. A notebook discussing how to use JIRA data as communication network and/or combining to mailing list data will be made available in the future. 
 
-```{r eval = FALSE}
+```{r}
 json_issue_comments <- get_jira_issues(jql_query = paste0("project='",issue_tracker_project_key,"'"),
                 fields = c("summary",
                            "description",
