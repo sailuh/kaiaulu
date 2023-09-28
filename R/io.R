@@ -30,7 +30,11 @@ read_temporary_file <- function(temp){
 io_make_sample_file <- function(save_filepath,body) {
 
   error <- system2('echo',
+<<<<<<< HEAD
                    args = c("\"print('hello world!')\"",
+=======
+                   args = c(`body<-`(),
+>>>>>>> 2a0c105 (i #227 create and implement tester functions io_create_folder, io_make_sample_file, git_init)
                             '>',
                             file_path),
                    stdout = TRUE,
@@ -53,6 +57,7 @@ io_make_sample_file <- function(save_filepath,body) {
 #' @export
 io_create_folder <- function(folderName, body) {
 
+<<<<<<< HEAD
   file_path <- file.path(folder_path,"hello.R")
 
   #echo "print('hello world!')" >  path/to/folder/hello.R
@@ -67,6 +72,15 @@ io_create_folder <- function(folderName, body) {
   error <- system2('git',
                    args = c('init',
                             folder_path),
+=======
+  # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
+  folder_path <- path.expand(folder_path)
+  folder_path <- file.path(folder_path,body)
+
+  #mkdir path/to/folder/sample
+  error <- system2('mkdir',
+                   args = c(folder_path),
+>>>>>>> 2a0c105 (i #227 create and implement tester functions io_create_folder, io_make_sample_file, git_init)
                    stdout = TRUE,
                    stderr = FALSE)
 

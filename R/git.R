@@ -127,6 +127,7 @@ git_create_sample_log <- function(folder_path="/tmp"){
   folder_path <- path.expand(folder_path)
   folder_path <- file.path(folder_path,"kaiaulu_sample")
 
+
   #mkdir path/to/folder/sample
   error <- system2('mkdir',
                    args = c(folder_path),
