@@ -199,3 +199,26 @@ git_delete_sample_log <- function(folder_path="/tmp"){
                    stdout = TRUE,
                    stderr = FALSE)
 }
+
+
+
+#' This function initializes a new Git repository in the specified folder.
+#'
+#' @param folder_path The path to the folder where the Git repository should be initialized.
+#' @return The path to the newly created Git repository.
+#' @export
+git_init <- function(folder_path) {
+  error <- system2('git',
+                   args = c('init', folder_path),
+                   stdout = TRUE,
+                   stderr = FALSE)
+
+  git_repo <- file.path(folder_path, '.git')
+
+  return(git_repo)
+}
+
+
+
+
+
