@@ -14,7 +14,8 @@ Authors@R: c(
     person('Jari van', 'Meijel', role = c('ctb')),
     person('Leilani', 'Reich', role = c('ctb')),
     person('Malia', 'Liu', role = c('ctb')),
-    person('Nicholas', 'Lee', role = c('ctb'))    
+    person('Nicholas', 'Lee', role = c('ctb')),
+    person('Nicole', 'Hoess', role = c('ctb'))
     )
 Maintainer: Carlos Paradis <cvas@hawaii.edu>
 License: MPL-2.0 | file LICENSE
@@ -39,7 +40,9 @@ Imports:
     XML (>= 3.99-0),
     RColorBrewer (>= 1.1-2),
     cli (>= 2.0.2),
-    docopt (>= 0.7.1)
+    docopt (>= 0.7.1),
+    doParallel (>= 1.0.17),
+    doSNOW (>= 1.0.20)
 VignetteBuilder: knitr
 URL: https://github.com/sailuh/kaiaulu
 BugReports: https://github.com/sailuh/kaiaulu/issues
