@@ -12,12 +12,19 @@ vignette: >
 
 # Introduction
 
+This notebook showcases the git log entity analysis over multiple time windows.
+
 ```{r}
 rm(list = ls())
 seed <- 1
 set.seed(seed)
 Sys.setlocale("LC_ALL","C") # set default locale
 ```
+
+To speed up the analysis, the time windows are processed in parallel in a foreach-loop. For this purpose, the following packages are required:
+
+* doParallel (>= 1.0.17)
+* doSNOW (>= 1.0.20)
 
 ```{r warning=FALSE,message=FALSE}
 require(data.table)
