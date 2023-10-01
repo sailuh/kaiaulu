@@ -13,6 +13,8 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### MINOR IMPROVEMENTS
 
+ * The R File and R Function parser can now properly parse R folders which contain folders within (not following R package structure). Both `.r` and `.R` files are also now captured (previously only one of the two were specified, but R accepts both). [#235](https://github.com/sailuh/kaiaulu/issues/235)
+ * Refactor GoF Notebook in Graph GoF and Text GoF Notebooks [#224](https://github.com/sailuh/kaiaulu/issues/224)
  * Parameterize the dsm type in `parse_dv8_architectural_flaws` so users can specify the dsm that should be used when reconstructing the architectural flaw instances per file. [#222](https://github.com/sailuh/kaiaulu/issues/222) 
  * Adds additional label to reflect an issue is closed (i.e. "Resolved" used in Cassandra) [#221](https://github.com/sailuh/kaiaulu/issues/221) 
  * Added line metrics, triangle and square motifs to `causal_flaws.Rmd` notebook [#220](https://github.com/sailuh/kaiaulu/issues/220)
@@ -22,9 +24,6 @@ __kaiaulu 0.0.0.9700 (in development)__
  * Paired parser functions now expects a filepath instead of a json string character. [#202](https://github.com/sailuh/kaiaulu/issues/202)
  * A new filter, `filter_by_commit_size()`, has been added. This filter mitigates outline co-change resulting from git log projections, which may lead to a "all-vs-all" explosion of edges. E.g. Apache Geronimo SVN to Git migration contains a [commit](https://github.com/apache/geronimo/commit/b60bf0a205e0257cb3279b08fb6c8d48bc7ce67a) which modifies 1522 files. Said 1522 files would be co-changed with each other generating 1522 Choose 2 = 1,157,481 alone, which not accurately reflect actual "co-change". Use of this filter is strongly encouraged for `graph_to_dsmj` or any operations that require git log projection. [#209](https://github.com/sailuh/kaiaulu/issues/209)
  * Re-Implements Motif Analysis from prior [TSE paper](https://ieeexplore.ieee.org/document/9436025).  [#210](https://github.com/sailuh/kaiaulu/issues/210)
-
-### MINOR IMPROVEMENTS
-
  * Adds tags column to `github_parse_project_issue()`, `github_parse_project_pull_request()` so bug count can also be computed from GitHub API. [#216](https://github.com/sailuh/kaiaulu/issues/216)
  * A progress bar has been added to `parse_dv8_architectural_flaws()`. Each tick tracks one folder of flaws (progressBar auto resets the tick to 0 on loop completion, so instance progress bar requires further function refactoring and is deferred for now). [#209](https://github.com/sailuh/kaiaulu/issues/209)
  * graph_to_dsmj is now vectorized, increasing performance [#209](https://github.com/sailuh/kaiaulu/issues/209)

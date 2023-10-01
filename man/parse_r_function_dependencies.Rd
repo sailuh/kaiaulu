@@ -11,6 +11,16 @@ parse_r_function_dependencies(parsed_r_file, function_definition)
 
 \item{function_definition}{A list of function definitions (see \code{\link{parse_r_function_definition}})}
 }
+\value{
+Returns a table of 6 columns: src_functions_call_name | src_functions_call_filename |
+sr_functions_caller_name | src_functions_caller_filename | src_line_functions_call_start |
+src_line_functions_call_end.
+
+The `call` name and filename are the function calls this files perform towards other files. The
+`caller` name and filename define which functions performed the function call (i.e. the call originate
+on them). Finally the `call` start and end lines define the line position of `src_functions_call_filename`
+where the call occurred.
+}
 \description{
 Identify function calls in an R File.
 }
