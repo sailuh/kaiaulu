@@ -3,6 +3,8 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ * A parallel version of the git log entity analysis was added to process multiple time windows in parallel. See the new `gitlog_entity_showcase_parallel.Rmd` for details. [#231](https://github.com/sailuh/kaiaulu/issues/231)
+ * Refactor GoF Notebook in Graph GoF and Text GoF Notebooks [#224](https://github.com/sailuh/kaiaulu/issues/224)
  * Adds GoF module and various utility functions to facilitate integrating identified pattern classes to files. [#223](https://github.com/sailuh/kaiaulu/issues/223)
  * Adds `parse_jira_rss_xml()`, which enables reusing the full 26 projects dataset of our prior TSE work. [#218](https://github.com/sailuh/kaiaulu/issues/218)
  * Adds `metric_file_bug_frequency()`, `metric_file_non_bug_frequency()`, `metric_file_bug_churn()`, `metric_file_non_bug_churn()`, `metric_file_churn()` to `R/metric.R` [#214](https://github.com/sailuh/kaiaulu/issues/214)

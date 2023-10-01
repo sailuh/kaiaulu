@@ -1,0 +1,157 @@
+# -*- yaml -*-
+# https://github.com/sailuh/kaiaulu
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
+# Project Configuration File #
+#
+# To perform analysis on open source projects, you need to manually
+# collect some information from the project's website. As there is
+# no standardized website format, this file serves to distill
+# important data source information so it can be reused by others
+# and understood by Kaiaulu.
+#
+# Please check https://github.com/sailuh/kaiaulu/tree/master/conf to
+# see if a project configuration file already exists. Otherwise, we
+# would appreciate if you share your curated file with us by sending a
+# Pull Request: https://github.com/sailuh/kaiaulu/pulls
+#
+# Note, you do NOT need to specify this entire file to conduct analysis.
+# Each R Notebook uses a different portion of this file. To know what
+# information is used, see the project configuration file section at
+# the start of each R Notebook.
+#
+# Please comment unused parameters instead of deleting them for clarity.
+# If you have questions, please open a discussion:
+# https://github.com/sailuh/kaiaulu/discussions
+
+project:
+  website: https://spark.apache.org
+  openhub: https://openhub.net/p/apache-spark
+
+version_control:
+  # Where is the git log located locally?
+  log: ../../rawdata/git_repo/spark/.git
+  # From where the git log was downloaded?
+  log_url: https://github.com/apache/spark
+  # List of branches used for analysis
+  branch:
+    - master
+
+mailing_list:
+  # Where is the mbox located locally?
+  #mbox: ../rawdata/mbox/spark-dev.mbox
+  # What is the domain of the chosen mailing list archive?
+  #domain: http://mail-archives.apache.org/mod_mbox
+  # Which lists of the domain will be used?
+  #list_key:
+  #  - spark-dev
+
+issue_tracker:
+  jira:
+    # Obtained from the project's JIRA URL
+    #domain: https://issues.apache.org/jira
+    #project_key: SPARK
+    # Download using `download_jira_data.Rmd`
+    #issues: ../../rawdata/issue_tracker/spark_issues.json
+    #issue_comments: ../../rawdata/issue_tracker/sparj_issue_comments.json
+  github:
+    # Obtained from the project's GitHub URL
+    #owner: apache
+    #repo: spark
+    # Download using `download_github_comments.Rmd`
+    #replies: ../../rawdata/github/spark/
+
+#vulnerabilities:
+  # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
+  # Download at: https://nvd.nist.gov/vuln/data-feeds
+  #nvd_feed: rawdata/nvdfeed
+
+# Commit message CVE or Issue Regular Expression (regex)
+# See project's commit message for examples to create the regex
+commit_message_id_regex:
+  issue_id: \#[0-9]+
+  #cve_id: ?
+
+filter:
+  keep_filepaths_ending_with:
+    - cpp
+    - c
+    - h
+    - java
+    - js
+    - py
+    - cc
+  remove_filepaths_containing:
+    - test
+
+
+# Third Party Tools Configuration #
+#
+# See Kaiaulu's README.md for details on how to setup these tools.
+tool:
+  # Depends allow to parse file-file static dependencies.
+  # depends:
+  #   # accepts one language at a time: cpp, java, ruby, python, pom
+  #   # You can obtain this information on OpenHub or the project GiHub page right pane.
+  #   code_language: scala
+  #   # Specify which types of Dependencies to keep - see the Depends tool README.md for details.
+  #   keep_dependencies_type:
+  #     - Cast
+  #     - Call
+  #     - Import
+  #     - Return
+  #     - Set
+  #     - Use
+  #     - Implement
+  #     - ImplLink
+  #     - Extend
+  #     - Create
+  #     - Throw
+  #     - Parameter
+  #     - Contain
+  # Uctags allows finer file-file dependency parsing (e.g. functions, classes, structs)
+  uctags:
+    # See https://github.com/sailuh/kaiaulu/wiki/Universal-Ctags for details
+    # What types of file-file dependencies should be considered? If all
+    # dependencies are specified, Kaiaulu will use all of them if available.
+    keep_lines_type:
+      c:
+        - f # function definition
+      cpp:
+        - c # classes
+        - f # function definition
+      java:
+        - c # classes
+        - m # methods
+      python:
+        - c # classes
+        - f # functions
+      r:
+        - f # functions
+
+# Analysis Configuration #
+analysis:
+  # You can specify the intervals in 2 ways: window, or enumeration
+  window:
+    # If using gitlog, use start_commit and end_commit. Timestamp is inferred from gitlog
+    #start_commit: c1c710e7da75b989f4d14e84e85f336bc10920e0
+    #end_commit: 0dda75f824d761f1ca89decb1501a1902ade7a24
+    # Use datetime only if no gitlog is used in the analysis.
+    #start_datetime: 2023-09-10 00:00:00
+    #end_datetime: 2023-09-18 00:00:00
+    size_days: 270 # 9 months
+#  enumeration:
+     # If using gitlog, specify the commits
+#    commit:
+#      - c1c710e7da75b989f4d14e84e85f336bc10920e0
+#      - 213ac1c946d8bc426a636e2547262096198f61ac
+#      - 0dda75f824d761f1ca89decb1501a1902ade7a24
+     # Use datetime only if no gitlog is used in the analysis. Timestamp is inferred from gitlog
+#    datetime:
+#      - 2023-09-18 00:00:00
+#      - 2023-09-15 00:00:00
+#      - 2023-09-10 00:00:00
