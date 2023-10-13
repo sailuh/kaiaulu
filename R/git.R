@@ -152,32 +152,50 @@ git_create_sample_log <- function(folder_path="/tmp"){
                    stderr = FALSE)
 
   git_repo <- file.path(folder_path,'.git')
-
   # git --git-dir sample/.git --work-tree sample add hello.R
-  error <- system2('git',
-                   args = c('--git-dir',
-                            git_repo,
-                            '--work-tree',
-                            folder_path,
-                            'add',
-                            '.'),
-                   stdout = TRUE,
-                   stderr = FALSE)
+  #' @param git_repo The git repo path
+  #' @param folder_path The worktree path
+  #' @param filepath The filepath we want to add
+  #' @return The path to the sample .git file.
+  #' @export
+  git_add <- function(git_repo, folder_path, filepath) {
+    error <- system2('git',
+                     args = c('--git-dir',
+                              git_repo,
+                              '--work-tree',
+                              folder_path,
+                              'add',
+                              filepath),
+                     stdout = TRUE,
+                     stderr = FALSE)
+    return(git_repo)
+    }
 
   # git --git-dir sample/.git --work-tree sample commit -m 'hello world commit'
-  error <- system2('git',
+  #' @param git_repo The git repo path
+  #' @param folder_path The worktree path
+  #' @param commit_msg The commit msg
+  #' @param author The author of the commit
+  #' @param email The email of whoever made the commit
+  #' @return The path to the sample .git file.
+  #' @export
+  git_commit <- function (git_repo, folder_path, commit_msg, author, email) {
+    error <- system2('git',
                    args = c('--git-dir',
                             git_repo,
                             '--work-tree',
                             folder_path,
                             'commit',
                             '-m',
-                            "'hello world commit'"),
+                            shQuote(commit_msg),
+                            '--author', paste0(author,"<",email,">")),
                    stdout = TRUE,
                    stderr = FALSE)
+    return(git_repo)
+    }
 
   return(git_repo)
-}
+  }
 
 #' Removes sample folder and git log
 #'

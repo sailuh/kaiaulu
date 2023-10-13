@@ -7,7 +7,17 @@
 git_create_sample_log(folder_path = "/tmp")
 }
 \arguments{
-\item{folder_path}{An optional path to where the sample .git should be created.}
+\item{folder_path}{The worktree path}
+
+\item{filepath}{The filepath we want to add}
+
+\item{git_repo}{The git repo path}
+
+\item{commit_msg}{The commit msg}
+
+\item{author}{The author of the commit}
+
+\item{email}{The email of whoever made the commit}
 }
 \value{
 The path to the sample .git file.
