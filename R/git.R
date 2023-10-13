@@ -16,14 +16,14 @@ git_checkout <- function(commit_hash,git_repo_path){
   # Remove ".git"
   folder_path <- stri_replace_last(git_repo_path,replacement="",regex=".git")
   error <- system2('git',
-                  args = c('--git-dir',
-                           git_repo_path,
-                           '--work-tree',
-                           folder_path,
-                           'checkout',
-                           commit_hash),
-                  stdout = TRUE,
-                  stderr = FALSE)
+                   args = c('--git-dir',
+                            git_repo_path,
+                            '--work-tree',
+                            folder_path,
+                            'checkout',
+                            commit_hash),
+                   stdout = TRUE,
+                   stderr = FALSE)
   return(error)
 }
 #' Gets the current commit hash head of the git repo
@@ -154,32 +154,17 @@ git_create_sample_log <- function(folder_path="/tmp"){
   git_repo <- file.path(folder_path,'.git')
 
   # git --git-dir sample/.git --work-tree sample add hello.R
-  #' @param git_repo The git repo path
-  #' @param folder_path The worktree path
-  #' @param file The file we want to add
-  #' @export
-  git_add <- function(git_repo, folder_path, filepath) {
-
   error <- system2('git',
                    args = c('--git-dir',
                             git_repo,
                             '--work-tree',
                             folder_path,
                             'add',
-                            filepath),
+                            '.'),
                    stdout = TRUE,
                    stderr = FALSE)
-  }
 
   # git --git-dir sample/.git --work-tree sample commit -m 'hello world commit'
-  #' @param git_repo The git repo path
-  #' @param folder_path The worktree path
-  #' @param commit_msg The commit msg
-  #' @param author The author of the commit
-  #' @param email The email of whoever made the commit
-  #' @export
-  git_commit <- function (git_repo, folder_path, commit_msg, author, email) {
-
   error <- system2('git',
                    args = c('--git-dir',
                             git_repo,
@@ -187,11 +172,9 @@ git_create_sample_log <- function(folder_path="/tmp"){
                             folder_path,
                             'commit',
                             '-m',
-                            shQuote(commit_msg),
-                            '--author', paste(author, "<", email, ">")),
+                            "'hello world commit'"),
                    stdout = TRUE,
                    stderr = FALSE)
-}
 
   return(git_repo)
 }
