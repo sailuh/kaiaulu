@@ -144,43 +144,44 @@ git_create_sample_log <- function(folder_path="/tmp"){
                    stdout = TRUE,
                    stderr = FALSE)
 
-  # git init path/to/folder
-  error <- system2('git',
-                   args = c('init',
-                            folder_path),
-                   stdout = TRUE,
-                   stderr = FALSE)
+  git_init(folder_path)
 
   git_repo <- file.path(folder_path,'.git')
-  # git --git-dir sample/.git --work-tree sample add hello.R
-  #' @param git_repo The git repo path
-  #' @param folder_path The worktree path
-  #' @param filepath The filepath we want to add
-  #' @return The path to the sample .git file.
-  #' @export
-  git_add <- function(git_repo, folder_path, filepath) {
-    error <- system2('git',
-                     args = c('--git-dir',
-                              git_repo,
-                              '--work-tree',
-                              folder_path,
-                              'add',
-                              filepath),
-                     stdout = TRUE,
-                     stderr = FALSE)
-    return(git_repo)
-    }
 
-  # git --git-dir sample/.git --work-tree sample commit -m 'hello world commit'
-  #' @param git_repo The git repo path
-  #' @param folder_path The worktree path
-  #' @param commit_msg The commit msg
-  #' @param author The author of the commit
-  #' @param email The email of whoever made the commit
-  #' @return The path to the sample .git file.
-  #' @export
-  git_commit <- function (git_repo, folder_path, commit_msg, author, email) {
-    error <- system2('git',
+  git_add(git_repo, folder_path, file_path)
+
+  git_commit(git_repo, folder_path, "hello world commit", "fakeAuthor", "fakeEmail")
+
+  return(git_repo)
+}
+
+#' This function initializes a new Git repository in the specified folder.
+#'
+#' @param folder_path The path to the folder where the Git repository should be initialized.
+#' @return The path to the newly created Git repository.
+#' @export
+git_init <- function(folder_path) {
+  error <- system2('git',
+                   args = c('init', folder_path),
+                   stdout = TRUE,
+                   stderr = FALSE)
+  git_repo <- file.path(folder_path, '.git')
+  return(git_repo)
+}
+
+#' Writes a git commit to the git log - git --git-dir sample/.git --work-tree sample commit -m 'hello world commit'
+#'
+#' Writes a git commit with author and email to the folder path
+#'
+#' @param git_repo The git repo path
+#' @param folder_path The worktree path
+#' @param commit_msg The commit msg
+#' @param author The author of the commit
+#' @param email The email of whoever made the commit
+#' @return The path to the sample .git file.
+#' @export
+git_commit <- function (git_repo, folder_path, commit_msg, author, email) {
+  error <- system2('git',
                    args = c('--git-dir',
                             git_repo,
                             '--work-tree',
@@ -191,11 +192,30 @@ git_create_sample_log <- function(folder_path="/tmp"){
                             '--author', paste0(author,"<",email,">")),
                    stdout = TRUE,
                    stderr = FALSE)
-    return(git_repo)
-    }
-
   return(git_repo)
-  }
+}
+
+#' Git adds a file to the gitlog - git --git-dir sample/.git --work-tree sample add hello.R
+#'
+#' This is a function that git adds the filepath selected
+#'
+#' @param git_repo The git repo path
+#' @param folder_path The worktree path
+#' @param filepath The filepath we want to add
+#' @return The path to the sample .git file.
+#' @export
+git_add <- function(git_repo, folder_path, filepath) {
+  error <- system2('git',
+                   args = c('--git-dir',
+                            git_repo,
+                            '--work-tree',
+                            folder_path,
+                            'add',
+                            filepath),
+                   stdout = TRUE,
+                   stderr = FALSE)
+  return(git_repo)
+}
 
 #' Removes sample folder and git log
 #'
