@@ -31,9 +31,9 @@ io_make_sample_file <- function(save_filepath,body) {
 
   error <- system2('echo',
                    '>',
-                  file_path),
-                   stdout = TRUE,
-                   stderr = FALSE)
+                  file_path)
+                   stdout = TRUE
+                   stderr = FALSE
 
   # Create cmd
   cmd <- paste("echo", shQuote(body), ">", shQuote(save_filepath))
