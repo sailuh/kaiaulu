@@ -2,7 +2,7 @@
 % Please edit documentation in R/git.R
 \name{git_commit}
 \alias{git_commit}
-\title{Writes a git commit to the git log - git --git-dir sample/.git --work-tree sample commit -m 'hello world commit'}
+\title{Git commit}
 \usage{
 git_commit(git_repo, folder_path, commit_msg, author, email)
 }
@@ -11,15 +11,11 @@ git_commit(git_repo, folder_path, commit_msg, author, email)
 
 \item{folder_path}{The worktree path}
 
-\item{commit_msg}{The commit msg}
-
-\item{author}{The author of the commit}
-
-\item{email}{The email of whoever made the commit}
+\item{filepath}{The filepath we want to add}
 }
 \value{
 The path to the sample .git file.
 }
 \description{
-Writes a git commit with author and email to the folder path
+Git commits a file
 }

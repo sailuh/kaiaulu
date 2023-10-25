@@ -2,7 +2,7 @@
 % Please edit documentation in R/git.R
 \name{git_add}
 \alias{git_add}
-\title{Git adds a file to the gitlog - git --git-dir sample/.git --work-tree sample add hello.R}
+\title{Git adds a file to the gitlog sample}
 \usage{
 git_add(git_repo, folder_path, filepath)
 }

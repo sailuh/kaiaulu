@@ -125,24 +125,27 @@ git_blame <- function(git_repo_path,flags,commit_hash,file_path){
 git_create_sample_log <- function(folder_path="/tmp"){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   folder_path <- path.expand(folder_path)
-  folder_path <- file.path(folder_path,"kaiaulu_sample")
+  #folder_path <- file.path(folder_path,"kaiaulu_sample")
+  folder_path <- io_create_folder("kaiaulu_sample")
 
   #mkdir path/to/folder/sample
-  error <- system2('mkdir',
-                   args = c(folder_path),
-                   stdout = TRUE,
-                   stderr = FALSE)
+  #error <- system2('mkdir',
+  #                 args = c(folder_path),
+  #                 stdout = TRUE,
+  #                 stderr = FALSE)
 
 
   file_path <- file.path(folder_path,"hello.R")
 
+  io_make_sample_file(file_path, "print('hello world!')")
+
   #echo "print('hello world!')" >  path/to/folder/hello.R
-  error <- system2('echo',
-                   args = c("\"print('hello world!')\"",
-                            '>',
-                            file_path),
-                   stdout = TRUE,
-                   stderr = FALSE)
+  #error <- system2('echo',
+  #                 args = c("\"print('hello world!')\"",
+  #                          '>',
+  #                          file_path),
+  #                 stdout = TRUE,
+  #                 stderr = FALSE)
 
   git_init(folder_path)
 
@@ -150,7 +153,19 @@ git_create_sample_log <- function(folder_path="/tmp"){
 
   git_add(git_repo, folder_path, file_path)
 
-  git_commit(git_repo, folder_path, "hello world commit", "fakeAuthor", "fakeEmail")
+  # WILL UNCOMMENT THIS BELOW LINE AFTER TEST
+  # git_commit(git_repo, folder_path, "hello world commit", "fakeAuthor", "fakeEmail")
+  error <- system2('git',
+                   args = c('--git-dir',
+                            git_repo,
+                            '--work-tree',
+                            folder_path,
+                            'commit',
+                            '-m',
+                            "'hello world commit'"),
+                   stdout = TRUE,
+                   stderr = FALSE)
+
 
   return(git_repo)
 }
@@ -169,18 +184,16 @@ git_init <- function(folder_path) {
   return(git_repo)
 }
 
-#' Writes a git commit to the git log - git --git-dir sample/.git --work-tree sample commit -m 'hello world commit'
+#' Git commit
 #'
-#' Writes a git commit with author and email to the folder path
+#' Git commits a file
 #'
 #' @param git_repo The git repo path
 #' @param folder_path The worktree path
-#' @param commit_msg The commit msg
-#' @param author The author of the commit
-#' @param email The email of whoever made the commit
+#' @param filepath The filepath we want to add
 #' @return The path to the sample .git file.
 #' @export
-git_commit <- function (git_repo, folder_path, commit_msg, author, email) {
+git_commit <- function(git_repo, folder_path, commit_msg, author, email) {
   error <- system2('git',
                    args = c('--git-dir',
                             git_repo,
@@ -189,13 +202,15 @@ git_commit <- function (git_repo, folder_path, commit_msg, author, email) {
                             'commit',
                             '-m',
                             shQuote(commit_msg),
-                            '--author', paste0(author,"<",email,">")),
+                            '--author',
+                            paste0('\"',author,"<",email,">\"")),
                    stdout = TRUE,
                    stderr = FALSE)
   return(git_repo)
 }
 
-#' Git adds a file to the gitlog - git --git-dir sample/.git --work-tree sample add hello.R
+
+#' Git adds a file to the gitlog sample
 #'
 #' This is a function that git adds the filepath selected
 #'
@@ -215,6 +230,14 @@ git_add <- function(git_repo, folder_path, filepath) {
                    stdout = TRUE,
                    stderr = FALSE)
   return(git_repo)
+}
+
+git_rename <- function(old_name, new_name) {
+  # Construct the command to rename the file using 'mv'
+  cmd <- paste("mv", shQuote(old_name), shQuote(new_name))
+
+  # Execute the 'mv' command using system()
+  system2(cmd)
 }
 
 #' Removes sample folder and git log
