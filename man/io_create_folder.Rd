@@ -4,12 +4,10 @@
 \alias{io_create_folder}
 \title{This function creates a new folder}
 \usage{
-io_create_folder(folderName, body)
+io_create_folder(folderName)
 }
 \arguments{
 \item{folderName}{Name of the folder you are creating}
-
-\item{body}{The contents of the folder, what files it will consist of}
 }
 \value{
 The new folder with its updated contents

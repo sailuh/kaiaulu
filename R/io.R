@@ -47,15 +47,14 @@ io_make_sample_file <- function(save_filepath,body) {
 #' This function creates a new folder
 #'
 #' @param folderName Name of the folder you are creating
-#' @param body The contents of the folder, what files it will consist of
 #' @return The new folder with its updated contents
 #' @export
-io_create_folder <- function(folderName, body) {
+io_create_folder <- function(folderName) {
 
 
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
-  folder_path <- path.expand(folder_path)
-  folder_path <- file.path(folder_path,body)
+  folder_path <- path.expand(folderName)
+  #folder_path <- file.path(folder_path)
 
   #mkdir path/to/folder/sample
   error <- system2('mkdir',
