@@ -7,11 +7,15 @@
 git_commit(git_repo, folder_path, commit_msg, author, email)
 }
 \arguments{
-\item{git_repo}{The git repo path}
+\item{git_repo}{The git repo path.}
 
-\item{folder_path}{The worktree path}
+\item{folder_path}{The worktree path.}
 
-\item{filepath}{The filepath we want to add}
+\item{commit_msg}{The commit associated with the commit.}
+
+\item{author}{The author associated with the commit.}
+
+\item{email}{The email of the author associated with the commit.}
 }
 \value{
 The path to the sample .git file.

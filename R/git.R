@@ -125,27 +125,11 @@ git_blame <- function(git_repo_path,flags,commit_hash,file_path){
 git_create_sample_log <- function(folder_path="/tmp"){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   folder_path <- path.expand(folder_path)
-  #folder_path <- file.path(folder_path,"kaiaulu_sample")
   folder_path <- io_create_folder("kaiaulu_sample")
-
-  #mkdir path/to/folder/sample
-  #error <- system2('mkdir',
-  #                 args = c(folder_path),
-  #                 stdout = TRUE,
-  #                 stderr = FALSE)
-
 
   file_path <- file.path(folder_path,"hello.R")
 
   io_make_sample_file(file_path, "print('hello world!')")
-
-  #echo "print('hello world!')" >  path/to/folder/hello.R
-  #error <- system2('echo',
-  #                 args = c("\"print('hello world!')\"",
-  #                          '>',
-  #                          file_path),
-  #                 stdout = TRUE,
-  #                 stderr = FALSE)
 
   git_init(folder_path)
 
@@ -188,9 +172,11 @@ git_init <- function(folder_path) {
 #'
 #' Git commits a file
 #'
-#' @param git_repo The git repo path
-#' @param folder_path The worktree path
-#' @param filepath The filepath we want to add
+#' @param git_repo The git repo path.
+#' @param folder_path The worktree path.
+#' @param commit_msg The commit associated with the commit.
+#' @param author The author associated with the commit.
+#' @param email The email of the author associated with the commit.
 #' @return The path to the sample .git file.
 #' @export
 git_commit <- function(git_repo, folder_path, commit_msg, author, email) {
