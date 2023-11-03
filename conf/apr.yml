@@ -41,6 +41,7 @@ version_control:
   log_url: https://github.com/apache/apr
   # List of branches used for analysis
   branch:
+    - 1.2.9
     - trunk
 
 mailing_list:

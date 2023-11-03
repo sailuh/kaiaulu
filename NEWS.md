@@ -13,6 +13,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### MINOR IMPROVEMENTS
 
+ * The line metrics notebook now provides further guidance on adjusting the snapshot and filtering.
  * The R File and R Function parser can now properly parse R folders which contain folders within (not following R package structure). Both `.r` and `.R` files are also now captured (previously only one of the two were specified, but R accepts both). [#235](https://github.com/sailuh/kaiaulu/issues/235)
  * Refactor GoF Notebook in Graph GoF and Text GoF Notebooks [#224](https://github.com/sailuh/kaiaulu/issues/224)
  * Parameterize the dsm type in `parse_dv8_architectural_flaws` so users can specify the dsm that should be used when reconstructing the architectural flaw instances per file. [#222](https://github.com/sailuh/kaiaulu/issues/222) 
@@ -35,6 +36,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 * Fixes mismatch of filepath due to leading `/` remaining in relative filepath of `parse_dependencies()`. [#219](https://github.com/sailuh/kaiaulu/issues/219)
 
 ### DOCUMENTATION FIXES
+ * Improved the documentation of the line metrics Notebook[#240](https://github.com/sailuh/kaiaulu/issues/240)
  * Documentation was improved for the Causal Flaws Notebook [#220](https://github.com/sailuh/kaiaulu/issues/220)
  * Moved learning resources to the wiki. Minor editing to guidelines for clarity and common mistakes. [#150](https://github.com/sailuh/kaiaulu/issues/150)
 
