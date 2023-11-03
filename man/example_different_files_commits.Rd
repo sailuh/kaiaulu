@@ -7,7 +7,7 @@
 example_different_files_commits()
 }
 \value{
-git_repo of newly created empty repo
+git_repo_path of newly created empty repo
 }
 \description{
 Repo with 2 commits, first one contains 5 files modified, second contains only one

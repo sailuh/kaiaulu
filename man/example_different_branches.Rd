@@ -7,7 +7,7 @@
 example_different_branches()
 }
 \value{
-git_repo of newly created empty repo
+git_repo_path of newly created empty repo
 }
 \description{
 One commit in two different with branches with 1 file each

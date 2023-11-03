@@ -7,7 +7,7 @@
 example_empty_repo()
 }
 \value{
-git_repo of newly created empty repo
+git_repo_path of newly created empty repo
 }
 \description{
 Checks if parse_gitlog works on an empty repo.
