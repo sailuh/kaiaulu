@@ -70,3 +70,37 @@ test_that("Calling parse_gitlog with incorrect git repo path returns correct err
   })
 })
 
+
+# A repo with 3 commits, the first adds hello.R, the second renames it to hi.R, the last adds bye.R
+test_that("Git repo with 3 commits, first file is hello.R, then renamed to hi.R, then adds another file bye.R", {
+  # Create a temporary directory for the Git repository
+  tools_path <- file.path(tools_path)
+  tool <- yaml::read_yaml(tools_path)
+  perceval_path <- tool[["perceval"]]
+  git_repo_path <- suppressWarnings(example_repo_three_commits())
+  result <- parse_gitlog(perceval_path, git_repo_path)
+  # expect only 1 because prefix test files and suffix example files are ignored.
+  expect_equal(nrow(result), 3)
+  suppressWarnings(git_delete_sample_log(git_repo_path))
+
+})
+
+
+
+
+# A repo with 3 commits, where 1 file has as prefix _test.R, 1 file has the suffix example_*.R,
+# and 1 file hello.R.
+test_that("Git repo with 3 commits, first file has prefix:test, second file has suffix:example and last file normal", {
+  # Create a temporary directory for the Git repository
+  tools_path <- file.path(tools_path)
+  tool <- yaml::read_yaml(tools_path)
+  perceval_path <- tool[["perceval"]]
+  git_repo_path <- suppressWarnings(example_repo_suffix_prefix())
+  result <- parse_gitlog(perceval_path, git_repo_path)
+# expect only 1 because prefix test files and suffix example files are ignored.
+  expect_equal(nrow(result), 1)
+  suppressWarnings(git_delete_sample_log(git_repo_path))
+
+  })
+
+

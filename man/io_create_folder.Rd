@@ -4,13 +4,15 @@
 \alias{io_create_folder}
 \title{This function creates a new folder}
 \usage{
-io_create_folder(folderName)
+io_create_folder(folder_name, folder_path = "/tmp")
 }
 \arguments{
-\item{folderName}{Name of the folder you are creating}
+\item{folder_name}{Name of newly created folder}
+
+\item{folder_path}{Path of folder where new folder will be, default set to /tmp}
 }
 \value{
-The new folder with its updated contents
+The new folder_path with its updated contents
 }
 \description{
 This function creates a new folder

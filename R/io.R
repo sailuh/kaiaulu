@@ -23,38 +23,33 @@ read_temporary_file <- function(temp){
 
 #' This function creates a sample file
 #'
-#' @param save_filepath The path of the file that is being saved
+#' Used to create sample file for fake data
+#'
+#' @param file_path The path of the file that is being saved
 #' @param body The contents of the file
 #' @return file with specified path and body
 #' @export
-io_make_sample_file <- function(save_filepath,body) {
+io_make_sample_file <- function(file_path, body) {
 
   error <- system2('echo',
-                   '>',
-                  file_path)
-                   stdout = TRUE
-                   stderr = FALSE
-
-  # Create cmd
-  cmd <- paste("echo", shQuote(body), ">", shQuote(save_filepath))
-
-  # Execute the command using system2
-  result <- system2(cmd, stdout = TRUE, stderr = FALSE)
-
+                   args = c(shQuote(body),
+                            '>',
+                            file_path),
+                   stdout = TRUE,
+                   stderr = FALSE)
 
 }
 
 #' This function creates a new folder
 #'
-#' @param folderName Name of the folder you are creating
-#' @return The new folder with its updated contents
+#' @param folder_name Name of newly created folder
+#' @param folder_path Path of folder where new folder will be, default set to /tmp
+#' @return The new folder_path with its updated contents
 #' @export
-io_create_folder <- function(folderName) {
-
-
+io_create_folder <- function(folder_name, folder_path="/tmp") {
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
-  folder_path <- path.expand(folderName)
-  #folder_path <- file.path(folder_path)
+  folder_path <- path.expand(folder_path)
+  folder_path <- file.path(folder_path, folder_name)
 
   #mkdir path/to/folder/sample
   error <- system2('mkdir',
@@ -62,6 +57,7 @@ io_create_folder <- function(folderName) {
                    stdout = TRUE,
                    stderr = FALSE)
 
+  return(folder_path)
 }
 
 

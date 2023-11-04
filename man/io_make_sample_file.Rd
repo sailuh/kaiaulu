@@ -4,10 +4,10 @@
 \alias{io_make_sample_file}
 \title{This function creates a sample file}
 \usage{
-io_make_sample_file(save_filepath, body)
+io_make_sample_file(file_path, body)
 }
 \arguments{
-\item{save_filepath}{The path of the file that is being saved}
+\item{file_path}{The path of the file that is being saved}
 
 \item{body}{The contents of the file}
 }
@@ -15,5 +15,5 @@ io_make_sample_file(save_filepath, body)
 file with specified path and body
 }
 \description{
-This function creates a sample file
+Used to create sample file for fake data
 }

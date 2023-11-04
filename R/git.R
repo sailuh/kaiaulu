@@ -219,6 +219,19 @@ git_init <- function(folder_path) {
   return(git_repo)
 }
 
+# This function renames a folder or file
+#'
+#' @param old_name The name of the file/folder that you are going to change or move
+#' @param new_name The new name of the file/folder
+#' @export
+git_rename <- function(old_name, new_name) {
+  # Construct the command to rename the file using 'mv'
+  cmd <- paste("mv", shQuote(old_name), shQuote(new_name))
+
+  # Execute the 'mv' command using system()
+  system2(cmd)
+}
+
 
 
 
