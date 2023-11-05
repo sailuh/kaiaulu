@@ -77,11 +77,13 @@ test_that("Git repo with 3 commits, first file is hello.R, then renamed to hi.R,
   tools_path <- file.path(tools_path)
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
-  git_repo_path <- suppressWarnings(example_repo_three_commits())
+  git_repo_path <- example_repo_three_commits(folder_path = "/tmp",
+                                              folder_name = "example_repo")
+
   result <- parse_gitlog(perceval_path, git_repo_path)
   # expect only 1 because prefix test files and suffix example files are ignored.
   expect_equal(nrow(result), 3)
-  suppressWarnings(git_delete_sample_log(git_repo_path))
+  io_delete_folder(folder_path = "/tmp",folder_name = "example_repo")
 
 })
 
@@ -95,11 +97,13 @@ test_that("Git repo with 3 commits, first file has prefix:test, second file has 
   tools_path <- file.path(tools_path)
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
-  git_repo_path <- suppressWarnings(example_repo_suffix_prefix())
+  git_repo_path <- example_repo_suffix_prefix(folder_path = "/tmp",
+                                              folder_name = "example_repo")
   result <- parse_gitlog(perceval_path, git_repo_path)
+  filtered_result <- result %>% filter_by_filepath_substring(c("example",'test'),"file_pathname")
 # expect only 1 because prefix test files and suffix example files are ignored.
-  expect_equal(nrow(result), 1)
-  suppressWarnings(git_delete_sample_log(git_repo_path))
+  expect_equal(nrow(filtered_result), 1)
+  io_delete_folder(folder_path = "/tmp",folder_name = "example_repo")
 
   })
 

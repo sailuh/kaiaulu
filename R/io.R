@@ -61,5 +61,26 @@ io_create_folder <- function(folder_name, folder_path="/tmp") {
 }
 
 
+#' This function deletes a folder
+#'
+#' @param folder_path Path of folder where the folder to be deleted is. Default set to /tmp
+#' @param folder_name Name of folder to be deleted
+#' @return The deleted folder_path
+#' @export
+io_delete_folder <- function(folder_path="/tmp",folder_name) {
+  # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
+  folder_path <- path.expand(folder_path)
+  folder_path <- file.path(folder_path, folder_name)
+
+  #mkdir path/to/folder/sample
+  error <- system2('rm',
+                   args = c('-r',
+                            folder_path),
+                   stdout = TRUE,
+                   stderr = FALSE)
+
+  return(folder_path)
+}
+
 
 

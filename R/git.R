@@ -219,17 +219,75 @@ git_init <- function(folder_path) {
   return(git_repo)
 }
 
-# This function renames a folder or file
+#' Git commit
 #'
+#' Git commits a file
+#'
+#' @param git_repo The git repo path.
+#' @param folder_path The worktree path.
+#' @param commit_msg The commit associated with the commit.
+#' @param author The author associated with the commit.
+#' @param email The email of the author associated with the commit.
+#' @return The path to the sample .git file.
+#' @export
+git_commit <- function(git_repo, folder_path, commit_msg, author, email) {
+  error <- system2('git',
+                   args = c('--git-dir',
+                            git_repo,
+                            '--work-tree',
+                            folder_path,
+                            'commit',
+                            '-m',
+                            shQuote(commit_msg),
+                            '--author',
+                            paste0('\"',author,"<",email,">\"")),
+                   stdout = TRUE,
+                   stderr = FALSE)
+  return(git_repo)
+}
+
+#' Git adds a file to the gitlog sample
+#'
+#' This is a function that git adds the filepath selected
+#'
+#' @param git_repo The git repo path
+#' @param folder_path The worktree path
+#' @param filepath The filepath we want to add
+#' @return The path to the sample .git file.
+#' @export
+git_add <- function(git_repo, folder_path, filepath) {
+  error <- system2('git',
+                   args = c('--git-dir',
+                            git_repo,
+                            '--work-tree',
+                            folder_path,
+                            'add',
+                            filepath),
+                   stdout = TRUE,
+                   stderr = FALSE)
+  return(git_repo)
+}
+
+#' This function renames a folder or file
+
+#' @param git_repo The git repo path
+#' @param folder_path The worktree path
 #' @param old_name The name of the file/folder that you are going to change or move
 #' @param new_name The new name of the file/folder
 #' @export
-git_rename <- function(old_name, new_name) {
+git_rename <- function(git_repo, folder_path, old_name, new_name) {
   # Construct the command to rename the file using 'mv'
-  cmd <- paste("mv", shQuote(old_name), shQuote(new_name))
 
-  # Execute the 'mv' command using system()
-  system2(cmd)
+  error <- system2('git',
+                   args = c('--git-dir',
+                            git_repo,
+                            '--work-tree',
+                            folder_path,
+                            'mv',
+                            old_name,
+                            new_name),
+                   stdout = TRUE,
+                   stderr = FALSE)
 }
 
 

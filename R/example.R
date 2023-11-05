@@ -9,13 +9,14 @@
 
 #'  A repo with 3 commits. The first adds hello.R.
 #' The second renames the file to hi.R. The third adds a second file bye.R
-#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
 #' @return git_repo of newly created empty repo
 #' @export
-example_repo_three_commits <- function() {
+example_repo_three_commits <- function(folder_path="/tmp",folder_name) {
 
 # Create folder & repo
-folder_path <- io_create_folder("example_repo")
+folder_path <- io_create_folder(folder_name, folder_path)
 git_init(folder_path)
 git_repo <- file.path(folder_path, '.git')
 
@@ -27,7 +28,7 @@ git_commit(git_repo, folder_path, "Commit hello.R file to empty repo", "John Doe
 
 
 # rename the file from hello.R to hi.R, then add and commit
-git_rename("hello.R", "hi.R")
+git_rename(git_repo, folder_path, old_name = "hello.R", new_name = "hi.R")
 hi_path <- file.path(folder_path, "hi.R")
 git_add(git_repo, folder_path, hi_path)
 git_commit(git_repo, folder_path, "Renamed file name to hi.R", "John Doe", "JohnDoe@test.com")
@@ -41,24 +42,32 @@ git_commit(git_repo, folder_path, "Commit bye.R file to repo", "John Doe", "John
 }
 
 
-# A repo with 3 commits, where 1 file has as prefix _test.R, 1 file has the suffix example_*.R,
-# and 1 file hello.R.
-example_repo_suffix_prefix <- function() {
+#' Missing title
+#'
+#' A repo with 3 commits, where 1 file has as prefix _test.R,
+#' 1 file has the suffix example_*.R, and 1 file hello.R.
+#' The second renames the file to hi.R. The third adds a second file bye.R
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return git_repo of newly created empty repo
+#' @export
+#' @export
+example_repo_suffix_prefix <- function(folder_path="/tmp",folder_name) {
 
   # Create folder & repo
-  folder_path <- io_create_folder("example_repo")
+  folder_path <- io_create_folder(folder_name,folder_path)
   git_init(folder_path)
   git_repo <- file.path(folder_path, '.git')
 
   # Add example_test.R file and commit it
-  test_path <- file.path(folder_path, "test-example.R")
+  test_path <- file.path(folder_path, "test-hello.R")
   io_make_sample_file(test_path, "print('tester')")
   git_add(git_repo, folder_path, test_path)
   git_commit(git_repo, folder_path, "Commit test-example.R file to repo", "John Doe", "JohnDoe@test.com")
 
 
   # Add hello.R file and commit it
-  example_path <- file.path(folder_path, "fake-example.R")
+  example_path <- file.path(folder_path, "example-hi.R")
   io_make_sample_file(example_path, "print('example!')")
   git_add(git_repo, folder_path, example_path)
   git_commit(git_repo, folder_path, "Commit fake-example.R file", "John Doe", "JohnDoe@test.com")
