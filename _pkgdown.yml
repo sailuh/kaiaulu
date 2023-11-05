@@ -211,3 +211,8 @@ reference:
   - parse_gof_patterns
   - write_gof_patterns
   - subset_gof_class
+- title: __Fake Data Generator__
+  desc:  Functions to create fake data for unit testing parsers
+- contents:
+  - jira_create_sample_log
+  - jira_delete_sample_log

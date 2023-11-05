@@ -29,6 +29,7 @@ require(igraph)
 require(yaml)
 require(stringi)
 require(knitr)
+require(magrittr)
 ```
 
 # Project Configuration File
@@ -69,6 +70,7 @@ tool <- yaml::read_yaml("../tools.yml")
 conf <- yaml::read_yaml("../conf/apr.yml")
 perceval_path <- tool[["perceval"]]
 git_repo_path <- conf[["version_control"]][["log"]]
+git_branch <- conf[["version_control"]][["branch"]][2]
 nvdfeed_folder_path <- conf[["vulnerabilities"]][["nvd_feed"]]
 
 # Filters
@@ -83,6 +85,7 @@ This is all the project configuration files are used for. If you inspect the var
 Our first step is to parse the git log. Many of the variables in Kaiaulu are tables, which makes it easier to export and manually inspect the data at any step of the analysis.
 
 ```{r}
+git_checkout(git_branch,git_repo_path)
 project_git <- parse_gitlog(perceval_path,git_repo_path)
 #project_git <- parse_gitlog(perceval_path,git_repo_path,save_path)
 #project_git <- readRDS(save_path)

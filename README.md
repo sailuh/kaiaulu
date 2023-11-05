@@ -30,6 +30,14 @@ Please [ask questions on Discussions](https://github.com/sailuh/kaiaulu/discussi
 Kaiaulu has been tested on OS X and Ubuntu. For Windows and other OS users, try [Virtualbox](https://www.virtualbox.org/),
 [VMware](https://www.vmware.com/), or any other software to run virtual machines for Ubuntu. 
 
+You can install Kaiaulu using the following command in your R console:
+
+```
+if (!require("devtools")) install.packages("devtools")
+devtools::install_github("sailuh/kaiaulu")
+```
+
+I also recommend you download the repo to have some example project configuration files, and notebooks to experiment:
 
  1. Clone this repo 
  2. Open `kaiaulu.Rproj` using RStudio

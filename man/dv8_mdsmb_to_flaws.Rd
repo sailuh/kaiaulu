@@ -8,6 +8,7 @@ dv8_mdsmb_to_flaws(
   dv8_path,
   mdsmb_path,
   flaws_path,
+  is_file_only_metric = FALSE,
   cliqueDepends = "call,use",
   crossingCochange = 2,
   crossingFanIn = 4,
@@ -27,6 +28,10 @@ dv8_mdsmb_to_flaws(
 Note you can also use a hdsmb or sdsmb separately to compute architectural flaws.}
 
 \item{flaws_path}{path to save the architectural flaws folder}
+
+\item{is_file_only_metric}{default is FALSE. If TRUE, uses DV8 computed file metrics. Caution: While much faster,
+these metrics can *not* be used to aggregate. Choosing FALSE will generate the file to flaw id mapping. Choosing
+TRUE will generate the aggregation from DV8.}
 
 \item{cliqueDepends}{(For Clique detection) Filtered dependencies for clique detection. Multiple dependencies should be delimited using ","}
 
