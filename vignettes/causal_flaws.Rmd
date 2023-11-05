@@ -53,7 +53,7 @@ scc_path <- tool[["scc"]]
 
 # Gitlog parameters
 git_repo_path <- conf[["version_control"]][["log"]]
-git_branch <- conf[["version_control"]][["branch"]][1]
+git_branch <- conf[["version_control"]][["branch"]][4] # camel 1.0.0
 
 
 # Depends parameters
@@ -218,11 +218,13 @@ DV8 computes a variety of metrics. Let's first observe Architectural Flaws.
 flaws_params$cliqueDepends <- stringi::stri_c(flaws_params$cliqueDepends,collapse=",")
 flaws_params$uihDepends <- stringi::stri_c(flaws_params$uihDepends,collapse=",")
 flaws_params$uihInheritance <- stringi::stri_c(flaws_params$uihInheritance,collapse=",")
+```
 
-
+```{r eval = FALSE}
 flaws_folder <- dv8_mdsmb_to_flaws(dv8_path = dv8_path, 
                                     mdsmb_path = mdsmb_path,
                                     flaws_path = file.path(project_path,paste0(project_name,"_flaws")),
+                                    is_file_only_metric = FALSE,
                                     cliqueDepends=flaws_params$cliqueDepends,
                                     crossingCochange=flaws_params$crossingCochange,
                                     crossingFanIn=flaws_params$crossingFanIn,
@@ -271,24 +273,61 @@ Each numbered folder represents an architectural flaw ID. For example, above we 
 
 ### Creating a Flaws Mapping
 
-```{r}
+```{r eval = FALSE}
 file_to_flaws_map <- parse_dv8_architectural_flaws(dv8_path, flaws_folder,progress_bar = TRUE)
-#fwrite(file_to_flaws_map,file.path(project_path,paste0(project_name,"-flaws_map.csv")))
+fwrite(file_to_flaws_map,file.path(project_path,paste0(project_name,"-flaws_map.csv")))
 kable(head(file_to_flaws_map))
 ```
 
-```{r}
+```{r eval = FALSE}
 file_to_flaws_map <- fread(file.path(project_path,paste0(project_name,"-flaws_map.csv")))
 ```
 
 
 With the flaws mapping, we can then group by the table over the file paths and type of flaw, to obtain the primary granularity of this analysis: I.e. metrics per file. This table provides us with the flaws metrics per file.  
 
-```{r}
+```{r eval = FALSE}
 file_flaws <- file_to_flaws_map[,.(n_flaws=length(architecture_issue_id)),by=c("file_path",
                                                                  "architecture_issue_type")]
 file_flaws <- dcast(file_flaws, file_path ~ ...,value.var = "n_flaws")
 ```
+
+### Alternative to Flaws Mapping
+
+The computation of Flaws Mapping can be very slow, as it is done outside DV8. If the interest is only to compute file metrics, and not aggregate them, then we can request them directly from DV8 like so:
+
+```{r}
+flaws_folder <- dv8_mdsmb_to_flaws(dv8_path = dv8_path, 
+                                    mdsmb_path = mdsmb_path,
+                                    flaws_path = file.path(project_path,paste0(project_name,"_flaws")),
+                                    is_file_only_metric = TRUE,
+                                    cliqueDepends=flaws_params$cliqueDepends,
+                                    crossingCochange=flaws_params$crossingCochange,
+                                    crossingFanIn=flaws_params$crossingFanIn,
+                                    crossingFanOut=flaws_params$crossingFanOut,
+                                    mvCochange=flaws_params$mvCochange,
+                                    uiCochange=flaws_params$uiCochange,
+                                    uihDepends=flaws_params$uihDepends,
+                                    uihInheritance=flaws_params$uihInheritance,
+                                    uiHistoryImpact=flaws_params$uiHistoryImpact,
+                                    uiStructImpact=flaws_params$uiStructImpact)
+list.files(project_path)
+```
+
+DV8 always generate its file metrics file inside the flaws folder and names it `file-measure-report.csv`:
+
+```{r}
+flaws_folder <- file.path(project_path,paste0(project_name,"_flaws"))
+file_flaws <- fread(file.path(flaws_folder,"file-measure-report.csv"))
+setnames(file_flaws,
+         old = c("FileName","Clique","Crossing","ModularityViolation","PackageCycle",
+                 "UnhealthyInheritance","UnstableInterface"),
+         new = c("file_path","clique","crossing","modularity-violation","package-cycle",
+                 "unhealthy-inheritance",
+                 "unstable-interface"))
+```
+
+
 
 With flaws computed, we moved on to the next file metrics of this analysis. 
 
@@ -338,6 +377,10 @@ start_timestamp <- max(min(project_git$author_datetimetz,na.rm = TRUE),
 
 end_timestamp <- min(max(project_git$author_datetimetz,na.rm = TRUE),
                      max(project_reply$reply_datetimetz,na.rm = TRUE))
+
+if(start_timestamp > end_timestamp){
+  stop("Non-overlapping git log and reply datasets")
+}
 
 project_git <- project_git[(author_datetimetz >= start_timestamp) &
                              (author_datetimetz <= end_timestamp )]

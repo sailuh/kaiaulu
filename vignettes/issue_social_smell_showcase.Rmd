@@ -512,7 +512,7 @@ You can also observe the identity match algorithm in action and its potential im
 
 The following visualization shows similar information, however authors are only now connected if they exchanged e-mails on the same e-mail thread in the same time period as the previous graph:
 
-```{r}
+```{r eval = FALSE}
 project_collaboration_network <- recolor_network_by_community(reply_network_authors,mail_clusters)
 
 gcid <- igraph::graph_from_data_frame(d=project_collaboration_network[["edgelist"]], 

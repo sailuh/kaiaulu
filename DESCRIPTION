@@ -14,7 +14,8 @@ Authors@R: c(
     person('Jari van', 'Meijel', role = c('ctb')),
     person('Leilani', 'Reich', role = c('ctb')),
     person('Malia', 'Liu', role = c('ctb')),
-    person('Nicholas', 'Lee', role = c('ctb'))    
+    person('Nicholas', 'Lee', role = c('ctb')),
+    person('Nicole', 'Hoess', role = c('ctb'))
     )
 Maintainer: Carlos Paradis <cvas@hawaii.edu>
 License: MPL-2.0 | file LICENSE
@@ -27,7 +28,7 @@ Suggests:
     rmarkdown, 
     markdown
 Depends:
-    R (>= 3.6.0)
+    R (>= 4.0.0)
 Imports:
     data.table (>= 1.12.8),
     stringi (>= 1.4.6),

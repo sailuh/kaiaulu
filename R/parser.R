@@ -856,7 +856,7 @@ parse_jira <- function(json_path){
       issue_type = issue_comment[["issuetype"]][["name"]][[1]],
       issue_status = issue_comment[["status"]][["name"]][[1]],
       issue_resolution = issue_comment[["resolution"]][["name"]][[1]],
-      issue_components = unlist(sapply(issue_comment[["components"]],"[[","name")),
+      issue_components = stringi::stri_c(unlist(sapply(issue_comment[["components"]],"[[","name")),collapse = ";"),
       issue_description = issue_comment[["description"]],
 
       issue_created_datetimetz = issue_comment[["created"]][[1]],
@@ -1504,8 +1504,9 @@ parse_gitlog_entity <- function(git_repo_path,utags_path,project_git_log,kinds,p
 #' @export
 parse_r_dependencies <- function(folder_path){
 
-  all_filepaths <- list.files(file.path(path.expand(folder_path)),recursive=TRUE,pattern="R",full.names=TRUE)
+  all_filepaths <- list.files(file.path(path.expand(folder_path)),recursive=TRUE,pattern="\\.r|\\.R",full.names=TRUE)
   parsed_r_files <- lapply(all_filepaths,parse_rfile_ast)
+  names(parsed_r_files) <- all_filepaths
 
 
   parsed_r_files <- lapply(parsed_r_files,function(x)
