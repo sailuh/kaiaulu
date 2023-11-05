@@ -35,6 +35,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### BUG FIXES
 
+* Fixes duplication of issue rows due to multiple components in component field [#244](https://github.com/sailuh/kaiaulu/issues/244)
 * Fixes mismatch of filepath due to leading `/` remaining in relative filepath of `parse_dependencies()`. [#219](https://github.com/sailuh/kaiaulu/issues/219)
 
 ### DOCUMENTATION FIXES
