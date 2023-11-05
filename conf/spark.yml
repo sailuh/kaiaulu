@@ -29,44 +29,41 @@
 # https://github.com/sailuh/kaiaulu/discussions
 
 project:
-  website: https://apr.apache.org/
-  openhub: https://www.openhub.net/p/apache_portable_runtime
+  website: https://spark.apache.org
+  openhub: https://openhub.net/p/apache-spark
 
 version_control:
   # Where is the git log located locally?
-  # This is the path to the .git of the project repository you are analyzing.
-  # The .git is hidden, so you can see it using `ls -a`
-  log: ../../rawdata/git_repo/APR/.git
+  log: ../../rawdata/git_repo/spark/.git
   # From where the git log was downloaded?
-  log_url: https://github.com/apache/apr
+  log_url: https://github.com/apache/spark
   # List of branches used for analysis
   branch:
-    - 1.2.9
-    - trunk
+    - master
 
 mailing_list:
   # Where is the mbox located locally?
-  mbox: ../../rawdata/mbox/apr-dev_2012_2019.mbox
+  #mbox: ../rawdata/mbox/spark-dev.mbox
   # What is the domain of the chosen mailing list archive?
-  domain: http://mail-archives.apache.org/mod_mbox
+  #domain: http://mail-archives.apache.org/mod_mbox
   # Which lists of the domain will be used?
-  list_key:
-    - apr-dev
+  #list_key:
+  #  - spark-dev
 
 issue_tracker:
   jira:
     # Obtained from the project's JIRA URL
-    domain: https://issues.apache.org/jira
-    #project_key: HELIX
+    #domain: https://issues.apache.org/jira
+    #project_key: SPARK
     # Download using `download_jira_data.Rmd`
-    #issues: ../../rawdata/issue_tracker/helix_issues.json
-    #issue_comments: ../../rawdata/issue_tracker/helix_issue_comments.json
+    #issues: ../../rawdata/issue_tracker/spark_issues.json
+    #issue_comments: ../../rawdata/issue_tracker/sparj_issue_comments.json
   github:
     # Obtained from the project's GitHub URL
-    owner: apache
-    repo: apr
+    #owner: apache
+    #repo: spark
     # Download using `download_github_comments.Rmd`
-    replies: ../../rawdata/github/apr/
+    #replies: ../../rawdata/github/spark/
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
@@ -97,51 +94,25 @@ filter:
 # See Kaiaulu's README.md for details on how to setup these tools.
 tool:
   # Depends allow to parse file-file static dependencies.
-  depends:
-    # accepts one language at a time: cpp, java, ruby, python, pom
-    # You can obtain this information on OpenHub or the project GiHub page right pane.
-    code_language: cpp
-    # Specify which types of Dependencies to keep - see the Depends tool README.md for details.
-    keep_dependencies_type:
-      - Cast
-      - Call
-      - Import
-      - Return
-      - Set
-      - Use
-      - Implement
-      - ImplLink
-      - Extend
-      - Create
-      - Throw
-      - Parameter
-      - Contain
-  dv8:
-    # The project folder path to store various intermediate
-    # files for DV8 Analysis
-    # The folder name will be used in the file names.
-    folder_path: ../../analysis/dv8/apr
-    # the architectural flaws thresholds that should be used
-    architectural_flaws:
-      cliqueDepends:
-        - call
-        - use
-      crossingCochange: 2
-      crossingFanIn: 4
-      crossingFanOut: 4
-      mvCochange: 2
-      uiCochange: 2
-      uihDepends:
-        - call
-        - use
-      uihInheritance:
-        - extend
-        - implement
-        - public
-        - private
-        - virtual
-      uiHistoryImpact: 10
-      uiStructImpact: 0.01
+  # depends:
+  #   # accepts one language at a time: cpp, java, ruby, python, pom
+  #   # You can obtain this information on OpenHub or the project GiHub page right pane.
+  #   code_language: scala
+  #   # Specify which types of Dependencies to keep - see the Depends tool README.md for details.
+  #   keep_dependencies_type:
+  #     - Cast
+  #     - Call
+  #     - Import
+  #     - Return
+  #     - Set
+  #     - Use
+  #     - Implement
+  #     - ImplLink
+  #     - Extend
+  #     - Create
+  #     - Throw
+  #     - Parameter
+  #     - Contain
   # Uctags allows finer file-file dependency parsing (e.g. functions, classes, structs)
   uctags:
     # See https://github.com/sailuh/kaiaulu/wiki/Universal-Ctags for details
@@ -167,20 +138,20 @@ analysis:
   # You can specify the intervals in 2 ways: window, or enumeration
   window:
     # If using gitlog, use start_commit and end_commit. Timestamp is inferred from gitlog
-    start_commit: 9eae9e96f15e1f216162810cef4271a439a74223
-    end_commit: f8f9ec1f249dd552065aa37c983bed4d4d869bb0
+    #start_commit: c1c710e7da75b989f4d14e84e85f336bc10920e0
+    #end_commit: 0dda75f824d761f1ca89decb1501a1902ade7a24
     # Use datetime only if no gitlog is used in the analysis.
-    #start_datetime: 2013-05-01 00:00:00
-    #end_datetime: 2013-11-01 00:00:00
-    size_days: 90
+    #start_datetime: 2023-09-10 00:00:00
+    #end_datetime: 2023-09-18 00:00:00
+    size_days: 270 # 9 months
 #  enumeration:
      # If using gitlog, specify the commits
 #    commit:
-#      - 9eae9e96f15e1f216162810cef4271a439a74223
-#      - f1d2d568776b3708dd6a3077376e2331f9268b04
-#      - c33a2ce74c84f0d435bfa2dd8953d132ebf7a77a
+#      - c1c710e7da75b989f4d14e84e85f336bc10920e0
+#      - 213ac1c946d8bc426a636e2547262096198f61ac
+#      - 0dda75f824d761f1ca89decb1501a1902ade7a24
      # Use datetime only if no gitlog is used in the analysis. Timestamp is inferred from gitlog
 #    datetime:
-#      - 2013-05-01 00:00:00
-#      - 2013-08-01 00:00:00
-#      - 2013-11-01 00:00:00
+#      - 2023-09-18 00:00:00
+#      - 2023-09-15 00:00:00
+#      - 2023-09-10 00:00:00

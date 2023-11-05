@@ -1504,8 +1504,9 @@ parse_gitlog_entity <- function(git_repo_path,utags_path,project_git_log,kinds,p
 #' @export
 parse_r_dependencies <- function(folder_path){
 
-  all_filepaths <- list.files(file.path(path.expand(folder_path)),recursive=TRUE,pattern="R",full.names=TRUE)
+  all_filepaths <- list.files(file.path(path.expand(folder_path)),recursive=TRUE,pattern="\\.r|\\.R",full.names=TRUE)
   parsed_r_files <- lapply(all_filepaths,parse_rfile_ast)
+  names(parsed_r_files) <- all_filepaths
 
 
   parsed_r_files <- lapply(parsed_r_files,function(x)

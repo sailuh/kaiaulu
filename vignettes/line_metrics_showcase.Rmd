@@ -14,21 +14,109 @@ vignette: >
 require(kaiaulu)
 require(data.table)
 require(knitr)
+require(magrittr)
 ```
 
-This is a wrapper for [SCC](https://github.com/boyter/scc). See README.md for setup details.
+# Introduction 
+
+This notebook showcases Kaiaulu interface to the [SCC](https://github.com/boyter/scc) tool. In order to use this Notebook, you must download SCC and specify the SCC path in tools.yml and the project being analyzed. See README.md for third party tools setup details.
+
+# Project Configuration File
+
+Notebooks in Kaiaulu use project configuration files. You can always directly hardcode paths in your notebook to bypass them, but using the config files helps ensure reproducibility of your analysis. 
+
+This Notebook uses the APR config file on the Kaiaulu repo. This is the relevant portion used in this Notebook:
+
+```yml
+version_control:
+  # Where is the git log located locally?
+  # This is the path to the .git of the project repository you are analyzing.
+  # The .git is hidden, so you can see it using `ls -a`
+  log: ../../rawdata/git_repo/APR/.git
+  # From where the git log was downloaded?
+  log_url: https://github.com/apache/apr
+  # List of branches used for analysis
+  branch:
+    - 1.7.4
+    
+filter:
+  keep_filepaths_ending_with:
+    - cpp
+    - c
+    - h
+    - java
+    - js
+    - py
+    - cc
+  remove_filepaths_containing:
+    - test
+```
+
+# Choosing a Release or Commit Hash
+
+We load the necessary information in this code block: 
 
 ```{r}
 tool <- yaml::read_yaml("../tools.yml")
 conf <- yaml::read_yaml("../conf/apr.yml")
 scc_path <- tool[["scc"]]
+
 git_repo_path <- conf[["version_control"]][["log"]]
+git_branch <- conf[["version_control"]][["branch"]][1]
+
+# Filters
+file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
+substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
 ```
+
+The loaded variables are just strings or numbers. You can always inspect any variable to double check what is being used in the analysis. For instance, we are interested on analyzing a specific release of APR here:
+
+```{r}
+git_branch
+```
+
+We must therefore git checkout the APR repo to said release before computing file metrics. We can do this using Kaiaulu Git interface:
+
+```{r}
+git_checkout(git_branch,git_repo_path)
+```
+
+Since git_checkout is a simple interface to the actual `git checkout` command, we can also specify a commit hash, or a branch of interest. Storing this information is helpful for reproducibility, as even if the APR git log is updated locally, the Notebook will still adjust to the right point in time when redoing the analysis.
+
+# Calculating Line Metrics
+
+With the source code on local disk adjusted to the release of interest, we can call `parse_line_metrics` with the scc_path. This function highlights Kaiaulu approach to third party tools: The dependency to the external tool is explicitly made by receiving its path as parameter. The function has the single responsibility of knowing how to interface with the tool, requesting the data, formatting it and providing it back in R as a data.table object. 
 
 A sample of rows is shown below: 
 
 ```{r}
-kable(head(parse_line_metrics(scc_path,git_repo_path),10))
+line_metrics_dt <- parse_line_metrics(scc_path,git_repo_path)
+kable(head(line_metrics_dt,10))
 ```
 
+The column names are preserved to the original tool to facilitate referencing. Future versions of Kaiaulu will define a common data schema and mapping to the original tool for clarity. The obtained table can be combined to other analysis in Kaiaulu. See for example `depends_showcase.Rmd` for dependency analysis, or `gitlog_showcase.Rmd`.  
+
+# Filters
+
+As shown above, the line metrics include all types of files, including the LICENSE and make files. We may only be interested in looking at the source code. To do so, we can use Kaiaulu filters. If we specify on the project configuration files the extensions and prefixes of interest to be kept:
+
+```{r}
+file_extensions
+```
+
+And removed:
+
+```{r}
+substring_filepath
+```
+
+We can then subset the resulting table column `Location` like so:
+
+```{r}
+filtered_line_metrics_dt <- line_metrics_dt  %>%
+  filter_by_file_extension(file_extensions,"Location")  %>% 
+  filter_by_filepath_substring(substring_filepath,"Location")
+
+kable(head(filtered_line_metrics_dt))
+```
 

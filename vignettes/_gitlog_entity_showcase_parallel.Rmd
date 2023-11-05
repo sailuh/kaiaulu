@@ -1,0 +1,227 @@
+---
+title: "Analyzing Git Log Entities in Parallel"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Analyzing Git Log Entities in Parallel}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Introduction
+
+This notebook showcases the git log entity analysis over multiple time windows.
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+Sys.setlocale("LC_ALL","C") # set default locale
+```
+
+To speed up the analysis, the time windows are processed in parallel in a foreach-loop. For this purpose, the following packages are required:
+
+* doParallel (>= 1.0.17)
+* doSNOW (>= 1.0.20)
+
+```{r warning=FALSE,message=FALSE}
+require(data.table)
+require(doParallel)
+require(doSNOW)
+require(igraph)
+require(kaiaulu)
+require(knitr)
+require(magrittr)
+require(reactable)
+require(stringi)
+require(visNetwork)
+require(yaml)
+```
+
+# Project Configuration File
+
+```{r}
+tool <- yaml::read_yaml("../tools.yml")
+conf <- yaml::read_yaml("../conf/spark.yml")
+
+# 3rd Party Tools
+perceval_path <- tool[["perceval"]]
+utags_path <- tool[["utags"]]
+
+# Ctags Line Types
+kinds <- conf[["tool"]][["uctags"]][["keep_lines_type"]]
+
+# Local Git Repo Folder Path
+git_repo_path <- conf[["version_control"]][["log"]]
+
+# File Filters
+file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
+substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+
+# Analysis Parameters
+window_size <- conf[["analysis"]][["window"]][["size_days"]]
+
+# Results Save Path
+save_path <- "../../results/spark"
+```
+
+# Construct Collaboration Network
+
+```{r}
+gitlog_path <- file.path(save_path, "gitlog.rds")
+project_git <- parse_gitlog(perceval_path,git_repo_path,gitlog_path)
+#project_git <- readRDS(gitlog_path)
+```
+
+# Filter files
+
+```{r}
+project_git <- project_git  %>%
+  filter_by_file_extension(file_extensions,"file_pathname")  %>% 
+  filter_by_filepath_substring(substring_filepath,"file_pathname")
+```
+
+```{r}
+project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
+                                              format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
+project_git$author_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
+                                              format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
+```
+
+# Multi-Core Cluster Setup
+
+Set up the parallel computing cluster to parallelize foreach-loops for time window analysis.
+
+```{r}
+# Configure the cluster
+n.cores <- parallel::detectCores() # Use all available cores
+cluster <- parallel::makeCluster(n.cores, outfile="")
+registerDoSNOW(cluster) # Register the cluster for foreach loops
+
+paste("Registered workers for foreach loops:", foreach::getDoParWorkers())
+```
+
+# Parallel Time Window Entity Analysis
+
+Entity analysis requires a much longer time to process than file analysis, which is why the associated function provides a progress bar. Since multiple time windows are analyzed in parallel, another progress bar is stacked on the individual ones to indicate the overall status. 
+
+Please note that the following cell analyzes the entire git history, which may take several minutes to hours.
+
+```{r}
+# The start and end dates correspond to the date of the earliest and latest commit, respectively.
+start_date <- min(project_git$author_datetimetz,na.rm=TRUE)
+end_date <- max(project_git$author_datetimetz,na.rm=TRUE)
+
+# Define all timestamps in number of days since the very first commit of the repo
+# Format time window for posixT
+window_size_f <- stringi::stri_c(window_size," day")
+
+# Note if end_date is not (and will likely not be) a multiple of window_size, 
+# then the ending incomplete window is discarded so the metrics are not calculated 
+# in a smaller interval
+time_window <- seq.POSIXt(from=start_date,to=end_date,by=window_size_f)
+size_time_window <- length(time_window)
+
+# Progress bar
+pb <- txtProgressBar(min=0, max=size_time_window-1, style=3, char=" ", width=85)
+progress <- function(n) setTxtProgressBar(pb, n)
+opts <- list(progress = progress)
+
+k <- 0
+foreach(
+  j = 2:size_time_window,
+  .packages = c("kaiaulu", "reactable", "data.table", "stringi"),
+  .options.snow = opts
+) %dopar% {
+  i <- j - 1
+  k <- k + 1
+
+  # If the time window is of size 1, then there have been less than
+  # "window_size_f" days from the start date.
+  if(length(time_window) == 1){
+    start_day <- start_date
+    end_day <- end_date
+  }else{
+    start_day <- time_window[i]
+    end_day <- time_window[j]
+  }
+
+  # Define the save path for the entity log
+  start_day_formatted <- format(start_day, "%Y-%m-%d")
+  end_day_formatted <- format(end_day, "%Y-%m-%d")
+  window_save_path = file.path(save_path, "entity", paste(start_day_formatted, "_", end_day_formatted, sep=""))
+  entity_save_path <- file.path(window_save_path, "gitlog_entity.rds")
+
+  # Obtain all commits from the gitlog which are within a particular window_size
+  project_git_slice <- project_git[(project_git$author_datetimetz >= start_day) &
+                                     (project_git$author_datetimetz < end_day), ]
+
+  # Perform entity analysis
+  if (nrow(project_git_slice) > 0) {
+    changed_entities <- parse_gitlog_entity(git_repo_path,utags_path,project_git_slice,kinds,progress_bar=TRUE)
+    
+    if (nrow(changed_entities)>0) {
+      # Naming
+      changed_entities[,c("author_name_email",
+                          "author_datetimetz",
+                          "committer_name_email",
+                          "commit_hash",
+                          "committer_datetimetz",
+                          "entity",
+                          "weight"):=list(stri_c(changed_entities$author_name,changed_entities$author_email,sep= " "),
+                                          as.POSIXct(as.integer(changed_entities$author_timestamp),
+                                                     origin="1970-01-01",tz = "UTC"),
+                                          stri_c(changed_entities$committer_name,changed_entities$committer_email,sep= " "),
+                                          changed_entities$commit_hash,
+                                          as.POSIXct(as.integer(changed_entities$committer_timestamp),
+                                                     origin="1970-01-01",tz = "UTC"),
+                                          changed_entities$entity_definition_name,
+                                          changed_entities$n_lines_changed
+                                          )]
+      
+      # Identity match
+      project_log <- list(project_git=changed_entities)
+      project_log <- identity_match(project_log,
+                                    name_column = c("author_name_email"),
+                                    assign_exact_identity,
+                                    use_name_only=TRUE,
+                                    label = "raw_name"
+                                    )
+      window_log <- project_log[["project_git"]]
+      
+      # Save results
+      dir.create(window_save_path, recursive = TRUE)
+      saveRDS(window_log, file = entity_save_path)
+    }
+  }
+}
+```
+
+# Parallel Clean-Up
+
+Free computing resources after parallelized computations.
+
+```{r}
+close(pb)
+stopCluster(cluster)
+```
+
+# Temporal Networks 
+
+The results stored for each time window may be used for arbitrary analyses. For example, they can be used to inspect the developers' collaboration from a temporal perspective.
+
+```{r}
+# Load the entities for the time window to inspect
+window_path <- file.path(save_path, "entity", "2013-03-13_2013-12-08", "gitlog_entity.rds")
+git_log_entities <- readRDS(window_path)
+
+# Plot the temporal projection
+project_temporal_collaboration_network <- transform_gitlog_to_entity_temporal_network(git_log_entities)
+project_temporal_collaboration_network <- igraph::graph_from_data_frame(d=project_temporal_collaboration_network[["edgelist"]],
+                      directed = TRUE,
+                      vertices = project_temporal_collaboration_network[["nodes"]])
+visIgraph(project_temporal_collaboration_network,randomSeed = 1)
+```
+

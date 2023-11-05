@@ -44,6 +44,7 @@ version_control:
     - camel-1.6.0
     - camel-2.11.4
     - camel-3.21.0
+    - camel-1.0.0
 
 #mailing_list:
   # Where is the mbox located locally?

@@ -32,10 +32,10 @@ parse_r_function_definition <-function(parsed_r_file){
   # If no function definitions are found (e.g. test files)
   if(nrow(parsed_r_file[token == "FUNCTION"]) == 0){
     function_definition <- data.table(src_functions_name = character(),
-                                      src_line_functions_start = character(),
-                                      src_line_functions_end = character(),
-                                      metadata_line_functions_start = character(),
-                                      metadata_line_functions_end = character(),
+                                      src_line_functions_start = numeric(),
+                                      src_line_functions_end = numeric(),
+                                      metadata_line_functions_start = numeric(),
+                                      metadata_line_functions_end = numeric(),
                                       file_path = character())
     return(function_definition)
 
@@ -67,12 +67,12 @@ parse_r_function_definition <-function(parsed_r_file){
   src_functions_name <- parsed_r_file[metadata_line_functions_start + 1]$text
 
   # Collects all the indices above
-  function_definition <- data.table(src_functions_name,
-                                    src_line_functions_start,
-                                    src_line_functions_end,
-                                    metadata_line_functions_start,
-                                    metadata_line_functions_end,
-                                    file_path = rep(filepath,length(src_functions_name))
+  function_definition <- data.table(src_functions_name = as.character(src_functions_name),
+                                    src_line_functions_start = as.numeric(src_line_functions_start),
+                                    src_line_functions_end = as.numeric(src_line_functions_end),
+                                    metadata_line_functions_start = as.numeric(metadata_line_functions_start),
+                                    metadata_line_functions_end = as.numeric(metadata_line_functions_end),
+                                    file_path = as.character(rep(filepath,length(src_functions_name)))
                                     )
   return(function_definition)
 }
@@ -81,6 +81,14 @@ parse_r_function_definition <-function(parsed_r_file){
 #' Identify function calls in an R File.
 #' @param parsed_r_file A parsed R file (see \code{\link{parse_rfile_ast}})
 #' @param function_definition A list of function definitions (see \code{\link{parse_r_function_definition}})
+#' @return Returns a table of 6 columns: src_functions_call_name | src_functions_call_filename |
+#' sr_functions_caller_name | src_functions_caller_filename | src_line_functions_call_start |
+#' src_line_functions_call_end.
+#'
+#' The `call` name and filename are the function calls this files perform towards other files. The
+#' `caller` name and filename define which functions performed the function call (i.e. the call originate
+#' on them). Finally the `call` start and end lines define the line position of `src_functions_call_filename`
+#' where the call occurred.
 #' @export
 #' @importFrom utils tail
 #' @keywords internal
@@ -89,13 +97,15 @@ parse_r_function_dependencies <- function(parsed_r_file,function_definition){
   # filepath is the same for all rows since the parameter is an r_file
   filepath <- parsed_r_file$filepath
 
-  # note function_definition is subset to only the functions in this file:
-  # we are trying to find what function is making the function call
-  # from this file. It does not make sense to look in another file.
+  # Note parse_r_function_dependencies analyzes one .R file (parsed_r_file) at a time.
+  # Specifically, function_definition is subset to only the functions in this file:
+  # we are examining what function calls this file makes, and what function
+  # definitions they originate from. To analyze other .R files, call this
+  # function again on them.
   package_function_definitions <- function_definition
   function_definition <- function_definition[file_path == filepath[1]]
 
-  # There are no function calls in this file. Return an empty table.
+  # If there are no function calls in this file, return an empty table.
   if(nrow(parsed_r_file[token == "SYMBOL_FUNCTION_CALL"]) == 0){
     function_call_edgelist <- data.table(src_functions_call_name = character(),
                                          src_functions_call_filename = character(),
@@ -104,6 +114,18 @@ parse_r_function_dependencies <- function(parsed_r_file,function_definition){
                                          src_line_functions_call_start = character(),
                                          src_line_functions_call_end = character())
     return(function_call_edgelist)
+  # When analyzing non R packages, function calls can occur even when functions
+  # are not defined (e.g. R scripts). Since we are not interested in analyzing
+  # functions external to the system of interest, we also return an empty table.
+  }else if(nrow(function_definition) == 0){
+    function_call_edgelist <- data.table(src_functions_call_name = character(),
+                                         src_functions_call_filename = character(),
+                                         src_functions_caller_name = character(),
+                                         src_functions_caller_filename = character(),
+                                         src_line_functions_call_start = character(),
+                                         src_line_functions_call_end = character())
+    return(function_call_edgelist)
+
   }
   # Get metadata of function calls
   src_line_functions_call_start <- parsed_r_file[token == "SYMBOL_FUNCTION_CALL"]$line1
