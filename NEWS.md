@@ -3,6 +3,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ * Refactor `io_create_folder()`, `io_make_sample_file`(), `git_init()`, `git_add()`, `git_commit()` in `R/git.R`and create test cases with unit tests in `R/example.R` and `testthat/test-parser.R`. [#227](https://github.com/sailuh/kaiaulu/issues/227)
  * Refactor GoF Notebook in Graph GoF and Text GoF Notebooks [#224](https://github.com/sailuh/kaiaulu/issues/224)
  * Adds GoF module and various utility functions to facilitate integrating identified pattern classes to files. [#223](https://github.com/sailuh/kaiaulu/issues/223)
  * Adds `parse_jira_rss_xml()`, which enables reusing the full 26 projects dataset of our prior TSE work. [#218](https://github.com/sailuh/kaiaulu/issues/218)
