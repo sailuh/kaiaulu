@@ -28,7 +28,7 @@ Suggests:
     rmarkdown, 
     markdown
 Depends:
-    R (>= 3.6.0)
+    R (>= 4.0.0)
 Imports:
     data.table (>= 1.12.8),
     stringi (>= 1.4.6),
@@ -44,4 +44,4 @@ Imports:
 VignetteBuilder: knitr
 URL: https://github.com/sailuh/kaiaulu
 BugReports: https://github.com/sailuh/kaiaulu/issues
-RoxygenNote: 7.0.2
+RoxygenNote: 7.2.3

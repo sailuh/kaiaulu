@@ -124,7 +124,7 @@ tool:
     # The project folder path to store various intermediate
     # files for DV8 Analysis
     # The folder name will be used in the file names.
-    folder_path: ../../analysis/dv8/camel_2_11_4
+    folder_path: ../../analysis/dv8/camel_1_0_0
     # the architectural flaws thresholds that should be used
     architectural_flaws:
       cliqueDepends:

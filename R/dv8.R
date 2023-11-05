@@ -357,6 +357,9 @@ dv8_hdsmb_sdsmb_to_mdsmb <- function(dv8_path, hdsmb_path, sdsmb_path, mdsmb_pat
 #' @param mdsmb_path path to the merge binary DSM created by \code{\link{dv8_hdsmb_sdsmb_to_mdsmb}}.
 #' Note you can also use a hdsmb or sdsmb separately to compute architectural flaws.
 #' @param flaws_path path to save the architectural flaws folder
+#' @param is_file_only_metric default is FALSE. If TRUE, uses DV8 computed file metrics. Caution: While much faster,
+#' these metrics can *not* be used to aggregate. Choosing FALSE will generate the file to flaw id mapping. Choosing
+#' TRUE will generate the aggregation from DV8.
 #' @param cliqueDepends (For Clique detection) Filtered dependencies for clique detection. Multiple dependencies should be delimited using ","
 #' @param crossingCochange (For Crossing detection) Threshold of co-change between two files
 #' @param crossingFanIn (For Crossing detection) The number of other files that depend on it >= "crossingFanIn"
@@ -376,6 +379,7 @@ dv8_hdsmb_sdsmb_to_mdsmb <- function(dv8_path, hdsmb_path, sdsmb_path, mdsmb_pat
 dv8_mdsmb_to_flaws <- function(dv8_path,
                                mdsmb_path,
                                flaws_path,
+                               is_file_only_metric = FALSE,
                                cliqueDepends='call,use',
                                crossingCochange=2,
                                crossingFanIn=4,
@@ -391,8 +395,15 @@ dv8_mdsmb_to_flaws <- function(dv8_path,
   mdsmb_path <- path.expand(mdsmb_path)
   flaws_path <- path.expand(flaws_path)
 
+  if(is_file_only_metric){
+    file_only_metric_flag <- "-fileStat"
+  }else{
+    file_only_metric_flag <- ""
+  }
+
   # Run system2 command with appropriate values for options
   system2(dv8_path, args=c('arch-issue:arch-issue',
+                           file_only_metric_flag,
                            '-cliqueDepends', cliqueDepends,
                            '-crossingCochange', crossingCochange,
                            '-crossingFanIn', crossingFanIn,

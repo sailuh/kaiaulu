@@ -18,7 +18,6 @@ require(kaiaulu)
 require(stringi)
 require(data.table)
 require(knitr)
-require(formattable)
 require(magrittr)
 ```
 
@@ -119,13 +118,13 @@ To keep the example short, let's use a small file change made to APR's [groupinf
 
 ```{r}
 file_path <- "user/unix/groupinfo.c"
-formattable(head(project_git[file_pathname == file_path]))
+head(project_git[file_pathname == file_path])
 ```
 The 5th change looks non-trivial, 19 lines were changed. Let's consider this change commit hash for the remainder of this example:
 
 ```{r}
 commit_hash <- head(project_git[file_pathname == file_path])[5]$commit_hash
-formattable(head(project_git[file_pathname == file_path])[5])
+head(project_git[file_pathname == file_path])[5]
 ```
 
 Note while in this vignette we manually chose a small file for clarity, we could have iterated over the `parse_gitlog()` table to obtain the necessary information for the subsequent analysis presented in this vignette. 

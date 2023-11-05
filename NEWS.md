@@ -3,6 +3,8 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ * The `dv8_mdsmb_to_flaws()` function now offers an optional boolean parameter `is_file_only_metric` which can be used to compute file metrics more efficiently. Note this should not be used if the intent is to aggregate the file metrics, as they may be counted twice or more if the files participate in the same flaw pattern id. See the causal flaws notebook for an example on how to use it. [#246](https://github.com/sailuh/kaiaulu/issues/246). 
+ * Move Kaiaulu to R version 4.0 due to XML dependency [#245](https://github.com/sailuh/kaiaulu/issues/245). 
  * An example jira fake data was added to `jira.R` along with a `test-jira.R` which identifies a bug in parse-jira.R (the function parse_jira() will be moved to jira.R at a later date for consistency). The bug is still present, so the test should fail on GitHub Actions. A solution to the bug will be added on a subsequent commit to pass the test. [#244](https://github.com/sailuh/kaiaulu/issues/244)
  * A parallel version of the git log entity analysis was added to process multiple time windows in parallel. See the new `gitlog_entity_showcase_parallel.Rmd` for details. [#231](https://github.com/sailuh/kaiaulu/issues/231)
  * Refactor GoF Notebook in Graph GoF and Text GoF Notebooks [#224](https://github.com/sailuh/kaiaulu/issues/224)
