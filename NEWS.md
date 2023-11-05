@@ -3,6 +3,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ * An example jira fake data was added to `jira.R` along with a `test-jira.R` which identifies a bug in parse-jira.R (the function parse_jira() will be moved to jira.R at a later date for consistency). The bug is still present, so the test should fail on GitHub Actions. A solution to the bug will be added on a subsequent commit to pass the test. [#244](https://github.com/sailuh/kaiaulu/issues/244)
  * A parallel version of the git log entity analysis was added to process multiple time windows in parallel. See the new `gitlog_entity_showcase_parallel.Rmd` for details. [#231](https://github.com/sailuh/kaiaulu/issues/231)
  * Refactor GoF Notebook in Graph GoF and Text GoF Notebooks [#224](https://github.com/sailuh/kaiaulu/issues/224)
  * Adds GoF module and various utility functions to facilitate integrating identified pattern classes to files. [#223](https://github.com/sailuh/kaiaulu/issues/223)
@@ -36,6 +37,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 * Fixes mismatch of filepath due to leading `/` remaining in relative filepath of `parse_dependencies()`. [#219](https://github.com/sailuh/kaiaulu/issues/219)
 
 ### DOCUMENTATION FIXES
+ * A few unit tests have been added to sanity check the metrics module as a consequence of bug 244. [#244](https://github.com/sailuh/kaiaulu/issues/244)
  * Improved the documentation of the line metrics Notebook[#240](https://github.com/sailuh/kaiaulu/issues/240)
  * Documentation was improved for the Causal Flaws Notebook [#220](https://github.com/sailuh/kaiaulu/issues/220)
  * Moved learning resources to the wiki. Minor editing to guidelines for clarity and common mistakes. [#150](https://github.com/sailuh/kaiaulu/issues/150)
