@@ -13,7 +13,7 @@ jobs:
     runs-on: macOS-latest
     strategy:
       matrix:
-        r-version: ['3.6']
+        r-version: ['4.3']
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:

@@ -37,7 +37,7 @@ Imports:
     httr (>= 1.4.1),
     curl (>= 4.3),
     gh (>= 1.2.0),
-    XML (== 3.99-0.3),
+    XML (>= 3.99-0),
     RColorBrewer (>= 1.1-2),
     cli (>= 2.0.2),
     docopt (>= 0.7.1)
