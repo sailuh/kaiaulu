@@ -856,7 +856,7 @@ parse_jira <- function(json_path){
       issue_type = issue_comment[["issuetype"]][["name"]][[1]],
       issue_status = issue_comment[["status"]][["name"]][[1]],
       issue_resolution = issue_comment[["resolution"]][["name"]][[1]],
-      issue_components = unlist(sapply(issue_comment[["components"]],"[[","name")),
+      issue_components = stringi::stri_c(unlist(sapply(issue_comment[["components"]],"[[","name")),collapse = ";"),
       issue_description = issue_comment[["description"]],
 
       issue_created_datetimetz = issue_comment[["created"]][[1]],
