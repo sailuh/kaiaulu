@@ -42,7 +42,7 @@ git_commit(git_repo, folder_path, "Commit bye.R file to repo", "John Doe", "John
 }
 
 
-#' Missing title
+#' example_repo_prefix function filters files with certain prefixes
 #'
 #' A repo with 3 commits, where 1 file has as prefix _test.R,
 #' 1 file has the suffix example_*.R, and 1 file hello.R.
@@ -52,7 +52,7 @@ git_commit(git_repo, folder_path, "Commit bye.R file to repo", "John Doe", "John
 #' @return git_repo of newly created empty repo
 #' @export
 #' @export
-example_repo_suffix_prefix <- function(folder_path="/tmp",folder_name) {
+example_repo_prefix <- function(folder_path="/tmp",folder_name) {
 
   # Create folder & repo
   folder_path <- io_create_folder(folder_name,folder_path)
