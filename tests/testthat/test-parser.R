@@ -81,8 +81,8 @@ test_that("Git repo with 3 commits, first file is hello.R, then renamed to hi.R,
                                               folder_name = "example_repo")
 
   result <- parse_gitlog(perceval_path, git_repo_path)
-  # expect 3 commits but only 2 files
-  expect_equal(nrow(result), 2)
+  # expect 3 commits
+  expect_equal(nrow(result), 3)
   io_delete_folder(folder_path = "/tmp",folder_name = "example_repo")
 
 })
