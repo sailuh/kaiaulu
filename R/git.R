@@ -127,6 +127,7 @@ git_create_sample_log <- function(folder_path="/tmp"){
   folder_path <- path.expand(folder_path)
   folder_path <- file.path(folder_path,"kaiaulu_sample")
 
+
   #mkdir path/to/folder/sample
   error <- system2('mkdir',
                    args = c(folder_path),
@@ -199,3 +200,108 @@ git_delete_sample_log <- function(folder_path="/tmp"){
                    stdout = TRUE,
                    stderr = FALSE)
 }
+
+
+
+#' Git Init
+#'
+#' Initializes a new Git repository in the specified folder.
+#' The Git Init command creates a hidden `.git` folder.
+#'
+#' @param folder_path The path to the folder where the Git repository should be initialized.
+#' @return The path to the newly created Git repository.
+#' @export
+git_init <- function(folder_path) {
+  error <- system2('git',
+                   args = c('init', folder_path),
+                   stdout = TRUE,
+                   stderr = FALSE)
+
+  git_repo <- file.path(folder_path, '.git')
+
+  return(git_repo)
+}
+
+#' Git Commit
+#'
+#' Executes the `git commit` command on the target
+#' git repository.
+#'
+#' @param git_repo The git repo path.
+#' @param folder_path The worktree path.
+#' @param commit_msg The commit associated with the commit.
+#' @param author The author associated with the commit.
+#' @param email The email of the author associated with the commit.
+#' @return The path to the sample .git file.
+#' @export
+git_commit <- function(git_repo, folder_path, commit_msg, author, email) {
+  error <- system2('git',
+                   args = c('--git-dir',
+                            git_repo,
+                            '--work-tree',
+                            folder_path,
+                            'commit',
+                            '-m',
+                            shQuote(commit_msg),
+                            '--author',
+                            paste0('\"',author,"<",email,">\"")),
+                   stdout = TRUE,
+                   stderr = FALSE)
+  return(git_repo)
+}
+
+#' Git Add
+#'
+#' Performs the `git add` command, which stages a given
+#' file in the repo.
+#'
+#' @param git_repo The git repo path
+#' @param folder_path The worktree path
+#' @param filepath The filepath we want to add
+#' @return The path to the sample .git file.
+#' @export
+git_add <- function(git_repo, folder_path, filepath) {
+  error <- system2('git',
+                   args = c('--git-dir',
+                            git_repo,
+                            '--work-tree',
+                            folder_path,
+                            'add',
+                            filepath),
+                   stdout = TRUE,
+                   stderr = FALSE)
+  return(git_repo)
+}
+
+#' Git Mv
+#'
+#' Performs a `git mv`, which serves to
+#' rename a folder or file. Specifically,
+#' The `git mv` command combines `mv` and `git add`
+#' command for the new folder/file name and the old
+#' folder/file name in one command.
+#'
+#' @param git_repo The git repo path
+#' @param folder_path The worktree path
+#' @param old_name The name of the file/folder that you are going to change or move
+#' @param new_name The new name of the file/folder
+#' @export
+git_mv <- function(git_repo, folder_path, old_name, new_name) {
+  # Construct the command to rename the file using 'mv'
+
+  error <- system2('git',
+                   args = c('--git-dir',
+                            git_repo,
+                            '--work-tree',
+                            folder_path,
+                            'mv',
+                            old_name,
+                            new_name),
+                   stdout = TRUE,
+                   stderr = FALSE)
+}
+
+
+
+
+

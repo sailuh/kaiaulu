@@ -10,5 +10,5 @@ read_temporary_file(temp)
 \item{temp}{A temporary file created by \code{make_temporary_file}}
 }
 \description{
-Read Temporary File
+Read a temporary file.
 }
