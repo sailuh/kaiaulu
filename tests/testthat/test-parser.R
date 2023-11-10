@@ -71,39 +71,34 @@ test_that("Calling parse_gitlog with incorrect git repo path returns correct err
 })
 
 
-# A repo with 3 commits, the first adds hello.R, the second renames it to hi.R, the last adds bye.R
-test_that("Git repo with 3 commits, first file is hello.R, then renamed to hi.R, then adds another file bye.R", {
+test_that("renamed file is reported on parsed git log", {
   # Create a temporary directory for the Git repository
   tools_path <- file.path(tools_path)
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
-  git_repo_path <- example_repo_three_commits(folder_path = "/tmp",
-                                              folder_name = "example_repo")
+  git_repo_path <- example_renamed_file(folder_path = "/tmp",
+                                        folder_name = "renamed_file_repo")
 
   result <- parse_gitlog(perceval_path, git_repo_path)
+  renamed_filepath <- result[!is.na(file_pathname_renamed)]$file_pathname_renamed[1]
   # expect 3 commits
-  expect_equal(nrow(result), 3)
-  io_delete_folder(folder_path = "/tmp",folder_name = "example_repo")
+  expect_equal(renamed_filepath, "hi.R")
+  io_delete_folder(folder_path = "/tmp",folder_name = "renamed_file_repo")
 
 })
 
-
-
-
-# A repo with 3 commits, where 1 file has as prefix _test.R, 1 file has the suffix example_*.R,
-# and 1 file hello.R.
-test_that("Git repo with 3 commits, first file has prefix:test, second file has prefix:example and last file normal", {
+test_that("filters can be used to delete unit tests and example files without deleting source code", {
   # Create a temporary directory for the Git repository
   tools_path <- file.path(tools_path)
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
-  git_repo_path <- example_repo_prefix(folder_path = "/tmp",
-                                              folder_name = "example_repo")
+  git_repo_path <- example_test_example_src_repo(folder_path = "/tmp",
+                                              folder_name = "test_example_and_src_repo")
   result <- parse_gitlog(perceval_path, git_repo_path)
   filtered_result <- result %>% filter_by_filepath_substring(c("example",'test'),"file_pathname")
-# expect only 1 because prefix test files and suffix example files are ignored.
+  # expect only 1 because prefix test files and suffix example files are ignored.
   expect_equal(nrow(filtered_result), 1)
-  io_delete_folder(folder_path = "/tmp",folder_name = "example_repo")
+  io_delete_folder(folder_path = "/tmp",folder_name = "test_example_and_src_repo")
 
   })
 

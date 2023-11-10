@@ -203,7 +203,10 @@ git_delete_sample_log <- function(folder_path="/tmp"){
 
 
 
-#' This function initializes a new Git repository in the specified folder.
+#' Git Init
+#'
+#' Initializes a new Git repository in the specified folder.
+#' The Git Init command creates a hidden `.git` folder.
 #'
 #' @param folder_path The path to the folder where the Git repository should be initialized.
 #' @return The path to the newly created Git repository.
@@ -219,9 +222,10 @@ git_init <- function(folder_path) {
   return(git_repo)
 }
 
-#' Git commit
+#' Git Commit
 #'
-#' Git commits a file
+#' Executes the `git commit` command on the target
+#' git repository.
 #'
 #' @param git_repo The git repo path.
 #' @param folder_path The worktree path.
@@ -246,9 +250,10 @@ git_commit <- function(git_repo, folder_path, commit_msg, author, email) {
   return(git_repo)
 }
 
-#' Git adds a file to the gitlog sample
+#' Git Add
 #'
-#' This is a function that git adds the filepath selected
+#' Performs the `git add` command, which stages a given
+#' file in the repo.
 #'
 #' @param git_repo The git repo path
 #' @param folder_path The worktree path
@@ -268,14 +273,20 @@ git_add <- function(git_repo, folder_path, filepath) {
   return(git_repo)
 }
 
-#' This function renames a folder or file
-
+#' Git Mv
+#'
+#' Performs a `git mv`, which serves to
+#' rename a folder or file. Specifically,
+#' The `git mv` command combines `mv` and `git add`
+#' command for the new folder/file name and the old
+#' folder/file name in one command.
+#'
 #' @param git_repo The git repo path
 #' @param folder_path The worktree path
 #' @param old_name The name of the file/folder that you are going to change or move
 #' @param new_name The new name of the file/folder
 #' @export
-git_rename <- function(git_repo, folder_path, old_name, new_name) {
+git_mv <- function(git_repo, folder_path, old_name, new_name) {
   # Construct the command to rename the file using 'mv'
 
   error <- system2('git',
