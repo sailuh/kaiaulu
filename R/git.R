@@ -160,6 +160,27 @@ git_create_sample_log <- function(folder_path="/tmp"){
   return(git_repo)
 }
 
+#' Removes sample folder and git log
+#'
+#' This is a TearDown helper function for Kaiaulu unit tests
+#' that manipulates git logs.
+#'
+#' A folder kaiaulu_sample is assumed to have been created by \code{\link{git_create_sample_log}}, and is deleted by this function.
+#'
+#' @param folder_path An optional path to where the sample .git should be created.
+#' @return The path to the sample .git file.
+#' @export
+#' @family {unittest}
+git_delete_sample_log <- function(folder_path="/tmp"){
+  folder_path <- path.expand(folder_path)
+  folder_path <- file.path(folder_path,"kaiaulu_sample")
+  error <- system2('rm',
+                   args = c('-r',
+                            folder_path),
+                   stdout = TRUE,
+                   stderr = FALSE)
+}
+
 #' Initialize a git repo in a folder.
 #'
 #' This function initializes a new Git repository in the specified folder.
@@ -226,31 +247,24 @@ git_add <- function(git_repo, folder_path, filepath) {
   return(git_repo)
 }
 
-git_rename <- function(old_name, new_name) {
-  # Construct the command to rename the file using 'mv'
-  cmd <- paste("mv", shQuote(old_name), shQuote(new_name))
+#' This function renames a folder or file
 
-  # Execute the 'mv' command using system()
-  system2(cmd)
-}
-
-#' Removes sample folder and git log
-#'
-#' This is a TearDown helper function for Kaiaulu unit tests
-#' that manipulates git logs.
-#'
-#' A folder kaiaulu_sample is assumed to have been created by \code{\link{git_create_sample_log}}, and is deleted by this function.
-#'
-#' @param folder_path An optional path to where the sample .git should be created.
-#' @return The path to the sample .git file.
+#' @param git_repo The git repo path
+#' @param folder_path The worktree path
+#' @param old_name The name of the file/folder that you are going to change or move
+#' @param new_name The new name of the file/folder
 #' @export
-#' @family {unittest}
-git_delete_sample_log <- function(folder_path="/tmp"){
-  folder_path <- path.expand(folder_path)
-  folder_path <- file.path(folder_path,"kaiaulu_sample")
-  error <- system2('rm',
-                   args = c('-r',
-                            folder_path),
+git_rename <- function(git_repo, folder_path, old_name, new_name) {
+  # Construct the command to rename the file using 'mv'
+
+  error <- system2('git',
+                   args = c('--git-dir',
+                            git_repo,
+                            '--work-tree',
+                            folder_path,
+                            'mv',
+                            old_name,
+                            new_name),
                    stdout = TRUE,
                    stderr = FALSE)
 }

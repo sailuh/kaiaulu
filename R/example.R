@@ -18,6 +18,8 @@ folder_path <- io_create_folder("empty_repo")
 git_init(folder_path)
 git_repo_path <- file.path(folder_path,'.git')
 
+io_delete_folder(folder_path="/tmp", "empty_repo")
+
 return(git_repo_path)
 }
 
@@ -47,6 +49,8 @@ io_make_sample_file(file_path, "print('hello world!')")
 git_add(git_repo_path, folder_path, file_path)
 git_commit(git_repo_path, folder_path, "committing second file", "realAuthor", "realEmail@email.com")
 
+io_delete_folder(folder_path="/tmp", "different_branches_repo")
+
 return(git_repo_path)
 }
 
@@ -59,7 +63,7 @@ return(git_repo_path)
 example_different_files_commits <- function() {
 
   # Create folder & repo
-  folder_path <- io_create_folder("example_diff_commits")
+  folder_path <- io_create_folder("example_diff_commits_repo")
   git_init(folder_path)
   git_repo_path <- file.path(folder_path, '.git')
 
@@ -92,6 +96,8 @@ example_different_files_commits <- function() {
   git_add(git_repo_path, folder_path, file_path)
 
   git_commit(git_repo_path, folder_path, "committing one file", "testAuthor", "fakeEmail@email.com")
+
+  io_delete_folder(folder_path="/tmp", "example_diff_commits_repo")
 
   return(git_repo_path)
 }
