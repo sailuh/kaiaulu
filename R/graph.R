@@ -106,13 +106,18 @@ graph_to_dsmj <- function(graph, dsmj_path, dsmj_name, is_directed, is_sorted=FA
 #' `from` and `to` in any order.
 #' @param is_bipartite boolean specifying if network is bipartite: TRUE or FALSE
 #' @param color a character vector of length 1 or 2 specifying the hexacolor
+#' @param aggregate_duplicate If duplicated rows are encoutered, define a weight column which counts them
 #' @return a named list list(nodes,edgelist).
 #' @export
-model_directed_graph <- function(edgelist,is_bipartite,color){
+model_directed_graph <- function(edgelist,is_bipartite,color,aggregate_duplicate = TRUE){
   # Select relevant columns for nodes
   nodes <- data.table(name=unique(c(edgelist$from,edgelist$to)))
 
-  edgelist <- edgelist[,.(weight=.N),by=c("from","to")]
+  if(aggregate_duplicate){
+    edgelist <- edgelist[,.(weight=.N),by=c("from","to")]
+  }else{
+    edgelist$weight <- 1
+  }
 
   if(is_bipartite){
     nodes$type <- ifelse(nodes$name %in% edgelist$from,
@@ -133,7 +138,7 @@ model_directed_graph <- function(edgelist,is_bipartite,color){
 
 #' Apply a bipartite graph projection
 #'
-#' @param graph A bipartite network (see transform_*_bipartite functions).
+#' @param graph A bipartite network (the same pair of nodes can *not* have multiple edges)
 #' @param mode Which of the two nodes the projection should be applied to. TRUE or FALSE
 #' @param weight_scheme_function When not specified, bipartite_graph_projection will return an intermediate
 #' projection table specifying the deleted node, from_projection, to_projection, from_weight, and to_weight.
@@ -212,6 +217,132 @@ bipartite_graph_projection <- function(graph,mode,weight_scheme_function = NULL)
     graph[["edgelist"]] <- graph[["edgelist"]][, get_combinations(.SD),
                                           by = c("from"),
                                           .SDcols = c("to","weight")]
+
+    setnames(x = graph[["edgelist"]],
+             old = c("from"),
+             new = c("eliminated_node"))
+
+  }
+
+  # Remove from edgelist the nodes that do not connect to others (e.g. a single file commit)
+  graph[["edgelist"]] <- graph[["edgelist"]][complete.cases(graph[["edgelist"]])]
+
+
+  # Do not aggregate weights if no weight scheme is specified
+  if(is.null(weight_scheme_function)){
+    return(graph)
+  }else{
+    return(weight_scheme_function(graph))
+  }
+
+
+}
+
+#' Apply a temporal graph projection
+#'
+#' @param graph A bipartite network (the same pair of nodes can have multiple edges)
+#' @param mode Which of the two nodes the projection should be applied to. TRUE or FALSE
+#' @param weight_scheme_function When not specified, bipartite_graph_projection will return an intermediate
+#' projection table specifying the deleted node, from_projection, to_projection, from_weight, and to_weight.
+#' This table also contains (N choose 2) rows for every "deleted_node" in the original graph.
+#' When receiving as parameter \code{\link{weight_scheme_sum_edges}} or
+#' \code{\link{weight_scheme_count_deleted_nodes}}, the final projection table will be returned instead.
+#' @param timestamp_column a string containing the name of the timestamp variable
+#' @return A graph projection.
+#' @export
+temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,timestamp_column){
+
+  graph <- copy(graph)
+
+  setnames(graph[["edgelist"]],
+           old = timestamp_column,
+           new = "datetimetz")
+
+  get_combinations <- function(edgelist){
+    dt <- edgelist
+
+    #    print(colnames(dt))
+    # Decide projection base on column available
+    if("from" %in% colnames(dt)){
+      #from <- unique(dt$from)
+    }else{
+      # since in the projection only either "to" or "from" connections will exist, relabel both as "from"
+      setnames(dt,
+               c("to"),
+               c("from"))
+      #from <- unique(dt$to)
+    }
+    from <- unique(dt$from)
+    # If projection of isolated node, there is nothing to connect it to
+    # (E.g. isolated node: Commit with 1 file)
+    # or if the deleted node degree is greater than threshold we do not
+    # generate edges
+    if(length(from) < 2){
+      combinations <- data.table(NA_character_,NA_character_)
+    }else{
+      edgelist <- edgelist[order(datetimetz),.(from,weight)]
+      # dt represents the original edge weight between the "'from"
+      # node that remains on the projection and the
+      # to node of the projection.
+
+      # Assign an ID to every edge in the original graph, so we may
+      # be able to assign their weight to the "semi-projected graph"
+      # via these ids.
+
+      # Note the bipartite does not have this consideration because,
+      # the input graph on the bipartite does not have duplicated
+      # edges between the same pair of nodes. Here we do need to pass
+      # the duplicated edges (e.g. each can represent a dev change to
+      # a file) so we can construct the temporal graph.
+      edgelist$edgeid <- 1:nrow(edgelist)
+
+      combinations <- data.table(edgelist[1:(length(from) - 1)]$edgeid,
+                                 edgelist[2:(length(from))]$edgeid)
+    }
+
+    setnames(combinations,
+             old = c("V1","V2"),
+             new = c("from_edgeid","to_edgeid"))
+
+    # add the weight contributions before the projection deletes the node
+    combinations <- merge(combinations,edgelist,all.x=TRUE,by.x = "from_edgeid", by.y="edgeid")
+    setnames(combinations,
+             old=c("from","weight"),
+             new=c("from_projection","from_weight"))
+    combinations <- merge(combinations,edgelist,all.x=TRUE,by.x = "to_edgeid", by.y="edgeid")
+    setnames(combinations,
+             old=c("from","weight"),
+             new=c("to_projection","to_weight"))
+
+    #combinations$weight <- combinations$from_weight + combinations$to_weight
+
+    combinations <- combinations[,.(from_projection,from_weight,to_projection,to_weight)]
+
+    return(combinations)
+  }
+
+
+  # Filter the nodes we wish to keep in the projection
+  graph[["nodes"]] <- graph[["nodes"]][type == mode]
+
+
+  if(mode){
+
+    # Calculate N Choose 2 combinations for every deleted node
+    graph[["edgelist"]] <- graph[["edgelist"]][, get_combinations(.SD),
+                                               by = c("to"),
+                                               .SDcols = c("from","weight","datetimetz")]
+
+    setnames(x = graph[["edgelist"]],
+             old = c("to"),
+             new = c("eliminated_node"))
+
+  }else{
+
+    # Calculate N Choose 2 combinations for every deleted node
+    graph[["edgelist"]] <- graph[["edgelist"]][, get_combinations(.SD),
+                                               by = c("from"),
+                                               .SDcols = c("to","weight","datetimetz")]
 
     setnames(x = graph[["edgelist"]],
              old = c("from"),

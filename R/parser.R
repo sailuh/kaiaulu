@@ -1553,6 +1553,7 @@ utils::globalVariables(c("."))
 #' @importFrom data.table as.data.table
 #' @importFrom data.table .N
 #' @importFrom data.table :=
+#' @importFrom data.table copy
 #' @importFrom data.table rbindlist
 #' @importFrom data.table setkey
 #' @importFrom data.table setkeyv
