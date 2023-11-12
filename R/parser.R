@@ -1552,6 +1552,7 @@ utils::globalVariables(c("."))
 #' @importFrom data.table is.data.table
 #' @importFrom data.table as.data.table
 #' @importFrom data.table .N
+#' @importFrom data.table transpose
 #' @importFrom data.table :=
 #' @importFrom data.table copy
 #' @importFrom data.table rbindlist

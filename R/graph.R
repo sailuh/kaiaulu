@@ -302,7 +302,7 @@ temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,t
 
     setnames(combinations,
              old = c("V1","V2"),
-             new = c("from_edgeid","to_edgeid"))
+             new = c("to_edgeid","from_edgeid"))
 
     # add the weight contributions before the projection deletes the node
     combinations <- merge(combinations,edgelist,all.x=TRUE,by.x = "from_edgeid", by.y="edgeid")
@@ -317,6 +317,145 @@ temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,t
     #combinations$weight <- combinations$from_weight + combinations$to_weight
 
     combinations <- combinations[,.(from_projection,from_weight,to_projection,to_weight)]
+
+    return(combinations)
+  }
+
+
+  # Filter the nodes we wish to keep in the projection
+  graph[["nodes"]] <- graph[["nodes"]][type == mode]
+
+
+  if(mode){
+
+    # Calculate N Choose 2 combinations for every deleted node
+    graph[["edgelist"]] <- graph[["edgelist"]][, get_combinations(.SD),
+                                               by = c("to"),
+                                               .SDcols = c("from","weight","datetimetz")]
+
+    setnames(x = graph[["edgelist"]],
+             old = c("to"),
+             new = c("eliminated_node"))
+
+  }else{
+
+    # Calculate N Choose 2 combinations for every deleted node
+    graph[["edgelist"]] <- graph[["edgelist"]][, get_combinations(.SD),
+                                               by = c("from"),
+                                               .SDcols = c("to","weight","datetimetz")]
+
+    setnames(x = graph[["edgelist"]],
+             old = c("from"),
+             new = c("eliminated_node"))
+
+  }
+
+  # Remove from edgelist the nodes that do not connect to others (e.g. a single file commit)
+  graph[["edgelist"]] <- graph[["edgelist"]][complete.cases(graph[["edgelist"]])]
+
+
+  # Do not aggregate weights if no weight scheme is specified
+  if(is.null(weight_scheme_function)){
+    return(graph)
+  }else{
+    return(weight_scheme_function(graph))
+  }
+
+
+}
+
+#' Apply a temporal window graph projection
+#'
+#' This temporal projection creates edges between a developer at time t_i to
+#' all the developers that preceded them in the same time window.
+#'
+#' @param graph A bipartite network (the same pair of nodes can have multiple edges)
+#' @param mode Which of the two nodes the projection should be applied to. TRUE or FALSE
+#' @param weight_scheme_function When not specified, bipartite_graph_projection will return an intermediate
+#' projection table specifying the deleted node, from_projection, to_projection, from_weight, and to_weight.
+#' This table also contains (N choose 2) rows for every "deleted_node" in the original graph.
+#' When receiving as parameter \code{\link{weight_scheme_sum_edges}} or
+#' \code{\link{weight_scheme_count_deleted_nodes}}, the final projection table will be returned instead.
+#' @param timestamp_column a string containing the name of the timestamp variable
+#' @return A graph projection.
+#' @export
+temporal_window_graph_projection <- function(graph,mode,weight_scheme_function = NULL,timestamp_column){
+
+  graph <- copy(graph)
+
+  setnames(graph[["edgelist"]],
+           old = timestamp_column,
+           new = "datetimetz")
+
+  get_combinations <- function(edgelist){
+    dt <- edgelist
+
+    #    print(colnames(dt))
+    # Decide projection base on column available
+    if("from" %in% colnames(dt)){
+      #from <- unique(dt$from)
+    }else{
+      # since in the projection only either "to" or "from" connections will exist, relabel both as "from"
+      setnames(dt,
+               c("to"),
+               c("from"))
+      #from <- unique(dt$to)
+    }
+    from <- unique(dt$from)
+    # If projection of isolated node, there is nothing to connect it to
+    # (E.g. isolated node: Commit with 1 file)
+    # or if the deleted node degree is greater than threshold we do not
+    # generate edges
+    if(length(from) < 2){
+      combinations <- data.table(NA_character_,NA_character_)
+    }else{
+      edgelist <- edgelist[order(datetimetz),.(from,weight,datetimetz)]
+      # dt represents the original edge weight between the "'from"
+      # node that remains on the projection and the
+      # to node of the projection.
+
+      # Assign an ID to every edge in the original graph, so we may
+      # be able to assign their weight to the "semi-projected graph"
+      # via these ids.
+
+      # Note the bipartite does not have this consideration because,
+      # the input graph on the bipartite does not have duplicated
+      # edges between the same pair of nodes. Here we do need to pass
+      # the duplicated edges (e.g. each can represent a dev change to
+      # a file) so we can construct the temporal graph.
+      edgelist$edgeid <- 1:nrow(edgelist)
+
+
+      combinations <- transpose(as.data.table(combn(edgelist$edgeid,
+                                                    2,
+                                                    simplify=FALSE)))
+
+      #combinations <- data.table(edgelist[1:(length(from) - 1)]$edgeid,
+      #                           edgelist[2:(length(from))]$edgeid)
+    }
+
+    setnames(combinations,
+             old = c("V1","V2"),
+             new = c("to_edgeid","from_edgeid"))
+
+    # add the weight contributions before the projection deletes the node
+    combinations <- merge(combinations,edgelist,all.x=TRUE,by.x = "from_edgeid", by.y="edgeid",
+                          sorted = FALSE)
+    setnames(combinations,
+             old=c("from","weight","datetimetz"),
+             new=c("from_projection","from_weight","from_datetimetz"))
+    combinations <- merge(combinations,edgelist,all.x=TRUE,by.x = "to_edgeid", by.y="edgeid",
+                          sorted = FALSE)
+    setnames(combinations,
+             old=c("from","weight","datetimetz"),
+             new=c("to_projection","to_weight","to_datetimetz"))
+
+    #combinations$weight <- combinations$from_weight + combinations$to_weight
+
+    combinations <- combinations[,.(from_projection,from_weight,from_datetimetz,
+                                    to_projection,to_weight, to_datetimetz)]
+
+    # Swap the "from" and "to"
 
     return(combinations)
   }
@@ -429,6 +568,31 @@ weight_scheme_sum_edges <- function(projected_graph){
 #' @family weight_scheme
 weight_scheme_count_deleted_nodes <- function(projected_graph){
   projected_graph[["edgelist"]] <- projected_graph[["edgelist"]][,.(weight=length(eliminated_node)),by=c("from_projection","to_projection")]
+  setnames(x = projected_graph[["edgelist"]],
+           old = c("from_projection","to_projection"),
+           new = c("from","to"))
+  return(projected_graph)
+}
+
+#' @export
+#' @family weight_scheme
+weight_scheme_cum_temporal <- function(projected_graph){
+
+  sum_original_contributions <- function(dt){
+    from_dt <- dt[,.(weight=from_weight,datetimetz=from_datetimetz)]
+
+    to_dt <- dt[,.(weight=to_weight,datetimetz=to_datetimetz)]
+
+    all_dt <- rbind(from_dt,to_dt)
+
+    original_contributions <- all_dt[!duplicated(all_dt)]
+    original_contributions <- data.table(weight = sum(original_contributions$weight))
+    return(original_contributions)
+  }
+
+  projected_graph[["edgelist"]] <- projected_graph[["edgelist"]][,sum_original_contributions(.SD),
+                                             by = c("from_projection","to_projection")]
+
   setnames(x = projected_graph[["edgelist"]],
            old = c("from_projection","to_projection"),
            new = c("from","to"))
