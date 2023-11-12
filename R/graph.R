@@ -575,7 +575,7 @@ weight_scheme_count_deleted_nodes <- function(projected_graph){
 #' weight_scheme_function = NA and lag = all_lag.
 #' @export
 #' @family weight_scheme
-weight_scheme_cum_temporal <- function(projected_graph){
+weight_scheme_cum_temporal <- function(temporally_ordered_projected_graph){
 
   sum_original_contributions <- function(dt){
     # Assuming for the sake of example the eliminated
@@ -602,14 +602,14 @@ weight_scheme_cum_temporal <- function(projected_graph){
   }
 
   # Sum the eliminated_nodes while observing the temporal order of the edges.
-  projected_graph[["edgelist"]] <- projected_graph[["edgelist"]][,sum_original_contributions(.SD),
+  temporally_ordered_projected_graph[["edgelist"]] <- temporally_ordered_projected_graph[["edgelist"]][,sum_original_contributions(.SD),
                                              by = c("from_projection","to_projection")]
 
   # Rename edges of the projections such that A -> B if A occurs *after* B.
-  setnames(x = projected_graph[["edgelist"]],
+  setnames(x = temporally_ordered_projected_graph[["edgelist"]],
            old = c("from_projection","to_projection"),
            new = c("from","to"))
-  return(projected_graph)
+  return(temporally_ordered_projected_graph)
 }
 
 #' OSLOM Community Detection
