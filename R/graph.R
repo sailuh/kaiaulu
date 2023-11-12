@@ -237,7 +237,6 @@ bipartite_graph_projection <- function(graph,mode,weight_scheme_function = NULL)
 
 
 }
-
 #' Apply a temporal graph projection
 #'
 #' @param graph A bipartite network (the same pair of nodes can have multiple edges)
@@ -248,17 +247,12 @@ bipartite_graph_projection <- function(graph,mode,weight_scheme_function = NULL)
 #' When receiving as parameter \code{\link{weight_scheme_sum_edges}} or
 #' \code{\link{weight_scheme_count_deleted_nodes}}, the final projection table will be returned instead.
 #' @param timestamp_column a string containing the name of the timestamp variable
+#' @param lag a string specifying either "one_lag" or "all_lag".
 #' @return A graph projection.
 #' @export
-temporal_one_lag_graph_projection <- function(graph,mode,weight_scheme_function = NULL,timestamp_column){
+temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,timestamp_column,lag = c("one_lag","all_lag")){
 
-  graph <- copy(graph)
-
-  setnames(graph[["edgelist"]],
-           old = timestamp_column,
-           new = "datetimetz")
-
-  get_combinations <- function(edgelist){
+  one_lag_combinations <- function(edgelist){
     dt <- edgelist
 
     #    print(colnames(dt))
@@ -322,72 +316,7 @@ temporal_one_lag_graph_projection <- function(graph,mode,weight_scheme_function 
   }
 
 
-  # Filter the nodes we wish to keep in the projection
-  graph[["nodes"]] <- graph[["nodes"]][type == mode]
-
-
-  if(mode){
-
-    # Calculate N Choose 2 combinations for every deleted node
-    graph[["edgelist"]] <- graph[["edgelist"]][, get_combinations(.SD),
-                                               by = c("to"),
-                                               .SDcols = c("from","weight","datetimetz")]
-
-    setnames(x = graph[["edgelist"]],
-             old = c("to"),
-             new = c("eliminated_node"))
-
-  }else{
-
-    # Calculate N Choose 2 combinations for every deleted node
-    graph[["edgelist"]] <- graph[["edgelist"]][, get_combinations(.SD),
-                                               by = c("from"),
-                                               .SDcols = c("to","weight","datetimetz")]
-
-    setnames(x = graph[["edgelist"]],
-             old = c("from"),
-             new = c("eliminated_node"))
-
-  }
-
-  # Remove from edgelist the nodes that do not connect to others (e.g. a single file commit)
-  graph[["edgelist"]] <- graph[["edgelist"]][complete.cases(graph[["edgelist"]])]
-
-
-  # Do not aggregate weights if no weight scheme is specified
-  if(is.null(weight_scheme_function)){
-    return(graph)
-  }else{
-    return(weight_scheme_function(graph))
-  }
-
-
-}
-
-#' Apply a temporal window graph projection
-#'
-#' This temporal projection creates edges between a developer at time t_i to
-#' all the developers that preceded them in the same time window.
-#'
-#' @param graph A bipartite network (the same pair of nodes can have multiple edges)
-#' @param mode Which of the two nodes the projection should be applied to. TRUE or FALSE
-#' @param weight_scheme_function When not specified, bipartite_graph_projection will return an intermediate
-#' projection table specifying the deleted node, from_projection, to_projection, from_weight, and to_weight.
-#' This table also contains (N choose 2) rows for every "deleted_node" in the original graph.
-#' When receiving as parameter \code{\link{weight_scheme_sum_edges}} or
-#' \code{\link{weight_scheme_count_deleted_nodes}}, the final projection table will be returned instead.
-#' @param timestamp_column a string containing the name of the timestamp variable
-#' @return A graph projection.
-#' @export
-temporal_all_lag_graph_projection <- function(graph,mode,weight_scheme_function = NULL,timestamp_column){
-
-  graph <- copy(graph)
-
-  setnames(graph[["edgelist"]],
-           old = timestamp_column,
-           new = "datetimetz")
-
-  get_combinations <- function(edgelist){
+  all_lag_combinations <- function(edgelist){
     dt <- edgelist
 
     #    print(colnames(dt))
@@ -461,14 +390,35 @@ temporal_all_lag_graph_projection <- function(graph,mode,weight_scheme_function 
   }
 
 
+
+
+  # Check if the user specified a lag that doesn't exist
+  lag <- match.arg(lag)
+
+  graph <- copy(graph)
+
+  setnames(graph[["edgelist"]],
+           old = timestamp_column,
+           new = "datetimetz")
+
   # Filter the nodes we wish to keep in the projection
   graph[["nodes"]] <- graph[["nodes"]][type == mode]
 
+  # define lag function
+  lag_function <- NULL
+  if(lag == "one_lag"){
+    lag_function <- one_lag_combinations
+  }else if(lag == "all_lag"){
+    lag_function <- all_lag_combinations
+  }else{
+    stop("Unknown lag mode specified on `lag` parameter.")
+  }
+
+
 
   if(mode){
-
     # Calculate N Choose 2 combinations for every deleted node
-    graph[["edgelist"]] <- graph[["edgelist"]][, get_combinations(.SD),
+    graph[["edgelist"]] <- graph[["edgelist"]][, lag_function(.SD),
                                                by = c("to"),
                                                .SDcols = c("from","weight","datetimetz")]
 
@@ -479,14 +429,12 @@ temporal_all_lag_graph_projection <- function(graph,mode,weight_scheme_function 
   }else{
 
     # Calculate N Choose 2 combinations for every deleted node
-    graph[["edgelist"]] <- graph[["edgelist"]][, get_combinations(.SD),
+    graph[["edgelist"]] <- graph[["edgelist"]][, lag_function(.SD),
                                                by = c("from"),
                                                .SDcols = c("to","weight","datetimetz")]
-
     setnames(x = graph[["edgelist"]],
              old = c("from"),
              new = c("eliminated_node"))
-
   }
 
   # Remove from edgelist the nodes that do not connect to others (e.g. a single file commit)
