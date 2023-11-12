@@ -252,53 +252,76 @@ bipartite_graph_projection <- function(graph,mode,weight_scheme_function = NULL)
 #' @export
 temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,timestamp_column,lag = c("one_lag","all_lag")){
 
+  # We define the way the pair-wise edges are computed in two
+  # separate functions: one_lag_combinations and
+  # all_lag combinations.
+
+  # The remainder of this function is documented
+  # refering to developers and files, however the
+  # function can be applied to anything else
+  # (e.g. threads and authors, files and commits, etc)
+
+
+  # One Lag combinations forms edges only between
+  # the current developer contribution, and the
+  # preceding developer (i.e. one time lag).
   one_lag_combinations <- function(edgelist){
+
+    # At this scope, we are either seeing all
+    # authors that changed one file, or if
+    # the other mode, all files affected by
+    # one authors. The explanation uses the
+    # one file and all authors case, which
+    # leads to temporal collaboration networks.
     dt <- edgelist
 
-    #    print(colnames(dt))
-    # Decide projection base on column available
+    # For simplicity sake, rename the "to"
+    # column to "from", and re-label back to
+    # "to" outside the scope of this function.
     if("from" %in% colnames(dt)){
-      #from <- unique(dt$from)
+
     }else{
-      # since in the projection only either "to" or "from" connections will exist, relabel both as "from"
       setnames(dt,
                c("to"),
                c("from"))
-      #from <- unique(dt$to)
     }
     from <- unique(dt$from)
     # If projection of isolated node, there is nothing to connect it to
-    # (E.g. isolated node: Commit with 1 file)
-    # or if the deleted node degree is greater than threshold we do not
-    # generate edges
+    # (E.g. isolated node: file only had 1 author changing it once)
     if(length(from) < 2){
       combinations <- data.table(NA_character_,NA_character_)
     }else{
+      # Since this is a temporal projection, we first use time for ordering
       edgelist <- edgelist[order(datetimetz),.(from,weight)]
-      # dt represents the original edge weight between the "'from"
-      # node that remains on the projection and the
-      # to node of the projection.
+      # The edgelist may contain duplicated edges, because we must know
+      # every edge in the original data to define the temporal edges.
 
       # Assign an ID to every edge in the original graph, so we may
       # be able to assign their weight to the "semi-projected graph"
       # via these ids.
-
-      # Note the bipartite does not have this consideration because,
-      # the input graph on the bipartite does not have duplicated
-      # edges between the same pair of nodes. Here we do need to pass
-      # the duplicated edges (e.g. each can represent a dev change to
-      # a file) so we can construct the temporal graph.
       edgelist$edgeid <- 1:nrow(edgelist)
 
+      # We can compute the 1-lag, by simply shifting 1 row of the table
+      # because the tavle is ordered. This will generate all pairs of
+      # edges that are 1-lag.
       combinations <- data.table(edgelist[1:(length(from) - 1)]$edgeid,
                                  edgelist[2:(length(from))]$edgeid)
     }
 
+    # Rename the 1-lag edges. Note the "to" and "from" here reflect
+    # that Dev A -> Dev B, if Dev A made changes to a file *after*
+    # Dev B. It captures the notion of "A depends on B's code" instead
+    # of temporal flow.
     setnames(combinations,
              old = c("V1","V2"),
              new = c("to_edgeid","from_edgeid"))
 
-    # add the weight contributions before the projection deletes the node
+    # Because the function will not generate the final projection, but
+    # rather the intemediate step, showcasing what nodes were deleted, and
+    # what weights the pairs of edges had pointing to the deleted node,
+    # we use the edge ID to add the information back. Without the edge id,
+    # we would be unable to determine which temporal edge the information
+    # corresponds to.
     combinations <- merge(combinations,edgelist,all.x=TRUE,by.x = "from_edgeid", by.y="edgeid")
     setnames(combinations,
              old=c("from","weight"),
@@ -308,66 +331,76 @@ temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,t
              old=c("from","weight"),
              new=c("to_projection","to_weight"))
 
-    #combinations$weight <- combinations$from_weight + combinations$to_weight
-
+    # We omit the edge ids here, since the timestamp information suffices in the final
+    # table to sanity check.
     combinations <- combinations[,.(from_projection,from_weight,to_projection,to_weight)]
 
     return(combinations)
   }
 
 
+  # All Lag combinations forms edges between
+  # the current developer contribution, and *all*
+  # preceding developers (i.e. *all* time lag).
+  # This means late developers will have more
+  # edges than earlier developers in a file.
   all_lag_combinations <- function(edgelist){
     dt <- edgelist
 
-    #    print(colnames(dt))
-    # Decide projection base on column available
+    # For simplicity sake, rename the "to"
+    # column to "from", and re-label back to
+    # "to" outside the scope of this function.
     if("from" %in% colnames(dt)){
-      #from <- unique(dt$from)
     }else{
-      # since in the projection only either "to" or "from" connections will exist, relabel both as "from"
       setnames(dt,
                c("to"),
                c("from"))
-      #from <- unique(dt$to)
     }
     from <- unique(dt$from)
     # If projection of isolated node, there is nothing to connect it to
-    # (E.g. isolated node: Commit with 1 file)
-    # or if the deleted node degree is greater than threshold we do not
-    # generate edges
+    # (E.g. isolated node: file only had 1 author changing it once)
     if(length(from) < 2){
       combinations <- data.table(NA_character_,NA_character_)
     }else{
+      # Since this is a temporal projection, we first use time for ordering
       edgelist <- edgelist[order(datetimetz),.(from,weight,datetimetz)]
-      # dt represents the original edge weight between the "'from"
-      # node that remains on the projection and the
-      # to node of the projection.
+      # The edgelist may contain duplicated edges, because we must know
+      # every edge in the original data to define the temporal edges.
 
       # Assign an ID to every edge in the original graph, so we may
       # be able to assign their weight to the "semi-projected graph"
       # via these ids.
-
-      # Note the bipartite does not have this consideration because,
-      # the input graph on the bipartite does not have duplicated
-      # edges between the same pair of nodes. Here we do need to pass
-      # the duplicated edges (e.g. each can represent a dev change to
-      # a file) so we can construct the temporal graph.
       edgelist$edgeid <- 1:nrow(edgelist)
 
 
+      # The code up to this point is the exact same as one_lag.
+      # In the future, the function should be consolidated into one.
+
+      # Because in all_lag we must have that a developer has edges
+      # to all developers that preceded it, this is in fact the
+      # equivalent of *Edge IDs* Choose 2 possible combinations.
+      # In this sense, the formation of edges is *similar* to
+      # a bipartite graph, except the combinations are generated
+      # based on Edge IDs.
       combinations <- transpose(as.data.table(combn(edgelist$edgeid,
                                                     2,
                                                     simplify=FALSE)))
-
-      #combinations <- data.table(edgelist[1:(length(from) - 1)]$edgeid,
-      #                           edgelist[2:(length(from))]$edgeid)
     }
 
     setnames(combinations,
              old = c("V1","V2"),
              new = c("to_edgeid","from_edgeid"))
 
-    # add the weight contributions before the projection deletes the node
+    # Because the function will not generate the final projection, but
+    # rather the intemediate step, showcasing what nodes were deleted, and
+    # what weights the pairs of edges had pointing to the deleted node,
+    # we use the edge ID to add the information back. Without the edge id,
+    # we would be unable to determine which temporal edge the information
+    # corresponds to.
+
+    # Note this step differs slightly from one_lag: Here we require the joins preserve
+    # the original chronological order of the table. This information is required to
+    # use the weight_scheme_cum_temporal().
     combinations <- merge(combinations,edgelist,all.x=TRUE,by.x = "from_edgeid", by.y="edgeid",
                           sorted = FALSE)
     setnames(combinations,
@@ -379,12 +412,8 @@ temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,t
              old=c("from","weight","datetimetz"),
              new=c("to_projection","to_weight","to_datetimetz"))
 
-    #combinations$weight <- combinations$from_weight + combinations$to_weight
-
     combinations <- combinations[,.(from_projection,from_weight,from_datetimetz,
                                     to_projection,to_weight, to_datetimetz)]
-
-    # Swap the "from" and "to"
 
     return(combinations)
   }
@@ -395,16 +424,16 @@ temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,t
   # Check if the user specified a lag that doesn't exist
   lag <- match.arg(lag)
 
+  # Copy the graph, so column renames by reference doesn't overwrite parameter objects
   graph <- copy(graph)
-
   setnames(graph[["edgelist"]],
            old = timestamp_column,
            new = "datetimetz")
 
-  # Filter the nodes we wish to keep in the projection
+  # Nodes table: Filter the nodes we wish to keep in the projection
   graph[["nodes"]] <- graph[["nodes"]][type == mode]
 
-  # define lag function
+  # Decide which lag function we will use
   lag_function <- NULL
   if(lag == "one_lag"){
     lag_function <- one_lag_combinations
@@ -416,8 +445,13 @@ temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,t
 
 
 
+  # Depending on the mode of the graph (i.e. which of the 2 node)
+  # types we will choose, decide if will use the "from" or "to"
+  # column of the table. Note this assumpes in the edgelist,
+  # the "from" column consistently refers to one type of node
+  # and the "to" column consistently refers to the other type of node
   if(mode){
-    # Calculate N Choose 2 combinations for every deleted node
+
     graph[["edgelist"]] <- graph[["edgelist"]][, lag_function(.SD),
                                                by = c("to"),
                                                .SDcols = c("from","weight","datetimetz")]
@@ -447,7 +481,6 @@ temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,t
   }else{
     return(weight_scheme_function(graph))
   }
-
 
 }
 
@@ -522,25 +555,57 @@ weight_scheme_count_deleted_nodes <- function(projected_graph){
   return(projected_graph)
 }
 
+#' Weight Cumulative Temporal Projection Scheme
+#'
+#' This weight scheme sums the deleted node adjacent edges when re-wired
+#' in the projection graph that *occur before* the temporal edge and the
+#' in line documentation for details.
+#'
+#' Note this function assumes the rows of `temporally_ordered_projected_graph`
+#' are temporally ordered. This property is only guaranteed by the
+#' \code{\link{temporal_graph_projection}} function if `lag = "all_lag"`. For
+#' `lag=one_lag`, use \code{\link{weight_scheme_sum_edges}} or
+#' \code{\link{weight_scheme_count_deleted_nodes}}.
+#'
+#' Refer to this weight scheme unit tests for examples.
+#'
+#' @param temporally_ordered_projected_graph A temporally row-wise ordered table
+#' semi-processed bipartite projection network resulting
+#' from \code{\link{temporal_graph_projection}} when specifying
+#' weight_scheme_function = NA and lag = all_lag.
 #' @export
 #' @family weight_scheme
 weight_scheme_cum_temporal <- function(projected_graph){
 
   sum_original_contributions <- function(dt){
+    # Assuming for the sake of example the eliminated
+    # node is a file, and the resulting projection are of
+    # developers, then at this scope dt is a temporarily
+    # ordered list of all edges between A and B across all
+    # files.
+
+    # Because we guarantee the rows follow the temporal order
+    # of the eliminated file in the original graph, we can
+    # reconstruct the original chronological order of changes A and
+    # B did in all_dt.
     from_dt <- dt[,.(weight=from_weight,datetimetz=from_datetimetz)]
-
     to_dt <- dt[,.(weight=to_weight,datetimetz=to_datetimetz)]
-
     all_dt <- rbind(from_dt,to_dt)
-
+    # Duplicated rows occur here as a consequence of the pair-wise nature
+    # of the edgeset during the intermediate projection.
     original_contributions <- all_dt[!duplicated(all_dt)]
+
+    # At this point, we have the original chronological table of contributions between
+    # A and B. We can just sum the weights.
     original_contributions <- data.table(weight = sum(original_contributions$weight))
     return(original_contributions)
   }
 
+  # Sum the eliminated_nodes while observing the temporal order of the edges.
   projected_graph[["edgelist"]] <- projected_graph[["edgelist"]][,sum_original_contributions(.SD),
                                              by = c("from_projection","to_projection")]
 
+  # Rename edges of the projections such that A -> B if A occurs *after* B.
   setnames(x = projected_graph[["edgelist"]],
            old = c("from_projection","to_projection"),
            new = c("from","to"))
