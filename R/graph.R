@@ -250,7 +250,7 @@ bipartite_graph_projection <- function(graph,mode,weight_scheme_function = NULL)
 #' @param timestamp_column a string containing the name of the timestamp variable
 #' @return A graph projection.
 #' @export
-temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,timestamp_column){
+temporal_one_lag_graph_projection <- function(graph,mode,weight_scheme_function = NULL,timestamp_column){
 
   graph <- copy(graph)
 
@@ -379,7 +379,7 @@ temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,t
 #' @param timestamp_column a string containing the name of the timestamp variable
 #' @return A graph projection.
 #' @export
-temporal_window_graph_projection <- function(graph,mode,weight_scheme_function = NULL,timestamp_column){
+temporal_all_lag_graph_projection <- function(graph,mode,weight_scheme_function = NULL,timestamp_column){
 
   graph <- copy(graph)
 
