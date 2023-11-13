@@ -116,7 +116,9 @@ model_directed_graph <- function(edgelist,is_bipartite,color,aggregate_duplicate
   if(aggregate_duplicate){
     edgelist <- edgelist[,.(weight=.N),by=c("from","to")]
   }else{
+    if(!any("weight" %in% names(edgelist))){
     edgelist$weight <- 1
+    }
   }
 
   if(is_bipartite){
@@ -250,6 +252,12 @@ bipartite_graph_projection <- function(graph,mode,weight_scheme_function = NULL)
 #' @param lag a string specifying either "one_lag" or "all_lag".
 #' @return A graph projection.
 #' @export
+#' @references M. Joblin, W. Mauerer, S. Apel,
+#' J. Siegmund and D. Riehle, "From Developer Networks
+#' to Verified Communities: A Fine-Grained Approach,"
+#' 2015 IEEE/ACM 37th IEEE International Conference on
+#' Software Engineering, Florence, 2015, pp. 563-573,
+#' doi: 10.1109/ICSE.2015.73.
 temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,timestamp_column,lag = c("one_lag","all_lag")){
 
   # We define the way the pair-wise edges are computed in two
@@ -289,7 +297,8 @@ temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,t
     # If projection of isolated node, there is nothing to connect it to
     # (E.g. isolated node: file only had 1 author changing it once)
     if(length(from) < 2){
-      combinations <- data.table(NA_character_,NA_character_)
+      combinations <- data.table()
+      return(combinations)
     }else{
       # Since this is a temporal projection, we first use time for ordering
       edgelist <- edgelist[order(datetimetz),.(from,weight)]
@@ -360,7 +369,9 @@ temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,t
     # If projection of isolated node, there is nothing to connect it to
     # (E.g. isolated node: file only had 1 author changing it once)
     if(length(from) < 2){
-      combinations <- data.table(NA_character_,NA_character_)
+      combinations <- data.table()
+      return(combinations)
+
     }else{
       # Since this is a temporal projection, we first use time for ordering
       edgelist <- edgelist[order(datetimetz),.(from,weight,datetimetz)]
@@ -401,6 +412,7 @@ temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,t
     # Note this step differs slightly from one_lag: Here we require the joins preserve
     # the original chronological order of the table. This information is required to
     # use the weight_scheme_cum_temporal().
+
     combinations <- merge(combinations,edgelist,all.x=TRUE,by.x = "from_edgeid", by.y="edgeid",
                           sorted = FALSE)
     setnames(combinations,
@@ -456,9 +468,14 @@ temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,t
                                                by = c("to"),
                                                .SDcols = c("from","weight","datetimetz")]
 
-    setnames(x = graph[["edgelist"]],
-             old = c("to"),
-             new = c("eliminated_node"))
+    if(nrow(graph[["edgelist"]]) == 0){
+      return(graph)
+    }else{
+      setnames(x = graph[["edgelist"]],
+               old = c("to"),
+               new = c("eliminated_node"))
+    }
+
 
   }else{
 
@@ -466,9 +483,15 @@ temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,t
     graph[["edgelist"]] <- graph[["edgelist"]][, lag_function(.SD),
                                                by = c("from"),
                                                .SDcols = c("to","weight","datetimetz")]
-    setnames(x = graph[["edgelist"]],
-             old = c("from"),
-             new = c("eliminated_node"))
+
+    if(nrow(graph[["edgelist"]] == 0)){
+      return(graph)
+    }else{
+      setnames(x = graph[["edgelist"]],
+               old = c("from"),
+               new = c("eliminated_node"))
+    }
+
   }
 
   # Remove from edgelist the nodes that do not connect to others (e.g. a single file commit)
@@ -575,6 +598,12 @@ weight_scheme_count_deleted_nodes <- function(projected_graph){
 #' weight_scheme_function = NA and lag = all_lag.
 #' @export
 #' @family weight_scheme
+#' @references M. Joblin, W. Mauerer, S. Apel,
+#' J. Siegmund and D. Riehle, "From Developer Networks
+#' to Verified Communities: A Fine-Grained Approach,"
+#' 2015 IEEE/ACM 37th IEEE International Conference on
+#' Software Engineering, Florence, 2015, pp. 563-573,
+#' doi: 10.1109/ICSE.2015.73.
 weight_scheme_cum_temporal <- function(temporally_ordered_projected_graph){
 
   sum_original_contributions <- function(dt){

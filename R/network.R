@@ -150,6 +150,8 @@ transform_gitlog_to_bipartite_network <- function(project_git, mode = c("author-
 #' @param project_git A parsed git project by \code{\link{parse_gitlog}}. The
 #' name column will be used to label nodes.
 #' @param mode author, committer
+#' @param lag either the string "one_lag" or "all_lag". See \code{\link{temporal_graph_projection}}
+#' @param weight_scheme_function the weight scheme function. See \code{\link{temporal_graph_projection}}
 #' @export
 #' @family edgelists
 #' @references M. Joblin, W. Mauerer, S. Apel,
@@ -158,16 +160,8 @@ transform_gitlog_to_bipartite_network <- function(project_git, mode = c("author-
 #' 2015 IEEE/ACM 37th IEEE International Conference on
 #' Software Engineering, Florence, 2015, pp. 563-573,
 #' doi: 10.1109/ICSE.2015.73.
-transform_gitlog_to_temporal_network <- function(project_git,mode = c("author","committer")){
-  # The code from developer A was modified by developer B
-  # from A to B
-  get_consecutive_identity_id <- function(identity_id_commit_date){
-    dt <- identity_id_commit_date[order(datetimetz)]
-    identity_id <- dt$identity_id
-    consecutive_identity_id <- data.table(from = identity_id[1:(length(identity_id) - 1)],
-                                      to = identity_id[2:(length(identity_id))])
-    return(consecutive_identity_id)
-  }
+transform_gitlog_to_temporal_network <- function(project_git,mode = c("author","committer"),lag = "one_lag",weight_scheme_function = weight_scheme_sum_edges){
+
 
   # Check user did not specify a mode that does not exist
   mode <- match.arg(mode)
@@ -176,42 +170,42 @@ transform_gitlog_to_temporal_network <- function(project_git,mode = c("author","
 
   if(mode == "author"){
 
-    project_git <- project_git[,.(identity_id=author_name_email,
-                                  datetimetz=author_datetimetz,
-                                  file_pathname)]
+    git_graph <- copy(project_git)
+    setnames(git_graph,
+             old = c("author_name_email",
+                     "file_pathname",
+                     "author_datetimetz"),
+             new = c("from",
+                     "to",
+                     "datetimetz"))
 
-    # Create edgelists
-    git_edgelist <- project_git[, get_consecutive_identity_id(.SD),
-                                by = c("file_pathname"),
-                                .SDcols = c("datetimetz", "identity_id")]
-
-    # Filter cases where no second change was made to a given file in git log
-    git_edgelist <- git_edgelist[complete.cases(git_edgelist)]
-
-    # Select relevant columns for edgelist, grouping repeated rows as the edgelist weights
-    graph <- model_directed_graph(git_edgelist,FALSE,color="black")
+    git_graph <- model_directed_graph(git_graph,is_bipartite = TRUE, color = c("black","#f4dbb5"), aggregate_duplicate = FALSE)
 
 
   }else if(mode == "committer"){
 
-    project_git <- project_git[,.(identity_id = committer_name_email,
-                                  datetimetz=committer_datetimetz,
-                                  file_pathname)]
+    git_graph <- copy(project_git)
+    setnames(git_graph,
+             old = c("committer_name_email",
+                     "file_pathname",
+                     "committer_datetimetz"),
+             new = c("from",
+                     "to",
+                     "datetimetz"))
 
-    # Create edgelists
-    git_edgelist <- project_git[, get_consecutive_identity_id(.SD),
-                                by = c("file_pathname"),
-                                .SDcols = c("datetimetz", "identity_id")]
+    git_graph <- model_directed_graph(git_graph,is_bipartite = TRUE, color = c("black","#bed7be"), aggregate_duplicate = FALSE)
 
-    # Filter cases where no second change was made to a given file in git log
-    git_edgelist <- git_edgelist[complete.cases(git_edgelist)]
 
-    # Select relevant columns for edgelist, grouping repeated rows as the edgelist weights
-    graph <- model_directed_graph(git_edgelist,FALSE,color="#bed7be")
+
+
   }
 
+  temporal_projection <- temporal_graph_projection(git_graph,mode=TRUE,timestamp_column ="datetimetz",
+                                                   weight_scheme_function = weight_scheme_function,
+                                                   lag = lag)
 
-  return(graph)
+
+  return(temporal_projection)
 }
 #' Transform parsed git repo into an edgelist
 #'
@@ -262,6 +256,8 @@ transform_gitlog_to_entity_bipartite_network <- function(project_git_entity, mod
 #'
 #' @param project_git_entity A parsed git project by \code{\link{parse_gitlog_entity}}.
 #' @param mode author, committer
+#' @param lag either the string "one_lag" or "all_lag". See \code{\link{temporal_graph_projection}}
+#' @param weight_scheme_function the weight scheme function. See \code{\link{temporal_graph_projection}}
 #' @export
 #' @family edgelists
 #' @references M. Joblin, W. Mauerer, S. Apel,
@@ -270,60 +266,49 @@ transform_gitlog_to_entity_bipartite_network <- function(project_git_entity, mod
 #' 2015 IEEE/ACM 37th IEEE International Conference on
 #' Software Engineering, Florence, 2015, pp. 563-573,
 #' doi: 10.1109/ICSE.2015.73.
-transform_gitlog_to_entity_temporal_network <- function(project_git_entity,mode = c("author","committer")){
-  # The code from developer A was modified by developer B
-  # from A to B
-  get_consecutive_authors <- function(identity_id_commit_date){
-    dt <- identity_id_commit_date[order(datetimetz)]
-    identity_id <- dt$identity_id
-    n_lines_changed <- dt$n_lines_changed
-    consecutive_identity_id <- data.table(from = identity_id[1:(length(identity_id) - 1)],
-                                      to = identity_id[2:(length(identity_id))],
-                                      n_lines_changed =
-                                        n_lines_changed[1:(length(identity_id) - 1)] +
-                                        n_lines_changed[2:(length(identity_id))]
-                                      )
-    return(consecutive_identity_id)
-  }
+transform_gitlog_to_entity_temporal_network <- function(project_git_entity,mode = c("author","committer"),lag = "one_lag",weight_scheme_function=weight_scheme_sum_edges){
 
   # Check user did not specify a mode that does not exist
   mode <- match.arg(mode)
 
+  git_entity <- copy(project_git_entity)
+
+
   if(mode == "author"){
+    setnames(git_entity,
+             old = c("author_name_email",
+                     "entity_definition_name",
+                     "author_datetimetz"),
+             new = c("from",
+                     "to",
+                     "datetimetz"))
 
-    data.table::setnames(project_git_entity,
-            c("author_datetimetz"),
-            c("datetimetz"))
-    project_git_entity[,identity_id := author_name_email]
+    git_entity$weight <- git_entity$n_lines_changed
+    git_graph <- model_directed_graph(git_entity,is_bipartite = TRUE,
+                                      color = c("black","#fafad2"),
+                                      aggregate_duplicate = FALSE)
 
-    # Create edgelists
-    git_edgelist <- project_git_entity[, get_consecutive_authors(.SD),
-                                       by = c("entity_definition_name"),
-                                       .SDcols = c("datetimetz", "identity_id","n_lines_changed")]
-    # Filter cases where no second change was made to a given file in git log
-    git_edgelist <- git_edgelist[complete.cases(git_edgelist)]
 
-    graph <- model_directed_graph(git_edgelist,FALSE,color="black")
-
-  }else if(mode == "committer"){
-
-    data.table::setnames(project_git_entity,
-                         c("committer_datetimetz"),
-                         c("datetimetz"))
-    project_git_entity[,identity_id := committer_name_email]
-
-    # Create edgelists
-    git_edgelist <- project_git_entity[, get_consecutive_authors(.SD),
-                                       by = c("entity_definition_name"),
-                                       .SDcols = c("datetimetz", "identity_id","n_lines_changed")]
-    # Filter cases where no second change was made to a given file in git log
-    git_edgelist <- git_edgelist[complete.cases(git_edgelist)]
-
-    graph <- model_directed_graph(git_edgelist,FALSE,color="#bed7be")
-
+  }else{
+    setnames(git_graph,
+             old = c("committer_name_email",
+                     "entity_definition_name",
+                     "committer_datetimetz"),
+             new = c("from",
+                     "to",
+                     "datetimetz"))
+    git_graph[["edgelist"]]$weight <- git_graph[["edgelist"]]$n_lines_changed
+    git_graph <- model_directed_graph(git_graph,is_bipartite = TRUE,
+                                      color = c("black","#bed7be"),
+                                      aggregate_duplicate = FALSE)
   }
+  git_graph[["edgelist"]] <- git_graph[["edgelist"]][,.(from,to,weight,datetimetz)]
 
-  return(graph)
+  temporal_projection <- temporal_graph_projection(git_graph,mode=TRUE,timestamp_column ="datetimetz",
+                                                   weight_scheme_function = weight_scheme_function,
+                                                   lag = lag)
+
+  return(temporal_projection)
 }
 #' Transform parsed cveid and nvdfeed into a network
 #'

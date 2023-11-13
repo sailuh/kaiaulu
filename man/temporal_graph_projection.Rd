@@ -33,3 +33,11 @@ A graph projection.
 \description{
 Apply a temporal graph projection
 }
+\references{
+M. Joblin, W. Mauerer, S. Apel,
+J. Siegmund and D. Riehle, "From Developer Networks
+to Verified Communities: A Fine-Grained Approach,"
+2015 IEEE/ACM 37th IEEE International Conference on
+Software Engineering, Florence, 2015, pp. 563-573,
+doi: 10.1109/ICSE.2015.73.
+}
