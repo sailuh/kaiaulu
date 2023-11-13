@@ -141,7 +141,7 @@ git_blame <- function(git_repo_path,flags,commit_hash,file_path){
 git_create_sample_log <- function(folder_path="/tmp"){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   folder_path <- path.expand(folder_path)
-  folder_path <- io_make_folder("kaiaulu_sample")
+  folder_path <- io_make_folder(folder_path, "kaiaulu_sample")
 
   file_path <- file.path(folder_path,"hello.R")
 
