@@ -530,13 +530,21 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA,perl_regex=NA)
   if(!is.na(perl_regex)){
     flags <- c('--no-merges',
                'master',
-               stri_c('--grep=', '"', perl_regex, '"'),
+               stringi::stri_c('--grep=', '"', perl_regex, '"'),
                '--perl-regexp',
                perceval_flags)
     gitlog_call_message <- git_log(git_repo_path,flags,gitlog_path)
+    if(is.null(gitlog_call_message)){
+      stop(stringi::stri_c("Unable to generate git log from this repository.",
+                              " Perhaps the path specified was incorrect or the repository has no commits?"))
+    }
   }else{
     flags <- perceval_flags
     gitlog_call_message <- git_log(git_repo_path,flags,gitlog_path)
+    if(is.null(gitlog_call_message)){
+      stop(stringi::stri_c("Unable to generate git log from this repository.",
+                           " Perhaps the path specified was incorrect or the repository has no commits?"))
+    }
   }
 
   # Parsed JSON output.
@@ -546,6 +554,10 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA,perl_regex=NA)
                              stderr = FALSE)
 
   perceval_parsed <- data.table(jsonlite::stream_in(textConnection(perceval_output),verbose = FALSE))
+
+  if(nrow(perceval_parsed) == 0){
+    stop("The repository specified has no commits.")
+  }
 
   # APR very first commit is a weird single case of commit without files. We filter them here.
   is_commit_with_files <- !!sapply(perceval_parsed$data.files,length)
