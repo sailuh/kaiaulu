@@ -141,11 +141,11 @@ git_blame <- function(git_repo_path,flags,commit_hash,file_path){
 git_create_sample_log <- function(folder_path="/tmp"){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   folder_path <- path.expand(folder_path)
-  folder_path <- io_create_folder("kaiaulu_sample")
+  folder_path <- io_make_folder("kaiaulu_sample")
 
   file_path <- file.path(folder_path,"hello.R")
 
-  io_make_sample_file(file_path, "print('hello world!')")
+  io_make_file(file_path, "print('hello world!')")
 
   git_init(folder_path)
 
@@ -252,7 +252,7 @@ git_add <- function(git_repo, folder_path, filepath) {
 #' @param old_name The name of the file/folder that you are going to change or move
 #' @param new_name The new name of the file/folder
 #' @export
-git_rename <- function(git_repo, folder_path, old_name, new_name) {
+git_mv <- function(git_repo, folder_path, old_name, new_name) {
   # Construct the command to rename the file using 'mv'
 
   error <- system2('git',
