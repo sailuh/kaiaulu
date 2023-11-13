@@ -4,7 +4,12 @@
 \alias{example_empty_repo}
 \title{Example Empty Repo}
 \usage{
-example_empty_repo()
+example_empty_repo(folder_path = "/tmp", folder_name)
+}
+\arguments{
+\item{folder_path}{The path where the folder will be created}
+
+\item{folder_name}{The name of the folder}
 }
 \value{
 git_repo_path of newly created empty repo
@@ -13,5 +18,6 @@ git_repo_path of newly created empty repo
 Creates an empty git repo named "empty_repo".
 }
 \details{
-Checks if parse_gitlog works on an empty repo.
+Useful to test the behavior of git_log exporter and parse_gitlog
+on repositories with no commits.
 }

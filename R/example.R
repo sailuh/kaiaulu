@@ -93,14 +93,17 @@ example_test_example_src_repo <- function(folder_path="/tmp",folder_name) {
 #'
 #' Creates an empty git repo named "empty_repo".
 #'
-#' Checks if parse_gitlog works on an empty repo.
+#' Useful to test the behavior of git_log exporter and parse_gitlog
+#' on repositories with no commits.
 #'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
 #' @return git_repo_path of newly created empty repo
 #' @export
-example_empty_repo <- function() {
+example_empty_repo <- function(folder_path="/tmp",folder_name) {
 
   # Create empty folder named "empty_repo"
-  folder_path <- io_make_folder(folder_path="/tmp", "empty_repo")
+  folder_path <- io_make_folder(folder_path=folder_path, folder_name)
   git_init(folder_path)
   git_repo_path <- file.path(folder_path,'.git')
 
@@ -111,14 +114,16 @@ example_empty_repo <- function() {
 #'
 #' One commit in two different with branches with 1 file each.
 #'
-#' Checks if parse_gitlog includes both commits in gitlog.
+#' Useful to check parser includes commits from different branches.
 #'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
 #' @return git_repo_path of newly created empty repo
 #' @export
-example_different_branches <- function() {
+example_different_branches <- function(folder_path="/tmp", folder_name) {
 
   # Create folder & repo
-  folder_path <- io_make_folder(folder_path="/tmp", "different_branches_repo")
+  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
   git_init(folder_path)
 
   # first branch (master)
@@ -140,16 +145,19 @@ example_different_branches <- function() {
 
 #' Example Different Files Commit
 #'
-#' Repo with 2 commits, first one contains 5 files modified, second contains only one
+#' Repo with 2 commits. The first commit contains 5 files modified, and
+#' second commit contains only one file modified.
 #'
-#' Tests if parse_gitlog includes both commits with different # of files in gitlog.
+#' Useful to test unbalanced sized commits and filters.
 #'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
 #' @return git_repo_path of newly created empty repo
 #' @export
-example_different_files_commits <- function() {
+example_large_sized_commits <- function(folder_path="/tmp", folder_name) {
 
   # Create folder & repo
-  folder_path <- io_make_folder(folder_path="/tmp", "example_diff_commits_repo")
+  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
   git_init(folder_path)
   git_repo_path <- file.path(folder_path, '.git')
 

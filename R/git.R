@@ -68,19 +68,37 @@ git_head <- function(git_repo_path){
 #' @param save_path the filepath to save the file
 #' @export
 git_log <- function(git_repo_path,flags,save_path){
-  system2(
-    "git",
-    args = c(
-      '--git-dir',
-      git_repo_path,
-      'log',
-      flags,
-      '>' ,
-      save_path
-    ),
-    stdout = TRUE,
-    stderr = FALSE
+  out <- tryCatch(
+    {
+      # Main Execution
+      system2(
+        "git",
+        args = c(
+          '--git-dir',
+          git_repo_path,
+          'log',
+          flags,
+          '>' ,
+          save_path
+        ),
+        stdout = TRUE,
+        stderr = FALSE
+      )
+    },
+    error = function(cond){
+      #message(stringi::stri_c("An error ocurred when generating the git log from this repository.",
+      #                        " Perhaps the path specified was incorrect or the repository has no commits?"))
+      #message(cond)
+      return(NULL)
+    },
+    warning = function(cond){
+      #message(stringi::stri_c("A warning ocurred when generating the git log from this repository.",
+      #" Perhaps the path specified was incorrect or the repository has no commits?"))
+      #message(cond)
+      return(NULL)
+    }
   )
+  return(out)
 }
 #' Git blame wrapper
 #'

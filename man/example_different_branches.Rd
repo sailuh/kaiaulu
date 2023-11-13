@@ -4,7 +4,12 @@
 \alias{example_different_branches}
 \title{Example Commit Different Branches}
 \usage{
-example_different_branches()
+example_different_branches(folder_path = "/tmp", folder_name)
+}
+\arguments{
+\item{folder_path}{The path where the folder will be created}
+
+\item{folder_name}{The name of the folder}
 }
 \value{
 git_repo_path of newly created empty repo
@@ -13,5 +18,5 @@ git_repo_path of newly created empty repo
 One commit in two different with branches with 1 file each.
 }
 \details{
-Checks if parse_gitlog includes both commits in gitlog.
+Useful to check parser includes commits from different branches.
 }

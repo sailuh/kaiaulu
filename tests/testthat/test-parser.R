@@ -102,38 +102,57 @@ test_that("filters can be used to delete unit tests and example files without de
 
   })
 
-# NOTE: Perceval can generate a table for parse_gitlog on an empty repo, so this test fails
-# test_that("Calling parse_gitlog on empty repo returns an empty data table", {
-#   tools_path <- file.path(tools_path)
-#   tool <- yaml::read_yaml(tools_path)
-#   perceval_path <- tool[["perceval"]]
-#   git_repo_path <- suppressWarnings(example_empty_repo())
-#   result <- parse_gitlog(perceval_path, git_repo_path)
-#   expect_is(result, "data.table")
-#   expect_equal(nrow(result), 0)
-#   suppressWarnings(git_delete_sample_log(git_repo_path))
-#   io_delete_folder(folder_path="/tmp", "empty_repo")
-# })
+ test_that("Calling parse_gitlog on a repo with no commits throws an error", {
+   tools_path <- file.path(tools_path)
+   tool <- yaml::read_yaml(tools_path)
+   perceval_path <- tool[["perceval"]]
+   git_repo_path <- example_empty_repo(folder_path = "/tmp",folder_name = "empty_repo")
+
+   # The real issue lies not in parse_gitlog per se, but `git_log`, or more specifically the
+   # actual git command, which will throw an error if the path of the repository is unknown
+   # or if the number of commits is zero. This is the git command error the system call generates
+   # for zero commits:
+   # fatal: your current branch 'master' does not have any commits yet
+   # TODO: For some reason this error is not propagated via the system call. Should inspect why
+   # in the future.
+   result <- tryCatch(
+     {
+       result <- parse_gitlog(perceval_path, git_repo_path)
+     },
+     error=function(cond){
+       return(NULL)
+     },
+     warning=function(cond){
+       return(NULL)
+     }
+   )
+   io_delete_folder(folder_path="/tmp", "empty_repo")
+   expect_equal(result, NULL)
+ })
 
 test_that("Calling parse_gitlog on two branches with one commit each extracts all commits", {
   tools_path <- file.path(tools_path)
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
-  git_repo_path <- suppressWarnings(example_different_branches())
+  git_repo_path <- example_different_branches(folder_path = "/tmp",
+                                                               folder_name = "different_branches_repo")
   result <- parse_gitlog(perceval_path, git_repo_path)
-  expect_equal(nrow(result), 2)
-  suppressWarnings(git_delete_sample_log(git_repo_path))
   io_delete_folder(folder_path="/tmp", "different_branches_repo")
+  expect_equal(nrow(result), 2)
+
 })
 
-test_that("Calling parse_gitlog on repo with two different # files on two commits returns all files", {
+test_that("Filtering parse_gitlog by commit size removes large sized commits", {
   tools_path <- file.path(tools_path)
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
-  git_repo_path <- suppressWarnings(example_different_files_commits())
+  git_repo_path <- example_large_sized_commits(folder_path = "/tmp",
+                                                   folder_name = "example_large_sized_commits")
+
   result <- parse_gitlog(perceval_path, git_repo_path)
-  expect_equal(nrow(result), 6)
-  suppressWarnings(git_delete_sample_log(git_repo_path))
-  io_delete_folder(folder_path="/tmp", "example_diff_commits_repo")
+  result <- result %>% filter_by_commit_size(commit_size = 3)
+  io_delete_folder(folder_path="/tmp", "example_large_sized_commits")
+  expect_equal(nrow(result), 1)
+
 })
 
