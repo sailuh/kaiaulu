@@ -2,7 +2,7 @@
 % Please edit documentation in R/git.R
 \name{git_add}
 \alias{git_add}
-\title{Git adds a file to the gitlog sample}
+\title{Git Add}
 \usage{
 git_add(git_repo, folder_path, filepath)
 }
@@ -17,5 +17,6 @@ git_add(git_repo, folder_path, filepath)
 The path to the sample .git file.
 }
 \description{
-This is a function that git adds the filepath selected
+Performs the `git add` command, which stages a given
+file in the repo.
 }
