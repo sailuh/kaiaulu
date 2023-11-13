@@ -2,7 +2,7 @@
 % Please edit documentation in R/io.R
 \name{io_delete_folder}
 \alias{io_delete_folder}
-\title{This function deletes a folder}
+\title{Delete Folder}
 \usage{
 io_delete_folder(folder_path = "/tmp", folder_name)
 }
@@ -15,5 +15,5 @@ io_delete_folder(folder_path = "/tmp", folder_name)
 The deleted folder_path
 }
 \description{
-This function deletes a folder
+Deletes a folder on disk.
 }

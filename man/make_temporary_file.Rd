@@ -2,7 +2,7 @@
 % Please edit documentation in R/io.R
 \name{make_temporary_file}
 \alias{make_temporary_file}
-\title{Create Temporary File}
+\title{Make Temporary File}
 \usage{
 make_temporary_file(content, extension)
 }
@@ -12,5 +12,5 @@ make_temporary_file(content, extension)
 \item{extension}{File extension (e.g. .c, .txt, .md, etc)}
 }
 \description{
-Create Temporary File
+Creates a temporary file
 }
