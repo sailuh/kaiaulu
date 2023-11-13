@@ -2,7 +2,7 @@
 % Please edit documentation in R/git.R
 \name{git_commit}
 \alias{git_commit}
-\title{Git Commit}
+\title{Git commit}
 \usage{
 git_commit(git_repo, folder_path, commit_msg, author, email)
 }
@@ -21,6 +21,5 @@ git_commit(git_repo, folder_path, commit_msg, author, email)
 The path to the sample .git file.
 }
 \description{
-Executes the `git commit` command on the target
-git repository.
+Git commits a file
 }

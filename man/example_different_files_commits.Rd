@@ -2,7 +2,7 @@
 % Please edit documentation in R/example.R
 \name{example_different_files_commits}
 \alias{example_different_files_commits}
-\title{Create repo with 2 commits, diff # of files}
+\title{Example Different Files Commit}
 \usage{
 example_different_files_commits()
 }
@@ -11,4 +11,7 @@ git_repo_path of newly created empty repo
 }
 \description{
 Repo with 2 commits, first one contains 5 files modified, second contains only one
+}
+\details{
+Tests if parse_gitlog includes both commits with different # of files in gitlog.
 }

@@ -102,4 +102,38 @@ test_that("filters can be used to delete unit tests and example files without de
 
   })
 
+# NOTE: Perceval can generate a table for parse_gitlog on an empty repo, so this test fails
+# test_that("Calling parse_gitlog on empty repo returns an empty data table", {
+#   tools_path <- file.path(tools_path)
+#   tool <- yaml::read_yaml(tools_path)
+#   perceval_path <- tool[["perceval"]]
+#   git_repo_path <- suppressWarnings(example_empty_repo())
+#   result <- parse_gitlog(perceval_path, git_repo_path)
+#   expect_is(result, "data.table")
+#   expect_equal(nrow(result), 0)
+#   suppressWarnings(git_delete_sample_log(git_repo_path))
+#   io_delete_folder(folder_path="/tmp", "empty_repo")
+# })
+
+test_that("Calling parse_gitlog on two branches with one commit each extracts all commits", {
+  tools_path <- file.path(tools_path)
+  tool <- yaml::read_yaml(tools_path)
+  perceval_path <- tool[["perceval"]]
+  git_repo_path <- suppressWarnings(example_different_branches())
+  result <- parse_gitlog(perceval_path, git_repo_path)
+  expect_equal(nrow(result), 2)
+  suppressWarnings(git_delete_sample_log(git_repo_path))
+  io_delete_folder(folder_path="/tmp", "different_branches_repo")
+})
+
+test_that("Calling parse_gitlog on repo with two different # files on two commits returns all files", {
+  tools_path <- file.path(tools_path)
+  tool <- yaml::read_yaml(tools_path)
+  perceval_path <- tool[["perceval"]]
+  git_repo_path <- suppressWarnings(example_different_files_commits())
+  result <- parse_gitlog(perceval_path, git_repo_path)
+  expect_equal(nrow(result), 6)
+  suppressWarnings(git_delete_sample_log(git_repo_path))
+  io_delete_folder(folder_path="/tmp", "example_diff_commits_repo")
+})
 

@@ -16,6 +16,7 @@ Authors@R: c(
     person('Malia', 'Liu', role = c('ctb')),
     person('Nicholas', 'Lee', role = c('ctb')),
     person('Ruben', 'Jacobo', role = c('ctb')),
+    person('Waylon', 'Ho', role = c('ctb')),
     person('Nicole', 'Hoess', role = c('ctb'))
     )
 Maintainer: Carlos Paradis <cvas@hawaii.edu>

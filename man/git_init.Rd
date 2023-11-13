@@ -2,7 +2,7 @@
 % Please edit documentation in R/git.R
 \name{git_init}
 \alias{git_init}
-\title{Git Init}
+\title{Initialize a git repo in a folder.}
 \usage{
 git_init(folder_path)
 }
@@ -13,6 +13,5 @@ git_init(folder_path)
 The path to the newly created Git repository.
 }
 \description{
-Initializes a new Git repository in the specified folder.
-The Git Init command creates a hidden `.git` folder.
+This function initializes a new Git repository in the specified folder.
 }

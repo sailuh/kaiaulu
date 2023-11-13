@@ -2,7 +2,7 @@
 % Please edit documentation in R/example.R
 \name{example_empty_repo}
 \alias{example_empty_repo}
-\title{Create Empty Repo}
+\title{Example Empty Repo}
 \usage{
 example_empty_repo()
 }
@@ -10,5 +10,8 @@ example_empty_repo()
 git_repo_path of newly created empty repo
 }
 \description{
+Creates an empty git repo named "empty_repo".
+}
+\details{
 Checks if parse_gitlog works on an empty repo.
 }

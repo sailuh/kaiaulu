@@ -2,7 +2,7 @@
 % Please edit documentation in R/example.R
 \name{example_different_branches}
 \alias{example_different_branches}
-\title{Commit in two different branches}
+\title{Example Commit Different Branches}
 \usage{
 example_different_branches()
 }
@@ -10,5 +10,8 @@ example_different_branches()
 git_repo_path of newly created empty repo
 }
 \description{
-One commit in two different with branches with 1 file each
+One commit in two different with branches with 1 file each.
+}
+\details{
+Checks if parse_gitlog includes both commits in gitlog.
 }
