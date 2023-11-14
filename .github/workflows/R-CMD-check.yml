@@ -72,25 +72,6 @@ jobs:
           sed -i -e "s|utags: \/usr\/local\/Cellar\/universal-ctags\/HEAD-62f0144\/bin\/ctags|utags: \/usr\/local\/Cellar\/universal-ctags\/${utags_head}\/bin\/ctags|g" tests/testthat/testdata/tools.yml
         shell: bash
 
-      - name: Inspect UCtags directory
-        if: always()
-        run: |
-          echo displaying directory for uctags
-          ls /usr/local/Cellar/universal-ctags
-          echo performing which on ctags
-          which ctags
-          echo checking uctags is on bin
-          ls /usr/local/Cellar/universal-ctags/HEAD-1039940/bin/
-          echo trying to assign head version dynamically
-          utags_head=$(ls /usr/local/Cellar/universal-ctags | tail -n 1)
-          echo output of utags_head:
-          echo $utagshead
-          echo output of tools.yml:
-          cat tools.yml
-          echo output of testthat tools.yml:
-          cat tests/testthat/testdata/tools.yml
-        shell: bash
-
       - name: Check
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
