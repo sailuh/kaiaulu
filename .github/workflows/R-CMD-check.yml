@@ -67,7 +67,21 @@ jobs:
         run: |
           brew tap universal-ctags/universal-ctags
           brew install --HEAD universal-ctags
+        shell: bash
+
+      - name: Inspect UCtags directory
+        if: always()
+        run: |
+          echo displaying directory for uctags
           ls /usr/local/Cellar/universal-ctags
+          echo performing which on ctags
+          which ctags
+          echo checking uctags is on bin
+          ls /usr/local/Cellar/universal-ctags/HEAD-1039940/bin/
+          echo trying to assign head version dynamically
+          utagshead=$(ls | tail -n 1)
+          echo output
+          echo $utagshead
         shell: bash
 
       - name: Check
