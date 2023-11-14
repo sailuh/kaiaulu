@@ -58,7 +58,7 @@ jobs:
         if: always()
         run: |
           pip3 install perceval==0.12.24
-          sed -i -e 's/perceval: ~\/perceval\/bin\/perceval/perceval: \/Library\/Frameworks\/Python.framework\/Versions\/Current\/bin\/perceval/g' tools.yml
+          sed -i -e 's|perceval: ~\/perceval\/bin\/perceval|perceval: \/Library\/Frameworks\/Python.framework\/Versions\/Current\/bin\/perceval|g' test_tools.yml
           cp tools.yml tests/testthat/testdata/tools.yml
         shell: bash
 
@@ -68,8 +68,8 @@ jobs:
           brew tap universal-ctags/universal-ctags
           brew install --HEAD universal-ctags
           utags_head=$(ls /usr/local/Cellar/universal-ctags | tail -n 1)
-          sed -i -e 's/utags: \/usr\/local\/Cellar\/universal-ctags\/HEAD-62f0144/bin\/ctags/utags: \/usr\/local\/Cellar\/universal-ctags\/$utags_head/bin\/ctags/g' tools.yml
-          sed -i -e 's/utags: \/usr\/local\/Cellar\/universal-ctags\/HEAD-62f0144/bin\/ctags/utags: \/usr\/local\/Cellar\/universal-ctags\/$utags_head/bin\/ctags/g' tests\/testthat\/testdata\/tools.yml
+          sed -i -e "s|utags: \/usr\/local\/Cellar\/universal-ctags\/HEAD-62f0144\/bin\/ctags|utags: \/usr\/local\/Cellar\/universal-ctags\/${utags_head}\/bin\/ctags|g" tools.yml
+          sed -i -e "s|utags: \/usr\/local\/Cellar\/universal-ctags\/HEAD-62f0144\/bin\/ctags|utags: \/usr\/local\/Cellar\/universal-ctags\/${utags_head}\/bin\/ctags|g" tests/testthat/testdata/tools.yml
         shell: bash
 
       - name: Inspect UCtags directory
