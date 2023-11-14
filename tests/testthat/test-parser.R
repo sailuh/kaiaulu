@@ -156,3 +156,47 @@ test_that("Filtering parse_gitlog by commit size removes large sized commits", {
 
 })
 
+
+test_that("Parsing git log function entities on notebook files return an empty table", {
+  tools_path <- file.path(tools_path)
+  tool <- yaml::read_yaml(tools_path)
+  perceval_path <- tool[["perceval"]]
+  utags_path <- tool[["utags"]]
+  git_repo_path <- example_notebook_function_in_code_blocks(folder_path = "/tmp",
+                                          folder_name = "example_notebook_function_in_code_blocks")
+
+  project_git <- parse_gitlog(perceval_path, git_repo_path)
+  result <- parse_gitlog_entity(git_repo_path=git_repo_path,
+                                utags_path = utags_path,
+                                project_git_log = project_git,
+                                kinds=list( r=c('f')),
+                                progress_bar = FALSE)
+
+
+
+  io_delete_folder(folder_path="/tmp", "example_notebook_function_in_code_blocks")
+  expect_equal(nrow(result), 0)
+
+})
+
+test_that("Parsing git log function entities on R files return a table", {
+  tools_path <- file.path(tools_path)
+  tool <- yaml::read_yaml(tools_path)
+  perceval_path <- tool[["perceval"]]
+  utags_path <- tool[["utags"]]
+  git_repo_path <- example_notebook_function_in_files(folder_path = "/tmp",
+                                          folder_name = "example_notebook_function_in_files")
+
+  project_git <- parse_gitlog(perceval_path, git_repo_path)
+  result <- parse_gitlog_entity(git_repo_path=git_repo_path,
+                                utags_path = utags_path,
+                                project_git_log = project_git,
+                                kinds=list( r=c('f')),
+                                progress_bar = FALSE)
+
+
+
+  io_delete_folder(folder_path="/tmp", "example_notebook_function_in_files")
+  expect_equal(nrow(result), 2)
+
+})

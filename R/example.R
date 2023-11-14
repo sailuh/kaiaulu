@@ -194,5 +194,104 @@ example_large_sized_commits <- function(folder_path="/tmp", folder_name) {
   return(git_repo_path)
 }
 
+#' Example Commit of R Notebooks
+#'
+#' One commit that defines the function by Dev 1, then
+#' one commit that modifies the same function by Dev 2.
+#'
+#' Useful to check how git log entity behaves with files it does
+#' not recognize.
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return git_repo_path of newly created empty repo
+#' @export
+example_notebook_function_in_code_blocks <- function(folder_path="/tmp", folder_name) {
 
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
+  git_init(folder_path)
 
+  #initial file
+  body1 <- "
+  ```{r}
+  car <- function(x){
+  return(x)
+  }
+  ```
+  "
+
+  #changed file
+  body2 <- "
+  ```{r}
+  car <- function(x){
+  print('hi!')
+  return(x)
+  }
+  ```
+  "
+
+  # first commit
+  git_repo_path <- file.path(folder_path, '.git')
+  file_path <- file.path(folder_path, "file1.Rmd")
+  io_make_file(file_path, body1)
+  git_add(git_repo_path, folder_path, file_path)
+  git_commit(git_repo_path, folder_path, "committing first file", "Author 1", "author1@email.com")
+
+  # second commit
+  file_path <- file.path(folder_path, "file1.Rmd")
+  io_make_file(file_path, body2)
+  git_add(git_repo_path, folder_path, file_path)
+  git_commit(git_repo_path, folder_path, "modifying first file", "Author 2", "author2@email.com")
+
+  return(git_repo_path)
+}
+
+#' Example Commit of R Function Declarations
+#'
+#' One commit that defines the function by Dev 1, then
+#' one commit that modifies the same function by Dev 2.
+#'
+#' Useful to check how git log entity behaves with files it should
+#' recognize.
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return git_repo_path of newly created empty repo
+#' @export
+example_notebook_function_in_files <- function(folder_path="/tmp", folder_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
+  git_init(folder_path)
+
+  #initial file
+  body1 <- "
+  car <- function(x){
+  return(x)
+  }
+  "
+
+  #changed file
+  body2 <- "
+  car <- function(x){
+  print('hi!')
+  return(x)
+  }
+  "
+
+  # first commit
+  git_repo_path <- file.path(folder_path, '.git')
+  file_path <- file.path(folder_path, "file1.R")
+  io_make_file(file_path, body1)
+  git_add(git_repo_path, folder_path, file_path)
+  git_commit(git_repo_path, folder_path, "committing first file", "Author 1", "author1@email.com")
+
+  # second commit
+  file_path <- file.path(folder_path, "file1.R")
+  io_make_file(file_path, body2)
+  git_add(git_repo_path, folder_path, file_path)
+  git_commit(git_repo_path, folder_path, "modifying first file", "Author 2", "author2@email.com")
+
+  return(git_repo_path)
+}

@@ -1571,4 +1571,5 @@ utils::globalVariables(c("."))
 #' @importFrom data.table setkey
 #' @importFrom data.table setkeyv
 #' @importFrom data.table setnames
+#' @importFrom data.table last
 NULL
