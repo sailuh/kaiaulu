@@ -1,3 +1,5 @@
+tools_path <- test_path("testdata", "tools.yml")
+
 test_that("weighted churn temporal projection of dev 2 changing dev 1's file is accurate", {
 
   timestamps <-  as.POSIXct(c("Tue Aug 17 15:59:33 1999 +0000","Tue Aug 17 16:59:33 1999 +0000",
@@ -165,4 +167,64 @@ test_that("temporal projections with only one author changing a file returns an 
 
 
   expect_equal(nrow(temporal_projection[["edgelist"]]), 0)
+})
+
+test_that("Parsing git log function entities on R function declarations returns correct weight", {
+  tools_path <- file.path(tools_path)
+  tool <- yaml::read_yaml(tools_path)
+  perceval_path <- tool[["perceval"]]
+  utags_path <- tool[["utags"]]
+  git_repo_path <- example_function_in_files(folder_path = "/tmp",
+                                                      folder_name = "example_function_in_files")
+
+  project_git <- parse_gitlog(perceval_path, git_repo_path)
+  result <- parse_gitlog_entity(git_repo_path=git_repo_path,
+                                utags_path = utags_path,
+                                project_git_log = project_git,
+                                kinds=list( r=c('f')),
+                                progress_bar = FALSE)
+
+  io_delete_folder(folder_path="/tmp", "example_function_in_files")
+
+  temporal_projection <- transform_gitlog_to_entity_temporal_network(result,
+                                                                     mode = "author",
+                                                                     lag = "all_lag",
+                                                                     weight_scheme_function = weight_scheme_cum_temporal)
+
+
+
+  expect_equal(temporal_projection[["edgelist"]][from == "Author 2 <author2@email.com>" &
+                                                   to == "Author 1 <author1@email.com>"]$weight, (3+1))
+
+})
+
+test_that("Parsing git log function entities on alternating devs changing the same function returns correct weight", {
+  tools_path <- file.path(tools_path)
+  tool <- yaml::read_yaml(tools_path)
+  perceval_path <- tool[["perceval"]]
+  utags_path <- tool[["utags"]]
+  git_repo_path <- example_notebook_alternating_function_in_files(folder_path = "/tmp",
+                                                      folder_name = "example_alternating_devs")
+
+  project_git <- parse_gitlog(perceval_path, git_repo_path)
+  result <- parse_gitlog_entity(git_repo_path=git_repo_path,
+                                utags_path = utags_path,
+                                project_git_log = project_git,
+                                kinds=list( r=c('f')),
+                                progress_bar = FALSE)
+
+  io_delete_folder(folder_path="/tmp", "example_alternating_devs")
+
+  temporal_projection <- transform_gitlog_to_entity_temporal_network(result,
+                                                                     mode = "author",
+                                                                     lag = "all_lag",
+                                                                     weight_scheme_function = weight_scheme_cum_temporal)
+
+
+
+  expect_equal(temporal_projection[["edgelist"]][from == "dev 2 <>" & to == "dev 1 <>"]$weight, 1+3+5+7)
+  expect_equal(temporal_projection[["edgelist"]][from == "dev 1 <>" & to == "dev 2 <>"]$weight, 3+5)
+  expect_equal(temporal_projection[["edgelist"]][from == "dev 1 <>" & to == "dev 1 <>"]$weight, 1+5)
+  expect_equal(temporal_projection[["edgelist"]][from == "dev 2 <>" & to == "dev 2 <>"]$weight, 3+7)
+
 })

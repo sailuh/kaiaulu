@@ -259,7 +259,7 @@ example_notebook_function_in_code_blocks <- function(folder_path="/tmp", folder_
 #' @param folder_name The name of the folder
 #' @return git_repo_path of newly created empty repo
 #' @export
-example_notebook_function_in_files <- function(folder_path="/tmp", folder_name) {
+example_function_in_files <- function(folder_path="/tmp", folder_name) {
 
   # Create folder & repo
   folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
@@ -292,6 +292,91 @@ example_notebook_function_in_files <- function(folder_path="/tmp", folder_name) 
   io_make_file(file_path, body2)
   git_add(git_repo_path, folder_path, file_path)
   git_commit(git_repo_path, folder_path, "modifying first file", "Author 2", "author2@email.com")
+
+  return(git_repo_path)
+}
+
+#' Example Alternating Undecided Developers
+#'
+#' Developers keep alternating the lines changes.
+#'
+#' Useful to check how git log entity behaves with files it should
+#' recognize.
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return git_repo_path of newly created empty repo
+#' @export
+example_notebook_alternating_function_in_files <- function(folder_path="/tmp", folder_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
+  git_init(folder_path)
+
+  #initial file
+
+  body1 <- "
+  car <- function(x){return(x)}
+  "
+
+  body2 <- "
+  car <- function(x){
+  return(x)
+  }
+  "
+
+  #changed file
+  body3 <- "
+  car <- function(x){
+  print('hi!')
+  print('one more line!')
+  print('one more line again!')
+  print('one more line again 2!')
+  print('one more line again 3!')
+  return(x)
+  }
+  "
+
+  body4 <- "
+  car <- function(x){
+  print('hi!')
+  print('one more line!')
+  print('one more line again!')
+  print('5th line!')
+  print('6th line!')
+  print('7th line!')
+  print('8th line!')
+  print('9th line!')
+  print('10th line!')
+  print('11th line!')
+  return(x)
+  }
+  "
+
+  # first commit
+  git_repo_path <- file.path(folder_path, '.git')
+  file_path <- file.path(folder_path, "file1.R")
+  io_make_file(file_path, body1)
+  git_add(git_repo_path, folder_path, file_path)
+  git_commit(git_repo_path, folder_path, "committing 1", "dev 1", "")
+
+  # second commit
+  file_path <- file.path(folder_path, "file1.R")
+  io_make_file(file_path, body2)
+  git_add(git_repo_path, folder_path, file_path)
+  git_commit(git_repo_path, folder_path, "commit 2", "dev 2", "")
+
+  # third commit
+  file_path <- file.path(folder_path, "file1.R")
+  io_make_file(file_path, body3)
+  git_add(git_repo_path, folder_path, file_path)
+  git_commit(git_repo_path, folder_path, "commit 3", "dev 1", "")
+
+  # forth commit
+  file_path <- file.path(folder_path, "file1.R")
+  io_make_file(file_path, body4)
+  git_add(git_repo_path, folder_path, file_path)
+  git_commit(git_repo_path, folder_path, "commit 4", "dev 2", "")
 
   return(git_repo_path)
 }
