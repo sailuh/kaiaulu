@@ -36,6 +36,7 @@ doi: 10.1109/ICSE.2015.73.
 }
 \seealso{
 Other weight_scheme: 
-\code{\link{weight_scheme_count_deleted_nodes}()}
+\code{\link{weight_scheme_count_deleted_nodes}()},
+\code{\link{weight_scheme_pairwise_cum_temporal}()}
 }
 \concept{weight_scheme}

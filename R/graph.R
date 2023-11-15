@@ -641,6 +641,54 @@ weight_scheme_cum_temporal <- function(temporally_ordered_projected_graph){
   return(temporally_ordered_projected_graph)
 }
 
+
+#' Weight Pair-wise Cumulative Temporal Projection Scheme
+#'
+#' This weight scheme sums the deleted node adjacent edges when re-wired
+#' in the projection graph that *occur before* the temporal edge.
+#' Differently than \code{\link{weight_scheme_cum_temporal}}, however,
+#' the weight value used for every edge is of both developers to the deleted node,
+#' which causes some duplication.
+#'
+#' Refer to the unit tests to see a concrete example.
+#'
+#' Note this function assumes the rows of `temporally_ordered_projected_graph`
+#' are temporally ordered. This property is only guaranteed by the
+#' \code{\link{temporal_graph_projection}} function if `lag = "all_lag"`. For
+#' `lag=one_lag`, use \code{\link{weight_scheme_sum_edges}} or
+#' \code{\link{weight_scheme_count_deleted_nodes}}.
+#'
+#' Refer to this weight scheme unit tests for examples.
+#'
+#' @param temporally_ordered_projected_graph A temporally row-wise ordered table
+#' semi-processed bipartite projection network resulting
+#' from \code{\link{temporal_graph_projection}} when specifying
+#' weight_scheme_function = NA and lag = all_lag.
+#' @export
+#' @family weight_scheme
+#' @references M. Joblin, W. Mauerer, S. Apel,
+#' J. Siegmund and D. Riehle, "From Developer Networks
+#' to Verified Communities: A Fine-Grained Approach,"
+#' 2015 IEEE/ACM 37th IEEE International Conference on
+#' Software Engineering, Florence, 2015, pp. 563-573,
+#' doi: 10.1109/ICSE.2015.73.
+weight_scheme_pairwise_cum_temporal <- function(temporally_ordered_projected_graph){
+
+  temporally_ordered_projected_graph[["edgelist"]] <- temporally_ordered_projected_graph[["edgelist"]][,.(weight = sum(from_weight) + sum(to_weight)),
+                                    by = c("from_projection","to_projection")]
+
+
+
+
+
+
+  # Rename edges of the projections such that A -> B if A occurs *after* B.
+  setnames(x = temporally_ordered_projected_graph[["edgelist"]],
+           old = c("from_projection","to_projection"),
+           new = c("from","to"))
+  return(temporally_ordered_projected_graph)
+}
+
 #' OSLOM Community Detection
 #'
 #' @description Wrapper for OSLOM Community Detection \url{http://oslom.org/}

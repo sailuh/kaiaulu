@@ -223,6 +223,13 @@ reference:
 - title: __Fake Data Generator__
   desc:  Functions to create fake data for unit testing parsers
 - contents:
+  - example_different_branches
+  - example_empty_repo
+  - example_function_in_files
+  - example_large_sized_commits
+  - example_notebook_alternating_function_in_files
+  - example_notebook_function_in_code_blocks
+  - weight_scheme_pairwise_cum_temporal
   - example_renamed_file
   - example_test_example_src_repo
   - jira_create_sample_log

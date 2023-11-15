@@ -38,6 +38,7 @@ co-change of 1.
 }
 \seealso{
 Other weight_scheme: 
-\code{\link{weight_scheme_cum_temporal}()}
+\code{\link{weight_scheme_cum_temporal}()},
+\code{\link{weight_scheme_pairwise_cum_temporal}()}
 }
 \concept{weight_scheme}

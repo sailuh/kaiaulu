@@ -228,3 +228,39 @@ test_that("Parsing git log function entities on alternating devs changing the sa
   expect_equal(temporal_projection[["edgelist"]][from == "dev 2 <>" & to == "dev 2 <>"]$weight, 3+7)
 
 })
+
+
+test_that("Check Pair Wise Cumulative Temporal Sum reflects Codeface actual implementation", {
+  tools_path <- file.path(tools_path)
+  tool <- yaml::read_yaml(tools_path)
+  perceval_path <- tool[["perceval"]]
+  utags_path <- tool[["utags"]]
+  git_repo_path <- example_notebook_alternating_function_in_files(folder_path = "/tmp",
+                                                                  folder_name = "example_alternating_devs")
+
+  project_git <- parse_gitlog(perceval_path, git_repo_path)
+  result <- parse_gitlog_entity(git_repo_path=git_repo_path,
+                                utags_path = utags_path,
+                                project_git_log = project_git,
+                                kinds=list( r=c('f')),
+                                progress_bar = FALSE)
+
+  io_delete_folder(folder_path="/tmp", "example_alternating_devs")
+
+  temporal_projection <- transform_gitlog_to_entity_temporal_network(result,
+                                                                     mode = "author",
+                                                                     lag = "all_lag",
+                                                                     weight_scheme_function = weight_scheme_pairwise_cum_temporal)
+
+
+
+  # (c4+c1) + (c4 +c3) + (c2 + c1)
+  expect_equal(temporal_projection[["edgelist"]][from == "dev 2 <>" & to == "dev 1 <>"]$weight, (7+1) + (7+5) + (3+1))
+  # (c3 + c2)
+  expect_equal(temporal_projection[["edgelist"]][from == "dev 1 <>" & to == "dev 2 <>"]$weight, 3+5)
+  # (c3 + c1)
+  expect_equal(temporal_projection[["edgelist"]][from == "dev 1 <>" & to == "dev 1 <>"]$weight, 5+1)
+  # (c4 + c2)
+  expect_equal(temporal_projection[["edgelist"]][from == "dev 2 <>" & to == "dev 2 <>"]$weight, 7+3)
+
+})
