@@ -109,6 +109,137 @@ jira_create_sample_log <- function(folder_path="/tmp"){
   return(jira_json_path)
 }
 
+create_base_info <- function(id = 11, self = "https://project.org/jira/rest/api/latest/issue/11", key = "PROJECT-68", JirAgileR_id = 1) {
+  base_info_cell <- list(
+    id = id,
+    self = self,
+    key = key,
+    JirAgileR_id = JirAgileR_id
+  )
+
+  return(base_info_cell)
+}
+
+create_ext_info <- function() {
+  ext_info_cell <- list(
+    summary = list("Issue Description"),
+    issuetype = create_issuetype(),
+    components = create_components(),
+    creator = create_creator(),
+    created = list("2007-07-08T06:07:06.000+0000"),
+    description = list(""),
+    reporter = create_reporter(),
+    resolution = create_resolution(),
+    resolutiondate = list("2007-08-13T19:12:33.000+0000"),
+    assignee = list(""),
+    updated = list("2008-05-12T08:01:39.000+0000"),
+    status = create_status()
+  )
+
+  folder_path <- "/tmp"
+  jira_json_path <- file.path(folder_path,"fake_issues.json")
+  jsonlite::write_json(ext_info_cell,file.path(folder_path,"fake_issues.json"))
+
+  return(ext_info_cell)
+}
+
+create_issuetype <- function() {
+  list(
+    self = list(list("https://project.org/jira/rest/api/2/issuetype/2")),
+    id = list(list("2")),
+    description = list(list("A new feature of the product, which has yet to be developed.")),
+    iconUrl = list("https://domain.org/jira/secure/viewavatar?size=xsmall&avatarId=21141&avatarType=issuetype"),
+    name = list("New Feature"),
+    subtask = list(FALSE),
+    avatarId = list(21141)
+  )
+}
+
+create_components <- function() {
+  list(
+    list(
+      self = list("https://domain.org/jira/rest/api/2/component/12313938"),
+      id = list("12313938"),
+      name = list("x-core")
+    ),
+    list(
+      self = list("https://domain.org/jira/rest/api/2/component/12313939"),
+      id = list("12313939"),
+      name = list("x-spring")
+    )
+  )
+}
+
+create_creator <- function() {
+  list(
+    self = list("https://domain.org/jira/rest/api/2/user?username=user1"),
+    name = list("user1"),
+    key = list("user1"),
+    displayName = list("Fake User1"),
+    active = list(TRUE),
+    timeZone = list("Etc/UTC")
+  )
+}
+
+create_reporter <- function() {
+  list(
+    self = list("https://domain.org/jira/rest/api/2/user?username=user1"),
+    name = list("user1"),
+    key = list("user1"),
+    displayName = list("Fake User1"),
+    active = list(TRUE),
+    timeZone = list("Etc/UTC")
+  )
+}
+
+create_resolution <- function() {
+  list(
+    self = list("https://domain.org/jira/rest/api/2/resolution/1"),
+    id = list("1"),
+    description = list("A fix for this issue is checked into the tree and tested."),
+    name = list("Fixed")
+  )
+}
+
+create_status <- function() {
+  list(
+    self = list("https://domain.org/jira/rest/api/2/status/6"),
+    description = list("The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened."),
+    iconUrl = list("https://domain.org/jira/images/icons/statuses/closed.png"),
+    name = "Closed",
+    id = "6",
+    statusCategory = list(
+      self = list("https://domain.org/jira/rest/api/2/statuscategory/3"),
+      id = list(3),
+      key = list("done"),
+      colorName = list("green"),
+      name = list("Done")
+    )
+  )
+}
+
+# exact same as jira_create_sample_log(), but uses refactored functions
+jira_create_sample_log_refactor <- function(folder_path="/tmp") {
+  # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
+  folder_path <- path.expand(folder_path)
+
+  issues <- list()
+
+  base_info_cell <- create_base_info()
+  issues[["base_info"]][[1]] <- base_info_cell
+
+  ext_info_cell <- create_ext_info()
+  issues[["ext_info"]][[1]] <- ext_info_cell
+
+  # write to json
+  jira_json_path <- file.path(folder_path,"fake_issues.json")
+  jsonlite::write_json(issues,file.path(folder_path,"fake_issues.json"))
+
+  return(jira_json_path)
+}
+
+
+
 #' Removes sample folder and git log
 #'
 #' This is a TearDown helper function for Kaiaulu unit tests
