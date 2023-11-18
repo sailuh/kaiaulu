@@ -13,7 +13,6 @@ create_fake_mbox(
   reply_cc_author,
   reply_cc_email,
   reply_datetime,
-  timezone,
   reply_subject,
   reply_body
 )
@@ -34,8 +33,6 @@ create_fake_mbox(
 \item{reply_cc_email}{email of carbon copy recipients}
 
 \item{reply_datetime}{Date, time in the following format: 2023-02-11T09:30:00  Be sure to add the capital T to separate date and time}
-
-\item{timezone}{Abbreviated timezone of the reply eg: HST}
 
 \item{reply_subject}{subject of the email as a string}
 

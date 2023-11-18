@@ -19,21 +19,18 @@
 #' @param reply_cc_author name of carbon copy of email to additional recipients. Formatted as: FIRSTNAME LASTNAME
 #' @param reply_cc_email email of carbon copy recipients
 #' @param reply_datetime Date, time in the following format: 2023-02-11T09:30:00  Be sure to add the capital T to separate date and time
-#' @param timezone Abbreviated timezone of the reply eg: HST
 #' @param reply_subject subject of the email as a string
 #' @param reply_body the body of the email as a string
 #' @return the content of the fake mbox you created
 #' @export
-create_fake_mbox <- function(mlist, reply_from_author, reply_from_email, reply_to_author, reply_to_email, reply_cc_author, reply_cc_email, reply_datetime, timezone, reply_subject, reply_body) {
+create_fake_mbox <- function(mlist, reply_from_author, reply_from_email, reply_to_author, reply_to_email, reply_cc_author, reply_cc_email, reply_datetime, reply_subject, reply_body) {
 
 # format the date correctly
- cdate <- format(as.POSIXct(reply_datetime, format = "%Y-%m-%dT%H:%M:%S "), "%a, %d %b %Y %H:%M:%S ")
+  cdate <- format(as.POSIXct(reply_datetime, format = "%Y-%m-%dT%H:%M:%S"), "%a, %e %b %Y %H:%M:%S %z (%Z)")
 
- date_time_tz <- paste0(cdate, " ", timezone)
-
- reply_from_full_info <- paste0(reply_from_author, " ", reply_from_email)
- reply_to_full_info <- paste0(reply_to_author, " ", reply_to_email)
- reply_cc_full_info <- paste0(reply_cc_author, " ", reply_cc_email)
+ reply_from_full_info <- paste0(reply_from_author, " <", reply_from_email, "> ")
+ reply_to_full_info <- paste0(reply_to_author, " <", reply_to_email, "> ")
+ reply_cc_full_info <- paste0(reply_cc_author, " <", reply_cc_email, "> ")
 
 
   mbox_content <- paste0(
@@ -42,7 +39,7 @@ create_fake_mbox <- function(mlist, reply_from_author, reply_from_email, reply_t
     "\nFrom: ", reply_from_full_info,
     "\nNewsgroups: gmane. ", mlist,
     "\nSubject: ", reply_subject,
-    "\nDate: ", date_time_tz,
+    "\nDate: ", cdate,
     "\nApproved: auto ",
     "\nMessage-ID: <", length(reply_body),
     "\nNNTP-Posting-Host: example.com",
@@ -50,7 +47,7 @@ create_fake_mbox <- function(mlist, reply_from_author, reply_from_email, reply_t
     "\nContent-Type: text/plain; charset=us-ascii; format=flowed ",
     "\nContent-Transfer-Encoding: 7bit ",
     "\nX-Complaints-To: complaints@example.com ",
-    "\nNNTP-Posting-Date: ", date_time_tz,
+    "\nNNTP-Posting-Date: ", cdate,
     "\nUser-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:0.9.8) Gecko/20020205 ",
     "\nX-Accept-Language: en-us ",
     "\nOriginal-To: ", reply_to_full_info, " ", reply_cc_full_info,
