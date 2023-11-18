@@ -195,4 +195,50 @@ example_large_sized_commits <- function(folder_path="/tmp", folder_name) {
 }
 
 
+#' Example fake Mbox data with all parameters
+#'
+#' Creating a fake mbox with all parameters filled in, to ensure the function generates mbox properly
+#'
+#' @param folder_path Default folder path set to "/tmp"
+#' @param folder_name Name of folder where .mbox file will be stored
+#' @return Folder path of .mbox sample file that was created
+#' @export
+example_mbox_normal <- function(folder_path = "/tmp", folder_name) {
+
+  # Define sample data for create_fake_mbox function that can easily be altered for testing
+  mlist <- "test-list"
+  reply_from <- "johndoe@example.com"
+  reply_to <- "janedoe@example.com"
+  reply_cc <- "smith_doe@example.com"
+  reply_datetime <- "2023-01-15T08:30:00"
+  timezone <- "EST"
+  reply_subject <- "Test Email Subject"
+  reply_body <- "This is the body of the test email."
+
+  # Create fake mbox using create_fake_mbox function
+  mbox_content <- create_fake_mbox(
+    mlist = mlist,
+    reply_from = reply_from,
+    reply_to = reply_to,
+    reply_cc = reply_cc,
+    reply_datetime = reply_datetime,
+    timezone = timezone,
+    reply_subject = reply_subject,
+    reply_body = reply_body
+  )
+
+
+  # Create a unique filename for the mbox file
+  git_init(folder_path)
+  mbox_filepath <- file.path(folder_path, "sample.mbox")
+
+  # Write the mbox content to a file
+  writeLines(mbox_content, mbox_filepath)
+
+  # Return the folder path of the created .mbox sample file
+  return(mbox_filepath)
+}
+
+
+
 

@@ -31,7 +31,7 @@ create_fake_mbox <- function(mlist, reply_from, reply_to, reply_cc, reply_dateti
     "\nFrom: ", reply_from,
     "\nNewsgroups: gmane. ", mlist,
     "\nSubject: ", reply_subject,
-    "\nDate: ", cdate,
+    "\nDate: ", cdate, timezone,
     "\nApproved: auto ",
     "\nMessage-ID: <", length(reply_body), "@example.com> ",
     "\nNNTP-Posting-Host: example.com",
