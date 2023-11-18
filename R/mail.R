@@ -61,11 +61,5 @@ create_fake_mbox <- function(mlist, reply_from_author, reply_from_email, reply_t
 }
 
 
-# Replace "your_username" with your actual username
-dtt <- parse_mbox("/Users/rubenjacobo/anaconda3/bin/perceval", "~/Desktop/Kaiaulu/rawdata/mbox/helix_mbox/201804.mbox")
-
-# View the parsed data
-View(dtt)
-
 
 
