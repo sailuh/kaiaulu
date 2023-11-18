@@ -6,9 +6,12 @@
 \usage{
 create_fake_mbox(
   mlist,
-  reply_from,
-  reply_to,
-  reply_cc,
+  reply_from_author,
+  reply_from_email,
+  reply_to_author,
+  reply_to_email,
+  reply_cc_author,
+  reply_cc_email,
   reply_datetime,
   timezone,
   reply_subject,
@@ -18,23 +21,29 @@ create_fake_mbox(
 \arguments{
 \item{mlist}{specific mailing list associated with this mbox data}
 
-\item{reply_from}{email of sender}
+\item{reply_from_author}{name of sender. Formatted as: FIRSTNAME LASTNAME}
 
-\item{reply_to}{email of receiver}
+\item{reply_from_email}{email of sender. eg: 'sender@gmail.com'}
 
-\item{reply_cc}{carbon copy of email to additional recipients}
+\item{reply_to_author}{name of receiver. Formatted as: FIRSTNAME LASTNAME}
 
-\item{reply_datetime}{Date, time in the following format: 2023-02-11T09:30:00}
+\item{reply_to_email}{email of receiver eg: 'receiver@gmail.com'}
 
-\item{timezone}{Abbreviated timezone of the reply eg: HST or EST}
+\item{reply_cc_author}{name of carbon copy of email to additional recipients. Formatted as: FIRSTNAME LASTNAME}
 
-\item{reply_subject}{subject of the email}
+\item{reply_cc_email}{email of carbon copy recipients}
 
-\item{reply_body}{the body of the email}
+\item{reply_datetime}{Date, time in the following format: 2023-02-11T09:30:00  Be sure to add the capital T to separate date and time}
+
+\item{timezone}{Abbreviated timezone of the reply eg: HST}
+
+\item{reply_subject}{subject of the email as a string}
+
+\item{reply_body}{the body of the email as a string}
 }
 \value{
 the content of the fake mbox you created
 }
 \description{
-Creates fake mbox data
+Used to create a fake mbox with the specified parameters and returns the output to the console
 }

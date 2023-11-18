@@ -9,40 +9,51 @@
 
 #' Creates fake mbox data
 #'
+#' Used to create a fake mbox with the specified parameters and returns the output to the console
+#'
 #' @param mlist specific mailing list associated with this mbox data
-#' @param reply_from email of sender
-#' @param reply_to email of receiver
-#' @param reply_cc carbon copy of email to additional recipients
-#' @param reply_datetime Date, time in the following format: 2023-02-11T09:30:00
-#' @param timezone Abbreviated timezone of the reply eg: HST or EST
-#' @param reply_subject subject of the email
-#' @param reply_body the body of the email
+#' @param reply_from_author name of sender. Formatted as: FIRSTNAME LASTNAME
+#' @param reply_from_email email of sender. eg: 'sender@gmail.com'
+#' @param reply_to_author name of receiver. Formatted as: FIRSTNAME LASTNAME
+#' @param reply_to_email email of receiver eg: 'receiver@gmail.com'
+#' @param reply_cc_author name of carbon copy of email to additional recipients. Formatted as: FIRSTNAME LASTNAME
+#' @param reply_cc_email email of carbon copy recipients
+#' @param reply_datetime Date, time in the following format: 2023-02-11T09:30:00  Be sure to add the capital T to separate date and time
+#' @param timezone Abbreviated timezone of the reply eg: HST
+#' @param reply_subject subject of the email as a string
+#' @param reply_body the body of the email as a string
 #' @return the content of the fake mbox you created
 #' @export
-create_fake_mbox <- function(mlist, reply_from, reply_to, reply_cc, reply_datetime, timezone, reply_subject, reply_body) {
+create_fake_mbox <- function(mlist, reply_from_author, reply_from_email, reply_to_author, reply_to_email, reply_cc_author, reply_cc_email, reply_datetime, timezone, reply_subject, reply_body) {
 
 # format the date correctly
  cdate <- format(as.POSIXct(reply_datetime, format = "%Y-%m-%dT%H:%M:%S "), "%a, %d %b %Y %H:%M:%S ")
+
+ date_time_tz <- paste0(cdate, " ", timezone)
+
+ reply_from_full_info <- paste0(reply_from_author, " ", reply_from_email)
+ reply_to_full_info <- paste0(reply_to_author, " ", reply_to_email)
+ reply_cc_full_info <- paste0(reply_cc_author, " ", reply_cc_email)
 
 
   mbox_content <- paste0(
     "From MAILER-DAEMON Thu Jul 18 13:48:48 2013 ",
     "\nPath: example.com!not-for-mail ",
-    "\nFrom: ", reply_from,
+    "\nFrom: ", reply_from_full_info,
     "\nNewsgroups: gmane. ", mlist,
     "\nSubject: ", reply_subject,
-    "\nDate: ", cdate, timezone,
+    "\nDate: ", date_time_tz,
     "\nApproved: auto ",
-    "\nMessage-ID: <", length(reply_body), "@example.com> ",
+    "\nMessage-ID: <", length(reply_body),
     "\nNNTP-Posting-Host: example.com",
     "\nMime-Version: 1.0 ",
     "\nContent-Type: text/plain; charset=us-ascii; format=flowed ",
     "\nContent-Transfer-Encoding: 7bit ",
     "\nX-Complaints-To: complaints@example.com ",
-    "\nNNTP-Posting-Date: ", cdate, timezone,
+    "\nNNTP-Posting-Date: ", date_time_tz,
     "\nUser-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:0.9.8) Gecko/20020205 ",
     "\nX-Accept-Language: en-us ",
-    "\nOriginal-To: ", paste0(reply_to, "@example.com ", reply_cc, "@example.com "),
+    "\nOriginal-To: ", reply_to_full_info, " ", reply_cc_full_info,
     "\nPrecedence: bulk",
     "\nX-Mailing-List: ", paste0(mlist, "@example.com "),
     "\n\n", reply_body
