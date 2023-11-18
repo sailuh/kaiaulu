@@ -7,7 +7,7 @@
 
 
 
-## Creates fake mbox data
+#' Creates fake mbox data
 #'
 #' @param mlist specific mailing list associated with this mbox data
 #' @param reply_from email of sender
