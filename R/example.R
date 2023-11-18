@@ -207,20 +207,27 @@ example_mbox_normal <- function(folder_path = "/tmp", folder_name) {
 
   # Define sample data for create_fake_mbox function that can easily be altered for testing
   mlist <- "test-list"
-  reply_from <- "johndoe@example.com"
-  reply_to <- "janedoe@example.com"
-  reply_cc <- "smith_doe@example.com"
+  reply_from_author <- "John Doe"
+  reply_from_email <- "johndoe@example.com"
+  reply_to_author <- "Janette Doe"
+  reply_to_email <- "janedoe@example.com"
+  reply_cc_author <- "Smithsonian Doe"
+  reply_cc_email <- "smith_doe@example.com"
   reply_datetime <- "2023-01-15T08:30:00"
   timezone <- "EST"
   reply_subject <- "Test Email Subject"
   reply_body <- "This is the body of the test email."
 
+
   # Create fake mbox using create_fake_mbox function
   mbox_content <- create_fake_mbox(
     mlist = mlist,
-    reply_from = reply_from,
-    reply_to = reply_to,
-    reply_cc = reply_cc,
+    reply_from_author = reply_from_author,
+    reply_from_email = reply_from_email,
+    reply_to_author = reply_to_author,
+    reply_to_email = reply_to_email,
+    reply_cc_author = reply_cc_author,
+    reply_cc_email = reply_cc_email,
     reply_datetime = reply_datetime,
     timezone = timezone,
     reply_subject = reply_subject,

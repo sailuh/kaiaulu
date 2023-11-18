@@ -13,20 +13,21 @@
 #'
 #' @param mlist specific mailing list associated with this mbox data
 #' @param reply_from_author name of sender. Formatted as: FIRSTNAME LASTNAME
-#' @param reply_from_email email of sender. eg: 'sender@gmail.com'
+#' @param reply_from_email email of sender, automatically encapsulated in <> eg: sender@domain.com
 #' @param reply_to_author name of receiver. Formatted as: FIRSTNAME LASTNAME
-#' @param reply_to_email email of receiver eg: 'receiver@gmail.com'
+#' @param reply_to_email email of receiver, automatically encapsulated in <>  eg: receiver@domain.com
 #' @param reply_cc_author name of carbon copy of email to additional recipients. Formatted as: FIRSTNAME LASTNAME
-#' @param reply_cc_email email of carbon copy recipients
+#' @param reply_cc_email email of carbon copy recipients, automatically encapsulated in <> input eg: recipientCC@domain.org
 #' @param reply_datetime Date, time in the following format: 2023-02-11T09:30:00  Be sure to add the capital T to separate date and time
+#' @param timezone  The abbreviation of desired timezone eg: HST
 #' @param reply_subject subject of the email as a string
 #' @param reply_body the body of the email as a string
 #' @return the content of the fake mbox you created
 #' @export
-create_fake_mbox <- function(mlist, reply_from_author, reply_from_email, reply_to_author, reply_to_email, reply_cc_author, reply_cc_email, reply_datetime, reply_subject, reply_body) {
+create_fake_mbox <- function(mlist, reply_from_author, reply_from_email, reply_to_author, reply_to_email, reply_cc_author, reply_cc_email, reply_datetime, timezone, reply_subject, reply_body) {
 
 # format the date correctly
-  cdate <- format(as.POSIXct(reply_datetime, format = "%Y-%m-%dT%H:%M:%S"), "%a, %e %b %Y %H:%M:%S %z (%Z)")
+  cdate <- format(as.POSIXct(reply_datetime, format = "%Y-%m-%dT%H:%M:%S"), "%a, %e %b %Y %H:%M:%S ")
 
  reply_from_full_info <- paste0(reply_from_author, " <", reply_from_email, "> ")
  reply_to_full_info <- paste0(reply_to_author, " <", reply_to_email, "> ")
@@ -39,7 +40,7 @@ create_fake_mbox <- function(mlist, reply_from_author, reply_from_email, reply_t
     "\nFrom: ", reply_from_full_info,
     "\nNewsgroups: gmane. ", mlist,
     "\nSubject: ", reply_subject,
-    "\nDate: ", cdate,
+    "\nDate: ", cdate, timezone,
     "\nApproved: auto ",
     "\nMessage-ID: <", length(reply_body),
     "\nNNTP-Posting-Host: example.com",
@@ -47,7 +48,7 @@ create_fake_mbox <- function(mlist, reply_from_author, reply_from_email, reply_t
     "\nContent-Type: text/plain; charset=us-ascii; format=flowed ",
     "\nContent-Transfer-Encoding: 7bit ",
     "\nX-Complaints-To: complaints@example.com ",
-    "\nNNTP-Posting-Date: ", cdate,
+    "\nNNTP-Posting-Date: ", cdate, timezone,
     "\nUser-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:0.9.8) Gecko/20020205 ",
     "\nX-Accept-Language: en-us ",
     "\nOriginal-To: ", reply_to_full_info, " ", reply_cc_full_info,
@@ -58,5 +59,13 @@ create_fake_mbox <- function(mlist, reply_from_author, reply_from_email, reply_t
 
   return(mbox_content)
 }
+
+
+# Replace "your_username" with your actual username
+dtt <- parse_mbox("/Users/rubenjacobo/anaconda3/bin/perceval", "~/Desktop/Kaiaulu/rawdata/mbox/helix_mbox/201804.mbox")
+
+# View the parsed data
+View(dtt)
+
 
 
