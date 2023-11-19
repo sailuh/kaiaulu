@@ -120,18 +120,19 @@ create_base_info <- function(id = 11, self = "https://project.org/jira/rest/api/
   return(base_info_cell)
 }
 
+# values can be changed either here if hard coded or in respective create function
 create_ext_info <- function() {
   ext_info_cell <- list(
     summary = list("Issue Description"),
     issuetype = create_issuetype(),
-    components = create_components(),
+    components = create_components(component_details),
     creator = create_creator(),
     created = list("2007-07-08T06:07:06.000+0000"),
-    description = list(""),
+    description = list(),
     reporter = create_reporter(),
     resolution = create_resolution(),
     resolutiondate = list("2007-08-13T19:12:33.000+0000"),
-    assignee = list(""),
+    assignee = list(),
     updated = list("2008-05-12T08:01:39.000+0000"),
     status = create_status()
   )
@@ -143,77 +144,114 @@ create_ext_info <- function() {
   return(ext_info_cell)
 }
 
-create_issuetype <- function() {
+# contains default values if no parameters are specified
+create_issuetype <- function(self_url = "https://project.org/jira/rest/api/2/issuetype/2",
+                             id = "2",
+                             description = "A new feature of the product, which has yet to be developed.",
+                             iconUrl = "https://domain.org/jira/secure/viewavatar?size=xsmall&avatarId=21141&avatarType=issuetype",
+                             name = "New Feature",
+                             subtask = FALSE,
+                             avatarId = 21141) {
   list(
-    self = list(list("https://project.org/jira/rest/api/2/issuetype/2")),
-    id = list(list("2")),
-    description = list(list("A new feature of the product, which has yet to be developed.")),
-    iconUrl = list("https://domain.org/jira/secure/viewavatar?size=xsmall&avatarId=21141&avatarType=issuetype"),
-    name = list("New Feature"),
-    subtask = list(FALSE),
-    avatarId = list(21141)
+    self = list(list(self_url)),
+    id = list(list(id)),
+    description = list(list(description)),
+    iconUrl = list(iconUrl),
+    name = list(name),
+    subtask = list(subtask),
+    avatarId = list(avatarId)
   )
 }
 
-create_components <- function() {
-  list(
-    list(
-      self = list("https://domain.org/jira/rest/api/2/component/12313938"),
-      id = list("12313938"),
-      name = list("x-core")
-    ),
-    list(
-      self = list("https://domain.org/jira/rest/api/2/component/12313939"),
-      id = list("12313939"),
-      name = list("x-spring")
+# for loop iterates through component_details list and makes each component
+create_components <- function(components_list) {
+  components <- list()
+  for (i in 1:length(components_list)) {
+    component <- components_list[[i]]
+    components[[i]] <- list (
+      self = list(component$self),
+      id = list(component$id),
+      name = list(component$name)
     )
+  }
+  return(components)
+}
+
+# each list is a component, added through create_components above
+# parameters: self, id, name
+component_details <- list(
+  list(self = "https://domain.org/jira/rest/api/2/component/12313938", id = "12313938", name = "x-core"),
+  list(self = "https://domain.org/jira/rest/api/2/component/12313939", id = "12313939", name = "x-spring")
+)
+
+# parameters: self_url, name, key, displayName, active = TRUE, timeZone
+create_creator <- function(self_url = "https://domain.org/jira/rest/api/2/user?username=user1",
+                           name = "user1",
+                           key = "user1",
+                           displayName = "Fake User1",
+                           active = TRUE,
+                           timeZone = "Etc/UTC") {
+  list(
+    self = list(self_url),
+    name = list(name),
+    key = list(key),
+    displayName = list(displayName),
+    active = list(active),
+    timeZone = list(timeZone)
   )
 }
 
-create_creator <- function() {
+# parameters: self_url, name, key, displayName, active = TRUE, timeZone
+create_reporter <- function(self_url = "https://domain.org/jira/rest/api/2/user?username=user1",
+                            name = "user1",
+                            key = "user1",
+                            displayName = "Fake User1",
+                            active = TRUE,
+                            timeZone = "Etc/UTC") {
   list(
-    self = list("https://domain.org/jira/rest/api/2/user?username=user1"),
-    name = list("user1"),
-    key = list("user1"),
-    displayName = list("Fake User1"),
-    active = list(TRUE),
-    timeZone = list("Etc/UTC")
+    self = list(self_url),
+    name = list(name),
+    key = list(key),
+    displayName = list(displayName),
+    active = list(active),
+    timeZone = list(timeZone)
   )
 }
 
-create_reporter <- function() {
+create_resolution <- function(self_url = "https://domain.org/jira/rest/api/2/resolution/1",
+                              id = "1",
+                              description = "A fix for this issue is checked into the tree and tested.",
+                              name = "Fixed") {
   list(
-    self = list("https://domain.org/jira/rest/api/2/user?username=user1"),
-    name = list("user1"),
-    key = list("user1"),
-    displayName = list("Fake User1"),
-    active = list(TRUE),
-    timeZone = list("Etc/UTC")
+    self = list(self_url),
+    id = list(id),
+    description = list(description),
+    name = list(name)
   )
 }
 
-create_resolution <- function() {
+create_status <- function(self_url = "https://domain.org/jira/rest/api/2/status/6",
+                          description = "The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened.",
+                          iconUrl = "https://domain.org/jira/images/icons/statuses/closed.png",
+                          name = "Closed",
+                          id = "6",
+                          statusCategory_self = "https://domain.org/jira/rest/api/2/statuscategory/3",
+                          statusCategory_id = 3,
+                          statusCategory_key = "done",
+                          statusCategory_colorName = "green",
+                          statusCategory_name = "Done") {
   list(
-    self = list("https://domain.org/jira/rest/api/2/resolution/1"),
-    id = list("1"),
-    description = list("A fix for this issue is checked into the tree and tested."),
-    name = list("Fixed")
-  )
-}
-
-create_status <- function() {
-  list(
-    self = list("https://domain.org/jira/rest/api/2/status/6"),
-    description = list("The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened."),
-    iconUrl = list("https://domain.org/jira/images/icons/statuses/closed.png"),
-    name = "Closed",
-    id = "6",
+    self = list(self_url),
+    description = list(description),
+    iconUrl = list(iconUrl),
+    name = name,
+    id = id,
     statusCategory = list(
-      self = list("https://domain.org/jira/rest/api/2/statuscategory/3"),
-      id = list(3),
-      key = list("done"),
-      colorName = list("green"),
-      name = list("Done")
+      self = list(statusCategory_self),
+      id = list(statusCategory_id),
+      key = list(statusCategory_key),
+      colorName = list(statusCategory_colorName),
+      name = list(statusCategory_name)
     )
   )
 }
@@ -237,8 +275,6 @@ jira_create_sample_log_refactor <- function(folder_path="/tmp") {
 
   return(jira_json_path)
 }
-
-
 
 #' Removes sample folder and git log
 #'
