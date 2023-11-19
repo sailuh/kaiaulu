@@ -7,9 +7,11 @@
 
 
 
-#' Creates fake mbox data
+#' Creates fake mbox reply data
 #'
-#' Used to create a fake mbox with the specified parameters and returns the output to the console
+#' Used to create a fake mbox replies with the specified parameters and returns the output to the console. Can be used
+#' in conjunction with create_mbox_from_replies function to create a .mbox file to create a full fake .mbox file with
+#' multiple of these fake replies
 #'
 #' @param mlist specific mailing list associated with this mbox data
 #' @param reply_from_author name of sender. Formatted as: FIRSTNAME LASTNAME
@@ -24,7 +26,7 @@
 #' @param reply_body the body of the email as a string
 #' @return the content of the fake mbox you created
 #' @export
-create_fake_mbox <- function(mlist, reply_from_author, reply_from_email, reply_to_author, reply_to_email, reply_cc_author, reply_cc_email, reply_datetime, timezone, reply_subject, reply_body) {
+create_fake_mbox_replies <- function(mlist, reply_from_author, reply_from_email, reply_to_author, reply_to_email, reply_cc_author, reply_cc_email, reply_datetime, timezone, reply_subject, reply_body) {
 
 # format the date correctly
   cdate <- format(as.POSIXct(reply_datetime, format = "%Y-%m-%dT%H:%M:%S"), "%a, %e %b %Y %H:%M:%S ")
@@ -59,6 +61,48 @@ create_fake_mbox <- function(mlist, reply_from_author, reply_from_email, reply_t
 
   return(mbox_content)
 }
+
+
+#' Takes in mbox replies and creates a .mbox file
+#'
+#' Takes a list of mbox replies generated with create_fake_mbox_replies function and compiles them all into a single
+#' fake .mbox file
+#'
+#' @param folder_path  Folder path for the .mbox file being created. Defaulted at /tmp
+#' @param folder_name Name of the folder that will store the .mbox file
+#' @param replies A list of replies that have been created with create_fake_mbox_replies() function that will be added to .mbox file
+#' @return the path of the .mbox file that was created, now that each reply has been added
+#' @export
+create_mbox_from_replies <- function(folder_path = "/tmp", folder_name, replies) {
+  # Create an mbox file from a list of replies
+
+  # Create a unique filename for the mbox file
+  mbox_filepath <- file.path(folder_path, paste0(folder_name, ".mbox"))
+
+  # Open the mbox file for writing
+  mbox_file <- file(mbox_filepath, "w")
+
+  # Iterate through each reply and write it to the mbox file
+  for (reply in replies) {
+    cat(reply, "\n\n", file = mbox_file)
+  }
+
+  # Close the mbox file
+  close(mbox_file)
+
+  # Return the path of the created mbox file
+  return(mbox_filepath)
+}
+
+
+
+
+
+
+
+
+
+
 
 
 

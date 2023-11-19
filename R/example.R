@@ -195,56 +195,42 @@ example_large_sized_commits <- function(folder_path="/tmp", folder_name) {
 }
 
 
-#' Example fake Mbox data with all parameters
+#' Create sample mbox with three replies
 #'
-#' Creating a fake mbox with all parameters filled in, to ensure the function generates mbox properly
+#' Creating a fake mbox with three replies. The first two fake mbox replies have the same email subject while the
+#' third reply has a different subject.
 #'
 #' @param folder_path Default folder path set to "/tmp"
 #' @param folder_name Name of folder where .mbox file will be stored
 #' @return Folder path of .mbox sample file that was created
 #' @export
-example_mbox_normal <- function(folder_path = "/tmp", folder_name) {
+example_mbox_three_replies <- function(folder_path = "/tmp", folder_name) {
 
   # Define sample data for create_fake_mbox function that can easily be altered for testing
-  mlist <- "test-list"
-  reply_from_author <- "John Doe"
-  reply_from_email <- "johndoe@example.com"
-  reply_to_author <- "Janette Doe"
-  reply_to_email <- "janedoe@example.com"
-  reply_cc_author <- "Smithsonian Doe"
-  reply_cc_email <- "smith_doe@example.com"
-  reply_datetime <- "2023-01-15T08:30:00"
-  timezone <- "EST"
-  reply_subject <- "Test Email Subject"
-  reply_body <- "This is the body of the test email."
 
+  # Step 1: Create fake mbox replies and assign them to variables for easy editing
+  reply_1 <- create_fake_mbox_replies("test-list", "John Doe", "johndoe@example.com", "Janette Doe", "janedoe@example.com",
+                                      "Smithsonian Doe", "smith_doe@example.com", "2023-01-15T08:30:00", "EST",
+                                      "Sample Email Subject ONE", "This is the body of the test email 1.")
 
-  # Create fake mbox using create_fake_mbox function
-  mbox_content <- create_fake_mbox(
-    mlist = mlist,
-    reply_from_author = reply_from_author,
-    reply_from_email = reply_from_email,
-    reply_to_author = reply_to_author,
-    reply_to_email = reply_to_email,
-    reply_cc_author = reply_cc_author,
-    reply_cc_email = reply_cc_email,
-    reply_datetime = reply_datetime,
-    timezone = timezone,
-    reply_subject = reply_subject,
-    reply_body = reply_body
-  )
+  reply_2 <- create_fake_mbox_replies("test-list", "John Doe", "johndoe@example.com", "Janette Doe", "janedoe@example.com",
+                                      "Smithsonian Doe", "smith_doe@example.com", "2023-01-15T09:45:00", "EST",
+                                      "Sample Email Subject ONE", "This is the body of the test email 2.")
 
+  reply_3 <- create_fake_mbox_replies("test-list", "John Doe", "johndoe@example.com", "Janette Doe", "janedoe@example.com",
+                                      "Smithsonian Doe", "smith_doe@example.com", "2023-01-15T11:52:00", "EST",
+                                      "Sample Email Subject TWO", "This is the body of the test email 3.")
 
-  # Create a unique filename for the mbox file
-  git_init(folder_path)
-  mbox_filepath <- file.path(folder_path, "sample.mbox")
+  # Step 2: Add each reply to a list
+  replies <- list(reply_1, reply_2, reply_3)
 
-  # Write the mbox content to a file
-  writeLines(mbox_content, mbox_filepath)
+  # Create mbox file from the list of replies
+  mbox_path <- create_mbox_from_replies("/tmp", "sample", replies)
+  print(mbox_path)
 
-  # Return the folder path of the created .mbox sample file
-  return(mbox_filepath)
 }
+
+
 
 
 
