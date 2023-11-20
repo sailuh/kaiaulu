@@ -5,26 +5,16 @@ test_that("Calling parse_mbox with correct perceval and mbox path returns a data
   tools_path <- file.path(tools_path)
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
-  mbox_path <- example_mbox_three_replies(folder_path = "/tmp", folder_name="sample_folder")
+  mbox_path <- example_mailing_list_two_threads(folder_path = "/tmp",
+                                                folder_name="example_two_threads_mailing_list",
+                                                file_name = "two_thread_mailing_list")
   result <- parse_mbox(perceval_path, mbox_path)
-  #expect_is(result, "data.table")
-  expect_equal(file.exists(mbox_path), TRUE)
+
+  io_delete_folder(folder_path="/tmp", folder_name="example_two_threads_mailing_list")
 
 
-  expected_mlist <- "test-list"
-  expected_sender <- "John Doe <johndoe@example.com>"
-  expected_recipient <- "janedoe@example.com"
-  expected_cc <- "smith_doe@example.com"
-  expected_datetimetz <- "2023-01-15T08:30:00 EST"
-  expected_reply_subject <- "Test Email Subject"
-  expected_reply_body <- "This is the body of the test email."
-
-
-  #comment out the following test cases for now
-  #expect_equal(result[["reply_from"]], expected_sender)
-  #expect_equal(result[["reply_datetimetz"]], expected_datetimetz)
-  #expect_equal(result[["reply_subject"]], expected_reply_subject)
-  #expect_equal(result[["reply_body"]], expected_reply_body)
+  expect_equal(result[reply_from == "John Doe <johndoe@example.com>"]$reply_subject, "Subject 1")
+  expect_equal(result[reply_subject == "Re: Subject 1"]$reply_from, "Smithsonian Doe <smith_doe@example.com>")
 
 })
 

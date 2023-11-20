@@ -195,38 +195,56 @@ example_large_sized_commits <- function(folder_path="/tmp", folder_name) {
 }
 
 
-#' Create sample mbox with three replies
+#' Two Thread and Three Replies Mailing List
 #'
-#' Creating a fake mbox with three replies. The first two fake mbox replies have the same email subject while the
-#' third reply has a different subject.
+#' Create a mailing list of two e-mail threads, with
+#' two and one reply respectively by two developers.
 #'
 #' @param folder_path Default folder path set to "/tmp"
-#' @param folder_name Name of folder where .mbox file will be stored
+#' @param folder_name Name of the example folder
+#' @param file_name Name of the file where .mbox will be stored
 #' @return Folder path of .mbox sample file that was created
 #' @export
-example_mbox_three_replies <- function(folder_path = "/tmp", folder_name) {
+example_mailing_list_two_threads <- function(folder_path = "/tmp", folder_name, file_name) {
 
-  # Define sample data for create_fake_mbox function that can easily be altered for testing
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
 
   # Step 1: Create fake mbox replies and assign them to variables for easy editing
-  reply_1 <- create_fake_mbox_reply("test-list", "John Doe", "johndoe@example.com", "Janette Doe", "janedoe@example.com",
-                                      "Smithsonian Doe", "smith_doe@example.com", "2023-01-15T08:30:00", "EST",
-                                      "Sample Email Subject ONE", "This is the body of the test email 1.")
+  thread_1_reply_1 <- make_mbox_reply(mailing_list="test-list",
+                                    reply_from_author = "John Doe", reply_from_email = "johndoe@example.com",
+                                    reply_to_author = "", reply_to_email =  "dev@test-list.com",
+                                    reply_cc_author = "Smithsonian Doe", reply_cc_email = "smith_doe@example.com",
+                                    reply_datetime = "2023-01-15T08:30:00", timezone = "EST",
+                                    reply_subject = "Subject 1",
+                                    reply_body = "This is the body of the test email 1 of thread 1.")
 
-  reply_2 <- create_fake_mbox_reply("test-list", "John Doe", "johndoe@example.com", "Janette Doe", "janedoe@example.com",
-                                      "Smithsonian Doe", "smith_doe@example.com", "2023-01-15T09:45:00", "EST",
-                                      "Sample Email Subject ONE", "This is the body of the test email 2.")
+  thread_1_reply_2 <- make_mbox_reply(mailing_list="test-list",
+                                    reply_from_author = "Smithsonian Doe", reply_from_email = "smith_doe@example.com",
+                                    reply_to_author = "", reply_to_email =  "dev@test-list.com",
+                                    reply_cc_author = "John Doe", reply_cc_email = "johndoe@example.com",
+                                    reply_datetime = "2023-01-16T09:30:00", timezone = "EST",
+                                    reply_subject = "Re: Subject 1",
+                                    reply_body = "This is the body of the test email 2 of thread 1.")
 
-  reply_3 <- create_fake_mbox_reply("test-list", "John Doe", "johndoe@example.com", "Janette Doe", "janedoe@example.com",
-                                      "Smithsonian Doe", "smith_doe@example.com", "2023-01-15T11:52:00", "EST",
-                                      "Sample Email Subject TWO", "This is the body of the test email 3.")
+  thread_2_reply_1 <- make_mbox_reply(mailing_list="test-list",
+                                             reply_from_author = "Smithsonian Doe", reply_from_email = "smith_doe@example.com",
+                                             reply_to_author = "", reply_to_email =  "dev@test-list.com",
+                                             reply_cc_author = "John Doe", reply_cc_email = "johndoe@example.com",
+                                             reply_datetime = "2023-01-16T09:30:00", timezone = "EST",
+                                             reply_subject = "Subject 2",
+                                             reply_body = "This is the body of the test email 1 of thread 2.")
+
+
+
 
   # Step 2: Concatenate each reply into the replies variable
-  replies <- c(reply_1, reply_2, reply_3)
+  replies <- c(thread_1_reply_1, thread_1_reply_2, thread_2_reply_1)
 
   # Create mbox file from the list of replies
-  mbox_path <- create_mbox_from_replies("/tmp", "sample", replies)
+  mbox_path <- make_mbox_mailing_list(replies = replies, folder_path = folder_path, file_name = file_name)
 
+  return(mbox_path)
 }
 
 
