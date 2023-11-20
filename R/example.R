@@ -209,24 +209,23 @@ example_mbox_three_replies <- function(folder_path = "/tmp", folder_name) {
   # Define sample data for create_fake_mbox function that can easily be altered for testing
 
   # Step 1: Create fake mbox replies and assign them to variables for easy editing
-  reply_1 <- create_fake_mbox_replies("test-list", "John Doe", "johndoe@example.com", "Janette Doe", "janedoe@example.com",
+  reply_1 <- create_fake_mbox_reply("test-list", "John Doe", "johndoe@example.com", "Janette Doe", "janedoe@example.com",
                                       "Smithsonian Doe", "smith_doe@example.com", "2023-01-15T08:30:00", "EST",
                                       "Sample Email Subject ONE", "This is the body of the test email 1.")
 
-  reply_2 <- create_fake_mbox_replies("test-list", "John Doe", "johndoe@example.com", "Janette Doe", "janedoe@example.com",
+  reply_2 <- create_fake_mbox_reply("test-list", "John Doe", "johndoe@example.com", "Janette Doe", "janedoe@example.com",
                                       "Smithsonian Doe", "smith_doe@example.com", "2023-01-15T09:45:00", "EST",
                                       "Sample Email Subject ONE", "This is the body of the test email 2.")
 
-  reply_3 <- create_fake_mbox_replies("test-list", "John Doe", "johndoe@example.com", "Janette Doe", "janedoe@example.com",
+  reply_3 <- create_fake_mbox_reply("test-list", "John Doe", "johndoe@example.com", "Janette Doe", "janedoe@example.com",
                                       "Smithsonian Doe", "smith_doe@example.com", "2023-01-15T11:52:00", "EST",
                                       "Sample Email Subject TWO", "This is the body of the test email 3.")
 
-  # Step 2: Add each reply to a list
-  replies <- list(reply_1, reply_2, reply_3)
+  # Step 2: Concatenate each reply into the replies variable
+  replies <- c(reply_1, reply_2, reply_3)
 
   # Create mbox file from the list of replies
   mbox_path <- create_mbox_from_replies("/tmp", "sample", replies)
-  print(mbox_path)
 
 }
 
