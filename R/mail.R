@@ -79,14 +79,10 @@ create_mbox_from_replies <- function(folder_path = "/tmp", folder_name, replies)
   # Create a unique filename for the mbox file
   mbox_filepath <- file.path(folder_path, paste0(folder_name, ".mbox"))
 
-  # Open the mbox file for writing
-  mbox_file <- file(mbox_filepath, "w")
-
+ # make the file
   mbox_body <- stringi::stri_c(replies,collapse = "\n\n")
   io_make_file(mbox_filepath,mbox_body)
 
-  # Close the mbox file
-  close(mbox_file)
 
   # Return the path of the created mbox file
   return(mbox_filepath)
