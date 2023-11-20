@@ -380,3 +380,55 @@ example_notebook_alternating_function_in_files <- function(folder_path="/tmp", f
 
   return(git_repo_path)
 }
+
+#' Two Thread and Three Replies Mailing List
+#'
+#' Create a mailing list of two e-mail threads, with
+#' two and one reply respectively by two developers.
+#'
+#' @param folder_path Default folder path set to "/tmp"
+#' @param folder_name Name of the example folder
+#' @param file_name Name of the file where .mbox will be stored
+#' @return Folder path of .mbox sample file that was created
+#' @export
+example_mailing_list_two_threads <- function(folder_path = "/tmp", folder_name, file_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
+
+  # Step 1: Create fake mbox replies and assign them to variables for easy editing
+  thread_1_reply_1 <- make_mbox_reply(mailing_list="test-list",
+                                      reply_from_author = "John Doe", reply_from_email = "johndoe@example.com",
+                                      reply_to_author = "", reply_to_email =  "dev@test-list.com",
+                                      reply_cc_author = "Smithsonian Doe", reply_cc_email = "smith_doe@example.com",
+                                      reply_datetime = "2023-01-15T08:30:00", timezone = "EST",
+                                      reply_subject = "Subject 1",
+                                      reply_body = "This is the body of the test email 1 of thread 1.")
+
+  thread_1_reply_2 <- make_mbox_reply(mailing_list="test-list",
+                                      reply_from_author = "Smithsonian Doe", reply_from_email = "smith_doe@example.com",
+                                      reply_to_author = "", reply_to_email =  "dev@test-list.com",
+                                      reply_cc_author = "John Doe", reply_cc_email = "johndoe@example.com",
+                                      reply_datetime = "2023-01-16T09:30:00", timezone = "EST",
+                                      reply_subject = "Re: Subject 1",
+                                      reply_body = "This is the body of the test email 2 of thread 1.")
+
+  thread_2_reply_1 <- make_mbox_reply(mailing_list="test-list",
+                                      reply_from_author = "Smithsonian Doe", reply_from_email = "smith_doe@example.com",
+                                      reply_to_author = "", reply_to_email =  "dev@test-list.com",
+                                      reply_cc_author = "John Doe", reply_cc_email = "johndoe@example.com",
+                                      reply_datetime = "2023-01-16T09:30:00", timezone = "EST",
+                                      reply_subject = "Subject 2",
+                                      reply_body = "This is the body of the test email 1 of thread 2.")
+
+
+
+
+  # Step 2: Concatenate each reply into the replies variable
+  replies <- c(thread_1_reply_1, thread_1_reply_2, thread_2_reply_1)
+
+  # Create mbox file from the list of replies
+  mbox_path <- make_mbox_mailing_list(replies = replies, folder_path = folder_path, file_name = file_name)
+
+  return(mbox_path)
+}
