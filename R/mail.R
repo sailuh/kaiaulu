@@ -92,16 +92,3 @@ create_mbox_from_replies <- function(folder_path = "/tmp", folder_name, replies)
   return(mbox_filepath)
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
