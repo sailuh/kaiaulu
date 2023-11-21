@@ -23,6 +23,7 @@ A folder kaiaulu_sample is assumed to have been created by \code{\link{git_creat
 Other {unittest}: 
 \code{\link{git_create_sample_log}()},
 \code{\link{git_delete_sample_log}()},
-\code{\link{jira_create_sample_log}()}
+\code{\link{jira_create_sample_log_issues_comments}()},
+\code{\link{jira_create_sample_log_issues}()}
 }
 \concept{{unittest}}
