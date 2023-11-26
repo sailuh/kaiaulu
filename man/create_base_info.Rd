@@ -4,21 +4,12 @@
 \alias{create_base_info}
 \title{Create base_info_cell}
 \usage{
-create_base_info(
-  id = 11,
-  self = "https://project.org/jira/rest/api/latest/issue/11",
-  key = "PROJECT-68",
-  JirAgileR_id = 1
-)
+create_base_info(jira_domain_url, issue_key)
 }
 \arguments{
-\item{id}{ID of Jira issue}
+\item{jira_domain_url}{URL of JIRA}
 
-\item{self}{URL of API endpoint}
-
-\item{key}{key for Jira issue}
-
-\item{JirAgileR_id}{JirAgileR id}
+\item{issue_key}{key for Jira issue}
 }
 \value{
 A list named 'base_info_cell' containing all the parameters

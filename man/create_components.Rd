@@ -4,10 +4,12 @@
 \alias{create_components}
 \title{Create Components}
 \usage{
-create_components(components_list)
+create_components(jira_domain_url, components)
 }
 \arguments{
-\item{components_list}{A list with the lists of components}
+\item{jira_domain_url}{URL of JIRA domain}
+
+\item{components}{string of names of components (ex. "x-core;x-spring" is two components)}
 }
 \value{
 A list named 'components' which contains each component

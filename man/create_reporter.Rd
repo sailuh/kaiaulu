@@ -4,27 +4,12 @@
 \alias{create_reporter}
 \title{Create Reporter}
 \usage{
-create_reporter(
-  self_url = "https://domain.org/jira/rest/api/2/user?username=user1",
-  name = "user1",
-  key = "user1",
-  displayName = "Fake User1",
-  active = TRUE,
-  timeZone = "Etc/UTC"
-)
+create_reporter(jira_domain_url, reporter_name)
 }
 \arguments{
-\item{self_url}{URL of API endpoint}
+\item{jira_domain_url}{URL of JIRA domain}
 
-\item{name}{Name of reporter}
-
-\item{key}{Key associated with reporter}
-
-\item{displayName}{Display name of reporter}
-
-\item{active}{TRUE, indicates if reporter's account is active or not}
-
-\item{timeZone}{Timezone associated with reporter}
+\item{reporter_name}{name of reporter}
 }
 \value{
 A list named 'reporter' which contains the reporter's information
