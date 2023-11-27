@@ -11,14 +11,67 @@
 #' @return The path to the sample .json file.
 #' @export
 #' @family {unittest}
-make_jira_issue <- function(jira_domain_url, issue_key, issue_type_description, summary, components, description, reporter_name, assignee_name, status_description) {
+make_jira_issue <- function(jira_domain_url, issue_key, issue_type_description, summary, components, creator_name, description, reporter_name, assignee_name, status_description, comments_vector = NULL) {
 
   issues <- list()
 
   base_info_cell <- create_base_info(jira_domain_url, issue_key)
   issues[["base_info"]][[1]] <- base_info_cell
 
-  ext_info_cell <- create_ext_info(jira_domain_url, issue_type_description, summary, components, description, reporter_name, assignee_name, status_description)
+  ext_info_cell <- create_ext_info(jira_domain_url, issue_type_description, summary, components, creator_name, description, reporter_name, assignee_name, status_description)
+
+  if (!is.null(comments_vector) && length(comments_vector) > 0) {
+
+    make_jira_issue_comments <- function(comment_bodies) {
+      comments_vector <- list()
+
+      # go through and make comment for each body in comment_bodies
+      # only comment bodies changes for comments, the rest of comments information is hard coded below
+      for (body in comment_bodies) {
+        comment <- list(
+          self = "https://example.com/jira/rest/api/2/issue/10001/comment/1000",
+          id = "1000",
+          author = list(
+            self = "https://example.com/jira/rest/api/2/user?username=user1",
+            name = "user1",
+            key = "user1",
+            avatarUrls = list(
+              "48x48" = "https://example.com/jira/secure/useravatar?size=large&ownerId=user1",
+              "24x24" = "https://example.com/jira/secure/useravatar?size=small&ownerId=user1",
+              "16x16" = "https://example.com/jira/secure/useravatar?size=xsmall&ownerId=user1",
+              "32x32" = "https://example.com/jira/secure/useravatar?size=medium&ownerId=user1"
+            ),
+            displayName = "User One",
+            active = TRUE,
+            timeZone = "Etc/UTC"
+          ),
+          body = body,
+          updateAuthor = list(
+            self = "https://example.com/jira/rest/api/2/user?username=user2",
+            name = "user2",
+            key = "user2",
+            avatarUrls = list(
+              "48x48" = "https://example.com/jira/secure/useravatar?size=large&ownerId=user2",
+              "24x24" = "https://example.com/jira/secure/useravatar?size=small&ownerId=user2",
+              "16x16" = "https://example.com/jira/secure/useravatar?size=xsmall&ownerId=user2",
+              "32x32" = "https://example.com/jira/secure/useravatar?size=medium&ownerId=user2"
+            ),
+            displayName = "User Two",
+            active = TRUE,
+            timeZone = "America/New_York"
+          ),
+          created = "2021-01-01T10:00:00.000+0000",
+          updated = "2021-01-01T12:00:00.000+0000"
+        )
+        comments_vector[[length(comments_vector) + 1]] <- comment
+      }
+
+      return(list(comments = comments_vector))
+    }
+
+    ext_info_cell[["comment"]] <- make_jira_issue_comments(comments_vector)
+  }
+
   issues[["ext_info"]][[1]] <- ext_info_cell
 
   folder_path <- "/tmp"
@@ -29,34 +82,13 @@ make_jira_issue <- function(jira_domain_url, issue_key, issue_type_description, 
 
 }
 
-# same thing as make_jira_issue, but with optional comments field
-make_jira_issue_comment <- function(jira_domain_url, issue_key, issue_type_description, summary, components, description, reporter_name, assignee_name, status_description, comments_body) {
-
-  issues <- list()
-
-  base_info_cell <- create_base_info(jira_domain_url, issue_key)
-  issues[["base_info"]][[1]] <- base_info_cell
-
-  ext_info_cell <- create_ext_info(jira_domain_url, issue_type_description, summary, components, description, reporter_name, assignee_name, status_description)
-  ext_info_cell[["comment"]] <- create_comments(comments_body)
-
-  issues[["ext_info"]][[1]] <- ext_info_cell
-
-  folder_path <- "/tmp"
-  jira_json_path <- file.path(folder_path,"fake_issues_comments.json")
-  jsonlite::write_json(issues,file.path(folder_path,"fake_issues_comments.json"))
-
-  return(issues)
-
-}
-
 #' Create base_info_cell
 #'
 #' Creates and formats base_info_cell for fake Jira issue
 #'
-#' @param jira_domain_url URL of JIRA
+#' @param jira_domain_url URL of JIRA domain
 #' @param issue_key key for Jira issue
-#' @return A list named 'base_info_cell' containing all the parameters
+#' @return A list named 'base_info_cell' containing all information for base cell in json file
 #' @export
 create_base_info <- function(jira_domain_url, issue_key) {
   id <- sample(1:10, 1)
@@ -75,19 +107,27 @@ create_base_info <- function(jira_domain_url, issue_key) {
   return(base_info_cell)
 }
 
-#' Create ext_info_cell for issues (without comments)
+#' Create ext_info_cell for issues
 #'
 #' Creates and formats ext_info_cell for fake Jira issue
 #'
-#' @return ext info cell
+#' @param jira_domain_url URL of JIRA domain
+#' @param issue_type_description description of issue_type
+#' @param summary summary of issue
+#' @param components components of issue, a list with component names seperated by ; (ex. "x-core;x-spring" is two components)
+#' @param description description of issue
+#' @param reporter_name name of reporter reporting the issue
+#' @param assignee_name name of assignee the issue is being assigned to
+#' @param status_description description of the status of the issue
+#' @return A list named 'ext_info_cell' which contains all the parameters and its generated fake data formats
 #' @export
-create_ext_info <- function(jira_domain_url, issue_type_description, summary, components, description, reporter_name, assignee_name, status_description) {
+create_ext_info <- function(jira_domain_url, issue_type_description, summary, components, creator_name, description, reporter_name, assignee_name, status_description) {
 
   ext_info_cell <- list(
     summary = list(summary),
     issuetype = create_issue_type(jira_domain_url, issue_type_description),
     components = create_components(jira_domain_url, components),
-    creator = create_creator(),
+    creator = create_creator(jira_domain_url, creator_name),
     created = list("2007-07-08T06:07:06.000+0000"),
     description = list(description),
     reporter = create_reporter(jira_domain_url, reporter_name),
@@ -105,9 +145,9 @@ create_ext_info <- function(jira_domain_url, issue_type_description, summary, co
 #'
 #' Create issue type cell for fake Jira issue
 #'
-#' @param jira_domain_url URL of JIRA
+#' @param jira_domain_url URL of JIRA domain
 #' @param issue_type_description description of the issue type
-#' @return A list named 'issue_type' that represents the issue type of the Jira issue
+#' @return A list named 'issue_type' that represents the issue type of the JIRA issue
 #' @export
 create_issue_type <- function(jira_domain_url, issue_type_description) {
 
@@ -133,7 +173,7 @@ create_issue_type <- function(jira_domain_url, issue_type_description) {
 #'
 #' @param jira_domain_url URL of JIRA domain
 #' @param components string of names of components (ex. "x-core;x-spring" is two components)
-#' @return A list named 'components' which contains each component
+#' @return A list named 'components' which contains each component and its details
 create_components <- function(jira_domain_url, components) {
 
   # separate components names with ; (ex. "x-core;x-spring" is two components)
@@ -151,7 +191,7 @@ create_components <- function(jira_domain_url, components) {
       name = list(name)
     )
 
-    # add individual component to components_list
+    # add component to list which will be returned at the end
     components_list[[length(components_list) + 1]] <- component
   }
 
@@ -162,31 +202,25 @@ create_components <- function(jira_domain_url, components) {
 #'
 #' Creates a creator field with information
 #'
-#' @param self_url URL of API endpoint
-#' @param name Name of creator
-#' @param key Key associated with creator
-#' @param displayName Display name of creator
-#' @param active TRUE, indicates if creator's account is active or not
-#' @param timeZone Timezone associated with creator
+#' @param URL of JIRA domain
+#' @param creator_name name of creator
 #' @return A list named 'creator' that has creator's information
 #' @export
-create_creator <- function(self_url = "https://domain.org/jira/rest/api/2/user?username=user1",
-                           name = "user1",
-                           key = "user1",
-                           displayName = "Fake User1",
-                           active = TRUE,
-                           timeZone = "Etc/UTC") {
+create_creator <- function(jira_domain_url, creator_name) {
+  self_url <- paste0(jira_domain_url, "/rest/api/2/user?username=", creator_name)
+
   creator <- list(
-    self = list(self_url),
-    name = list(name),
-    key = list(key),
-    displayName = list(displayName),
-    active = list(active),
-    timeZone = list(timeZone)
+    self = self_url,
+    name = creator_name,
+    key = creator_name,  # assuming key is the same as the creator name
+    displayName = "Fake User1",
+    active = TRUE,
+    timeZone = "Etc/UTC"
   )
 
   return(creator)
 }
+
 
 #' Create Reporter
 #'
@@ -203,7 +237,7 @@ create_reporter <- function(jira_domain_url, reporter_name) {
   reporter <- list(
     self = list(self_url),
     name = list(reporter_name),
-    key = list(reporter_name),  # Assuming key is the same as the reporter name
+    key = list(reporter_name),  # assuming key is the same as the reporter name
     displayName = list("Fake User"),
     active = list(TRUE),
     timeZone = list("Etc/UTC")
@@ -214,7 +248,7 @@ create_reporter <- function(jira_domain_url, reporter_name) {
 
 #' Create Resolution
 #'
-#' Creates a resolution with information
+#' Creates a resolution with hard coded information
 #'
 #' @param self_url URL of API endpoint
 #' @param id ID associated with resolution
@@ -238,7 +272,7 @@ create_resolution <- function(self_url = "https://domain.org/jira/rest/api/2/res
 
 #' Create Status
 #'
-#' Creates a status with information
+#' Creates a status with description for fake jira generator
 #'
 #' @param jira_domain_url URL of JIRA domain
 #' @param status_description description of status
@@ -270,82 +304,23 @@ create_status <- function(jira_domain_url, status_description) {
   return(status)
 }
 
-#' Create Comment
-#'
-#' Creates comment field with information
-#'
-#' @param comments_body A list of comment_details, similar to component_details
-#' @return comments_list
-#' @export
-create_comments <- function(comments_body) {
-  comment_texts <- unlist(strsplit(comments_body, ";"))
-  comments <- list()
-
-  for (body in comment_texts) {
-    comment <- list(
-      self = "https://example.com/jira/rest/api/2/issue/10001/comment/1000",
-      id = "1000",
-      author = list(
-        self = "https://example.com/jira/rest/api/2/user?username=user1",
-        name = "user1",
-        key = "user1",
-        avatarUrls = list(
-          "48x48" = "https://example.com/jira/secure/useravatar?size=large&ownerId=user1",
-          "24x24" = "https://example.com/jira/secure/useravatar?size=small&ownerId=user1",
-          "16x16" = "https://example.com/jira/secure/useravatar?size=xsmall&ownerId=user1",
-          "32x32" = "https://example.com/jira/secure/useravatar?size=medium&ownerId=user1"
-        ),
-        displayName = "User One",
-        active = TRUE,
-        timeZone = "Etc/UTC"
-      ),
-      body = body,
-      updateAuthor = list(
-        self = "https://example.com/jira/rest/api/2/user?username=user2",
-        name = "user2",
-        key = "user2",
-        avatarUrls = list(
-          "48x48" = "https://example.com/jira/secure/useravatar?size=large&ownerId=user2",
-          "24x24" = "https://example.com/jira/secure/useravatar?size=small&ownerId=user2",
-          "16x16" = "https://example.com/jira/secure/useravatar?size=xsmall&ownerId=user2",
-          "32x32" = "https://example.com/jira/secure/useravatar?size=medium&ownerId=user2"
-        ),
-        displayName = "User Two",
-        active = TRUE,
-        timeZone = "Etc/UTC"
-      ),
-      created = "2021-01-01T10:00:00.000+0000",
-      updated = "2021-01-01T12:00:00.000+0000"
-    )
-    comments[[length(comments) + 1]] <- comment
-  }
-
-  return(list(comments = comments))
-}
-
-# # sample make_jira_issue call with all parameters, no comments
+# # sample make_jira_issue call with all parameters, comment parameter optional
+# comment_bodies <- c(
+#   "This is the first body comment",
+#   "This is the second body comment"
+# )
+#
 # make_jira_issue(jira_domain_url = "https://project.org/jira",
 #                 issue_key = "2",
 #                 issue_type_description = "This is a description.",
 #                 summary = "This is a summary.",
 #                 components = "x-core;x-spring",
-#                 description = "This is a description of the issue.",
-#                 reporter_name = "Joe",
-#                 assignee_name = "Moe",
-#                 status_description = "The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened."
-# )
-#
-# # sample make_jira_issue_comments call with all parameters, with 1 comment
-# make_jira_issue_comment(jira_domain_url = "https://project.org/jira",
-#                 issue_key = "2",
-#                 issue_type_description = "This is a description.",
-#                 summary = "This is a summary.",
-#                 components = "x-core;x-spring",
+#                 creator_name = "Bob",
 #                 description = "This is a description of the issue.",
 #                 reporter_name = "Joe",
 #                 assignee_name = "Moe",
 #                 status_description = "The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened.",
-#                 comments_body = "This is a comment.;This is another comment."
+#                 comment_bodies
 # )
 
 #' Removes sample folder and git log

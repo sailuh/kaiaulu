@@ -24,5 +24,5 @@ create_resolution(
 A list named 'resolution' which contains the resolution's information
 }
 \description{
-Creates a resolution with information
+Creates a resolution with hard coded information
 }

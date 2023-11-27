@@ -2,21 +2,39 @@
 % Please edit documentation in R/jira.R
 \name{create_ext_info}
 \alias{create_ext_info}
-\title{Create ext_info_cell for issues (without comments)}
+\title{Create ext_info_cell for issues}
 \usage{
 create_ext_info(
   jira_domain_url,
   issue_type_description,
   summary,
   components,
+  creator_name,
   description,
   reporter_name,
   assignee_name,
   status_description
 )
 }
+\arguments{
+\item{jira_domain_url}{URL of JIRA domain}
+
+\item{issue_type_description}{description of issue_type}
+
+\item{summary}{summary of issue}
+
+\item{components}{components of issue, a list with component names seperated by ; (ex. "x-core;x-spring" is two components)}
+
+\item{description}{description of issue}
+
+\item{reporter_name}{name of reporter reporting the issue}
+
+\item{assignee_name}{name of assignee the issue is being assigned to}
+
+\item{status_description}{description of the status of the issue}
+}
 \value{
-ext info cell
+A list named 'ext_info_cell' which contains all the parameters and its generated fake data formats
 }
 \description{
 Creates and formats ext_info_cell for fake Jira issue

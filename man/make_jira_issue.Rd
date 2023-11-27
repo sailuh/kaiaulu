@@ -10,10 +10,12 @@ make_jira_issue(
   issue_type_description,
   summary,
   components,
+  creator_name,
   description,
   reporter_name,
   assignee_name,
-  status_description
+  status_description,
+  comments_vector = NULL
 )
 }
 \value{

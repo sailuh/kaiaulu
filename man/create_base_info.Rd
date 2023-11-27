@@ -7,12 +7,12 @@
 create_base_info(jira_domain_url, issue_key)
 }
 \arguments{
-\item{jira_domain_url}{URL of JIRA}
+\item{jira_domain_url}{URL of JIRA domain}
 
 \item{issue_key}{key for Jira issue}
 }
 \value{
-A list named 'base_info_cell' containing all the parameters
+A list named 'base_info_cell' containing all information for base cell in json file
 }
 \description{
 Creates and formats base_info_cell for fake Jira issue

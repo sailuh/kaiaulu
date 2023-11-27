@@ -7,12 +7,12 @@
 create_issue_type(jira_domain_url, issue_type_description)
 }
 \arguments{
-\item{jira_domain_url}{URL of JIRA}
+\item{jira_domain_url}{URL of JIRA domain}
 
 \item{issue_type_description}{description of the issue type}
 }
 \value{
-A list named 'issue_type' that represents the issue type of the Jira issue
+A list named 'issue_type' that represents the issue type of the JIRA issue
 }
 \description{
 Create issue type cell for fake Jira issue

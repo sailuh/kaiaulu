@@ -4,27 +4,12 @@
 \alias{create_creator}
 \title{Create Creator}
 \usage{
-create_creator(
-  self_url = "https://domain.org/jira/rest/api/2/user?username=user1",
-  name = "user1",
-  key = "user1",
-  displayName = "Fake User1",
-  active = TRUE,
-  timeZone = "Etc/UTC"
-)
+create_creator(jira_domain_url, creator_name)
 }
 \arguments{
-\item{self_url}{URL of API endpoint}
+\item{creator_name}{name of creator}
 
-\item{name}{Name of creator}
-
-\item{key}{Key associated with creator}
-
-\item{displayName}{Display name of creator}
-
-\item{active}{TRUE, indicates if creator's account is active or not}
-
-\item{timeZone}{Timezone associated with creator}
+\item{URL}{of JIRA domain}
 }
 \value{
 A list named 'creator' that has creator's information

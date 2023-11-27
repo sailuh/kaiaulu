@@ -12,7 +12,7 @@ create_components(jira_domain_url, components)
 \item{components}{string of names of components (ex. "x-core;x-spring" is two components)}
 }
 \value{
-A list named 'components' which contains each component
+A list named 'components' which contains each component and its details
 }
 \description{
 Creates a list populated with components and their information from components_list
