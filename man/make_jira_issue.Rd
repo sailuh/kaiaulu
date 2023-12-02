@@ -7,16 +7,20 @@
 make_jira_issue(
   jira_domain_url,
   issue_key,
-  issue_type_description,
-  summary,
+  issue_type,
+  status,
+  resolution,
+  title,
+  description,
   components,
   creator_name,
-  description,
   reporter_name,
   assignee_name,
-  status_description,
-  comments_vector = NULL
+  comments = NULL
 )
+}
+\arguments{
+\item{comments}{a character vector where each element is a comment string (e.g. c("This is first comment", "This is second comment"))}
 }
 \value{
 The path to the sample .json file.

@@ -7,22 +7,22 @@
 #' Creates a sample jira issue without comment and two components
 #'
 #' This example replicates Kaiaulu issue #244
-#'
+#' @param comments a character vector where each element is a comment string (e.g. c("This is first comment", "This is second comment"))
 #' @return The path to the sample .json file.
 #' @export
 #' @family {unittest}
-make_jira_issue <- function(jira_domain_url, issue_key, issue_type_description, summary, components, creator_name, description, reporter_name, assignee_name, status_description, comments_vector = NULL) {
+make_jira_issue <- function(jira_domain_url, issue_key, issue_type, status, resolution, title, description, components, creator_name, reporter_name, assignee_name, comments = NULL) {
 
   issues <- list()
 
   base_info_cell <- create_base_info(jira_domain_url, issue_key)
   issues[["base_info"]][[1]] <- base_info_cell
 
-  ext_info_cell <- create_ext_info(jira_domain_url, issue_type_description, summary, components, creator_name, description, reporter_name, assignee_name, status_description)
+  ext_info_cell <- create_ext_info(jira_domain_url, issue_type, status, resolution, title, description, components, creator_name, reporter_name, assignee_name)
 
-  if (!is.null(comments_vector) && length(comments_vector) > 0) {
+  if (!is.null(comments) && length(comments) > 0) {
 
-    make_jira_issue_comments <- function(comment_bodies) {
+    make_jira_issue_comments <- function(comments) {
       comments_vector <- list()
 
       # go through and make comment for each body in comment_bodies
@@ -113,7 +113,7 @@ create_base_info <- function(jira_domain_url, issue_key) {
 #'
 #' @param jira_domain_url URL of JIRA domain
 #' @param issue_type_description description of issue_type
-#' @param summary summary of issue
+#' @param title issue title
 #' @param components components of issue, a list with component names seperated by ; (ex. "x-core;x-spring" is two components)
 #' @param description description of issue
 #' @param reporter_name name of reporter reporting the issue
@@ -121,21 +121,21 @@ create_base_info <- function(jira_domain_url, issue_key) {
 #' @param status_description description of the status of the issue
 #' @return A list named 'ext_info_cell' which contains all the parameters and its generated fake data formats
 #' @export
-create_ext_info <- function(jira_domain_url, issue_type_description, summary, components, creator_name, description, reporter_name, assignee_name, status_description) {
+create_ext_info <- function(jira_domain_url, issue_type, status, resolution, title, description, components, creator_name, reporter_name, assignee_name) {
 
   ext_info_cell <- list(
-    summary = list(summary),
-    issuetype = create_issue_type(jira_domain_url, issue_type_description),
+    title = list(title),
+    issuetype = create_issue_type(jira_domain_url, issue_type),
     components = create_components(jira_domain_url, components),
     creator = create_creator(jira_domain_url, creator_name),
     created = list("2007-07-08T06:07:06.000+0000"),
-    description = list(description),
+    description = description,
     reporter = create_reporter(jira_domain_url, reporter_name),
-    resolution = create_resolution(),
-    resolutiondate = list("2007-08-13T19:12:33.000+0000"),
+    resolution = create_resolution(name = resolution),
+    resolutiondate = "2007-08-13T19:12:33.000+0000",
     assignee = list(assignee_name),
     updated = list("2008-05-12T08:01:39.000+0000"),
-    status = create_status(jira_domain_url, status_description)
+    status = create_status(jira_domain_url, status)
   )
 
   return(ext_info_cell)
@@ -146,10 +146,10 @@ create_ext_info <- function(jira_domain_url, issue_type_description, summary, co
 #' Create issue type cell for fake Jira issue
 #'
 #' @param jira_domain_url URL of JIRA domain
-#' @param issue_type_description description of the issue type
+#' @param issue_type name of the issue type (e.g. New Feature)
 #' @return A list named 'issue_type' that represents the issue type of the JIRA issue
 #' @export
-create_issue_type <- function(jira_domain_url, issue_type_description) {
+create_issue_type <- function(jira_domain_url, issue_type) {
 
   issue_id <- sample(1:10, 1)
   self_url <- paste0(jira_domain_url, "/rest/api/", issue_id, "/issuetype/", issue_id)
@@ -157,9 +157,9 @@ create_issue_type <- function(jira_domain_url, issue_type_description) {
   issue_type <- list(
     self = list(list(self_url)),
     id = list(list(issue_id)),
-    description = list(list(issue_type_description)),
+    description = list(list("A new feature of the product, which has yet to be developed.")),
     iconUrl = list("https://domain.org/jira/secure/viewavatar?size=xsmall&avatarId=21141&avatarType=issuetype"),
-    name = list("New Feature"),
+    name = list(issue_type),
     subtask = list(FALSE),
     avatarId = list(21141)
   )
@@ -177,7 +177,7 @@ create_issue_type <- function(jira_domain_url, issue_type_description) {
 create_components <- function(jira_domain_url, components) {
 
   # separate components names with ; (ex. "x-core;x-spring" is two components)
-  components_names <- unlist(strsplit(components, ";"))
+  components_names <- unlist(stringi::stri_split_regex(components, pattern = ";"))
   components_list <- list()
 
   # for loop to create a component for each component name
@@ -212,7 +212,7 @@ create_creator <- function(jira_domain_url, creator_name) {
   creator <- list(
     self = self_url,
     name = creator_name,
-    key = creator_name,  # assuming key is the same as the creator name
+    key = sample(1:10, 1),
     displayName = "Fake User1",
     active = TRUE,
     timeZone = "Etc/UTC"
@@ -278,7 +278,7 @@ create_resolution <- function(self_url = "https://domain.org/jira/rest/api/2/res
 #' @param status_description description of status
 #' @return A list named 'status' containing status's information
 #' @export
-create_status <- function(jira_domain_url, status_description) {
+create_status <- function(jira_domain_url, status) {
 
   status_id <- sample(1:10, 1)
   status_category_id <- sample(1:10, 1)
@@ -288,9 +288,9 @@ create_status <- function(jira_domain_url, status_description) {
 
   status <- list(
     self = list(self_url),
-    description = list(status_description),
+    description = list("The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened."),
     iconUrl = list("https://domain.org/jira/images/icons/statuses/closed.png"),
-    name = "Closed",
+    name = status,
     id = as.character(status_id),
     statusCategory = list(
       self = list(statusCategory_self_url),
@@ -304,24 +304,72 @@ create_status <- function(jira_domain_url, status_description) {
   return(status)
 }
 
-# # sample make_jira_issue call with all parameters, comment parameter optional
-# comment_bodies <- c(
-#   "This is the first body comment",
-#   "This is the second body comment"
+
+#' Make Jira Issue Tracker
+#'
+#' Create a full JIRA Issue Tracker via
+#'
+#' @param issues list of issues that will make up the issue tracker
+#' @return A list named 'status' containing status's information
+#' @export
+make_jira_issue_tracker <- function(issues) {
+
+  # validate input
+  if (!is.list(issues)) {
+    stop("The issues parameter should be a list of issues.")
+  }
+
+  issue_tracker <- list()
+
+  # combine the issues into a list
+  issues_list <- list()
+  for (i in seq_along(issues)) {
+    issues_list[[i]] <- issues[i]
+  }
+
+  issue_tracker[["base_info"]] <- lapply(issues_list,"[[", "base_info")
+  issue_tracker[["ext_info"]] <- lapply(issues_list, "[[", "ext_info")
+
+  folder_path <- "/tmp"
+  jira_json_path <- file.path(folder_path,"fake_issue_tracker.json")
+  jsonlite::write_json(issue_tracker,file.path(folder_path,"fake_issue_tracker.json"))
+
+  issue_tracker <- list(base_info = list(), ext_info = list())
+
+  return(jira_json_path)
+
+}
+
+# # test call to make_jira_issue_tracker with two issues, no comments
+# issue1 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
+#                           issue_key = "1",
+#                           issue_type = "A new feature of the product, which has yet to be developed.",
+#                           status = "The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened.",
+#                           resolution = "finished",
+#                           title = "This is a summary.",
+#                           description = "This is a description of the issue.",
+#                           components = "x-core;x-spring",
+#                           creator_name = "Bob",
+#                           reporter_name = "Joe",
+#                           assignee_name = "Moe",
 # )
 #
-# make_jira_issue(jira_domain_url = "https://project.org/jira",
-#                 issue_key = "2",
-#                 issue_type_description = "This is a description.",
-#                 summary = "This is a summary.",
-#                 components = "x-core;x-spring",
-#                 creator_name = "Bob",
-#                 description = "This is a description of the issue.",
-#                 reporter_name = "Joe",
-#                 assignee_name = "Moe",
-#                 status_description = "The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened.",
-#                 comment_bodies
+# issue2 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
+#                           issue_key = "2",
+#                           issue_type = "A new feature of the product, which has yet to be developed.",
+#                           status = "The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened.",
+#                           resolution = "finished",
+#                           title = "This is a summary.",
+#                           description = "This is a description of the issue.",
+#                           components = "x-core;x-spring",
+#                           creator_name = "Bob",
+#                           reporter_name = "Joe",
+#                           assignee_name = "Moe",
 # )
+#
+# issues_vector <- c(issue1, issue2)
+#
+# issue_tracker_path <- make_jira_issue_tracker(issues_vector)
 
 #' Removes sample folder and git log
 #'

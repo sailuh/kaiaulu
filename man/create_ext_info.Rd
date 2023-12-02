@@ -6,30 +6,31 @@
 \usage{
 create_ext_info(
   jira_domain_url,
-  issue_type_description,
-  summary,
+  issue_type,
+  status,
+  resolution,
+  title,
+  description,
   components,
   creator_name,
-  description,
   reporter_name,
-  assignee_name,
-  status_description
+  assignee_name
 )
 }
 \arguments{
 \item{jira_domain_url}{URL of JIRA domain}
 
-\item{issue_type_description}{description of issue_type}
-
-\item{summary}{summary of issue}
-
-\item{components}{components of issue, a list with component names seperated by ; (ex. "x-core;x-spring" is two components)}
+\item{title}{issue title}
 
 \item{description}{description of issue}
+
+\item{components}{components of issue, a list with component names seperated by ; (ex. "x-core;x-spring" is two components)}
 
 \item{reporter_name}{name of reporter reporting the issue}
 
 \item{assignee_name}{name of assignee the issue is being assigned to}
+
+\item{issue_type_description}{description of issue_type}
 
 \item{status_description}{description of the status of the issue}
 }

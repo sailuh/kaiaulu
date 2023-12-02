@@ -4,12 +4,12 @@
 \alias{create_issue_type}
 \title{Create Issue Type}
 \usage{
-create_issue_type(jira_domain_url, issue_type_description)
+create_issue_type(jira_domain_url, issue_type)
 }
 \arguments{
 \item{jira_domain_url}{URL of JIRA domain}
 
-\item{issue_type_description}{description of the issue type}
+\item{issue_type}{name of the issue type (e.g. New Feature)}
 }
 \value{
 A list named 'issue_type' that represents the issue type of the JIRA issue

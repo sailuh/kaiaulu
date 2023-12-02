@@ -4,7 +4,7 @@
 \alias{create_status}
 \title{Create Status}
 \usage{
-create_status(jira_domain_url, status_description)
+create_status(jira_domain_url, status)
 }
 \arguments{
 \item{jira_domain_url}{URL of JIRA domain}
