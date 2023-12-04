@@ -20,6 +20,28 @@ make_jira_issue(
 )
 }
 \arguments{
+\item{jira_domain_url}{URL of JIRA domain (e.g. "https://project.org/jira")}
+
+\item{issue_key}{issue key of JIRA issue (e.g. "PROJECT-68" or "GERONIMO-6723)}
+
+\item{issue_type}{type of JIRA issue (e.g. "New Feature", "Task", "Bug")}
+
+\item{status}{status of issue for development (e.g. "In Progress")}
+
+\item{resolution}{name of resolution for issue (e.g. "Fixed")}
+
+\item{title}{summary of the issue (e.g. "Site Keeps Crashing")}
+
+\item{description}{more detailed description of issue (e.g. "The program keeps crashing because this reason")}
+
+\item{components}{components of issue separate by ; (e.g. "x-core;x-spring")}
+
+\item{creator_name}{name of creator of issue (e.g. "John Doe")}
+
+\item{reporter_name}{name of reporter of issue (e.g. "Jane Doe")}
+
+\item{assignee_name}{name of person the issue is being assigned to (e.g. "Joe Schmo")}
+
 \item{comments}{a character vector where each element is a comment string (e.g. c("This is first comment", "This is second comment"))}
 }
 \value{

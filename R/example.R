@@ -194,5 +194,110 @@ example_large_sized_commits <- function(folder_path="/tmp", folder_name) {
   return(git_repo_path)
 }
 
+#' Example Jira Issue Tracker No Comments
+#'
+#' Create fake jira issue tracker with 2 components, no comments
+#'
+#' @param folder_path The path where the folder will be created
+#' @return git_repo_path of newly created empty repo
+#' @export
+example_jira_issue_tracker_components <- function(folder_path="/tmp") {
+
+  issue1 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
+                            issue_key = "GERONIMO-123",
+                            issue_type = "A new feature of the product.",
+                            status = "The issue is considered finished, the resolution is correct.",
+                            resolution = "finished",
+                            title = "This is a summary.",
+                            description = "The new features have been implemented.",
+                            components = "x-core; x-spring",
+                            creator_name = "Bob",
+                            reporter_name = "Joe",
+                            assignee_name = "Moe",
+  )
+
+  issues <- c(list(issue1))
+
+  jira_json_path <- make_jira_issue_tracker(issues)
+
+  return(jira_json_path)
+}
+
+#' Example Jira Issue Tracker No Comments
+#'
+#' Create fake jira issue tracker with 2 issues, no comments
+#'
+#' @param folder_path The path where the folder will be created
+#' @return git_repo_path of newly created empty repo
+#' @export
+example_jira_issue_tracker <- function(folder_path="/tmp") {
+
+  issue1 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
+                            issue_key = "GERONIMO-123",
+                            issue_type = "A new feature of the product.",
+                            status = "The issue is considered finished, the resolution is correct.",
+                            resolution = "finished",
+                            title = "This is a summary.",
+                            description = "The new features have been implemented.",
+                            components = "x-core",
+                            creator_name = "Bob",
+                            reporter_name = "Joe",
+                            assignee_name = "Moe",
+  )
+
+  issue2 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
+                            issue_key = "GERONIMO-124",
+                            issue_type = "A new feature of the product.",
+                            status = "The issue is considered finished, the resolution is correct.",
+                            resolution = "finished",
+                            title = "This is a summary.",
+                            description = "The new features have been implemented.",
+                            components = "x-spring",
+                            creator_name = "Moe",
+                            reporter_name = "Larry",
+                            assignee_name = "Curly",
+  )
+
+  issues <- c(list(issue1), list(issue2))
+
+  jira_json_path <- make_jira_issue_tracker(issues)
+
+  return(jira_json_path)
+}
+
+#' Example Jira Issue Tracker With Comments
+#'
+#' Create fake jira issue with comments
+#'
+#' @param folder_path The path where the folder will be created
+#' @return git_repo_path of newly created empty repo
+#' @export
+example_jira_issue_tracker_comments <- function(folder_path="/tmp") {
+
+  comment_bodies <- c(
+    "This is the first body comment",
+    "This is the second body comment"
+  )
+
+  issue1 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
+                            issue_key = "GERONIMO-2",
+                            issue_type = "A bug in the existing product.",
+                            status = "In Progress",
+                            resolution = "Incomplete",
+                            title = "Bug fixes need implementation.",
+                            description = "The new features have not been implemented.",
+                            components = "x-core",
+                            creator_name = "Moe",
+                            reporter_name = "Larry",
+                            assignee_name = "Curly",
+                            comment_bodies
+  )
+
+  issues <- c(list(issue1))
+
+  jira_json_path <- make_jira_issue_tracker(issues)
+
+  return(jira_json_path)
+}
 
 

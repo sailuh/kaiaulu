@@ -7,6 +7,17 @@
 #' Creates a sample jira issue without comment and two components
 #'
 #' This example replicates Kaiaulu issue #244
+#' @param jira_domain_url URL of JIRA domain (e.g. "https://project.org/jira")
+#' @param issue_key issue key of JIRA issue (e.g. "PROJECT-68" or "GERONIMO-6723)
+#' @param issue_type type of JIRA issue (e.g. "New Feature", "Task", "Bug")
+#' @param status status of issue for development (e.g. "In Progress")
+#' @param resolution name of resolution for issue (e.g. "Fixed")
+#' @param title summary of the issue (e.g. "Site Keeps Crashing")
+#' @param description more detailed description of issue (e.g. "The program keeps crashing because this reason")
+#' @param components components of issue separate by ; (e.g. "x-core;x-spring")
+#' @param creator_name name of creator of issue (e.g. "John Doe")
+#' @param reporter_name name of reporter of issue (e.g. "Jane Doe")
+#' @param assignee_name name of person the issue is being assigned to (e.g. "Joe Schmo")
 #' @param comments a character vector where each element is a comment string (e.g. c("This is first comment", "This is second comment"))
 #' @return The path to the sample .json file.
 #' @export
@@ -221,7 +232,6 @@ create_creator <- function(jira_domain_url, creator_name) {
   return(creator)
 }
 
-
 #' Create Reporter
 #'
 #' Creates a reporter field with information
@@ -307,7 +317,7 @@ create_status <- function(jira_domain_url, status) {
 
 #' Make Jira Issue Tracker
 #'
-#' Create a full JIRA Issue Tracker via
+#' Create a full JIRA Issue Tracker with multiple issues
 #'
 #' @param issues list of issues that will make up the issue tracker
 #' @return A list named 'status' containing status's information
@@ -319,30 +329,51 @@ make_jira_issue_tracker <- function(issues) {
     stop("The issues parameter should be a list of issues.")
   }
 
+  # Loop to convert input to a list of issues
+  # issues_list <- list()
+  # for (i in seq_along(issues)) {
+  #   issues_list[[i]] <- issues[i]
+  # }
+
   issue_tracker <- list()
 
-  # combine the issues into a list
-  issues_list <- list()
-  for (i in seq_along(issues)) {
-    issues_list[[i]] <- issues[i]
+  # FOR LOOP to make flattened list
+  issue_tracker_base_list <- list()
+  issue_tracker_ext_list <- list()
+
+  for(issue in issues) {
+    issue_tracker_base_list <- c(issue_tracker_base_list, list(issue[["base_info"]][[1]]))
+    issue_tracker_ext_list <- c(issue_tracker_ext_list, list(issue[["ext_info"]][[1]]))
   }
 
-  issue_tracker[["base_info"]] <- lapply(issues_list,"[[", "base_info")
-  issue_tracker[["ext_info"]] <- lapply(issues_list, "[[", "ext_info")
+  issue_tracker[["base_info"]] <- issue_tracker_base_list
+  issue_tracker[["ext_info"]] <- issue_tracker_ext_list
+
+  # ORIGINAL lapply, doesn't work all the way
+  # issue_tracker[["base_info"]] <- lapply(issues, "[[", "base_info")
+  # issue_tracker[["ext_info"]] <- lapply(issues, "[[", "ext_info")
 
   folder_path <- "/tmp"
-  jira_json_path <- file.path(folder_path,"fake_issue_tracker.json")
-  jsonlite::write_json(issue_tracker,file.path(folder_path,"fake_issue_tracker.json"))
-
-  issue_tracker <- list(base_info = list(), ext_info = list())
+  jira_json_path <- file.path(folder_path,"issue_tracker.json")
+  jsonlite::write_json(issue_tracker,file.path(folder_path,"issue_tracker.json"))
 
   return(jira_json_path)
-
 }
 
-# # test call to make_jira_issue_tracker with two issues, no comments
+# TESTING PURPOSES - WILL DELETE
+#
+# issues_vector <- c(list(issue1), list(issue2))
+#
+# issue_tracker_path <- make_jira_issue_tracker(issues_vector)
+#
+# comment_bodies <- c(
+#   "This is the first body comment",
+#   "This is the second body comment"
+# )
+#
+# test call to make_jira_issue_tracker with two issues, no comments
 # issue1 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
-#                           issue_key = "1",
+#                           issue_key = "GERONIMO",
 #                           issue_type = "A new feature of the product, which has yet to be developed.",
 #                           status = "The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened.",
 #                           resolution = "finished",
@@ -365,11 +396,10 @@ make_jira_issue_tracker <- function(issues) {
 #                           creator_name = "Bob",
 #                           reporter_name = "Joe",
 #                           assignee_name = "Moe",
+#                           comment_bodies
 # )
-#
-# issues_vector <- c(issue1, issue2)
-#
-# issue_tracker_path <- make_jira_issue_tracker(issues_vector)
+
+
 
 #' Removes sample folder and git log
 #'

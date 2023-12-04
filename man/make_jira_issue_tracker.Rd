@@ -13,5 +13,5 @@ make_jira_issue_tracker(issues)
 A list named 'status' containing status's information
 }
 \description{
-Create a full JIRA Issue Tracker via
+Create a full JIRA Issue Tracker with multiple issues
 }
