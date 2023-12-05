@@ -77,10 +77,13 @@ make_jira_issue <- function(jira_domain_url, issue_key, issue_type, status, reso
         comments_vector[[length(comments_vector) + 1]] <- comment
       }
 
-      return(list(comments = comments_vector))
+      return(comments_vector)
     }
 
-    ext_info_cell[["comment"]] <- make_jira_issue_comments(comments_vector)
+    ext_info_cell[["comment"]][["comments"]] <- make_jira_issue_comments(comments_vector)
+    ext_info_cell[["comment"]][["maxResults"]] <- length(ext_info_cell[["comment"]][[1]])
+    ext_info_cell[["comment"]][["total"]] <- length(ext_info_cell[["comment"]][[1]])
+    ext_info_cell[["comment"]][["startAt"]] <- 0
   }
 
   issues[["ext_info"]][[1]] <- ext_info_cell
@@ -144,7 +147,7 @@ create_ext_info <- function(jira_domain_url, issue_type, status, resolution, tit
     reporter = create_reporter(jira_domain_url, reporter_name),
     resolution = create_resolution(name = resolution),
     resolutiondate = "2007-08-13T19:12:33.000+0000",
-    assignee = list(assignee_name),
+    assignee = create_assignee(jira_domain_url, assignee_name),
     updated = list("2008-05-12T08:01:39.000+0000"),
     status = create_status(jira_domain_url, status)
   )
@@ -185,6 +188,7 @@ create_issue_type <- function(jira_domain_url, issue_type) {
 #' @param jira_domain_url URL of JIRA domain
 #' @param components string of names of components (ex. "x-core;x-spring" is two components)
 #' @return A list named 'components' which contains each component and its details
+#' @export
 create_components <- function(jira_domain_url, components) {
 
   # separate components names with ; (ex. "x-core;x-spring" is two components)
@@ -220,10 +224,18 @@ create_components <- function(jira_domain_url, components) {
 create_creator <- function(jira_domain_url, creator_name) {
   self_url <- paste0(jira_domain_url, "/rest/api/2/user?username=", creator_name)
 
+  avatarUrls = list(
+    "48x48" = "https://example.com/jira/secure/useravatar?size=large&ownerId=user1",
+    "24x24" = "https://example.com/jira/secure/useravatar?size=small&ownerId=user1",
+    "16x16" = "https://example.com/jira/secure/useravatar?size=xsmall&ownerId=user1",
+    "32x32" = "https://example.com/jira/secure/useravatar?size=medium&ownerId=user1"
+  )
+
   creator <- list(
     self = self_url,
     name = creator_name,
     key = sample(1:10, 1),
+    avatarUrls = avatarUrls,
     displayName = "Fake User1",
     active = TRUE,
     timeZone = "Etc/UTC"
@@ -244,10 +256,18 @@ create_reporter <- function(jira_domain_url, reporter_name) {
 
   self_url <- paste0(jira_domain_url, "/rest/api/2/user?username=", reporter_name)
 
+  avatarUrls = list(
+    "48x48" = "https://example.com/jira/secure/useravatar?size=large&ownerId=user1",
+    "24x24" = "https://example.com/jira/secure/useravatar?size=small&ownerId=user1",
+    "16x16" = "https://example.com/jira/secure/useravatar?size=xsmall&ownerId=user1",
+    "32x32" = "https://example.com/jira/secure/useravatar?size=medium&ownerId=user1"
+  )
+
   reporter <- list(
     self = list(self_url),
     name = list(reporter_name),
     key = list(reporter_name),  # assuming key is the same as the reporter name
+    avatarUrls = avatarUrls,
     displayName = list("Fake User"),
     active = list(TRUE),
     timeZone = list("Etc/UTC")
@@ -278,6 +298,38 @@ create_resolution <- function(self_url = "https://domain.org/jira/rest/api/2/res
   )
 
   return(resolution)
+}
+
+#' Create Assignee
+#'
+#' Creates a assignee field with information
+#'
+#' @param jira_domain_url URL of JIRA domain
+#' @param assignee_name name of assignee
+#' @return A list named 'assignee' which contains the assignee's information
+#' @export
+create_assignee <- function(jira_domain_url, assignee_name) {
+
+  self_url <- paste0(jira_domain_url, "/rest/api/2/user?username=", assignee_name)
+
+  avatarUrls = list(
+    "48x48" = "https://example.com/jira/secure/useravatar?size=large&ownerId=user1",
+    "24x24" = "https://example.com/jira/secure/useravatar?size=small&ownerId=user1",
+    "16x16" = "https://example.com/jira/secure/useravatar?size=xsmall&ownerId=user1",
+    "32x32" = "https://example.com/jira/secure/useravatar?size=medium&ownerId=user1"
+  )
+
+  assignee <- list(
+    self = list(self_url),
+    name = list(assignee_name),
+    key = list(assignee_name),  # assuming key is the same as the assignee name
+    avatarUrls = avatarUrls,
+    displayName = list("Fake User"),
+    active = list(TRUE),
+    timeZone = list("Etc/UTC")
+  )
+
+  return(assignee)
 }
 
 #' Create Status
@@ -329,51 +381,190 @@ make_jira_issue_tracker <- function(issues) {
     stop("The issues parameter should be a list of issues.")
   }
 
-  # Loop to convert input to a list of issues
-  # issues_list <- list()
-  # for (i in seq_along(issues)) {
-  #   issues_list[[i]] <- issues[i]
-  # }
-
   issue_tracker <- list()
-
-  # FOR LOOP to make flattened list
   issue_tracker_base_list <- list()
   issue_tracker_ext_list <- list()
 
-  for(issue in issues) {
-    issue_tracker_base_list <- c(issue_tracker_base_list, list(issue[["base_info"]][[1]]))
-    issue_tracker_ext_list <- c(issue_tracker_ext_list, list(issue[["ext_info"]][[1]]))
+  # Flatten function to format base_info properly for tracker format
+  flatten_base_info <- function(base_info) {
+    flattened_base_info <- list(
+      id = as.character(base_info[[1]][[1]]),
+      self = base_info[[1]][[2]],
+      key = base_info[[1]][[3]],
+      JirAgileR_id = as.numeric(base_info[[1]][[4]])
+    )
+
+    # return final flattened base_info list
+    return(flattened_base_info)
   }
 
+  # Flatten functions to format ext_info properly for tracker format
+  flatten_ext_info <- function(ext_info) {
+    flattened_ext_info <- list()
+
+    # title
+    flattened_ext_info$title <- ext_info[[1]][[1]][[1]]
+
+    # issue_type
+    flatten_issuetype <- function(issuetype) {
+      flattened_issuetype <- list()
+
+      flattened_issuetype$self <- issuetype[[1]][[1]][[1]]
+      flattened_issuetype$id <- as.character(issuetype[[2]][[1]][[1]])
+      flattened_issuetype$description <- issuetype[[3]][[1]][[1]]
+      flattened_issuetype$iconUrl <- issuetype[[4]][[1]]
+      flattened_issuetype$name <- issuetype[[5]][[1]]
+      flattened_issuetype$subtask <- issuetype[[6]][[1]]
+      flattened_issuetype$avatarId <- issuetype[[7]][[1]]
+
+      return(flattened_issuetype)
+    }
+
+    flattened_ext_info$issuetype <- flatten_issuetype(ext_info[[1]][[2]])
+
+    # components
+    flatten_components <- function(components) {
+      flattened_components <- list()
+
+      for(i in seq_along(components)) {
+        component <- components[[i]]
+        flattened_component <- list()
+        flattened_component$self <- component[[1]][[1]]
+        flattened_component$id <- component[[2]][[1]]
+        flattened_component$name <- component[[3]][[1]]
+        flattened_components[[i]] <- flattened_component
+      }
+
+      return(flattened_components)
+    }
+
+    flattened_ext_info$components <- flatten_components(ext_info[[1]][[3]])
+
+    # creator
+    flattened_ext_info$creator <- ext_info[[1]][[4]]
+
+    # created
+    flattened_ext_info$created <- ext_info[[1]][[5]][[1]]
+
+    # description
+    flattened_ext_info$description <- ext_info[[1]][[6]]
+
+    # reporter
+    flatten_reporter <- function(reporter) {
+      flattened_reporter <- list()
+      flattened_reporter$self <- reporter[[1]][[1]]
+      flattened_reporter$name <- reporter[[2]][[1]]
+      flattened_reporter$key <- reporter[[3]][[1]]
+      flattened_reporter$avatarUrls <- reporter[[4]]
+      flattened_reporter$displayName <- reporter[[5]][[1]]
+      flattened_reporter$active <- reporter[[6]][[1]]
+      flattened_reporter$timeZone <- reporter[[7]][[1]]
+
+      return(flattened_reporter)
+    }
+
+    flattened_ext_info$reporter <- flatten_reporter(ext_info[[1]][[7]])
+
+    # resolution
+    flatten_resolution <- function(resolution) {
+      flattened_resolution <- list()
+      flattened_resolution$self <- resolution[[1]][[1]]
+      flattened_resolution$id <- resolution[[2]][[1]]
+      flattened_resolution$description <- resolution[[3]][[1]]
+      flattened_resolution$name <- resolution[[4]][[1]]
+
+      return(flattened_resolution)
+    }
+
+    flattened_ext_info$resolution <- flatten_resolution(ext_info[[1]][[8]])
+
+    #resolutiondate
+    flattened_ext_info$resolutiondate <- ext_info[[1]][[9]]
+
+    # comments
+    if (length(ext_info[[1]]) >= 13) {
+      flattened_ext_info$comment <- ext_info[[1]][[13]]
+    }
+
+    # assignee
+    flatten_assignee <- function(assignee) {
+      flattened_assignee <- list()
+      flattened_assignee$self <- assignee[[1]][[1]]
+      flattened_assignee$name <- assignee[[2]][[1]]
+      flattened_assignee$key <- assignee[[3]][[1]]
+      flattened_assignee$avatarUrls <- assignee[[4]]
+      flattened_assignee$displayName <- assignee[[5]][[1]]
+      flattened_assignee$active <- assignee[[6]][[1]]
+      flattened_assignee$timeZone <- assignee[[7]][[1]]
+
+      return(flattened_assignee)
+    }
+
+    flattened_ext_info$assignee <- flatten_reporter(ext_info[[1]][[10]])
+
+    # updated
+    flattened_ext_info$updated <- ext_info[[1]][[11]][[1]]
+
+    # status
+    flatten_status <- function(status) {
+      flattened_status <- list()
+      flattened_status$self <-status[[1]][[1]]
+      flattened_status$description <- status[[2]][[1]]
+      flattened_status$iconUrl <- status[[3]][[1]]
+      flattened_status$name <- status[[4]]
+      flattened_status$id <- status[[5]][[1]]
+
+      statusCategory <- list()
+      statusCategory$self <- status[[6]][[1]][[1]]
+      statusCategory$id <- status[[6]][[2]][[1]]
+      statusCategory$key <- status[[6]][[3]][[1]]
+      statusCategory$colorName <- status[[6]][[4]][[1]]
+      statusCategory$name <- status[[6]][[5]][[1]]
+
+      flattened_status$statusCategory <- statusCategory
+
+      return(flattened_status)
+    }
+
+    flattened_ext_info$status <- flatten_status(ext_info[[1]][[12]])
+
+    # return final flattened ext_info list
+    return(flattened_ext_info)
+  }
+
+  # loop through each issue
+  for(issue in issues) {
+    # get base & ext info for each issue
+    base_info <- flatten_base_info(issue[["base_info"]])
+    ext_info <- flatten_ext_info(issue[["ext_info"]])
+
+    # combine each new base & ext list to respective list
+    issue_tracker_base_list <- c(issue_tracker_base_list, list(base_info))
+    issue_tracker_ext_list <- c(issue_tracker_ext_list, list(ext_info))
+  }
+
+  # combine both lists to create final tracker
   issue_tracker[["base_info"]] <- issue_tracker_base_list
   issue_tracker[["ext_info"]] <- issue_tracker_ext_list
 
-  # ORIGINAL lapply, doesn't work all the way
-  # issue_tracker[["base_info"]] <- lapply(issues, "[[", "base_info")
-  # issue_tracker[["ext_info"]] <- lapply(issues, "[[", "ext_info")
-
+  # will write fake_issue_tracker.json to /tmp folder by default
   folder_path <- "/tmp"
-  jira_json_path <- file.path(folder_path,"issue_tracker.json")
-  jsonlite::write_json(issue_tracker,file.path(folder_path,"issue_tracker.json"))
+  jira_json_path <- file.path(folder_path,"fake_issue_tracker.json")
+  jsonlite::write_json(issue_tracker,file.path(folder_path,"fake_issue_tracker.json"))
 
   return(jira_json_path)
 }
 
-# TESTING PURPOSES - WILL DELETE
-#
-# issues_vector <- c(list(issue1), list(issue2))
-#
-# issue_tracker_path <- make_jira_issue_tracker(issues_vector)
+# sample test call for two issues (created by make_jira_issue) being passed to make_jira_issue_tracker, issue1 w/o comments, issue2 with comments
 #
 # comment_bodies <- c(
 #   "This is the first body comment",
 #   "This is the second body comment"
 # )
 #
-# test call to make_jira_issue_tracker with two issues, no comments
+#
 # issue1 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
-#                           issue_key = "GERONIMO",
+#                           issue_key = "GERONIMO-1",
 #                           issue_type = "A new feature of the product, which has yet to be developed.",
 #                           status = "The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened.",
 #                           resolution = "finished",
@@ -386,19 +577,22 @@ make_jira_issue_tracker <- function(issues) {
 # )
 #
 # issue2 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
-#                           issue_key = "2",
+#                           issue_key = "GERONIMO-2",
 #                           issue_type = "A new feature of the product, which has yet to be developed.",
 #                           status = "The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened.",
 #                           resolution = "finished",
 #                           title = "This is a summary.",
 #                           description = "This is a description of the issue.",
 #                           components = "x-core;x-spring",
-#                           creator_name = "Bob",
-#                           reporter_name = "Joe",
-#                           assignee_name = "Moe",
+#                           creator_name = "Alpha",
+#                           reporter_name = "Bravo",
+#                           assignee_name = "Charlie",
 #                           comment_bodies
 # )
-
+#
+# issues_vector <- c(list(issue1), list(issue2))
+#
+# issue_tracker_path <- make_jira_issue_tracker(issues_vector)
 
 
 #' Removes sample folder and git log

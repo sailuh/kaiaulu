@@ -13,5 +13,5 @@ example_jira_issue_tracker_comments(folder_path = "/tmp")
 git_repo_path of newly created empty repo
 }
 \description{
-Create fake jira issue with comments
+Create fake jira issue tracker with one issue with 2 comments
 }

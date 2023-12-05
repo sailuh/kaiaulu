@@ -267,7 +267,7 @@ example_jira_issue_tracker <- function(folder_path="/tmp") {
 
 #' Example Jira Issue Tracker With Comments
 #'
-#' Create fake jira issue with comments
+#' Create fake jira issue tracker with one issue with 2 comments
 #'
 #' @param folder_path The path where the folder will be created
 #' @return git_repo_path of newly created empty repo
