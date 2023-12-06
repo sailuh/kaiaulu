@@ -41,7 +41,7 @@ make_jira_issue <- function(jira_domain_url, issue_key, issue_type, status, reso
       for (body in comments) {
         comment <- list(
           self = "https://example.com/jira/rest/api/2/issue/10001/comment/1000",
-          id = "1000",
+          id = sample(1:1000, 1),
           author = list(
             self = "https://example.com/jira/rest/api/2/user?username=user1",
             name = "user1",

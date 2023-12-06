@@ -216,7 +216,8 @@ example_jira_issue_tracker_components <- function(folder_path="/tmp") {
                             assignee_name = "Moe",
   )
 
-  issues <- c(list(issue1))
+  # issues <- c(list(issue1))
+  issues <- list(issue1)
 
   jira_json_path <- make_jira_issue_tracker(issues)
 
@@ -234,9 +235,9 @@ example_jira_issue_tracker <- function(folder_path="/tmp") {
 
   issue1 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
                             issue_key = "GERONIMO-123",
-                            issue_type = "A new feature of the product.",
-                            status = "The issue is considered finished, the resolution is correct.",
-                            resolution = "finished",
+                            issue_type = "New Feature",
+                            status = "Open",
+                            resolution = "Finished",
                             title = "This is a summary.",
                             description = "The new features have been implemented.",
                             components = "x-core",
@@ -247,9 +248,9 @@ example_jira_issue_tracker <- function(folder_path="/tmp") {
 
   issue2 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
                             issue_key = "GERONIMO-124",
-                            issue_type = "A new feature of the product.",
-                            status = "The issue is considered finished, the resolution is correct.",
-                            resolution = "finished",
+                            issue_type = "New Feature",
+                            status = "Open",
+                            resolution = "Finished",
                             title = "This is a summary.",
                             description = "The new features have been implemented.",
                             components = "x-spring",
@@ -258,7 +259,8 @@ example_jira_issue_tracker <- function(folder_path="/tmp") {
                             assignee_name = "Curly",
   )
 
-  issues <- c(list(issue1), list(issue2))
+  # issues <- c(list(issue1), list(issue2))
+  issues <- list(issue1, issue2)
 
   jira_json_path <- make_jira_issue_tracker(issues)
 
@@ -274,14 +276,9 @@ example_jira_issue_tracker <- function(folder_path="/tmp") {
 #' @export
 example_jira_issue_tracker_comments <- function(folder_path="/tmp") {
 
-  comment_bodies <- c(
-    "This is the first body comment",
-    "This is the second body comment"
-  )
-
   issue1 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
                             issue_key = "GERONIMO-2",
-                            issue_type = "A bug in the existing product.",
+                            issue_type = "Bug",
                             status = "In Progress",
                             resolution = "Incomplete",
                             title = "Bug fixes need implementation.",
@@ -290,10 +287,14 @@ example_jira_issue_tracker_comments <- function(folder_path="/tmp") {
                             creator_name = "Moe",
                             reporter_name = "Larry",
                             assignee_name = "Curly",
-                            comment_bodies
+                            comments = c(
+                              "This is the first body comment.",
+                              "This is the second body comment."
+                            )
   )
 
-  issues <- c(list(issue1))
+  # issues <- c(list(issue1))
+  issues <- list(issue1)
 
   jira_json_path <- make_jira_issue_tracker(issues)
 
