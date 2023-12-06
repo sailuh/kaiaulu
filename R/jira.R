@@ -233,10 +233,10 @@ create_creator <- function(jira_domain_url, creator_name) {
 
   creator <- list(
     self = self_url,
-    name = creator_name,
-    key = sample(1:10, 1),
+    name = "user_id",
+    key = "user_id",
     avatarUrls = avatarUrls,
-    displayName = "Fake User1",
+    displayName = creator_name,
     active = TRUE,
     timeZone = "Etc/UTC"
   )
@@ -265,10 +265,10 @@ create_reporter <- function(jira_domain_url, reporter_name) {
 
   reporter <- list(
     self = list(self_url),
-    name = list(reporter_name),
-    key = list(reporter_name),  # assuming key is the same as the reporter name
+    name = "user_id",
+    key = "user_id",
     avatarUrls = avatarUrls,
-    displayName = list("Fake User"),
+    displayName = list(reporter_name),
     active = list(TRUE),
     timeZone = list("Etc/UTC")
   )
@@ -321,10 +321,10 @@ create_assignee <- function(jira_domain_url, assignee_name) {
 
   assignee <- list(
     self = list(self_url),
-    name = list(assignee_name),
-    key = list(assignee_name),  # assuming key is the same as the assignee name
+    name = "user_id",
+    key = "user_id",
     avatarUrls = avatarUrls,
-    displayName = list("Fake User"),
+    displayName = list(assignee_name),
     active = list(TRUE),
     timeZone = list("Etc/UTC")
   )
