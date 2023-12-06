@@ -10,7 +10,7 @@ make_jira_issue_tracker(issues)
 \item{issues}{list of issues that will make up the issue tracker}
 }
 \value{
-A list named 'status' containing status's information
+The path to the sample .json file.
 }
 \description{
 Create a full JIRA Issue Tracker with multiple issues
