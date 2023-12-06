@@ -38,7 +38,7 @@ make_jira_issue <- function(jira_domain_url, issue_key, issue_type, status, reso
 
       # go through and make comment for each body in comment_bodies
       # only comment bodies changes for comments, the rest of comments information is hard coded below
-      for (body in comment_bodies) {
+      for (body in comments) {
         comment <- list(
           self = "https://example.com/jira/rest/api/2/issue/10001/comment/1000",
           id = "1000",
@@ -80,7 +80,7 @@ make_jira_issue <- function(jira_domain_url, issue_key, issue_type, status, reso
       return(comments_vector)
     }
 
-    ext_info_cell[["comment"]][["comments"]] <- make_jira_issue_comments(comments_vector)
+    ext_info_cell[["comment"]][["comments"]] <- make_jira_issue_comments(comments)
     ext_info_cell[["comment"]][["maxResults"]] <- length(ext_info_cell[["comment"]][[1]])
     ext_info_cell[["comment"]][["total"]] <- length(ext_info_cell[["comment"]][[1]])
     ext_info_cell[["comment"]][["startAt"]] <- 0
