@@ -9,7 +9,7 @@ create_status(jira_domain_url, status)
 \arguments{
 \item{jira_domain_url}{URL of JIRA domain}
 
-\item{status_description}{description of status}
+\item{status}{description of status}
 }
 \value{
 A list named 'status' containing status's information

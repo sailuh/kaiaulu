@@ -126,13 +126,15 @@ create_base_info <- function(jira_domain_url, issue_key) {
 #' Creates and formats ext_info_cell for fake Jira issue
 #'
 #' @param jira_domain_url URL of JIRA domain
-#' @param issue_type_description description of issue_type
-#' @param title issue title
-#' @param components components of issue, a list with component names seperated by ; (ex. "x-core;x-spring" is two components)
+#' @param issue_type description of issue_type
+#' @param status status of issue for development
+#' @param resolution name of resolution for issue
+#' @param title summary of the issue
 #' @param description description of issue
+#' @param components components of issue, a list with component names separated by ; (ex. "x-core;x-spring" is two components)
+#' @param creator_name name of creator of issue
 #' @param reporter_name name of reporter reporting the issue
-#' @param assignee_name name of assignee the issue is being assigned to
-#' @param status_description description of the status of the issue
+#' @param assignee_name name of person the issue is being assigned to
 #' @return A list named 'ext_info_cell' which contains all the parameters and its generated fake data formats
 #' @export
 create_ext_info <- function(jira_domain_url, issue_type, status, resolution, title, description, components, creator_name, reporter_name, assignee_name) {
@@ -337,7 +339,7 @@ create_assignee <- function(jira_domain_url, assignee_name) {
 #' Creates a status with description for fake jira generator
 #'
 #' @param jira_domain_url URL of JIRA domain
-#' @param status_description description of status
+#' @param status description of status
 #' @return A list named 'status' containing status's information
 #' @export
 create_status <- function(jira_domain_url, status) {
