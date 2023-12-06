@@ -217,7 +217,7 @@ create_components <- function(jira_domain_url, components) {
 #'
 #' Creates a creator field with information
 #'
-#' @param URL of JIRA domain
+#' @param jira_domain_url URL of JIRA domain
 #' @param creator_name name of creator
 #' @return A list named 'creator' that has creator's information
 #' @export
@@ -372,7 +372,7 @@ create_status <- function(jira_domain_url, status) {
 #' Create a full JIRA Issue Tracker with multiple issues
 #'
 #' @param issues list of issues that will make up the issue tracker
-#' @return A list named 'status' containing status's information
+#' @return The path to the sample .json file.
 #' @export
 make_jira_issue_tracker <- function(issues) {
 
@@ -557,42 +557,43 @@ make_jira_issue_tracker <- function(issues) {
 
 # sample test call for two issues (created by make_jira_issue) being passed to make_jira_issue_tracker, issue1 w/o comments, issue2 with comments
 #
-# comment_bodies <- c(
-#   "This is the first body comment",
-#   "This is the second body comment"
-# )
-#
-#
-# issue1 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
-#                           issue_key = "GERONIMO-1",
-#                           issue_type = "A new feature of the product, which has yet to be developed.",
-#                           status = "The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened.",
-#                           resolution = "finished",
-#                           title = "This is a summary.",
-#                           description = "This is a description of the issue.",
-#                           components = "x-core;x-spring",
-#                           creator_name = "Bob",
-#                           reporter_name = "Joe",
-#                           assignee_name = "Moe",
-# )
-#
-# issue2 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
-#                           issue_key = "GERONIMO-2",
-#                           issue_type = "A new feature of the product, which has yet to be developed.",
-#                           status = "The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened.",
-#                           resolution = "finished",
-#                           title = "This is a summary.",
-#                           description = "This is a description of the issue.",
-#                           components = "x-core;x-spring",
-#                           creator_name = "Alpha",
-#                           reporter_name = "Bravo",
-#                           assignee_name = "Charlie",
-#                           comment_bodies
-# )
-#
+comment_bodies <- c(
+  "This is the first body comment",
+  "This is the second body comment"
+)
+
+
+issue1 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
+                          issue_key = "GERONIMO-1",
+                          issue_type = "A new feature of the product, which has yet to be developed.",
+                          status = "The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened.",
+                          resolution = "finished",
+                          title = "This is a summary.",
+                          description = "This is a description of the issue.",
+                          components = "x-core;x-spring",
+                          creator_name = "Bob",
+                          reporter_name = "Joe",
+                          assignee_name = "Moe",
+)
+
+issue2 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
+                          issue_key = "GERONIMO-2",
+                          issue_type = "A new feature of the product, which has yet to be developed.",
+                          status = "The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened.",
+                          resolution = "finished",
+                          title = "This is a summary.",
+                          description = "This is a description of the issue.",
+                          components = "x-core;x-spring",
+                          creator_name = "Alpha",
+                          reporter_name = "Bravo",
+                          assignee_name = "Charlie",
+                          comment_bodies
+)
+
 # issues_vector <- c(list(issue1), list(issue2))
-#
-# issue_tracker_path <- make_jira_issue_tracker(issues_vector)
+issues_vector <- list(issue1, issue2)
+
+issue_tracker_path <- make_jira_issue_tracker(issues_vector)
 
 
 #' Removes sample folder and git log

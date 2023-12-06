@@ -7,9 +7,9 @@
 create_creator(jira_domain_url, creator_name)
 }
 \arguments{
-\item{creator_name}{name of creator}
+\item{jira_domain_url}{URL of JIRA domain}
 
-\item{URL}{of JIRA domain}
+\item{creator_name}{name of creator}
 }
 \value{
 A list named 'creator' that has creator's information
