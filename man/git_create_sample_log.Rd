@@ -25,7 +25,6 @@ the git log.
 \seealso{
 Other {unittest}: 
 \code{\link{git_delete_sample_log}()},
-\code{\link{jira_create_sample_log}()},
-\code{\link{jira_delete_sample_log}()}
+\code{\link{make_jira_issue}()}
 }
 \concept{{unittest}}
