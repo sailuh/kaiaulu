@@ -2,16 +2,16 @@
 % Please edit documentation in R/example.R
 \name{example_jira_issue_tracker}
 \alias{example_jira_issue_tracker}
-\title{Example Jira Issue Tracker No Comments}
+\title{Example JIRA Issue Tracker No Comments}
 \usage{
-example_jira_issue_tracker(folder_path = "/tmp")
+example_jira_issue_tracker(folder_path = "/tmp", folder_name)
 }
 \arguments{
 \item{folder_path}{The path where the folder will be created}
 }
 \value{
-git_repo_path of newly created empty repo
+the JSON path of the newly created issue issue tracker
 }
 \description{
-Create fake jira issue tracker with 2 issues, no comments
+Create fake JIRA issue tracker with 2 issues, no comments
 }

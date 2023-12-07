@@ -15,5 +15,5 @@ create_reporter(jira_domain_url, reporter_name)
 A list named 'reporter' which contains the reporter's information
 }
 \description{
-Creates a reporter field with information
+Creates a reporter cell for \code{\link{make_jira_issue}}
 }

@@ -15,5 +15,5 @@ create_issue_type(jira_domain_url, issue_type)
 A list named 'issue_type' that represents the issue type of the JIRA issue
 }
 \description{
-Create issue type cell for fake Jira issue
+Create issue type cell for \code{\link{make_jira_issue}}.
 }

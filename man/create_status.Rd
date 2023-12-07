@@ -15,5 +15,5 @@ create_status(jira_domain_url, status)
 A list named 'status' containing status's information
 }
 \description{
-Creates a status with description for fake jira generator
+Creates a status cell for \code{\link{make_jira_issue}}.
 }

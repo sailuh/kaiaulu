@@ -2,7 +2,7 @@
 % Please edit documentation in R/jira.R
 \name{make_jira_issue}
 \alias{make_jira_issue}
-\title{Creates a sample jira issue without comment and two components}
+\title{Create JirAgileR Issue}
 \usage{
 make_jira_issue(
   jira_domain_url,
@@ -45,15 +45,16 @@ make_jira_issue(
 \item{comments}{a character vector where each element is a comment string (e.g. c("This is first comment", "This is second comment"))}
 }
 \value{
-The path to the sample .json file.
+A list which represents the JirAgileR JSON in memory
 }
 \description{
-This example replicates Kaiaulu issue #244
+Creates a single JIRA Issue as a list, which can be saved as a JSON with or without comments.
+Note the JSON follows the format used by JirAgileR package when downloading
+JSONs, instead of the format specified by JIRA.
 }
 \seealso{
 Other {unittest}: 
 \code{\link{git_create_sample_log}()},
-\code{\link{git_delete_sample_log}()},
-\code{\link{jira_delete_sample_log}()}
+\code{\link{git_delete_sample_log}()}
 }
 \concept{{unittest}}

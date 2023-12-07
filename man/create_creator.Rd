@@ -15,5 +15,5 @@ create_creator(jira_domain_url, creator_name)
 A list named 'creator' that has creator's information
 }
 \description{
-Creates a creator field with information
+Creates the issue creator cell for \code{\link{make_jira_issue}}.
 }

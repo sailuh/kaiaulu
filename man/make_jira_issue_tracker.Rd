@@ -4,14 +4,18 @@
 \alias{make_jira_issue_tracker}
 \title{Make Jira Issue Tracker}
 \usage{
-make_jira_issue_tracker(issues)
+make_jira_issue_tracker(issues, save_filepath)
 }
 \arguments{
-\item{issues}{list of issues that will make up the issue tracker}
+\item{issues}{list of issues obtained from cell for \code{\link{make_jira_issue}}.}
+
+\item{save_filepath}{the filepath where the JSON should be saved, including
+file name and extension.}
 }
 \value{
-The path to the sample .json file.
+The `save_filepath` specified.
 }
 \description{
-Create a full JIRA Issue Tracker with multiple issues
+Create a full JIRA Issue Tracker with multiple issues using
+\code{\link{make_jira_issue}}.
 }

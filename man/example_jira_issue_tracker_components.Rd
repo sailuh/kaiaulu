@@ -2,16 +2,20 @@
 % Please edit documentation in R/example.R
 \name{example_jira_issue_tracker_components}
 \alias{example_jira_issue_tracker_components}
-\title{Example Jira Issue Tracker No Comments}
+\title{Create one No-Comment Issue with Two Components}
 \usage{
-example_jira_issue_tracker_components(folder_path = "/tmp")
+example_jira_issue_tracker_components(folder_path = "/tmp", folder_name)
 }
 \arguments{
 \item{folder_path}{The path where the folder will be created}
+
+\item{folder_name}{The name of the folder}
 }
 \value{
-git_repo_path of newly created empty repo
+the JSON path of the newly created issue issue tracker
 }
 \description{
-Create fake jira issue tracker with 2 components, no comments
+This example can be used to evaluate the parser does not replicate
+new components on new issues, which would severely bias metrics
+associated to issues such as bugs (see #244).
 }

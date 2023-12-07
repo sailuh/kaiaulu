@@ -4,13 +4,15 @@
 \alias{example_jira_issue_tracker_comments}
 \title{Example Jira Issue Tracker With Comments}
 \usage{
-example_jira_issue_tracker_comments(folder_path = "/tmp")
+example_jira_issue_tracker_comments(folder_path = "/tmp", folder_name)
 }
 \arguments{
 \item{folder_path}{The path where the folder will be created}
+
+\item{folder_name}{The name of the folder}
 }
 \value{
-git_repo_path of newly created empty repo
+the JSON path of the newly created issue issue tracker
 }
 \description{
 Create fake jira issue tracker with one issue with 2 comments

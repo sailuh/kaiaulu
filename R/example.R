@@ -194,14 +194,21 @@ example_large_sized_commits <- function(folder_path="/tmp", folder_name) {
   return(git_repo_path)
 }
 
-#' Example Jira Issue Tracker No Comments
+
+#' Create one No-Comment Issue with Two Components
 #'
-#' Create fake jira issue tracker with 2 components, no comments
+#' This example can be used to evaluate the parser does not replicate
+#' new components on new issues, which would severely bias metrics
+#' associated to issues such as bugs (see #244).
 #'
 #' @param folder_path The path where the folder will be created
-#' @return git_repo_path of newly created empty repo
+#' @param folder_name The name of the folder
+#' @return the JSON path of the newly created issue issue tracker
 #' @export
-example_jira_issue_tracker_components <- function(folder_path="/tmp") {
+example_jira_issue_tracker_components <- function(folder_path="/tmp",folder_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
 
   issue1 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
                             issue_key = "GERONIMO-123",
@@ -219,19 +226,23 @@ example_jira_issue_tracker_components <- function(folder_path="/tmp") {
   # issues <- c(list(issue1))
   issues <- list(issue1)
 
-  jira_json_path <- make_jira_issue_tracker(issues)
+  jira_json_path <- make_jira_issue_tracker(issues,
+                                            save_filepath=file.path(folder_path,"issue_two_components.json"))
 
   return(jira_json_path)
 }
 
-#' Example Jira Issue Tracker No Comments
+#' Example JIRA Issue Tracker No Comments
 #'
-#' Create fake jira issue tracker with 2 issues, no comments
+#' Create fake JIRA issue tracker with 2 issues, no comments
 #'
 #' @param folder_path The path where the folder will be created
-#' @return git_repo_path of newly created empty repo
+#' @return the JSON path of the newly created issue issue tracker
 #' @export
-example_jira_issue_tracker <- function(folder_path="/tmp") {
+example_jira_issue_tracker <- function(folder_path="/tmp",folder_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
 
   issue1 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
                             issue_key = "GERONIMO-123",
@@ -262,7 +273,8 @@ example_jira_issue_tracker <- function(folder_path="/tmp") {
   # issues <- c(list(issue1), list(issue2))
   issues <- list(issue1, issue2)
 
-  jira_json_path <- make_jira_issue_tracker(issues)
+  jira_json_path <- make_jira_issue_tracker(issues,
+                                            save_filepath=file.path(folder_path,"issue_with_components.json"))
 
   return(jira_json_path)
 }
@@ -272,9 +284,13 @@ example_jira_issue_tracker <- function(folder_path="/tmp") {
 #' Create fake jira issue tracker with one issue with 2 comments
 #'
 #' @param folder_path The path where the folder will be created
-#' @return git_repo_path of newly created empty repo
+#' @param folder_name The name of the folder
+#' @return the JSON path of the newly created issue issue tracker
 #' @export
-example_jira_issue_tracker_comments <- function(folder_path="/tmp") {
+example_jira_issue_tracker_comments <- function(folder_path="/tmp",folder_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
 
   issue1 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
                             issue_key = "GERONIMO-2",
@@ -296,7 +312,8 @@ example_jira_issue_tracker_comments <- function(folder_path="/tmp") {
   # issues <- c(list(issue1))
   issues <- list(issue1)
 
-  jira_json_path <- make_jira_issue_tracker(issues)
+  jira_json_path <- make_jira_issue_tracker(issues,
+                                            save_filepath=file.path(folder_path,"one_issue_two_comments.json"))
 
   return(jira_json_path)
 }

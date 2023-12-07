@@ -2,7 +2,7 @@
 % Please edit documentation in R/jira.R
 \name{create_ext_info}
 \alias{create_ext_info}
-\title{Create ext_info_cell for issues}
+\title{Create ext_info_cel}
 \usage{
 create_ext_info(
   jira_domain_url,
@@ -42,5 +42,5 @@ create_ext_info(
 A list named 'ext_info_cell' which contains all the parameters and its generated fake data formats
 }
 \description{
-Creates and formats ext_info_cell for fake Jira issue
+Creates and formats ext_info_cell list \code{\link{make_jira_issue}}.
 }

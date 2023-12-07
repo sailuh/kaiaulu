@@ -15,5 +15,5 @@ create_components(jira_domain_url, components)
 A list named 'components' which contains each component and its details
 }
 \description{
-Creates a list populated with components and their information from components_list
+Creates the component cells for \code{\link{make_jira_issue}}.
 }
