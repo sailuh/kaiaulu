@@ -1,6 +1,6 @@
-test_that("parsing one issue with two components returns a single row table", {
+test_that("parse_jira parses one issue with two components as one row", {
 
-  jira_json_path <- example_jira_issue_tracker_components(folder_path = "/tmp",
+  jira_json_path <- example_jira_issue_components(folder_path = "/tmp",
                                                           folder_name = "issue_with_components")
 
   issues_comments_list <- parse_jira(json_path = jira_json_path)
@@ -11,8 +11,8 @@ test_that("parsing one issue with two components returns a single row table", {
   expect_equal(nrow(issues),1)
 })
 
-test_that("calling parse_jira on issue tracker issues with two issues returns a table with 2 rows", {
-  jira_json_path <- example_jira_issue_tracker(folder_path = "/tmp",
+test_that("parse_jira parses two issues as two rows", {
+  jira_json_path <- example_jira_two_issues(folder_path = "/tmp",
                                                folder_name = "one_issue_two_comments")
   issues_comments_list <- parse_jira(json_path = jira_json_path)
   issues <- issues_comments_list[["issues"]]
@@ -22,8 +22,8 @@ test_that("calling parse_jira on issue tracker issues with two issues returns a 
   expect_equal(nrow(issues),2)
 })
 
-test_that("calling parse_jira on issue_tracker comments with one issue with 2 comments returns a table with 2 rows", {
-  jira_json_path <- example_jira_issue_tracker_comments(folder_path = "/tmp",
+test_that("parse_jira parses one issue with two comments as two rows", {
+  jira_json_path <- example_jira_issue_comments(folder_path = "/tmp",
                                                         folder_name = "one_issue_two_comments")
   issues_comments_list <- parse_jira(json_path = jira_json_path)
   comments <- issues_comments_list[["comments"]]

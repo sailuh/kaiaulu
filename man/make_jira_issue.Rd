@@ -42,7 +42,7 @@ make_jira_issue(
 
 \item{assignee_name}{name of person the issue is being assigned to (e.g. "Joe Schmo")}
 
-\item{comments}{a character vector where each element is a comment string (e.g. c("This is first comment", "This is second comment"))}
+\item{comments}{character vector where each element is a comment string (e.g. c("This is first comment", "This is second comment"))}
 }
 \value{
 A list which represents the JirAgileR JSON in memory

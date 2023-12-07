@@ -21,7 +21,7 @@
 #' @param creator_name name of creator of issue (e.g. "John Doe")
 #' @param reporter_name name of reporter of issue (e.g. "Jane Doe")
 #' @param assignee_name name of person the issue is being assigned to (e.g. "Joe Schmo")
-#' @param comments a character vector where each element is a comment string (e.g. c("This is first comment", "This is second comment"))
+#' @param comments character vector where each element is a comment string (e.g. c("This is first comment", "This is second comment"))
 #' @return A list which represents the JirAgileR JSON in memory
 #' @export
 #' @family {unittest}
