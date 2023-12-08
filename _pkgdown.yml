@@ -94,11 +94,18 @@ reference:
 - title: __IO__
   desc:  Functions to create and read temporary files in R.
 - contents:
+  - io_make_file
+  - io_make_folder
+  - io_delete_folder
   - make_temporary_file
   - read_temporary_file
 - title: __Git__
   desc:  Functions to interact with git interface to facilitate interval static code analysis.
 - contents:
+  - git_init
+  - git_mv
+  - git_add
+  - git_commit
   - git_checkout
   - git_head
   - git_log
@@ -214,5 +221,29 @@ reference:
 - title: __Fake Data Generator__
   desc:  Functions to create fake data for unit testing parsers
 - contents:
-  - jira_create_sample_log
-  - jira_delete_sample_log
+  - make_mbox_reply
+  - make_mbox_mailing_list
+  - make_jira_issue
+  - make_jira_issue_tracker
+- title: internal
+- contents:
+  - create_assignee
+  - create_base_info
+  - create_components
+  - create_creator
+  - create_ext_info
+  - create_issue_comments
+  - create_issue_type
+  - create_reporter
+  - create_resolution
+  - create_status
+  - example_different_branches
+  - example_empty_repo
+  - example_jira_issue_comments
+  - example_jira_issue_components
+  - example_jira_two_issues
+  - example_large_sized_commits
+  - example_mailing_list_two_threads
+  - example_renamed_file
+  - example_test_example_src_repo
+
