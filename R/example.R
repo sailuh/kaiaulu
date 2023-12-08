@@ -381,6 +381,130 @@ example_notebook_alternating_function_in_files <- function(folder_path="/tmp", f
   return(git_repo_path)
 }
 
+#' Create one No-Comment Issue with Two Components
+#'
+#' This example can be used to evaluate the parser does not replicate
+#' new components on new issues, which would severely bias metrics
+#' associated to issues such as bugs (see #244).
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return the JSON path of the newly created issue issue tracker
+#' @export
+example_jira_issue_components <- function(folder_path="/tmp",folder_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
+
+  issue1 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
+                            issue_key = "GERONIMO-123",
+                            issue_type = "New Feature",
+                            status = "Open",
+                            resolution = "Finished",
+                            title = "This is a summary.",
+                            description = "The new features have been implemented.",
+                            components = "x-core;x-spring",
+                            creator_name = "Bob",
+                            reporter_name = "Joe",
+                            assignee_name = "Moe",
+  )
+
+  # issues <- c(list(issue1))
+  issues <- list(issue1)
+
+  jira_json_path <- make_jira_issue_tracker(issues,
+                                            save_filepath=file.path(folder_path,"issue_two_components.json"))
+
+  return(jira_json_path)
+}
+
+#' Example JIRA Issue Tracker No Comments
+#'
+#' Create fake JIRA issue tracker with 2 issues, no comments
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return the JSON path of the newly created issue issue tracker
+#' @export
+example_jira_two_issues <- function(folder_path="/tmp",folder_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
+
+  issue1 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
+                            issue_key = "GERONIMO-123",
+                            issue_type = "New Feature",
+                            status = "Open",
+                            resolution = "Finished",
+                            title = "This is a summary.",
+                            description = "The new features have been implemented.",
+                            components = "x-core",
+                            creator_name = "Bob",
+                            reporter_name = "Joe",
+                            assignee_name = "Moe",
+  )
+
+  issue2 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
+                            issue_key = "GERONIMO-124",
+                            issue_type = "New Feature",
+                            status = "Open",
+                            resolution = "Finished",
+                            title = "This is a summary.",
+                            description = "The new features have been implemented.",
+                            components = "x-spring",
+                            creator_name = "Moe",
+                            reporter_name = "Larry",
+                            assignee_name = "Curly",
+  )
+
+  # issues <- c(list(issue1), list(issue2))
+  issues <- list(issue1, issue2)
+
+  jira_json_path <- make_jira_issue_tracker(issues,
+                                            save_filepath=file.path(folder_path,"issue_with_components.json"))
+
+  return(jira_json_path)
+}
+
+#' Example Jira Issue Tracker With Comments
+#'
+#' Create fake jira issue tracker with one issue with 2 comments
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return the JSON path of the newly created issue issue tracker
+#' @export
+example_jira_issue_comments <- function(folder_path="/tmp",folder_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
+
+  issue1 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
+                            issue_key = "GERONIMO-2",
+                            issue_type = "Bug",
+                            status = "In Progress",
+                            resolution = "Incomplete",
+                            title = "Bug fixes need implementation.",
+                            description = "The new features have not been implemented.",
+                            components = "x-core",
+                            creator_name = "Moe",
+                            reporter_name = "Larry",
+                            assignee_name = "Curly",
+                            comments = c(
+                              "This is the first body comment.",
+                              "This is the second body comment."
+                            )
+  )
+
+  # issues <- c(list(issue1))
+  issues <- list(issue1)
+
+  jira_json_path <- make_jira_issue_tracker(issues,
+                                            save_filepath=file.path(folder_path,"one_issue_two_comments.json"))
+
+  return(jira_json_path)
+}
+
 #' Two Thread and Three Replies Mailing List
 #'
 #' Create a mailing list of two e-mail threads, with

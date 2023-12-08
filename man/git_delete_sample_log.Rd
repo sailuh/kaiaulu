@@ -22,7 +22,6 @@ A folder kaiaulu_sample is assumed to have been created by \code{\link{git_creat
 \seealso{
 Other {unittest}: 
 \code{\link{git_create_sample_log}()},
-\code{\link{jira_create_sample_log}()},
-\code{\link{jira_delete_sample_log}()}
+\code{\link{make_jira_issue}()}
 }
 \concept{{unittest}}

@@ -129,10 +129,6 @@ Remember: Kaiaulu will not throw errors if you omit relevant sources of develope
 
 ```{r eval = FALSE}
 project_mbox <- NULL
-project_jira <- NULL
-project_github_replies <- NULL
-
-
 
 if(!is.null(mbox_path)){
   project_mbox <- parse_mbox(perceval_path,mbox_path)  
@@ -142,8 +138,6 @@ if(!is.null(mbox_path)){
   
   project_mbox$reply_datetimetz <- as.POSIXct(project_mbox$reply_datetimetz,
                                         format = "%a, %d %b %Y %H:%M:%S %z", tz = "UTC")
-
-  
 }
 ```
 
@@ -208,8 +202,8 @@ project_reply <- project_log[["project_reply"]]
 
 
 ```{r echo=FALSE}
-project_git <- readRDS("~/Downloads/openssl_project_git.rds")
-project_reply <- readRDS("~/Downloads/openssl_project_reply.rds")
+project_git <- readRDS("~/Downloads/ist_openssl_project_git.rds")
+project_reply <- readRDS("~/Downloads/ist_openssl_project_reply.rds")
 ```
 
 
@@ -287,6 +281,7 @@ cve_ids <- unique(project_git_cves$commit_message_id)
 progress_i <- 1
 total <- length(cve_ids)
 cve_smell_interval <- list()
+
 for(cve_id in cve_ids){
   print(stringi::stri_c("Progress: ",progress_i,"/",total))
   progress_i <- progress_i + 1
@@ -343,6 +338,8 @@ for(cve_id in cve_ids){
     ml_only_devs <- NA
     ml_threads <- NA
     code_ml_both_devs <- NA
+    churn <- NA
+    n_commits <- NA
     
     i <- j - 1
   
@@ -420,6 +417,10 @@ for(cve_id in cve_ids){
       code_only_devs <- length(unique(project_git_slice$identity_id))
       code_files <- length(unique(project_git_slice$file_pathname))
       
+      churn <- sum(as.numeric(project_git_slice$lines_added) +
+                       as.numeric(project_git_slice$lines_removed),na.rm= TRUE)
+      n_commits <- length(unique(project_git_slice$commit_hash))
+      
     }  
     if(ml_exist){
       # Smell
@@ -468,7 +469,9 @@ for(cve_id in cve_ids){
                                      code_files,
                                      ml_only_devs,
                                      ml_threads,
-                                     code_ml_both_devs)
+                                     code_ml_both_devs,
+                                     churn,
+                                     n_commits)
   }
   cve_interval_id <- stri_c(cve_id,"|",start_date,"|",end_date)
   smells_interval <- rbindlist(smells)
@@ -478,48 +481,7 @@ for(cve_id in cve_ids){
 dt <- rbindlist(cve_smell_interval)
 ```
 
-
-```{r echo = FALSE}
-dt <- readRDS("~/Downloads/openssl_dt_cve_smell_interval.rds")
-git_network_authors <- readRDS("~/Downloads/openssl_git_network_authors.rds")
-code_clusters <- readRDS("~/Downloads/openssl_code_clusters.rds")
-mail_clusters <- readRDS("~/Downloads/openssl_mail_clusters.rds")
-reply_network_authors <- readRDS("~/Downloads/openssl_reply_network_authors.rds")
-```
-
 ```{r}
-kable(head(dt))
+#fwrite(dt,"~/Downloads/ist_cve_smell_interval_dt.csv")
 ```
 
-
-## Community Inspection per Time Slice
-
-This shows the last loop slice. Authors here are connected if they changed the same file in a given time window:
-
-```{r}
-project_collaboration_network <- recolor_network_by_community(git_network_authors,code_clusters)
-
-gcid <- igraph::graph_from_data_frame(d=project_collaboration_network[["edgelist"]], 
-                      directed = FALSE,
-                      vertices = project_collaboration_network[["nodes"]])
-
-visIgraph(gcid,randomSeed = 1)
-```
-
-In this network, the nodes are colored according to the communities identified by the community detection algorithm used, OSLOM. We can observe the classification is reasonable: The inter connected nodes were assigned as one community, where as the nodes without communication were considered their ``own community''. 
-
-You can also observe the identity match algorithm in action and its potential implications: Different identities matched to the same author are separated by the | ). Had it not performed as intended, single nodes would appear separately and very likely connected, thus biasing the social metrics.
-
-The following visualization shows similar information, however authors are only now connected if they exchanged e-mails on the same e-mail thread in the same time period as the previous graph:
-
-```{r eval = FALSE}
-project_collaboration_network <- recolor_network_by_community(reply_network_authors,mail_clusters)
-
-gcid <- igraph::graph_from_data_frame(d=project_collaboration_network[["edgelist"]], 
-                      directed = FALSE,
-                      vertices = project_collaboration_network[["nodes"]])
-
-visIgraph(gcid,randomSeed = 1)
-```
-
-The large absence of authors in the second visualization indicates communication was very sparse during that development time period. Because a large number of changes were performed, and sparse communication occurred, the various social metrics captured by comparing both graphs would be large. 

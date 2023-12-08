@@ -57,6 +57,7 @@ reference:
   - weight_scheme_sum_edges
   - weight_scheme_count_deleted_nodes
   - weight_scheme_cum_temporal
+  - weight_scheme_pairwise_cum_temporal
   - community_oslom
   - recolor_network_by_community
   - graph_to_dsmj
@@ -99,6 +100,9 @@ reference:
   - io_make_folder
   - io_delete_folder
   - io_make_file
+  - io_make_file
+  - io_make_folder
+  - io_delete_folder
   - make_temporary_file
   - read_temporary_file
 - title: __Git__
@@ -223,14 +227,31 @@ reference:
 - title: __Fake Data Generator__
   desc:  Functions to create fake data for unit testing parsers
 - contents:
+  - make_mbox_reply
+  - make_mbox_mailing_list
+  - make_jira_issue
+  - make_jira_issue_tracker
+- title: internal
+- contents:
+  - create_assignee
+  - create_base_info
+  - create_components
+  - create_creator
+  - create_ext_info
+  - create_issue_comments
+  - create_issue_type
+  - create_reporter
+  - create_resolution
+  - create_status
   - example_different_branches
   - example_empty_repo
-  - example_function_in_files
+  - example_jira_issue_comments
+  - example_jira_issue_components
+  - example_jira_two_issues
   - example_large_sized_commits
-  - example_notebook_alternating_function_in_files
-  - example_notebook_function_in_code_blocks
-  - weight_scheme_pairwise_cum_temporal
+  - example_mailing_list_two_threads
   - example_renamed_file
   - example_test_example_src_repo
-  - jira_create_sample_log
-  - jira_delete_sample_log
+  - example_function_in_files
+  - example_notebook_alternating_function_in_files
+  - example_notebook_function_in_code_blocks
