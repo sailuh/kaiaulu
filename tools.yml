@@ -1,11 +1,11 @@
 # https://github.com/chaoss/grimoirelab-perceval
-perceval: ~/perceval/bin/perceval
+perceval: /Users/sean/Library/Python/3.9/bin/perceval
 # https://github.com/multilang-depends/depends
-depends: ~/depends-0.9.6/depends.jar
+depends: /Users/sean/Desktop/CAPSTONE496/depends-0.9.7/depends.jar
 # https://github.com/tsantalis/RefactoringMiner#running-refactoringminer-from-the-command-line
 refactoring_miner: ~/RefactoringMiner-1.0/bin/RefactoringMiner
 # https://github.com/boyter/scc
-scc: ~/scc/scc
+scc: ~/CAPSTONE496/scc/scc
 # universal-ctags
 utags: /usr/local/Cellar/universal-ctags/HEAD-62f0144/bin/ctags
 # https://archdia.com/
