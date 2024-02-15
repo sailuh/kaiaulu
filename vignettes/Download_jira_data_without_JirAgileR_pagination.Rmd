@@ -1,5 +1,5 @@
 ---
-title: "Download JIRA Issues and Comments"
+title: "Download JIRA Issues and Comments without JirAgileR with pagination"
 output: 
   html_document:
     toc: true
@@ -57,12 +57,12 @@ username <- scan("~/atlassian_username",what="character",quiet=TRUE)
 #' @description Makes a request to JIRA's latest REST API to retrieve all
 #' the necessary information regarding the JIRA issues and downloand
 #' them to path designated save_path_issue_tracker_issues
-#' @param username
-#' @param password this is your password
-#' @param domain Custom JIRA domain URL 
+#' @param username is your atlassian username as a string
+#' @param password this is your atlassian token
+#' @param domain Custom JIRA domain URL . we append the JIRA API endpoint to this. The original is set in the relevant config file
 #' @param jql_query the specific query string to specify criteria for fetching
 #' @param fields the list of fields that are downloaded in each issue
-#' @param maxResults (optional) the maximum number of results to download
+#' @param maxResults (optional) the maximum number of results to download per page
 #' defaul is 50
 #' @param verbose boolean flag to specify printing operational 
 #' messages or not
@@ -75,98 +75,89 @@ fetch_and_save_jira_issues <- function(domain,
                                        maxResults = 50, 
                                        verbose = FALSE) {
   
-  # Check if domain starts with https:// and if not, prepends it to ensure
-  # secure protocol
+  # Ensure the domain starts with https:// for secure communication
   if (!grepl("^https?://", domain)) {
     domain <- paste0("https://", domain)
   }
   
-  # If username and password is present, then authenticate
-  if(!is.null(username)&&!is.null(password)){
+ 
+  
+   # Construct the API endpoint URL. appends /rest/api/latest/search to domain
+  #url <- paste0(domain, "/rest/api/latest/search")
+  
+  # Initialize variables for pagination
+  startAt <- 0
+  total <- maxResults
+  all_issues <- list()
+  
+  repeat{
+    # Construct the API endpoint URL
+    url <- paste0(domain, "/rest/api/latest/search")
+    
+     # Authenticate if username and password are provided
+  if(!is.null(username) && !is.null(password)){
     auth <- httr::authenticate(as.character(username), as.character(password), "basic")
   } else {
     auth <- NULL
   }
-  
-  # Construct the API endpoint URL. appends /rest/api/latest/search to domain
-  url <- paste0(domain, "/rest/api/latest/search")
-  
-  #initialize empty list to store fetched issues
-  all_issues <- list()
-  
-  #initialize startAt parameter for pagination
-  startAt <- 0
-  
-  
-  repeat {
-  # Prepare query parameters including jql query, list of fields and maxresults to return
-  query_params <- list(jql = jql_query, fields = paste(fields, collapse = ","), maxResults = maxResults, startAt = startAt)
-  
-  # Make the API call using httr::GET to the constructed URL using the query parameters above
-  response <- httr::GET(url, query = query_params)
-  
-  # Check for HTTP errors and if there is an error, stops the call
-  if (httr::http_error(response)) {
-    stop("API request failed: ", httr::http_status(response)$message)
-  }
-  
-  
-  
-  
-  
-  # Parse the response - extracts as text - converts JSON to R object and extracts "issues"
-  # This line of code is taking an HTTP response, extracting its content as text, parsing that text as JSON, converting it to an R object without simplifying it into vectors, and then accessing the issues part of the resulting structure
-  
- # issues <- jsonlite::fromJSON(httr::content(response, "text", encoding = "UTF-8"), simplifyVector = FALSE)$issues
-  
-  
-  #downloads raw data
-  #issues <- httr::content(response, "text", encoding = "UTF-8")
-  
-  
-  
-  # Parse the response and extract "issues"
-    fetched_issues <- jsonlite::fromJSON(httr::content(response, "text", encoding = "UTF-8"), simplifyVector = FALSE)$issues
     
-    # Append fetched issues to all_issues list
-    all_issues <- c(all_issues, fetched_issues)
+    # Prepare query parameters for the API call
+    query_params <- list(jql = jql_query, fields = paste(fields, collapse = ","), maxResults = maxResults, startAt = startAt)
     
-    # Verbose output for fetched issues
-    if (verbose) {
-      message("Fetched ", length(fetched_issues), " issues starting from ", startAt)
+    # Make the API call
+    response <- httr::GET(url, query = query_params)
+    
+    # Stop if there's an HTTP error
+    if (httr::http_error(response)) {
+      stop("API request failed: ", httr::http_status(response)$message)
     }
     
-    # Break the loop if the number of fetched issues is less than maxResults, indicating the last page
-    if (length(fetched_issues) < maxResults) {
+    # Parse the response and extract issues. Append the new issues to all_issues
+    content <- jsonlite::fromJSON(httr::content(response, "text", encoding = "UTF-8"), simplifyVector = FALSE)
+    all_issues <- append(all_issues, content$issues)
+    
+    
+     # Save all the issues to the specified path
+  jsonlite::write_json(all_issues, save_path_issue_tracker_issues)
+  
+  
+    # Update startAt for the next page of results. The maxResults is the amoount of issues downloaded per loop call. When length(content$issues) < maxResults, this indicates that there are less issues than that remaining to be downloaded and so the loop will break. The second or boolean is for testing and should be deleted before using for serious.
+    if ((length(content$issues) < maxResults) || (length(all_issues) > 30)){
       break
-    }
-    
-    # Increment startAt for the next page
+      } else {
     startAt <- startAt + maxResults
-  } #end repeat loop
-  
-  
-    # Save the issues to the specified path
-  jsonlite::write_json(issues, save_path_issue_tracker_issues)
-  
-  # Verbose output
-  if (verbose) {
-    message("Fetched and saved ", length(issues), " issues to '", save_path_issue_tracker_issues, "'.")
+      }
+    
+    # Verbose output for each page
+    if (verbose) {
+      message("Fetched", maxResults, "issues. Total fetched: ", length(all_issues))
+    }
   }
   
-  # Returns nothing
-  return(invisible(NULL)) # Return invisibly since the primary output is the saved file
+  # Save all the issues to the specified path
+  #jsonlite::write_json(all_issues, save_path_issue_tracker_issues)
+  
+  # Final verbose output
+  if (verbose) {
+    message("Fetched and saved a total of ", length(all_issues), " issues to '", save_path_issue_tracker_issues, "'.")
+  }
+  
+  # Returns the content so that it can be saved to a variable via function call
+  return(all_issues)
 }
+
 
 ```
 
 # Define the variables required for the function call. This chunk also specifies the fields to be downloaded
-
+# Call the function fetch_and_save_jira_issues
 ```{r eval=FALSE}
-# Define the parameters
-# issue_tracker_domain <- conf[["issue_tracker"]][["jira"]][["domain"]]
-jql_query <- paste0("project='",issue_tracker_project_key,"'")
-fields <- c("summary", 
+# Call the function and save the returned content to variable called all_issues
+all_issues <- fetch_and_save_jira_issues(issue_tracker_domain,
+                           username, 
+                           your_api_token, 
+                           jql_query = paste0("project='",issue_tracker_project_key,"'"), 
+                           fields = c("summary", 
                            "description",
                            "creator",
                            "assignee",
@@ -177,52 +168,14 @@ fields <- c("summary",
                            "components",
                            "created",
                            "updated",
-                           "resolutiondate")
-# save_path_issue_tracker_issues <- conf[["issue_tracker"]][["jira"]][["issues"]]
-# save_path_issue_tracker_issue_comments <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
-maxResults <- 100  # Optional: Specify the maximum number of results to fetch
-verbose <- TRUE    # Optional: Print operation messages
-
-
-```
-
-
-# Call the function fetch_and_save_jira_issues (defined on line 55)
-```{r eval=FALSE}
-# Call the function
-fetch_and_save_jira_issues(issue_tracker_domain,
-                           username, 
-                           your_api_token, 
-                           jql_query, 
-                           fields, 
+                           "resolutiondate"), 
                            save_path_issue_tracker_issues, 
-                           maxResults, 
-                           verbose)
+                           maxResults = 5, 
+                           verbose = TRUE)
 
-```
+# save all_issues as a json file along the path save_path_issue_tracker_issues
+jsonlite::write_json(all_issues, save_path_issue_tracker_issues)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-The json will be downloaded on the path specified in the project configuration file, which by default is `kaiaulu/kaiaulu/rawdata/issue_tracker`. We can then use Kaiaulu's function to parse the data into a tabular format. Since our request did not include the  `comment` field, only the issues table will be available. A few rows of the json issues is shown next:
-
-```{r}
-require(kaiaulu)
-jira_issues_list <- parse_jira(save_path_issue_tracker_issues)
-jira_issues <- jira_issues_list[["issues"]]
-jira_comments <- jira_issues_list[["comments"]]
-kable(jira_issues[7:8])
 ```
 
 # Download Issue with Comments
@@ -231,9 +184,16 @@ In the same manner as before, we can perform the same function call, but includi
 
 The data of this table can be used to calculate `social smell metrics`, as it represents a form of developer communication. A notebook discussing how to use JIRA data as communication network and/or combining to mailing list data will be made available in the future. 
 
-```{r eval = FALSE}
-json_issue_comments <- get_jira_issues(jql_query = paste0("project='",issue_tracker_project_key,"'"),
-                fields = c("summary",
+Since this time around we requested the issue data and comments, when using the `parse_jira` function, both the issues and comments table will be available from the parser. Since the issue table was already displayed, the following show a few rows of the issue comments table:
+
+# Call the function fetch_and_save_jira_issues (defined on line 55)
+```{r eval=FALSE}
+# Call the function
+all_issues_comments <- fetch_and_save_jira_issues(issue_tracker_domain,
+                           username, 
+                           your_api_token, 
+                           jql_query = paste0("project='",issue_tracker_project_key,"'"), 
+                           fields = c("summary",
                            "description",
                            "creator",
                            "assignee",
@@ -245,20 +205,22 @@ json_issue_comments <- get_jira_issues(jql_query = paste0("project='",issue_trac
                            "created",
                            "updated",
                            "resolutiondate",
-                           "comment"),
-                verbose=TRUE,
-                as.data.frame = FALSE)
-jsonlite::write_json(json_issue_comments,save_path_issue_tracker_issue_comments)
+                           "comment"), 
+                           save_path_issue_tracker_issues, 
+                           maxResults = 5, 
+                           verbose = TRUE)
+#path <- file.path(save_path_issue_tracker_issue_comments)
+jsonlite::write_json(all_issues_comments, save_path_issue_tracker_issue_comments)
+
 ```
 
-Since this time around we requested the issue data and comments, when using the `parse_jira` function, both the issues and comments table will be available from the parser. Since the issue table was already displayed, the following show a few rows of the issue comments table:
 
-```{r}
+#Don't run this because the parser is yet to be built
+```{r eval=FALSE}
 jira_issue_comments <- parse_jira(save_path_issue_tracker_issue_comments)
 jira_issues <- jira_issue_comments[["issues"]]
 jira_comments <- jira_issue_comments[["comments"]]
-
-kable(jira_comments[55:56])
+kable(jira_comments[10:11])
 ```
 
 
