@@ -36,7 +36,7 @@ As usual, the first step is to load the project configuration file.
 
 In this notebook, we will obtain data from the issue tracker JIRA. We will use [Apache's Geronimo open source project](https://geronimo.apache.org). Refer to the `conf/` folder on Kaiaulu's git repository for Geronimo and other project configuration files. It is in this project configuration file we specify where Kaiaulu can find the jira sources from Geronimo. We will use the issue_tracker -> jira fields only. In regards to the "issues" and "issue_comments" fields, these should be set to paths where you want to store the jira data. Then, you can access this jira data later using these same paths.
 
-# your_api_token is your atlassian token that is used as your password. Your username is your atlassian username (usually your email). These can be created by navigating to the indicated directories and creating a plain text file (vim atlassian_username) and typing in your username. Details on how to obtain an atlassian token can be found here: https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/
+# your_api_token is your atlassian token that is used as your password. Your username is your atlassian username (usually your email). These can be created by navigating to the indicated directories and creating a plain text file (vim atlassian_username or vim atlassian_token) and typing in your username or token. Details on how to obtain an atlassian token can be found here: https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/
 
 ```{r}
 conf <- yaml::read_yaml("../conf/geronimo.yml")
@@ -50,7 +50,7 @@ username <- scan("~/atlassian_username",what="character",quiet=TRUE)
 ```
 
 
-# Define a function for pulling issue data (without comments) from JIRA API. Note that you must create an Atlassian token and use it for your password. Info on how to make a token can be found here: https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/
+# Define a function for pulling issue data from JIRA API.
 
 ```{r eval=FALSE}
 #' @title Define function to fetch issues from JIRA REST API and save as JSON
@@ -75,17 +75,12 @@ fetch_and_save_jira_issues <- function(domain,
                                        maxResults = 50, 
                                        verbose = FALSE) {
   
-  # Ensure the domain starts with https:// for secure communication
+  # Ensure the domain starts with https:// for secure communication.
   if (!grepl("^https?://", domain)) {
     domain <- paste0("https://", domain)
   }
   
- 
-  
-   # Construct the API endpoint URL. appends /rest/api/latest/search to domain
-  #url <- paste0(domain, "/rest/api/latest/search")
-  
-  # Initialize variables for pagination
+  # Initialize variables for pagination. startAt variable can be adjusted to be the most recent issue downloaded for the future refresh function.
   startAt <- 0
   total <- maxResults
   all_issues <- list()
@@ -112,7 +107,7 @@ fetch_and_save_jira_issues <- function(domain,
       stop("API request failed: ", httr::http_status(response)$message)
     }
     
-    # Parse the response and extract issues. Append the new issues to all_issues
+    # Extract issues. Append the new issues to all_issues
     content <- jsonlite::fromJSON(httr::content(response, "text", encoding = "UTF-8"), simplifyVector = FALSE)
     all_issues <- append(all_issues, content$issues)
     
@@ -121,7 +116,7 @@ fetch_and_save_jira_issues <- function(domain,
   jsonlite::write_json(all_issues, save_path_issue_tracker_issues)
   
   
-    # Update startAt for the next page of results. The maxResults is the amoount of issues downloaded per loop call. When length(content$issues) < maxResults, this indicates that there are less issues than that remaining to be downloaded and so the loop will break. The second or boolean is for testing and should be deleted before using for serious.
+    # Update startAt for the next page of results. maxResults is the amount of issues downloaded per loop call. When length(content$issues) < maxResults, this indicates that there are less issues than that remaining to be downloaded and so the loop will break. The second or boolean is for testing and should be deleted before using for serious.
     if ((length(content$issues) < maxResults) || (length(all_issues) > 30)){
       break
       } else {
