@@ -36,7 +36,7 @@ version_control:
   # Where is the git log located locally?
   # This is the path to the .git of the project repository you are analyzing.
   # The .git is hidden, so you can see it using `ls -a`
-  log: ../../rawdata/git_repo/geronimo/.git
+  log: ~/Documents/GitHub/rawdata/git_repo/geronimo/.git
   # From where the git log was downloaded?
   log_url: https://github.com/apache/geronimo
   # List of branches used for analysis
@@ -45,7 +45,7 @@ version_control:
 
 mailing_list:
   # Where is the mbox located locally?
-  mbox: ../../rawdata/mbox/geronimo-dev.mbox
+  mbox: ~/Documents/GitHub/rawdata/mbox/geronimo-dev.mbox
   # What is the domain of the chosen mailing list archive?
   domain: http://mail-archives.apache.org/mod_mbox
   # Which lists of the domain will be used?
@@ -58,8 +58,8 @@ issue_tracker:
     domain: https://issues.apache.org/jira
     project_key: GERONIMO
     # Download using `download_jira_data.Rmd`
-    issues: ../../rawdata/issue_tracker/geronimo_issues.json
-    issue_comments: ../../rawdata/issue_tracker/geronimo_issue_comments.json
+    issues: ~/Documents/GitHub/rawdata/issue_tracker/geronimo_issues.json
+    issue_comments: ~/Documents/GitHub/rawdata/issue_tracker/geronimo_issue_comments.json
   github:
     # Obtained from the project's GitHub URL
     owner: apache
