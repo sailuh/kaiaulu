@@ -166,7 +166,7 @@ fetch_and_save_jira_issues(issue_tracker_domain,
 
 ```
 
-The json will be downloaded on the path specified in the project configuration file, which by default is `kaiaulu/kaiaulu/rawdata/issue_tracker`. We can then use Kaiaulu's function to parse the data into a tabular format. Since our request did not include the  `comment` field, only the issues table will be available. A few rows of the json issues is shown next:
+The json will be downloaded on the path specified in the project configuration file, which by default is `kaiaulu/kaiaulu/rawdata/issue_tracker`. We can then use Kaiaulu's function to parse the data into a tabular format. Since our request did not include the  `comment` field, only the issues table will be available. A few rows of th e json issues is shown next:
 
 ```{r}
 require(kaiaulu)
