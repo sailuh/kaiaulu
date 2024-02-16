@@ -15,8 +15,6 @@ test_that("parse_jira parses two issues as two rows", {
   issues_comments_list <- parse_jira(json_path = jira_json_path)
   issues <- issues_comments_list[["issues"]]
 
-  io_delete_folder(folder_path="/tmp", folder_name="one_issue_two_comments")
-
   expect_equal(nrow(issues),2)
 })
 

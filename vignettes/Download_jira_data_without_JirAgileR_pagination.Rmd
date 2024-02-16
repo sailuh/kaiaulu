@@ -45,7 +45,7 @@ issue_tracker_project_key <- conf[["issue_tracker"]][["jira"]][["project_key"]]
 save_path_issue_tracker_issues <- conf[["issue_tracker"]][["jira"]][["issues"]]
 save_path_issue_tracker_issue_comments <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
 your_api_token <- scan("~/.ssh/atlassian_token",what="character",quiet=TRUE)
-username <- scan("~/atlassian_username",what="character",quiet=TRUE)
+username <- scan("~/Documents/atlassian_username",what="character",quiet=TRUE)
 
 ```
 

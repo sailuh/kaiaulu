@@ -275,7 +275,7 @@ example_jira_two_issues <- function(folder_path="/tmp",folder_name) {
   issues <- list(issue1, issue2)
 
   jira_json_path <- make_jira_issue_tracker(issues,
-                                            save_filepath=file.path(folder_path,"issue_with_components.json"))
+                                            save_filepath=file.path(folder_path,"two_issues.json"))
 
   return(jira_json_path)
 }
