@@ -3,6 +3,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ * `fetch_and_save_jira_issues()` has been added. This allows for downloading of Jira issues without the use of JirAgileR [#275](https://github.com/sailuh/kaiaulu/issues/275)
  * The `make_jira_issue()` and `make_jira_issue_tracker()` have been added, alongside examples and unit tests for `parse_jira()`. [#228](https://github.com/sailuh/kaiaulu/issues/228) 
  * We can now generate fake mailing lists `make_mbox_reply`, and `make_mbox_mailing_list` for unit testing and tool comparison [#238](https://github.com/sailuh/kaiaulu/issues/238)
  * A condition to test if the user points parse_gitlog() and git_log() to an empty repository and returns a more helpful message than "object 'data.Author' not found' was included. A unit test also verifies the behavior of the tryCatch on an empty repo. [#108](https://github.com/sailuh/kaiaulu/issues/108)
