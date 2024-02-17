@@ -1,5 +1,5 @@
 ---
-title: "Download JIRA Issues and Comments without JirAgileR with pagination"
+title: "Download JIRA Issues and Comments"
 output: 
   html_document:
     toc: true
@@ -20,7 +20,6 @@ set.seed(seed)
 ```{r warning=FALSE,message=FALSE}
 require(kaiaulu)
 require(data.table)
-#require(JirAgileR)
 require(knitr, quietly = T)
 require(dplyr, quietly = T)
 require(jsonlite)
@@ -55,15 +54,18 @@ username <- scan("~/atlassian_username",what="character",quiet=TRUE)
 ```{r eval=FALSE}
 #' @title Define function to fetch issues from JIRA REST API and save as JSON
 #' @description Makes a request to JIRA's latest REST API to retrieve all
-#' the necessary information regarding the JIRA issues and downloand
-#' them to path designated save_path_issue_tracker_issues
-#' @param username is your atlassian username as a string
-#' @param password this is your atlassian token
+#' the necessary information regarding the JIRA issues and download
+#' them to path designated save_path_issue_tracker_issues. In the future, a refresh 
+#' capability will be added so that the user does not download the same issues multiple times
+#' @param username is your Atlassian username as a string
+#' @param password this is your Atlassian token
 #' @param domain Custom JIRA domain URL . we append the JIRA API endpoint to this. The original is set in the relevant config file
 #' @param jql_query the specific query string to specify criteria for fetching
 #' @param fields the list of fields that are downloaded in each issue
+#' @param save_path_issue_tracker_issues the path that the files will be saved along. This is
+#' specified in your config file.
 #' @param maxResults (optional) the maximum number of results to download per page
-#' defaul is 50
+#' default is 50
 #' @param verbose boolean flag to specify printing operational 
 #' messages or not
 fetch_and_save_jira_issues <- function(domain, 
@@ -80,7 +82,7 @@ fetch_and_save_jira_issues <- function(domain,
     domain <- paste0("https://", domain)
   }
   
-  # List existing files in the save path
+  # List existing files in the save path. This part is commented out but not deleted as it is my first attempt at trying to implement the refresh function. It will be revisited later.
   # existing_files <- list.files(save_path_issue_tracker_issues, pattern = "\\.json$", full.names = TRUE)
   # issue_numbers <- sapply(existing_files, function(x) {
   #   matches <- regmatches(x, regexec("([A-Z]+-)([0-9]+)", basename(x)))
@@ -95,11 +97,13 @@ fetch_and_save_jira_issues <- function(domain,
   # }
   
   
-  # Initialize variables for pagination. startAt variable can be adjusted to be the most recent issue downloaded for the future refresh function.
+  # Initialize variables for pagination
   startAt <- 0
   total <- maxResults
   all_issues <- list()
   
+  
+  # Loop that downloads each issue into a file
   repeat{
     # Construct the API endpoint URL
     url <- paste0(domain, "/rest/api/latest/search")
@@ -123,12 +127,10 @@ fetch_and_save_jira_issues <- function(domain,
     }
     
     # Extract issues. Append the new issues to all_issues
-    #content <- jsonlite::fromJSON(httr::content(response, "text", encoding = "UTF-8"), simplifyVector = FALSE)
-    #all_issues <- append(all_issues, content$issues)
     content <- jsonlite::fromJSON(httr::content(response, "text", encoding = "UTF-8"), simplifyVector = FALSE)
+    all_issues <- append(all_issues, content$issues)
     
-    
-    #saves each issue to separate file with the issue key and the time it was donwloaded. This can of course be changed to use different identifiers
+    #saves each issue to separate file with the issue key and the time it was downloaded. This can of course be changed to use different identifiers
     for (i in seq_along(content$issues)) {
       issue <- content$issues[[i]]
       issue_key <- issue$key
@@ -154,19 +156,11 @@ fetch_and_save_jira_issues <- function(domain,
     } else {
       startAt <- startAt + maxResults
     }
-    
-    # Verbose output for each page
-    # if (verbose) {
-    #   message("Fetched", maxResults, "issues. Total fetched: ", length(all_issues))
-    # }
   }
-  
-  # Save all the issues to the specified path
-  #jsonlite::write_json(all_issues, save_path_issue_tracker_issues)
   
   # Final verbose output
   if (verbose) {
-    message("Fetched and saved a total of ", length(all_issues), " issues to '", save_path_issue_tracker_issues, "'.")
+    message("Fetched and saved issues.")
   }
   
   # Returns the content so that it can be saved to a variable via function call
@@ -201,7 +195,7 @@ all_issues <- fetch_and_save_jira_issues(issue_tracker_domain,
                            verbose = TRUE)
 
 # save all_issues as a json file along the path save_path_issue_tracker_issues
-jsonlite::write_json(all_issues, save_path_issue_tracker_issues)
+# jsonlite::write_json(all_issues, save_path_issue_tracker_issues)
 ```
 
 # Download Issue with Comments
