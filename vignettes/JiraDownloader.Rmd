@@ -223,4 +223,3 @@ jira_comments <- jira_issue_comments[["comments"]]
 kable(jira_comments[10:11])
 ```
 
-
