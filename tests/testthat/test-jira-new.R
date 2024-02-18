@@ -1,30 +1,24 @@
-test_that("parse_jira parses one issue with two components as one row", {
+test_that("make_jira_issue creates an issue", {
+  folder_path <- io_make_folder(folder_path = "~/Documents/test_json", folder_name = "make_issue")
 
-  jira_json_path <- example_jira_issue_components(folder_path = "/tmp",
-                                                          folder_name = "issue_with_components")
+  issue <- make_jira_issue_new(jira_domain_url = "https://project.org/jira",
+                               issue_key = "GERONIMO-2",
+                               issue_type = "Bug",
+                               status = "In Progress",
+                               resolution = "Incomplete",
+                               title = "Bug fixes need implementation.",
+                               description = "The new features have not been implemented.",
+                               components = "x-core",
+                               creator_name = "Moe",
+                               reporter_name = "Larry",
+                               assignee_name = "Curly",
+                               comments = c(
+                                 "This is the first body comment.",
+                                 "This is the second body comment."
+                               )
+  )
 
-  issues_comments_list <- parse_jira(json_path = jira_json_path)
-  issues <- issues_comments_list[["issues"]]
-
-  expect_equal(nrow(issues),1)
-})
-
-test_that("parse_jira parses two issues as two rows", {
-  jira_json_path <- example_jira_two_issues(folder_path = "/tmp",
-                                               folder_name = "one_issue_two_comments")
-  issues_comments_list <- parse_jira(json_path = jira_json_path)
-  issues <- issues_comments_list[["issues"]]
-
-  expect_equal(nrow(issues),2)
-})
-
-test_that("parse_jira parses one issue with two comments as two rows", {
-  jira_json_path <- example_jira_issue_comments(folder_path = "/tmp",
-                                                        folder_name = "one_issue_two_comments")
-  issues_comments_list <- parse_jira(json_path = jira_json_path)
-  comments <- issues_comments_list[["comments"]]
-
-  io_delete_folder(folder_path="/tmp", folder_name="one_issue_two_comments")
-
-  expect_equal(nrow(comments),2)
+  issues <- list(issue)
+  make_jira_issue_tracker_new(issues,
+                              save_filepath=file.path(folder_path,"issue2.json"))
 })

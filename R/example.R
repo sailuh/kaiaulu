@@ -210,7 +210,7 @@ example_jira_issue_components <- function(folder_path="/tmp",folder_name) {
   # Create folder & repo
   folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
 
-  issue1 <- make_jira_issue_new(jira_domain_url = "https://project.org/jira",
+  issue1 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
                             issue_key = "GERONIMO-123",
                             issue_type = "New Feature",
                             status = "Open",
@@ -223,7 +223,6 @@ example_jira_issue_components <- function(folder_path="/tmp",folder_name) {
                             assignee_name = "Moe",
   )
 
-  # issues <- c(list(issue1))
   issues <- list(issue1)
 
   jira_json_path <- make_jira_issue_tracker(issues,
