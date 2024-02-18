@@ -36,7 +36,7 @@ version_control:
   # Where is the git log located locally?
   # This is the path to the .git of the project repository you are analyzing.
   # The .git is hidden, so you can see it using `ls -a`
-  log: ~/Documents/GitHub/rawdata/git_repo/apr/.git
+  log: ../../rawdata/git_repo/APR/.git
   # From where the git log was downloaded?
   log_url: https://github.com/apache/apr
   # List of branches used for analysis
@@ -66,7 +66,7 @@ issue_tracker:
     owner: apache
     repo: apr
     # Download using `download_github_comments.Rmd`
-    replies: ~/Documents/GitHub/rawdata/github/apr/
+    replies: ../../rawdata/github/apr/
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
