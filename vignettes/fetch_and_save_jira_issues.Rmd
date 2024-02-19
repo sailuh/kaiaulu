@@ -95,7 +95,8 @@ fetch_and_save_jira_issues <- function(domain,
                                        fields, 
                                        save_path_issue_tracker_issues,  
                                        maxResults = 50, 
-                                       verbose = FALSE) {
+                                       verbose = FALSE,
+                                       maxDownloadsPerHour) {
   
   # Ensure the domain starts with https:// for secure communication.
   if (!grepl("^https?://", domain)) {
@@ -106,9 +107,34 @@ fetch_and_save_jira_issues <- function(domain,
   startAt <- 0
   total <- maxResults
   all_issues <- list()
-
+  # This variable counts your download count. This is important to not exceed the max downloads per hour
+  downloadCount <- 0
+  startTime <- Sys.time()
+  message("Starting Downloads at ", startTime)
   # Loop that downloads each issue into a file
   repeat{
+    # Check if an hour has elapsed and if so, reset the startTime
+    if (Sys.time() - startTime >= 3600) { # Checks if an hour has passed
+      # Reset counters after an hour
+      downloadCount <- 0
+      startTime <- Sys.time()
+    }
+    
+    # Check update our download count and see if it is approaching the limit
+     if (downloadCount + maxResults > maxDownloadsPerHour) {
+      # Compute time until next hour and output message
+      timeToWait <- as.numeric(3600 - (Sys.time() - startTime), units = "secs")
+      if (verbose) {
+        message("Approaching API limit, waiting for ", timeToWait, " seconds.")
+      }
+      # Sleep to stop downloading
+      Sys.sleep(timeToWait) # Pause execution until the next hour window
+      # Reset downloadCount
+      downloadCount <- 0
+      # Reset Start time
+      startTime <- Sys.time()
+     } # Resume donwloading
+    
     # Construct the API endpoint URL
     url <- paste0(domain, "/rest/api/latest/search")
     
@@ -144,7 +170,12 @@ fetch_and_save_jira_issues <- function(domain,
       
       if (verbose) {
         message("Saved issue ", issue_key, " to ", file_name)
+        
       }
+    }
+    downloadCount <- downloadCount + maxResults
+    if (verbose){
+      message("Saved ", downloadCount, " total files")
     }
   
     #updates startat for next loop
@@ -191,7 +222,8 @@ all_issues <- fetch_and_save_jira_issues(issue_tracker_domain,
                            "resolutiondate"), 
                            save_path_issue_tracker_issues, 
                            maxResults = 5, 
-                           verbose = TRUE)
+                           verbose = TRUE,
+                           maxDownloadsPerHour = 50)
 
 # save all_issues as a json file along the path save_path_issue_tracker_issues
 # jsonlite::write_json(all_issues, save_path_issue_tracker_issues)
@@ -227,7 +259,8 @@ all_issues_comments <- fetch_and_save_jira_issues(issue_tracker_domain,
                            "comment"), 
                            save_path_issue_tracker_issue_comments, 
                            maxResults = 5, 
-                           verbose = TRUE)
+                           verbose = TRUE,
+                           maxDownloadsPerHour = 5000)
 #path <- file.path(save_path_issue_tracker_issue_comments)
 jsonlite::write_json(all_issues_comments, save_path_issue_tracker_issue_comments)
 ```
