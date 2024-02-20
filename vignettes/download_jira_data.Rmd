@@ -1,5 +1,5 @@
 ---
-title: "Download JIRA Issues and Comments"
+title: "Download JIRA Issues and Comments without JirAgileR"
 output: 
   html_document:
     toc: true
@@ -20,7 +20,6 @@ set.seed(seed)
 ```{r warning=FALSE,message=FALSE}
 require(kaiaulu)
 require(data.table)
-require(JirAgileR)
 require(knitr, quietly = T)
 require(dplyr, quietly = T)
 require(jsonlite)
@@ -36,43 +35,30 @@ As usual, the first step is to load the project configuration file.
 
 In this notebook, we will obtain data from the issue tracker JIRA. We will use [Apache's Geronimo open source project](https://geronimo.apache.org). Refer to the `conf/` folder on Kaiaulu's git repository for Geronimo and other project configuration files. It is in this project configuration file we specify where Kaiaulu can find the jira sources from Geronimo. We will use the issue_tracker -> jira fields only. In regards to the "issues" and "issue_comments" fields, these should be set to paths where you want to store the jira data. Then, you can access this jira data later using these same paths.
 
+# your_api_token is your atlassian token that is used as your password. Your username is your atlassian username (usually your email). These can be created by navigating to the indicated directories and creating a plain text file (vim atlassian_username or vim atlassian_token) and typing in your username or token. Details on how to obtain an atlassian token can be found here: https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/
+
 ```{r}
 conf <- yaml::read_yaml("../conf/geronimo.yml")
 issue_tracker_domain <- conf[["issue_tracker"]][["jira"]][["domain"]]
 issue_tracker_project_key <- conf[["issue_tracker"]][["jira"]][["project_key"]]
 save_path_issue_tracker_issues <- conf[["issue_tracker"]][["jira"]][["issues"]]
 save_path_issue_tracker_issue_comments <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
+your_api_token <- scan("~/.ssh/atlassian_token",what="character",quiet=TRUE)
+username <- scan("~/atlassian_username",what="character",quiet=TRUE)
 
 ```
 
-# Specifying the JIRA credentials
 
-In the project configuration file, we define the domain which JIRA is hosted. The example configuration file uses the domain for Apache Software Foundation. We can use this information to queue the domain to identify all project keys available in its JIRA:
+# Download issues
 
-```{r eval = FALSE}
-# Save credentials to pass them only one time
-save_jira_credentials(domain = issue_tracker_domain)
+This calls a function that interacts through the JIRA REST API through the rest/api/2/issues endpoint. It authenticates requests with your username and api token (used in this case as the password). It also specifies the parameters passed to the API request including fields. maxResult is the number of issues downloaded per page, verbose when set to TRUE prints operational messages, and maxDownloadsPerHour sets an upper limit on how many issues will be downloaded within an hour before the function sleeps until the hour elapses. 
 
-# Get full list of projects in domain
-apache_jira_projects <- data.table(get_jira_projects()) #%>% 
-    #select(key, name) 
-
-```
-
-You can load `apache_jira_projects` for the list of projects available. However, this step is optional.
-
-# Download Issues (Without Comments)
-
-In the project configuration file, we also specify the project configuration key (you can also type it directly for the function call). Here, we used the key `GERONIMO`. You can also manually explore the existing issues from a given project by visiting it [on your browser](https://issues.apache.org/jira/projects/GERONIMO/issues/GERONIMO-734?filter=allopenissues). Please see the function documentation warning for `get_jira_issues` on respecting the number of function calls to the server to avoid being IP blocked. 
-
-The following function will download all the available issues. For more details, see the associated package documentation. This data can be used to obtain the `bug_count` metric. See the associated R notebook `bug_count.Rmd` for details.
-
-We will download the data on `verbose`, and as json (`as.data.frame = FALSE`), as the turning the later appears to cause column names to not match values, ignores the requested fields, and gives inconsistent column names. Kaiaulu implements its own parser for the json file, so you will still be able to obtain a table in the end without the associated issues. 
-
-```{r eval = FALSE}
-# Retrieve the issues from a single project - in this case the project QTWB from bugreports.qt.io. See documentation to define which fields to see
-json_issues <- get_jira_issues(jql_query = paste0("project='",issue_tracker_project_key,"'"),
-                fields = c("summary",
+```{r eval=FALSE}
+all_issues <- download_and_save_jira_issues(issue_tracker_domain,
+                           username, 
+                           your_api_token, 
+                           jql_query = paste0("project='",issue_tracker_project_key,"'"), 
+                           fields = c("summary", 
                            "description",
                            "creator",
                            "assignee",
@@ -83,31 +69,31 @@ json_issues <- get_jira_issues(jql_query = paste0("project='",issue_tracker_proj
                            "components",
                            "created",
                            "updated",
-                           "resolutiondate"),
-                verbose=TRUE,
-                as.data.frame = FALSE)
+                           "resolutiondate"), 
+                           save_path_issue_tracker_issues, 
+                           maxResults = 5, 
+                           verbose = TRUE,
+                           maxDownloadsPerHour = 4500)
 
-jsonlite::write_json(json_issues,save_path_issue_tracker_issues)
+# save all_issues as a json file along the path save_path_issue_tracker_issues
+# jsonlite::write_json(all_issues, save_path_issue_tracker_issues)
 ```
-
-The json will be downloaded on the path specified in the project configuration file, which by default is `kaiaulu/kaiaulu/rawdata/issue_tracker`. We can then use Kaiaulu's function to parse the data into a tabular format. Since our request did not include the  `comment` field, only the issues table will be available. A few rows of the json issues is shown next:
-
-```{r}
-jira_issues_list <- parse_jira(save_path_issue_tracker_issues)
-jira_issues <- jira_issues_list[["issues"]]
-jira_comments <- jira_issues_list[["comments"]]
-kable(jira_issues[7:8])
-```
-
 # Download Issue with Comments
 
 In the same manner as before, we can perform the same function call, but including the field `comment`. This will result in the same table being generated but with the additional comment information per issue (if an issue has more than one comment, the issue id is repeated for each different comment). The comment is shown on the column `comment_comments_id`. 
 
 The data of this table can be used to calculate `social smell metrics`, as it represents a form of developer communication. A notebook discussing how to use JIRA data as communication network and/or combining to mailing list data will be made available in the future. 
 
-```{r eval = FALSE}
-json_issue_comments <- get_jira_issues(jql_query = paste0("project='",issue_tracker_project_key,"'"),
-                fields = c("summary",
+Since this time around we requested the issue data and comments, when using the `parse_jira` function, both the issues and comments table will be available from the parser. Since the issue table was already displayed, the following show a few rows of the issue comments table:
+
+# Call the function fetch_and_save_jira_issues (defined on line 55)
+```{r eval=FALSE}
+# Call the function
+all_issues_comments <- download_and_save_jira_issues(issue_tracker_domain,
+                           username, 
+                           your_api_token, 
+                           jql_query = paste0("project='",issue_tracker_project_key,"'"), 
+                           fields = c("summary",
                            "description",
                            "creator",
                            "assignee",
@@ -119,18 +105,11 @@ json_issue_comments <- get_jira_issues(jql_query = paste0("project='",issue_trac
                            "created",
                            "updated",
                            "resolutiondate",
-                           "comment"),
-                verbose=TRUE,
-                as.data.frame = FALSE)
-jsonlite::write_json(json_issue_comments,save_path_issue_tracker_issue_comments)
-```
-
-Since this time around we requested the issue data and comments, when using the `parse_jira` function, both the issues and comments table will be available from the parser. Since the issue table was already displayed, the following show a few rows of the issue comments table:
-
-```{r}
-jira_issue_comments <- parse_jira(save_path_issue_tracker_issue_comments)
-jira_issues <- jira_issue_comments[["issues"]]
-jira_comments <- jira_issue_comments[["comments"]]
-
-kable(jira_comments[55:56])
+                           "comment"), 
+                           save_path_issue_tracker_issue_comments, 
+                           maxResults = 5, 
+                           verbose = TRUE,
+                           maxDownloadsPerHour = 4500)
+#path <- file.path(save_path_issue_tracker_issue_comments)
+jsonlite::write_json(all_issues_comments, save_path_issue_tracker_issue_comments)
 ```
