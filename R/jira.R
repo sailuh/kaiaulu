@@ -581,14 +581,14 @@ create_status <- function(jira_domain_url, status) {
 #' @param maxDownloadsPerhour Maximum downloads per hour so as to not get API blocked
 #' @export
 download_and_save_jira_issues <- function(domain,
-                                       username = NULL,
-                                       password = NULL,
-                                       jql_query,
-                                       fields,
-                                       save_path_issue_tracker_issues,
-                                       maxResults = 50,
-                                       verbose = FALSE,
-                                       maxDownloadsPerHour) {
+                                          username = NULL,
+                                          password = NULL,
+                                          jql_query,
+                                          fields,
+                                          save_path_issue_tracker_issues,
+                                          maxResults = 50,
+                                          verbose = FALSE,
+                                          maxDownloadsPerHour) {
 
   # Ensure the domain starts with https:// for secure communication.
   if (!grepl("^https?://", domain)) {
@@ -628,7 +628,7 @@ download_and_save_jira_issues <- function(domain,
     } # Resume donwloading
 
     # Construct the API endpoint URL
-    url <- paste0(domain, "/rest/api/latest/search")
+    url <- paste0(domain, "/rest/api/2/search")
 
     # Authenticate if username and password are provided
     if(!is.null(username) && !is.null(password)){
@@ -652,22 +652,36 @@ download_and_save_jira_issues <- function(domain,
     content <- jsonlite::fromJSON(httr::content(response, "text", encoding = "UTF-8"), simplifyVector = FALSE)
     all_issues <- append(all_issues, content$issues)
 
-    #saves each issue to separate file with the issue key and the time it was downloaded. This can of course be changed to use different identifiers
+    #saves each issue to separate file with the issue key and the time it was downloaded.
+    #This can of course be changed to use different identifiers. Current naming
+    #convention is [save_path_issue_tracker_issues]_[1st-issue-key]-[last-issue-key]_[timestamp]
+    #The intention is to state the range of the issues.
+    file_name <- save_path_issue_tracker_issues
     for (i in seq_along(content$issues)) {
-      issue <- content$issues[[i]]
-      issue_key <- issue$key
-      timestamp <- format(Sys.time(), "%Y%m%d%H%M%S")
-      file_name <- paste0(save_path_issue_tracker_issues, "_", issue_key, "_", timestamp, ".json")
-      jsonlite::write_json(issue, file_name)
-
-      if (verbose) {
-        message("Saved issue ", issue_key, " to ", file_name)
-
+      if (i == 1){
+        issue <- content$issue[[i]]
+        issue_key <- issue$key
+        file_name <- paste0(file_name, "_", issue_key)
       }
+      if (i == maxResults){
+        issue <- content$issue[[i]]
+        issue_key <- issue$key
+        timestamp <- format(Sys.time(), "%Y%m%d%H%M%S")
+        file_name <- paste0(file_name, "-", issue_key, "_", timestamp, ".json")
+      }
+      #jsonlite::write_json(content, file_name)
     }
+
+    #write the files
+    jsonlite::write_json(content, file_name)
+
+    if (verbose){
+      message("saved file to ", file_name)
+    }
+
     downloadCount <- downloadCount + maxResults
     if (verbose){
-      message("Saved ", downloadCount, " total files")
+      message("Saved ", downloadCount, " total issues")
     }
 
     #updates startat for next loop
@@ -680,7 +694,7 @@ download_and_save_jira_issues <- function(domain,
 
   # Final verbose output
   if (verbose) {
-    message("Fetched and saved issues.")
+    message("Success! Fetched and saved issues.")
   }
 
   # Returns the content so that it can be saved to a variable via function call
