@@ -48,28 +48,6 @@ username <- scan("~/atlassian_username",what="character",quiet=TRUE)
 
 ```
 
-# function that gets the most recent "created" field of the issues downloaded in you path. This value is used to download only issues created after this date
-```{r eval=FALSE}
-find_most_recent_issue_date <- function(save_path) {
-  files <- list.files(save_path, pattern = "\\.json$", full.names = TRUE)
-  most_recent_date <- as.POSIXct("1970-01-01", tz="")  # Initialize with a very old date, no timeszone
-  
-  for (file in files) {
-    message("Scanning file: ", basename(file))
-    issue <- jsonlite::read_json(file, simplifyVector = FALSE)
-    created_date <- as.POSIXct(issue$created, format="%Y/%m/%d %H:%M", tz="")
-    
-    if (created_date > most_recent_date) {
-      most_recent_date <- created_date
-    }
-  }
-  
-  return(most_recent_date)
-}
-
-print(find_most_recent_issue_date(save_path_issue_tracker_issues))
-```
-
 # Download Issue with Comments
 
 In the same manner as before, we can perform the same function call, but including the field `comment`. This will result in the same table being generated but with the additional comment information per issue (if an issue has more than one comment, the issue id is repeated for each different comment). The comment is shown on the column `comment_comments_id`. 
