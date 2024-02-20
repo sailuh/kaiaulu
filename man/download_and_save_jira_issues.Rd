@@ -35,7 +35,7 @@ Default is 50}
 \item{verbose}{boolean flag to specify printing operational
 messages or not}
 
-\item{maxDownloadsPerhour}{Maximum downloads per hour so as to not get API blocked}
+\item{maxDownloadsPerHour}{Maximum downloads per hour so as to not get API blocked}
 }
 \description{
 Download issue data from "rest/api/lastest/search" endpoint

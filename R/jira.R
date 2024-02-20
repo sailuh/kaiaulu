@@ -578,7 +578,7 @@ create_status <- function(jira_domain_url, status) {
 #' Default is 50
 #' @param verbose boolean flag to specify printing operational
 #' messages or not
-#' @param maxDownloadsPerhour Maximum downloads per hour so as to not get API blocked
+#' @param maxDownloadsPerHour Maximum downloads per hour so as to not get API blocked
 #' @export
 download_and_save_jira_issues <- function(domain,
                                           username = NULL,
