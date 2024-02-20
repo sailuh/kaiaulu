@@ -49,7 +49,9 @@ username <- scan("~/atlassian_username",what="character",quiet=TRUE)
 ```
 
 
-# Call the function and save the returned content to variable called all_issues
+# Download issues
+
+This calls a function that interacts through the JIRA REST API through the rest/api/2/issues endpoint. It authenticates requests with your username and api token (used in this case as the password). It also specifies the parameters passed to the API request including fields. maxResult is the number of issues downloaded per page, verbose when set to TRUE prints operational messages, and maxDownloadsPerHour sets an upper limit on how many issues will be downloaded within an hour before the function sleeps until the hour elapses. 
 
 ```{r eval=FALSE}
 all_issues <- download_and_save_jira_issues(issue_tracker_domain,
