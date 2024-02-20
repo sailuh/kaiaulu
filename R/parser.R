@@ -842,68 +842,68 @@ parse_jira <- function(json_path){
     return(parsed_comment)
   }
 
-  # names(json_issue_comments) => "base_info","ext_info"
-  # length([["base_info]]) == length([["ext_info]]) == n_issues.
-  # Choose either and store the total number of issues
-  #n_issues <- length(json_issue_comments[["issues"]])
+  n_issues <- length(json_issue_comments[["issues"]])
 
   # Prepare two lists which will contain data.tables for all issues and all comments
   # Both tables can share the issue_key, so they can be joined if desired.
   all_issues <- list()
   all_issues_comments <- list()
 
+  for(i in 1:n_issues){
 
-  # This is the issue key
-  issue_key <- json_issue_comments[["issues"]][[1]][["key"]][[1]]
+    # This is the issue key
+    issue_key <- json_issue_comments[["issues"]][[i]][["key"]][[1]]
 
-  # All other information is contained in "fields"
-  issue_comment <- json_issue_comments[["issues"]][[1]][["fields"]]
+    # All other information is contained in "fields"
+    issue_comment <- json_issue_comments[["issues"]][[i]][["fields"]]
 
-  # Parse all relevant *issue* fields
-  all_issues[[1]] <- data.table(
-    issue_key = issue_key,
+    # Parse all relevant *issue* fields
+    all_issues[[i]] <- data.table(
+      issue_key = issue_key,
 
-    issue_summary = issue_comment[["summary"]][[1]],
-    issue_type = issue_comment[["issuetype"]][["name"]][[1]],
-    issue_status = issue_comment[["status"]][["statusCategory"]][["name"]][[1]],
-    issue_resolution = issue_comment[["resolution"]][["name"]][[1]],
-    issue_components = stringi::stri_c(unlist(sapply(issue_comment[["components"]],"[[","name")),collapse = ";"),
-    issue_description = issue_comment[["description"]][[1]],
+      issue_summary = issue_comment[["summary"]][[1]],
+      issue_type = issue_comment[["issuetype"]][["name"]][[1]],
+      issue_status = issue_comment[["status"]][["statusCategory"]][["name"]][[1]],
+      issue_resolution = issue_comment[["resolution"]][["name"]][[1]],
+      issue_components = stringi::stri_c(unlist(sapply(issue_comment[["components"]],"[[","name")),collapse = ";"),
+      issue_description = issue_comment[["description"]],
 
-    issue_created_datetimetz = issue_comment[["created"]][[1]],
-    issue_updated_datetimetz = issue_comment[["updated"]][[1]],
-    issue_resolution_datetimetz = issue_comment[["resolutiondate"]][[1]],
+      issue_created_datetimetz = issue_comment[["created"]][[1]],
+      issue_updated_datetimetz = issue_comment[["updated"]][[1]],
+      issue_resolution_datetimetz = issue_comment[["resolutiondate"]][[1]],
 
-    issue_creator_id = issue_comment[["creator"]][["name"]][[1]],
-    issue_creator_name = issue_comment[["creator"]][["displayName"]][[1]],
-    issue_creator_timezone = issue_comment[["creator"]][["timeZone"]][[1]],
+      issue_creator_id = issue_comment[["creator"]][["name"]][[1]],
+      issue_creator_name = issue_comment[["creator"]][["displayName"]][[1]],
+      issue_creator_timezone = issue_comment[["creator"]][["timeZone"]][[1]],
 
-    issue_assignee_id = issue_comment[["assignee"]][["name"]][[1]],
-    issue_assignee_name = issue_comment[["assignee"]][["displayName"]][[1]],
-    issue_assignee_timezone = issue_comment[["assignee"]][["timeZone"]][[1]],
+      issue_assignee_id = issue_comment[["assignee"]][["name"]][[1]],
+      issue_assignee_name = issue_comment[["assignee"]][["displayName"]][[1]],
+      issue_assignee_timezone = issue_comment[["assignee"]][["timeZone"]][[1]],
 
-    issue_reporter_id = issue_comment[["reporter"]][["name"]][[1]],
-    issue_reporter_name = issue_comment[["reporter"]][["displayName"]][[1]],
-    issue_reporter_timezone = issue_comment[["reporter"]][["timeZone"]][[1]]
-  )
+      issue_reporter_id = issue_comment[["reporter"]][["name"]][[1]],
+      issue_reporter_name = issue_comment[["reporter"]][["displayName"]][[1]],
+      issue_reporter_timezone = issue_comment[["reporter"]][["timeZone"]][[1]]
+    )
 
-  # Comments
-  # For each issue, comment/comments contain 1 or more comments. Parse them
-  # in a separate table.
-  root_of_comments_list <- json_issue_comments[["issues"]][[1]][["comment"]][[1]]
-  # If root_of_comments_list does not exist, then this is an issue only json, skip parsing
-  if(length(root_of_comments_list) > 0){
-    comments_list <- json_issue_comments[["comment"]][["comments"]][[1]]
-    # Even on a json with comments, some issues may not have comments, check if comments exist:
-    if(length(comments_list) > 0){
-      # Parse all comments into issue_comments
-      issue_comments <- rbindlist(lapply(comments_list,
-                                         jira_parse_comment))
-      # Add issue_key column to the start of the table
-      issue_comments <- cbind(data.table(issue_key=issue_key),issue_comments)
-      all_issues_comments <- issue_comments
+    # Comments
+    # For each issue, comment/comments contain 1 or more comments. Parse them
+    # in a separate table.
+    root_of_comments_list <- json_issue_comments[["issues"]][[1]][["comment"]][[1]]
+    # If root_of_comments_list does not exist, then this is an issue only json, skip parsing
+    if(length(root_of_comments_list) > 0){
+      comments_list <- json_issue_comments[["comment"]][["comments"]][[1]]
+      # Even on a json with comments, some issues may not have comments, check if comments exist:
+      if(length(comments_list) > 0){
+        # Parse all comments into issue_comments
+        issue_comments <- rbindlist(lapply(comments_list,
+                                           jira_parse_comment))
+        # Add issue_key column to the start of the table
+        issue_comments <- cbind(data.table(issue_key=issue_key),issue_comments)
+        all_issues_comments <- issue_comments
+      }
     }
   }
+
   all_issues <- rbindlist(all_issues,fill=TRUE)
   all_issues_comments <- rbindlist(all_issues_comments,fill=TRUE)
 
