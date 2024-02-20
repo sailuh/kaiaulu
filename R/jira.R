@@ -563,3 +563,126 @@ create_status <- function(jira_domain_url, status) {
 
   return(status)
 }
+
+#' Define function to fetch issues from JIRA REST API and save as JSON
+#'
+#' Download issue data from "rest/api/lastest/search" endpoint
+#'
+#' @param username Atlassian username as a string
+#' @param password Atlassian token
+#' @param domain Custom JIRA domain URL set in config file
+#' @param jql_query Specific query string to specify criteria for fetching
+#' @param fields List of fields that are downloaded in each issue
+#' @param save_path_issue_tracker_issues Path that files will be save along
+#' @param maxResults (optional) the maximum number of results to download per page.
+#' Default is 50
+#' @param verbose boolean flag to specify printing operational
+#' messages or not
+#' @param maxDownloadsPerhour Maximum downloads per hour so as to not get API blocked
+#' @export
+download_and_save_jira_issues <- function(domain,
+                                       username = NULL,
+                                       password = NULL,
+                                       jql_query,
+                                       fields,
+                                       save_path_issue_tracker_issues,
+                                       maxResults = 50,
+                                       verbose = FALSE,
+                                       maxDownloadsPerHour) {
+
+  # Ensure the domain starts with https:// for secure communication.
+  if (!grepl("^https?://", domain)) {
+    domain <- paste0("https://", domain)
+  }
+
+  # Initialize variables for pagination
+  startAt <- 0
+  total <- maxResults
+  all_issues <- list()
+  # This variable counts your download count. This is important to not exceed the max downloads per hour
+  downloadCount <- 0
+  startTime <- Sys.time()
+  message("Starting Downloads at ", startTime)
+  # Loop that downloads each issue into a file
+  repeat{
+    # Check if an hour has elapsed and if so, reset the startTime
+    if (Sys.time() - startTime >= 3600) { # Checks if an hour has passed
+      # Reset counters after an hour
+      downloadCount <- 0
+      startTime <- Sys.time()
+    }
+
+    # Check update our download count and see if it is approaching the limit
+    if (downloadCount + maxResults > maxDownloadsPerHour) {
+      # Compute time until next hour and output message
+      timeToWait <- as.numeric(3600 - (Sys.time() - startTime), units = "secs")
+      if (verbose) {
+        message("Approaching API limit, waiting for ", timeToWait, " seconds.")
+      }
+      # Sleep to stop downloading
+      Sys.sleep(timeToWait) # Pause execution until the next hour window
+      # Reset downloadCount
+      downloadCount <- 0
+      # Reset Start time
+      startTime <- Sys.time()
+    } # Resume donwloading
+
+    # Construct the API endpoint URL
+    url <- paste0(domain, "/rest/api/latest/search")
+
+    # Authenticate if username and password are provided
+    if(!is.null(username) && !is.null(password)){
+      auth <- httr::authenticate(as.character(username), as.character(password), "basic")
+    } else {
+      auth <- NULL
+    }
+
+    # Prepare query parameters for the API call
+    query_params <- list(jql = jql_query, fields = paste(fields, collapse = ","), maxResults = maxResults, startAt = startAt)
+
+    # Make the API call
+    response <- httr::GET(url, query = query_params)
+
+    # Stop if there's an HTTP error
+    if (httr::http_error(response)) {
+      stop("API request failed: ", httr::http_status(response)$message)
+    }
+
+    # Extract issues. Append the new issues to all_issues
+    content <- jsonlite::fromJSON(httr::content(response, "text", encoding = "UTF-8"), simplifyVector = FALSE)
+    all_issues <- append(all_issues, content$issues)
+
+    #saves each issue to separate file with the issue key and the time it was downloaded. This can of course be changed to use different identifiers
+    for (i in seq_along(content$issues)) {
+      issue <- content$issues[[i]]
+      issue_key <- issue$key
+      timestamp <- format(Sys.time(), "%Y%m%d%H%M%S")
+      file_name <- paste0(save_path_issue_tracker_issues, "_", issue_key, "_", timestamp, ".json")
+      jsonlite::write_json(issue, file_name)
+
+      if (verbose) {
+        message("Saved issue ", issue_key, " to ", file_name)
+
+      }
+    }
+    downloadCount <- downloadCount + maxResults
+    if (verbose){
+      message("Saved ", downloadCount, " total files")
+    }
+
+    #updates startat for next loop
+    if (length(content$issues) < maxResults) {
+      break
+    } else {
+      startAt <- startAt + maxResults
+    }
+  }
+
+  # Final verbose output
+  if (verbose) {
+    message("Fetched and saved issues.")
+  }
+
+  # Returns the content so that it can be saved to a variable via function call
+  return(all_issues)
+}
