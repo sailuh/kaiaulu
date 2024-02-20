@@ -48,6 +48,35 @@ username <- scan("~/atlassian_username",what="character",quiet=TRUE)
 
 ```
 
+# Define the variables required for the function call. This chunk also specifies the fields to be downloaded
+# Call the function download_and_save_jira_issues
+
+```{r eval=FALSE}
+# Call the function and save the returned content to variable called all_issues
+all_issues <- download_and_save_jira_issues(issue_tracker_domain,
+                           username, 
+                           your_api_token, 
+                           jql_query = paste0("project='",issue_tracker_project_key,"'"), 
+                           fields = c("summary", 
+                           "description",
+                           "creator",
+                           "assignee",
+                           "reporter",
+                           "issuetype",
+                           "status",
+                           "resolution",
+                           "components",
+                           "created",
+                           "updated",
+                           "resolutiondate"), 
+                           save_path_issue_tracker_issues, 
+                           maxResults = 5, 
+                           verbose = TRUE,
+                           maxDownloadsPerHour = 4500)
+
+# save all_issues as a json file along the path save_path_issue_tracker_issues
+# jsonlite::write_json(all_issues, save_path_issue_tracker_issues)
+```
 # Download Issue with Comments
 
 In the same manner as before, we can perform the same function call, but including the field `comment`. This will result in the same table being generated but with the additional comment information per issue (if an issue has more than one comment, the issue id is repeated for each different comment). The comment is shown on the column `comment_comments_id`. 
