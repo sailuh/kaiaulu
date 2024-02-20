@@ -169,6 +169,7 @@ reference:
   - convert_pipermail_to_mbox
   - download_mod_mbox
   - download_mod_mbox_per_month
+  - download_and_save_jira_issues
 - title: __DV8__
   desc: Functions to interface with ArchDia’s DV8.
 - subtitle: Design Structure Matrix (DSM)
