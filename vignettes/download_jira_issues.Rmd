@@ -45,9 +45,11 @@ save_path_issue_tracker_issues <- conf[["issue_tracker"]][["jira"]][["issues"]]
 save_path_issue_tracker_issue_comments <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
 your_api_token <- scan("~/.ssh/atlassian_token",what="character",quiet=TRUE)
 username <- scan("~/atlassian_username",what="character",quiet=TRUE)
+# Read the credentials from the file
+# Assuming the first line is the username and the second line is the password
+credentials <- scan("~/.ssh/atlassian_credentials", what = "character", quiet = TRUE)
 
 ```
-
 
 # Download issues
 
@@ -73,7 +75,7 @@ all_issues <- download_and_save_jira_issues(issue_tracker_domain,
                            save_path_issue_tracker_issues, 
                            maxResults = 5, 
                            verbose = TRUE,
-                           maxDownloadsPerHour = 4500)
+                           maxDownloads = 10)
 
 # save all_issues as a json file along the path save_path_issue_tracker_issues
 # jsonlite::write_json(all_issues, save_path_issue_tracker_issues)
@@ -109,7 +111,7 @@ all_issues_comments <- download_and_save_jira_issues(issue_tracker_domain,
                            save_path_issue_tracker_issue_comments, 
                            maxResults = 5, 
                            verbose = TRUE,
-                           maxDownloadsPerHour = 4500)
+                           maxDownloads = 4500)
 #path <- file.path(save_path_issue_tracker_issue_comments)
 jsonlite::write_json(all_issues_comments, save_path_issue_tracker_issue_comments)
 ```

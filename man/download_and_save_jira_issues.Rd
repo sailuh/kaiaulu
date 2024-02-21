@@ -13,7 +13,7 @@ download_and_save_jira_issues(
   save_path_issue_tracker_issues,
   maxResults = 50,
   verbose = FALSE,
-  maxDownloadsPerHour
+  maxDownloads
 )
 }
 \arguments{
@@ -35,7 +35,7 @@ Default is 50}
 \item{verbose}{boolean flag to specify printing operational
 messages or not}
 
-\item{maxDownloadsPerHour}{Maximum downloads per hour so as to not get API blocked}
+\item{maxDownloads}{Maximum downloads per function call}
 }
 \description{
 Download issue data from "rest/api/lastest/search" endpoint

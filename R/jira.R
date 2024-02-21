@@ -578,7 +578,7 @@ create_status <- function(jira_domain_url, status) {
 #' Default is 50
 #' @param verbose boolean flag to specify printing operational
 #' messages or not
-#' @param maxDownloadsPerHour Maximum downloads per hour so as to not get API blocked
+#' @param maxDownloads Maximum downloads per function call
 #' @export
 download_and_save_jira_issues <- function(domain,
                                           username = NULL,
@@ -588,7 +588,7 @@ download_and_save_jira_issues <- function(domain,
                                           save_path_issue_tracker_issues,
                                           maxResults = 50,
                                           verbose = FALSE,
-                                          maxDownloadsPerHour) {
+                                          maxDownloads) {
 
   # Ensure the domain starts with https:// for secure communication.
   if (!grepl("^https?://", domain)) {
@@ -601,39 +601,32 @@ download_and_save_jira_issues <- function(domain,
   all_issues <- list()
   # This variable counts your download count. This is important to not exceed the max downloads per hour
   downloadCount <- 0
-  startTime <- Sys.time()
-  message("Starting Downloads at ", startTime)
+  time <- Sys.time()
+  message("Starting Downloads at ", time)
   # Loop that downloads each issue into a file
   repeat{
-    # Check if an hour has elapsed and if so, reset the startTime
-    if (Sys.time() - startTime >= 3600) { # Checks if an hour has passed
-      # Reset counters after an hour
-      downloadCount <- 0
-      startTime <- Sys.time()
-    }
 
     # Check update our download count and see if it is approaching the limit
-    if (downloadCount + maxResults > maxDownloadsPerHour) {
-      # Compute time until next hour and output message
-      timeToWait <- as.numeric(3600 - (Sys.time() - startTime), units = "secs")
-      if (verbose) {
-        message("Approaching API limit, waiting for ", timeToWait, " seconds.")
-      }
-      # Sleep to stop downloading
-      Sys.sleep(timeToWait) # Pause execution until the next hour window
-      # Reset downloadCount
-      downloadCount <- 0
-      # Reset Start time
-      startTime <- Sys.time()
+    if (downloadCount + maxResults > maxDownloads) {
+      # erorr message
+      time <- Sys.time()
+      message("Cannot download as maxDownloads will be exceeeded. Reccommend running again at a later time. Downloads ended at ", time)
+      break
     } # Resume donwloading
 
     # Construct the API endpoint URL
     url <- paste0(domain, "/rest/api/2/search")
 
     # Authenticate if username and password are provided
-    if(!is.null(username) && !is.null(password)){
+    if(length(credentials) >= 2) {
+      username <- credentials[1]
+      password <- credentials[2]
+      # Use the credentials for authentication
       auth <- httr::authenticate(as.character(username), as.character(password), "basic")
     } else {
+      if(verbose){
+        message("No credentials present.")
+      }
       auth <- NULL
     }
 
@@ -683,6 +676,8 @@ download_and_save_jira_issues <- function(domain,
     if (verbose){
       message("Saved ", downloadCount, " total issues")
     }
+
+    maxResults <- length(content$issues)
 
     #updates startat for next loop
     if (length(content$issues) < maxResults) {
