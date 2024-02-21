@@ -599,10 +599,10 @@ download_and_save_jira_issues <- function(domain,
     domain <- paste0("https://", domain)
   }
 
-  # if (!is.null(created_latest)){
-  #   jql_query <- paste(jql_query, "AND created >= ", created_latest)
-  #   message(jql_query)
-  # }
+  if (!is.null(created_latest)){
+     jql_query <- paste(jql_query, "AND created >= ", created_latest)
+     message(jql_query)
+   }
 
   #Initialize variables for pagination
 
@@ -672,7 +672,7 @@ download_and_save_jira_issues <- function(domain,
         issue_key <- issue$key
         file_name <- paste0(file_name, "_", issue_key)
       }
-      if (i == maxResults){
+      if (i == length(content$issues)){
         issue <- content$issue[[i]]
         issue_key <- issue$key
         timestamp <- format(Sys.time(), "%Y%m%d%H%M%S")
@@ -682,18 +682,21 @@ download_and_save_jira_issues <- function(domain,
     }
 
     #write the files
-    jsonlite::write_json(content, file_name, auto_unbox=TRUE)
-
-    if (verbose){
-      message("saved file to ", file_name)
+    if (length(content$issues) > 0){
+      jsonlite::write_json(content, file_name, auto_unbox=TRUE)
+    } else {
+      if(verbose){
+        message("You are all caught up!")
+      }
     }
 
-    downloadCount <- downloadCount + maxResults
-    if (verbose){
+    downloadCount <- downloadCount + length(content$issues)
+    if (verbose && (length(content$issues) > 0)){
+      message("saved file to ", file_name)
       message("Saved ", downloadCount, " total issues")
     }
 
-    maxResults <- length(content$issues)
+    #maxResults <- length(content$issues)
 
     #updates startat for next loop
     if (length(content$issues) < maxResults) {

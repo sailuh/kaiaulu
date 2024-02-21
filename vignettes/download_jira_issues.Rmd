@@ -51,9 +51,9 @@ credentials <- scan("~/.ssh/atlassian_credentials", what = "character", quiet = 
 
 ```
 
-# This sets the value of created_latest. This will be replaced with the parsed actual value for the refresh function. "AND created > 'YYYY-MM-DD'" will be appended onto the jql query.
+# This sets the value of created_latest. This will be replaced with the parsed actual value for the refresh function. "AND created > 'YYYY-MM-DD'" will be appended onto the jql query. For now it is using a dummy variable
 ```{r}
-#created_latest <- "'2008-01-01'"
+created_latest <- "'2010-01-01'"
 ```
 
 # Download issues
