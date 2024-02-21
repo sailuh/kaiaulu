@@ -564,6 +564,7 @@ create_status <- function(jira_domain_url, status) {
   return(status)
 }
 
+
 #' Define function to fetch issues from JIRA REST API and save as JSON
 #'
 #' Download issue data from "rest/api/lastest/search" endpoint
@@ -579,6 +580,8 @@ create_status <- function(jira_domain_url, status) {
 #' @param verbose boolean flag to specify printing operational
 #' messages or not
 #' @param maxDownloads Maximum downloads per function call
+#' @param created_latest the maximum value of the 'created' field in existing files
+#' This parameter is set to enable refresh capability
 #' @export
 download_and_save_jira_issues <- function(domain,
                                           username = NULL,
@@ -588,14 +591,21 @@ download_and_save_jira_issues <- function(domain,
                                           save_path_issue_tracker_issues,
                                           maxResults = 50,
                                           verbose = FALSE,
-                                          maxDownloads) {
+                                          maxDownloads = 5000,
+                                          created_latest = "'1970-01-01'") {
 
   # Ensure the domain starts with https:// for secure communication.
   if (!grepl("^https?://", domain)) {
     domain <- paste0("https://", domain)
   }
 
-  # Initialize variables for pagination
+  # if (!is.null(created_latest)){
+  #   jql_query <- paste(jql_query, "AND created >= ", created_latest)
+  #   message(jql_query)
+  # }
+
+  #Initialize variables for pagination
+
   startAt <- 0
   total <- maxResults
   all_issues <- list()
@@ -650,6 +660,12 @@ download_and_save_jira_issues <- function(domain,
     #convention is [save_path_issue_tracker_issues]_[1st-issue-key]-[last-issue-key]_[timestamp]
     #The intention is to state the range of the issues.
     file_name <- save_path_issue_tracker_issues
+
+    if (grepl("\\.json$", file_name)) {
+      # Remove .json if present in file_name
+      file_name <- sub("\\.json$", "", file_name)
+    }
+    # naming convention for each page
     for (i in seq_along(content$issues)) {
       if (i == 1){
         issue <- content$issue[[i]]
@@ -666,7 +682,7 @@ download_and_save_jira_issues <- function(domain,
     }
 
     #write the files
-    jsonlite::write_json(content, file_name)
+    jsonlite::write_json(content, file_name, auto_unbox=TRUE)
 
     if (verbose){
       message("saved file to ", file_name)

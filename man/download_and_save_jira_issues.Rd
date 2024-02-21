@@ -13,7 +13,8 @@ download_and_save_jira_issues(
   save_path_issue_tracker_issues,
   maxResults = 50,
   verbose = FALSE,
-  maxDownloads
+  maxDownloads = 5000,
+  created_latest = "'1970-01-01'"
 )
 }
 \arguments{
@@ -36,6 +37,9 @@ Default is 50}
 messages or not}
 
 \item{maxDownloads}{Maximum downloads per function call}
+
+\item{created_latest}{the maximum value of the 'created' field in existing files
+This parameter is set to enable refresh capability}
 }
 \description{
 Download issue data from "rest/api/lastest/search" endpoint

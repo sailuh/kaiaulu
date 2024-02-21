@@ -51,9 +51,15 @@ credentials <- scan("~/.ssh/atlassian_credentials", what = "character", quiet = 
 
 ```
 
+# This sets the value of created_latest. This will be replaced with the parsed actual value for the refresh function. "AND created > 'YYYY-MM-DD'" will be appended onto the jql query.
+```{r}
+#created_latest <- "'2008-01-01'"
+```
+
 # Download issues
 
 This calls a function that interacts through the JIRA REST API through the rest/api/2/issues endpoint. It authenticates requests with your username and api token (used in this case as the password). It also specifies the parameters passed to the API request including fields. maxResult is the number of issues downloaded per page, verbose when set to TRUE prints operational messages, and maxDownloadsPerHour sets an upper limit on how many issues will be downloaded within an hour before the function sleeps until the hour elapses. 
+
 
 ```{r eval=FALSE}
 all_issues <- download_and_save_jira_issues(issue_tracker_domain,
@@ -75,7 +81,8 @@ all_issues <- download_and_save_jira_issues(issue_tracker_domain,
                            save_path_issue_tracker_issues, 
                            maxResults = 5, 
                            verbose = TRUE,
-                           maxDownloads = 10)
+                           maxDownloads = 400,
+                           created_latest)
 
 # save all_issues as a json file along the path save_path_issue_tracker_issues
 # jsonlite::write_json(all_issues, save_path_issue_tracker_issues)
@@ -109,9 +116,10 @@ all_issues_comments <- download_and_save_jira_issues(issue_tracker_domain,
                            "resolutiondate",
                            "comment"), 
                            save_path_issue_tracker_issue_comments, 
-                           maxResults = 5, 
+                           maxResults = 20, 
                            verbose = TRUE,
-                           maxDownloads = 4500)
+                           maxDownloads = 4500,
+                           created_latest)
 #path <- file.path(save_path_issue_tracker_issue_comments)
 jsonlite::write_json(all_issues_comments, save_path_issue_tracker_issue_comments)
 ```
