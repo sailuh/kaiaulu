@@ -4,11 +4,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#' Create JirAgileR Issue
+#' Create JIRA Issue
 #'
 #' Creates a single JIRA Issue as a list, which can be saved as a JSON with or without comments.
-#' Note the JSON follows the format used by JirAgileR package when downloading
-#' JSONs, instead of the format specified by JIRA.
 #'
 #' @param jira_domain_url URL of JIRA domain (e.g. "https://project.org/jira")
 #' @param issue_key issue key of JIRA issue (e.g. "PROJECT-68" or "GERONIMO-6723)
@@ -22,39 +20,36 @@
 #' @param reporter_name name of reporter of issue (e.g. "Jane Doe")
 #' @param assignee_name name of person the issue is being assigned to (e.g. "Joe Schmo")
 #' @param comments character vector where each element is a comment string (e.g. c("This is first comment", "This is second comment"))
-#' @return A list which represents the JirAgileR JSON in memory
+#' @return A list which represents the JIRA JSON in memory
 #' @export
 #' @family {unittest}
 make_jira_issue <- function(jira_domain_url, issue_key, issue_type, status, resolution, title, description, components, creator_name, reporter_name, assignee_name, comments = NULL) {
 
-  # An issue in the JirAgileR format contains an `base_info_cell`
-  # and an `ext_info_cell`. This function calls the appropriate
-  # internal functions to define both blocks, and add
-  issues <- list()
+  # Create an issue with the given parameters as a list. If comments are specified, then add comments to the list
+  issue <- list(
+    title = title,
+    issuetype = create_issue_type(jira_domain_url, issue_type),
+    components = create_components(jira_domain_url, components),
+    creator = create_creator(jira_domain_url, creator_name),
+    created = list("2007-07-08T06:07:06.000+0000"),
+    description = description,
+    reporter = create_reporter(jira_domain_url, reporter_name),
+    resolution = create_resolution(name = resolution),
+    resolutiondate = "2007-08-13T19:12:33.000+0000",
+    assignee = create_assignee(jira_domain_url, assignee_name),
+    updated = list("2008-05-12T08:01:39.000+0000"),
+    status = create_status(jira_domain_url, status)
+  )
 
-  # Create `base_info_cell`
-  base_info_cell <- create_base_info(jira_domain_url, issue_key)
-  issues[["base_info"]][[1]] <- base_info_cell
-
-  # Create `ext_info_cell`
-  ext_info_cell <- create_ext_info(jira_domain_url, issue_type, status, resolution, title, description, components, creator_name, reporter_name, assignee_name)
-
-  # Create `comment` if specified
   if (!is.null(comments) && length(comments) > 0) {
 
-    ext_info_cell[["comment"]][["comments"]] <- create_issue_comments(comments)
-    ext_info_cell[["comment"]][["maxResults"]] <- length(ext_info_cell[["comment"]][[1]])
-    ext_info_cell[["comment"]][["total"]] <- length(ext_info_cell[["comment"]][[1]])
-    ext_info_cell[["comment"]][["startAt"]] <- 0
+    issue[["comment"]][["comments"]] <- create_issue_comments(comments)
+    issue[["comment"]][["maxResults"]] <- length(issue[["comment"]][[1]])
+    issue[["comment"]][["total"]] <- length(issue[["comment"]][[1]])
+    issue[["comment"]][["startAt"]] <- 0
   }
 
-  issues[["ext_info"]][[1]] <- ext_info_cell
-
-  #folder_path <- "/tmp"
-  #jira_json_path <- file.path(folder_path,"fake_issues.json")
-  #jsonlite::write_json(issues,file.path(folder_path,"fake_issues.json"))
-
-  return(issues)
+  return(issue)
 
 }
 
@@ -75,235 +70,17 @@ make_jira_issue_tracker <- function(issues,save_filepath) {
     stop("The issues parameter should be a list of issues.")
   }
 
-  issue_tracker <- list()
-  issue_tracker_base_list <- list()
-  issue_tracker_ext_list <- list()
+  rtn_json_issues <- list(
+    expand = "schema,names",
+    startAt = 0,
+    maxResults = 50,
+    total = length(issues),
+    issues = issues
+  )
 
-  # Flatten function to format base_info properly for tracker format
-  flatten_base_info <- function(base_info) {
-    flattened_base_info <- list(
-      id = as.character(base_info[[1]][[1]]),
-      self = base_info[[1]][[2]],
-      key = base_info[[1]][[3]],
-      JirAgileR_id = as.numeric(base_info[[1]][[4]])
-    )
-
-    # return final flattened base_info list
-    return(flattened_base_info)
-  }
-
-  # Flatten functions to format ext_info properly for tracker format
-  flatten_ext_info <- function(ext_info) {
-    flattened_ext_info <- list()
-
-    # title
-    flattened_ext_info$title <- ext_info[[1]][[1]][[1]]
-
-    # issue_type
-    flatten_issuetype <- function(issuetype) {
-      flattened_issuetype <- list()
-
-      flattened_issuetype$self <- issuetype[[1]][[1]][[1]]
-      flattened_issuetype$id <- as.character(issuetype[[2]][[1]][[1]])
-      flattened_issuetype$description <- issuetype[[3]][[1]][[1]]
-      flattened_issuetype$iconUrl <- issuetype[[4]][[1]]
-      flattened_issuetype$name <- issuetype[[5]][[1]]
-      flattened_issuetype$subtask <- issuetype[[6]][[1]]
-      flattened_issuetype$avatarId <- issuetype[[7]][[1]]
-
-      return(flattened_issuetype)
-    }
-
-    flattened_ext_info$issuetype <- flatten_issuetype(ext_info[[1]][[2]])
-
-    # components
-    flatten_components <- function(components) {
-      flattened_components <- list()
-
-      for(i in seq_along(components)) {
-        component <- components[[i]]
-        flattened_component <- list()
-        flattened_component$self <- component[[1]][[1]]
-        flattened_component$id <- component[[2]][[1]]
-        flattened_component$name <- component[[3]][[1]]
-        flattened_components[[i]] <- flattened_component
-      }
-
-      return(flattened_components)
-    }
-
-    flattened_ext_info$components <- flatten_components(ext_info[[1]][[3]])
-
-    # creator
-    flattened_ext_info$creator <- ext_info[[1]][[4]]
-
-    # created
-    flattened_ext_info$created <- ext_info[[1]][[5]][[1]]
-
-    # description
-    flattened_ext_info$description <- ext_info[[1]][[6]]
-
-    # reporter
-    flatten_reporter <- function(reporter) {
-      flattened_reporter <- list()
-      flattened_reporter$self <- reporter[[1]][[1]]
-      flattened_reporter$name <- reporter[[2]][[1]]
-      flattened_reporter$key <- reporter[[3]][[1]]
-      flattened_reporter$avatarUrls <- reporter[[4]]
-      flattened_reporter$displayName <- reporter[[5]][[1]]
-      flattened_reporter$active <- reporter[[6]][[1]]
-      flattened_reporter$timeZone <- reporter[[7]][[1]]
-
-      return(flattened_reporter)
-    }
-
-    flattened_ext_info$reporter <- flatten_reporter(ext_info[[1]][[7]])
-
-    # resolution
-    flatten_resolution <- function(resolution) {
-      flattened_resolution <- list()
-      flattened_resolution$self <- resolution[[1]][[1]]
-      flattened_resolution$id <- resolution[[2]][[1]]
-      flattened_resolution$description <- resolution[[3]][[1]]
-      flattened_resolution$name <- resolution[[4]][[1]]
-
-      return(flattened_resolution)
-    }
-
-    flattened_ext_info$resolution <- flatten_resolution(ext_info[[1]][[8]])
-
-    #resolutiondate
-    flattened_ext_info$resolutiondate <- ext_info[[1]][[9]]
-
-    # comments
-    if (length(ext_info[[1]]) >= 13) {
-      flattened_ext_info$comment <- ext_info[[1]][[13]]
-    }
-
-    # assignee
-    flatten_assignee <- function(assignee) {
-      flattened_assignee <- list()
-      flattened_assignee$self <- assignee[[1]][[1]]
-      flattened_assignee$name <- assignee[[2]][[1]]
-      flattened_assignee$key <- assignee[[3]][[1]]
-      flattened_assignee$avatarUrls <- assignee[[4]]
-      flattened_assignee$displayName <- assignee[[5]][[1]]
-      flattened_assignee$active <- assignee[[6]][[1]]
-      flattened_assignee$timeZone <- assignee[[7]][[1]]
-
-      return(flattened_assignee)
-    }
-
-    flattened_ext_info$assignee <- flatten_reporter(ext_info[[1]][[10]])
-
-    # updated
-    flattened_ext_info$updated <- ext_info[[1]][[11]][[1]]
-
-    # status
-    flatten_status <- function(status) {
-      flattened_status <- list()
-      flattened_status$self <-status[[1]][[1]]
-      flattened_status$description <- status[[2]][[1]]
-      flattened_status$iconUrl <- status[[3]][[1]]
-      flattened_status$name <- status[[4]]
-      flattened_status$id <- status[[5]][[1]]
-
-      statusCategory <- list()
-      statusCategory$self <- status[[6]][[1]][[1]]
-      statusCategory$id <- status[[6]][[2]][[1]]
-      statusCategory$key <- status[[6]][[3]][[1]]
-      statusCategory$colorName <- status[[6]][[4]][[1]]
-      statusCategory$name <- status[[6]][[5]][[1]]
-
-      flattened_status$statusCategory <- statusCategory
-
-      return(flattened_status)
-    }
-
-    flattened_ext_info$status <- flatten_status(ext_info[[1]][[12]])
-
-    # return final flattened ext_info list
-    return(flattened_ext_info)
-  }
-
-  # loop through each issue
-  for(issue in issues) {
-    # get base & ext info for each issue
-    base_info <- flatten_base_info(issue[["base_info"]])
-    ext_info <- flatten_ext_info(issue[["ext_info"]])
-
-    # combine each new base & ext list to respective list
-    issue_tracker_base_list <- c(issue_tracker_base_list, list(base_info))
-    issue_tracker_ext_list <- c(issue_tracker_ext_list, list(ext_info))
-  }
-
-  # combine both lists to create final tracker
-  issue_tracker[["base_info"]] <- issue_tracker_base_list
-  issue_tracker[["ext_info"]] <- issue_tracker_ext_list
-
-  jsonlite::write_json(issue_tracker,save_filepath)
+  jsonlite::write_json(rtn_json_issues,save_filepath)
 
   return(save_filepath)
-}
-
-
-#' Create base_info_cell
-#'
-#' Creates and formats base_info_cell list for \code{\link{make_jira_issue}}.
-#'
-#' @param jira_domain_url URL of JIRA domain
-#' @param issue_key key for JIRA issue
-#' @return A list named 'base_info_cell' containing all information for base cell in json file
-create_base_info <- function(jira_domain_url, issue_key) {
-  id <- sample(1:10, 1)
-  JirAgileR_id <- sample(1:10, 1)
-
-  # Construct the issue API URL from the domain URL and issue key
-  issue_api_url <- paste0(jira_domain_url, "/rest/api/latest/issue/", id)
-
-  base_info_cell <- list(
-    id = id,
-    self = issue_api_url,
-    key = issue_key,
-    JirAgileR_id = JirAgileR_id
-  )
-
-  return(base_info_cell)
-}
-
-#' Create ext_info_cel
-#'
-#' Creates and formats ext_info_cell list \code{\link{make_jira_issue}}.
-#'
-#' @param jira_domain_url URL of JIRA domain
-#' @param issue_type description of issue_type
-#' @param status status of issue for development
-#' @param resolution name of resolution for issue
-#' @param title summary of the issue
-#' @param description description of issue
-#' @param components components of issue, a list with component names separated by ; (ex. "x-core;x-spring" is two components)
-#' @param creator_name name of creator of issue
-#' @param reporter_name name of reporter reporting the issue
-#' @param assignee_name name of person the issue is being assigned to
-#' @return A list named 'ext_info_cell' which contains all the parameters and its generated fake data formats
-create_ext_info <- function(jira_domain_url, issue_type, status, resolution, title, description, components, creator_name, reporter_name, assignee_name) {
-
-  ext_info_cell <- list(
-    title = list(title),
-    issuetype = create_issue_type(jira_domain_url, issue_type),
-    components = create_components(jira_domain_url, components),
-    creator = create_creator(jira_domain_url, creator_name),
-    created = list("2007-07-08T06:07:06.000+0000"),
-    description = description,
-    reporter = create_reporter(jira_domain_url, reporter_name),
-    resolution = create_resolution(name = resolution),
-    resolutiondate = "2007-08-13T19:12:33.000+0000",
-    assignee = create_assignee(jira_domain_url, assignee_name),
-    updated = list("2008-05-12T08:01:39.000+0000"),
-    status = create_status(jira_domain_url, status)
-  )
-
-  return(ext_info_cell)
 }
 
 #' Create Issue Comments
@@ -373,13 +150,13 @@ create_issue_type <- function(jira_domain_url, issue_type) {
   self_url <- paste0(jira_domain_url, "/rest/api/", issue_id, "/issuetype/", issue_id)
 
   issue_type <- list(
-    self = list(list(self_url)),
-    id = list(list(issue_id)),
-    description = list(list("A new feature of the product, which has yet to be developed.")),
-    iconUrl = list("https://domain.org/jira/secure/viewavatar?size=xsmall&avatarId=21141&avatarType=issuetype"),
-    name = list(issue_type),
-    subtask = list(FALSE),
-    avatarId = list(21141)
+    self = self_url,
+    id = issue_id,
+    description = "A new feature of the product, which has yet to be developed.",
+    iconUrl = "https://domain.org/jira/secure/viewavatar?size=xsmall&avatarId=21141&avatarType=issuetype",
+    name = issue_type,
+    subtask = FALSE,
+    avatarId = 21141
   )
 
   return(issue_type)
