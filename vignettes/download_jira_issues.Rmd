@@ -74,7 +74,7 @@ all_issues <- download_and_save_jira_issues(issue_tracker_domain,
                            save_path_issue_tracker_issues, 
                            maxResults = 5, 
                            verbose = TRUE,
-                           maxDownloads = 10,
+                           maxDownloads = 400,
                            search_query = NULL)
 
 # save all_issues as a json file along the path save_path_issue_tracker_issues

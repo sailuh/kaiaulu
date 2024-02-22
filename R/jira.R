@@ -651,9 +651,19 @@ download_and_save_jira_issues <- function(domain,
       stop("API request failed: ", httr::http_status(response)$message)
     }
 
-    # Extract issues. Append the new issues to all_issues
-    content <- jsonlite::fromJSON(httr::content(response, "text", encoding = "UTF-8"), simplifyVector = FALSE)
-    all_issues <- append(all_issues, content$issues)
+    # Extract issues. for iteration of naming convention and checks
+    R_object_content <- jsonlite::fromJSON(httr::content(response, "text", encoding = "UTF-8"),
+                                   simplifyVector = FALSE)
+    # save the raw content for a writeLines later
+    raw_content <- httr::content(response, "text", encoding = "UTF-8")
+
+    #message(class(response_content))
+    #io_make_file(save_path_issue_tracker_issues, response_content)
+    #jsonlite::write_json(response_content, save_path_issue_tracker_issue_comments)
+
+
+    # R_object_content <- jsonlite::read_json(response_content, simplifyVector = FALSE)
+    # all_issues <- append(all_issues, content$issues)
 
     #saves each issue to separate file with the issue key and the time it was downloaded.
     #This can of course be changed to use different identifiers. Current naming
@@ -666,10 +676,10 @@ download_and_save_jira_issues <- function(domain,
       file_name <- sub("\\.json$", "", file_name)
     }
     # naming convention for each page
-    for (i in rev(seq_along(content$issues))) {
+    for (i in rev(seq_along(R_object_content$issues))) {
 
       if (i == 1){
-        issue <- content$issue[[i]]
+        issue <- R_object_content$issue[[i]]
         # Get the 'created' field
         issue_created <- issue$fields$created
         # Convert the time string to a POSIXct object, specifying the format
@@ -679,8 +689,8 @@ download_and_save_jira_issues <- function(domain,
         # append to the filename
         file_name <- paste0(file_name, "_", unix_time, ".json")
       }
-      if (i == length(content$issues)){
-        issue <- content$issue[[i]]
+      if (i == length(R_object_content$issues)){
+        issue <- R_object_content$issue[[i]]
         # Get the 'created' field
         issue_created <- issue$fields$created
         # Convert the time string to a POSIXct object, specifying the format
@@ -694,16 +704,17 @@ download_and_save_jira_issues <- function(domain,
     }
 
     #write the files
-    if (length(content$issues) > 0){
-      jsonlite::write_json(content, file_name, auto_unbox=TRUE)
+    if (length(R_object_content$issues) > 0){
+      #removed auto_unbox=TRUE
+      writeLines(raw_content, file_name)
     } else {
       if(verbose){
         message("You are all caught up!")
       }
     }
 
-    downloadCount <- downloadCount + length(content$issues)
-    if (verbose && (length(content$issues) > 0)){
+    downloadCount <- downloadCount + length(R_object_content$issues)
+    if (verbose && (length(R_object_content$issues) > 0)){
       message("saved file to ", file_name)
       message("Saved ", downloadCount, " total issues")
     }
@@ -711,7 +722,7 @@ download_and_save_jira_issues <- function(domain,
     #maxResults <- length(content$issues)
 
     #updates startat for next loop
-    if (length(content$issues) < maxResults) {
+    if (length(R_object_content$issues) < maxResults) {
       break
     } else {
       startAt <- startAt + maxResults
