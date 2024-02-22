@@ -761,7 +761,7 @@ download_and_save_jira_issues <- function(domain,
 #' @param date_lower_bound an optional API parameter that alters the GET request
 #' @param date_upper_bound an optional API parameter that alters the GET request
 #' @export
-download_and_save_jira_issues_by_created <- function(issue_tracker_domain,
+download_and_save_jira_issues_by_created <- function(domain,
                                                      credentials,
                                                      jql_query,
                                                      fields,
@@ -781,7 +781,7 @@ download_and_save_jira_issues_by_created <- function(issue_tracker_domain,
 
   message("Appending ", created_query, " to api request.")
 
-  download_and_save_jira_issues(issue_tracker_domain,
+  download_and_save_jira_issues(domain,
                                 credentials,
                                 jql_query,
                                 fields,
@@ -809,7 +809,7 @@ download_and_save_jira_issues_by_created <- function(issue_tracker_domain,
 #' @param issueKey_lower_bound an optional API parameter that alters the GET request
 #' @param issueKey_upper_bound an optional API parameter that alters the GET request
 #' @export
-download_and_save_jira_issues_by_issueKey <- function(issue_tracker_domain,
+download_and_save_jira_issues_by_issueKey <- function(domain,
                                                       credentials,
                                                       jql_query,
                                                       fields,
@@ -829,7 +829,7 @@ download_and_save_jira_issues_by_issueKey <- function(issue_tracker_domain,
 
   message("Appending ", created_query, " to api request.")
 
-  download_and_save_jira_issues(issue_tracker_domain,
+  download_and_save_jira_issues(domain,
                                 credentials,
                                 jql_query,
                                 fields,

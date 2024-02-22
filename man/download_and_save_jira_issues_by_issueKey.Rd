@@ -5,7 +5,7 @@
 \title{Define function to fetch issues from 'created' date ranges from JIRA REST API and save as JSON}
 \usage{
 download_and_save_jira_issues_by_issueKey(
-  issue_tracker_domain,
+  domain,
   credentials,
   jql_query,
   fields,
@@ -18,6 +18,8 @@ download_and_save_jira_issues_by_issueKey(
 )
 }
 \arguments{
+\item{domain}{Custom JIRA domain URL set in config file}
+
 \item{credentials}{a path to text file containing your username/api token}
 
 \item{jql_query}{Specific query string to specify criteria for fetching}
@@ -37,8 +39,6 @@ messages or not}
 \item{issueKey_lower_bound}{an optional API parameter that alters the GET request}
 
 \item{issueKey_upper_bound}{an optional API parameter that alters the GET request}
-
-\item{domain}{Custom JIRA domain URL set in config file}
 }
 \description{
 Download issue data from "rest/api/lastest/search" endpoint
