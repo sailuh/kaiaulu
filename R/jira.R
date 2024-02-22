@@ -760,7 +760,55 @@ download_and_save_jira_issues_by_created <- function(issue_tracker_domain,
     created_query <- paste0(created_query, "AND created >= '", date_lower_bound, "'")
   }
   if (!is.null(date_upper_bound)){
-    created_query <- paste0(created_query, "AND created <= '", date_upper_bound, "'")
+    created_query <- paste0(created_query, " AND created <= '", date_upper_bound, "'")
+  }
+
+  message("Appending ", created_query, " to api request.")
+
+  download_and_save_jira_issues(issue_tracker_domain,
+                                credentials,
+                                jql_query,
+                                fields,
+                                save_path_issue_tracker_issues,
+                                maxResults,
+                                verbose,
+                                maxDownloads,
+                                search_query = created_query)
+}
+
+#' Define function to fetch issues from 'created' date ranges from JIRA REST API and save as JSON
+#'
+#' Download issue data from "rest/api/lastest/search" endpoint
+#'
+#' @param domain Custom JIRA domain URL set in config file
+#' @param credentials a path to text file containing your username/api token
+#' @param jql_query Specific query string to specify criteria for fetching
+#' @param fields List of fields that are downloaded in each issue
+#' @param save_path_issue_tracker_issues Path that files will be save along
+#' @param maxResults (optional) the maximum number of results to download per page.
+#' Default is 50
+#' @param verbose boolean flag to specify printing operational
+#' messages or not
+#' @param maxDownloads Maximum downloads per function call
+#' @param issueKey_lower_bound an optional API parameter that alters the GET request
+#' @param issueKey_upper_bound an optional API parameter that alters the GET request
+#' @export
+download_and_save_jira_issues_by_issueKey <- function(issue_tracker_domain,
+                                                      credentials,
+                                                      jql_query,
+                                                      fields,
+                                                      save_path_issue_tracker_issues,
+                                                      maxResults,
+                                                      verbose,
+                                                      maxDownloads,
+                                                      issueKey_lower_bound = NULL,
+                                                      issueKey_upper_bound = NULL){
+  created_query <- ""
+  if (!is.null(issueKey_lower_bound)){
+    created_query <- paste0(created_query, "AND issueKey >= ", issueKey_lower_bound)
+  }
+  if (!is.null(issueKey_upper_bound)){
+    created_query <- paste0(created_query, " AND issueKey <= ", issueKey_upper_bound)
   }
 
   message("Appending ", created_query, " to api request.")

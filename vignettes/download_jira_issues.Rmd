@@ -81,7 +81,7 @@ all_issues <- download_and_save_jira_issues(issue_tracker_domain,
 # save all_issues as a json file along the path save_path_issue_tracker_issues
 # jsonlite::write_json(all_issues, save_path_issue_tracker_issues)
 ```
-#Download issues by specifying date ranges
+#Download issues by specifying date created ranges
 
 # Download issues with specified date ranges. This chunk allows the user to manipulate the functions date_lower_bound and date_upper_bound that retrieves only jira issues that were 'created' between these bounds. These parameters need to be specified in YYYY-MM-DD format. They are optional parameters to retrieve a range. If both are set to NULL, then all issues will be retrieved. An example is if date_lower_bound is set to "2000-01-01" and date_upper_bound is set to "2005-01-01", then only issues created between these two dates will be retrieved. The API call will have "AND created >= 2000-01-01 AND created <= 2005-01-01" appended to it before making a GET request. 
 
@@ -89,7 +89,6 @@ all_issues <- download_and_save_jira_issues(issue_tracker_domain,
 # eg date_lower_bound <- "1970-01-01"
 date_lower_bound <- "2012-01-01"
 date_upper_bound <- NULL
-message(date_lower_bound)
 
 all_issues <- download_and_save_jira_issues_by_created (issue_tracker_domain,
                            credentials, 
@@ -114,14 +113,17 @@ all_issues <- download_and_save_jira_issues_by_created (issue_tracker_domain,
                            date_upper_bound)
 
 ```
+# Download issues by specifying issue key ranges
 
+Download issues with specified date ranges. This chunk allows the user to manipulate the functions issueKey_lower_bound and issueKey_upper_bound that retrieves only jira issues with the issueKey between these bounds. These parameters need to be specified in accordance with the issueKey format relevant to your project. They are optional parameters to retrieve a range. If both are set to NULL, then all issues will be retrieved as the request will not be bounded. An example is if issueKey_lower_bound is set to "GERONIMO-740" and issueKey_upper_bound is set to "GERONIMO-6000", then only issues with issueKeys between these two issueKeys will be retrieved. The API call will have "AND issueKey >= GERONIMO-740 AND issueKey <= GERONIMO-6000" appended to it before making a GET request. 
 
 ```{r}
-search_query <- "AND created >= 2015-01-01"
-message(search_query)
-all_issues <- download_and_save_jira_issues(issue_tracker_domain,
-                           username, 
-                           your_api_token, 
+# eg issueKey_lower_bound <- "GERONIMO-740"
+issueKey_lower_bound <- "GERONIMO-740"
+issueKey_upper_bound <- NULL
+
+all_issues <- download_and_save_jira_issues_by_issueKey (issue_tracker_domain,
+                           credentials, 
                            jql_query = paste0("project='",issue_tracker_project_key,"'"), 
                            fields = c("summary", 
                            "description",
@@ -139,14 +141,45 @@ all_issues <- download_and_save_jira_issues(issue_tracker_domain,
                            maxResults = 5, 
                            verbose = TRUE,
                            maxDownloads = 400,
-                           search_query = search_query)
+                           issueKey_lower_bound,
+                           issueKey_upper_bound)
 
-# save all_issues as a json file along the path save_path_issue_tracker_issues
-# jsonlite::write_json(all_issues, save_path_issue_tracker_issues)
 ```
+
+# Download only issues that you have not already downloaded (REFRESH)
+
+```{r}
+# eg issueKey_lower_bound <- "GERONIMO-740"
+# this will be replaced with a parse function that ian builds.. Or I may make a new function that calls his function from within it
+issueKey_lower_bound <- "GERONIMO-740"
+
+all_issues <- download_and_save_jira_issues_by_issueKey (issue_tracker_domain,
+                           credentials, 
+                           jql_query = paste0("project='",issue_tracker_project_key,"'"), 
+                           fields = c("summary", 
+                           "description",
+                           "creator",
+                           "assignee",
+                           "reporter",
+                           "issuetype",
+                           "status",
+                           "resolution",
+                           "components",
+                           "created",
+                           "updated",
+                           "resolutiondate"), 
+                           save_path_issue_tracker_issues, 
+                           maxResults = 5, 
+                           verbose = TRUE,
+                           maxDownloads = 400,
+                           issueKey_lower_bound,
+                           issueKey_upper_bound)
+
+```
+
 # Download Issue with Comments
 
-In the same manner as before, we can perform the same function call, but including the field `comment`. This will result in the same table being generated but with the additional comment information per issue (if an issue has more than one comment, the issue id is repeated for each different comment). The comment is shown on the column `comment_comments_id`. 
+In the same manner as before, we can perform the same function calls, but including the field `comment`. This will result in the same table being generated but with the additional comment information per issue (if an issue has more than one comment, the issue id is repeated for each different comment). The comment is shown on the column `comment_comments_id`. 
 
 The data of this table can be used to calculate `social smell metrics`, as it represents a form of developer communication. A notebook discussing how to use JIRA data as communication network and/or combining to mailing list data will be made available in the future. 
 
@@ -154,10 +187,9 @@ Since this time around we requested the issue data and comments, when using the 
 
 # Call the function fetch_and_save_jira_issues (defined on line 55)
 ```{r eval=FALSE}
-# Call the function
+
 all_issues_comments <- download_and_save_jira_issues(issue_tracker_domain,
-                           username, 
-                           your_api_token, 
+                           credentials, 
                            jql_query = paste0("project='",issue_tracker_project_key,"'"), 
                            fields = c("summary",
                            "description",
@@ -176,7 +208,66 @@ all_issues_comments <- download_and_save_jira_issues(issue_tracker_domain,
                            maxResults = 20, 
                            verbose = TRUE,
                            maxDownloads = 4500,
-                           created_latest)
-#path <- file.path(save_path_issue_tracker_issue_comments)
-jsonlite::write_json(all_issues_comments, save_path_issue_tracker_issue_comments)
+                           search_query = NULL)
+```
+
+# Download issues with comments by specifying created range
+
+```{r eval=FALSE}
+date_lower_bound <- "2012-01-01"
+date_upper_bound <- NULL
+
+all_issues_comments <- download_and_save_jira_issues_by_created(issue_tracker_domain,
+                           credentials, 
+                           jql_query = paste0("project='",issue_tracker_project_key,"'"), 
+                           fields = c("summary",
+                           "description",
+                           "creator",
+                           "assignee",
+                           "reporter",
+                           "issuetype",
+                           "status",
+                           "resolution",
+                           "components",
+                           "created",
+                           "updated",
+                           "resolutiondate",
+                           "comment"), 
+                           save_path_issue_tracker_issue_comments, 
+                           maxResults = 20, 
+                           verbose = TRUE,
+                           maxDownloads = 4500,
+                           date_lower_bound,
+                           date_upper_bound)
+```
+
+
+# Download issues with comments by specifying issueKey range
+
+```{r eval=FALSE}
+issueKey_lower_bound <- "GERONIMO-700"
+issueKey_upper_bound <- NULL
+
+all_issues_comments <- download_and_save_jira_issues_by_issueKey(issue_tracker_domain,
+                           credentials, 
+                           jql_query = paste0("project='",issue_tracker_project_key,"'"), 
+                           fields = c("summary",
+                           "description",
+                           "creator",
+                           "assignee",
+                           "reporter",
+                           "issuetype",
+                           "status",
+                           "resolution",
+                           "components",
+                           "created",
+                           "updated",
+                           "resolutiondate",
+                           "comment"), 
+                           save_path_issue_tracker_issue_comments, 
+                           maxResults = 20, 
+                           verbose = TRUE,
+                           maxDownloads = 4500,
+                           issueKey_lower_bound,
+                           issueKey_upper_bound)
 ```

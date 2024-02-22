@@ -171,6 +171,7 @@ reference:
   - download_mod_mbox_per_month
   - download_and_save_jira_issues
   - download_and_save_jira_issues_by_created
+  - download_and_save_jira_issues_by_issueKey
 - title: __DV8__
   desc: Functions to interface with ArchDia’s DV8.
 - subtitle: Design Structure Matrix (DSM)
