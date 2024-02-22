@@ -596,13 +596,13 @@ download_and_save_jira_issues <- function(domain,
     domain <- paste0("https://", domain)
   }
 
+  # append search_query to jql_query if present
   if (!is.null(search_query)){
     jql_query <- paste(jql_query, search_query)
     message(jql_query)
   }
 
   #Initialize variables for pagination
-
   startAt <- 0
   total <- maxResults
   all_issues <- list()
@@ -623,10 +623,8 @@ download_and_save_jira_issues <- function(domain,
 
     # Construct the API endpoint URL
     url <- paste0(domain, "/rest/api/2/search")
-    #message("added endpoint")
 
     #Authenticate if username and password are provided
-    #credentials <- readLines(credentials)
     if(length(credentials) >= 2) {
       username <- credentials[1]
       password <- credentials[2]
@@ -654,6 +652,8 @@ download_and_save_jira_issues <- function(domain,
     # Extract issues. for iteration of naming convention and checks
     R_object_content <- jsonlite::fromJSON(httr::content(response, "text", encoding = "UTF-8"),
                                    simplifyVector = FALSE)
+    # The number of issues downloaded
+    issue_count <- length(R_object_content$issues)
     # save the raw content for a writeLines later
     raw_content <- httr::content(response, "text", encoding = "UTF-8")
 
@@ -661,23 +661,30 @@ download_and_save_jira_issues <- function(domain,
     #io_make_file(save_path_issue_tracker_issues, response_content)
     #jsonlite::write_json(response_content, save_path_issue_tracker_issue_comments)
 
-
+    # Check to make sure that the api is downloading the correct amount of issues specified by maxResults
+    # This checks for only the first page (if downloadCount ==0)
+    # If the total number of issues retrieved is less than maxResults, then of course issue_count
+    # will be < maxResults so we check to make sure this is not true (total >= maxResults)
+    if ((downloadCount == 0) && (maxResults != issue_count) && (total >= maxResults)) {
+      message("Total number of issues queried: ", total)
+      message(". maxResults specified: ", maxResults)
+      message(". Number of issues retrieved: ", issue_count)
+      message(". Something went wrong with the API request. Changing maxResults to ", issue_count)
+      maxResults <- issue_count
+    }
     # R_object_content <- jsonlite::read_json(response_content, simplifyVector = FALSE)
     # all_issues <- append(all_issues, content$issues)
 
-    #saves each issue to separate file with the issue key and the time it was downloaded.
-    #This can of course be changed to use different identifiers. Current naming
-    #convention is [save_path_issue_tracker_issues]_[1st-issue-key]-[last-issue-key]_[timestamp]
-    #The intention is to state the range of the issues.
+    # Set the filename from the config file. It will be modified in the following code
     file_name <- save_path_issue_tracker_issues
 
     if (grepl("\\.json$", file_name)) {
-      # Remove .json if present in file_name
+      # Remove .json if present in file_name. It will be added again in the naming convention
       file_name <- sub("\\.json$", "", file_name)
     }
+
     # naming convention for each page
     for (i in rev(seq_along(R_object_content$issues))) {
-
       if (i == 1){
         issue <- R_object_content$issue[[i]]
         # Get the 'created' field
@@ -689,7 +696,7 @@ download_and_save_jira_issues <- function(domain,
         # append to the filename
         file_name <- paste0(file_name, "_", unix_time, ".json")
       }
-      if (i == length(R_object_content$issues)){
+      if (i == issue_count){
         issue <- R_object_content$issue[[i]]
         # Get the 'created' field
         issue_created <- issue$fields$created
@@ -700,12 +707,10 @@ download_and_save_jira_issues <- function(domain,
         # append to the filename
         file_name <- paste0(file_name, "_", unix_time)
       }
-      #jsonlite::write_json(content, file_name)
     }
 
-    #write the files
-    if (length(R_object_content$issues) > 0){
-      #removed auto_unbox=TRUE
+    # write the files if issues present
+    if (issue_count > 0){
       writeLines(raw_content, file_name)
     } else {
       if(verbose){
@@ -713,16 +718,16 @@ download_and_save_jira_issues <- function(domain,
       }
     }
 
-    downloadCount <- downloadCount + length(R_object_content$issues)
-    if (verbose && (length(R_object_content$issues) > 0)){
+    # update downloadCount and optional print statements
+    downloadCount <- downloadCount + issue_count
+    if (verbose && (issue_count > 0)){
       message("saved file to ", file_name)
       message("Saved ", downloadCount, " total issues")
     }
 
-    #maxResults <- length(content$issues)
 
     #updates startat for next loop
-    if (length(R_object_content$issues) < maxResults) {
+    if (issue_count < maxResults) {
       break
     } else {
       startAt <- startAt + maxResults
