@@ -677,7 +677,7 @@ download_and_save_jira_issues <- function(domain,
         # Convert the POSIXct object to UNIX time
         unix_time <- as.numeric(posix_time)
         # append to the filename
-        file_name <- paste0(file_name, "_", unix_time)
+        file_name <- paste0(file_name, "_", unix_time, ".json")
       }
       if (i == length(content$issues)){
         issue <- content$issue[[i]]
