@@ -51,17 +51,74 @@ credentials <- scan("~/.ssh/atlassian_credentials", what = "character", quiet = 
 
 ```
 
-# This sets the value of created_latest. This will be replaced with the parsed actual value for the refresh function. "AND created > 'YYYY-MM-DD'" will be appended onto the jql query. For now it is using a dummy variable
-```{r}
-created_latest <- "'2010-01-01'"
-```
-
 # Download issues
 
 This calls a function that interacts through the JIRA REST API through the rest/api/2/issues endpoint. It authenticates requests with your username and api token (used in this case as the password). It also specifies the parameters passed to the API request including fields. maxResult is the number of issues downloaded per page, verbose when set to TRUE prints operational messages, and maxDownloadsPerHour sets an upper limit on how many issues will be downloaded within an hour before the function sleeps until the hour elapses. 
 
 
 ```{r eval=FALSE}
+all_issues <- download_and_save_jira_issues(issue_tracker_domain,
+                           credentials, 
+                           jql_query = paste0("project='",issue_tracker_project_key,"'"), 
+                           fields = c("summary", 
+                           "description",
+                           "creator",
+                           "assignee",
+                           "reporter",
+                           "issuetype",
+                           "status",
+                           "resolution",
+                           "components",
+                           "created",
+                           "updated",
+                           "resolutiondate"), 
+                           save_path_issue_tracker_issues, 
+                           maxResults = 5, 
+                           verbose = TRUE,
+                           maxDownloads = 400,
+                           search_query = NULL)
+
+# save all_issues as a json file along the path save_path_issue_tracker_issues
+# jsonlite::write_json(all_issues, save_path_issue_tracker_issues)
+```
+#Download issues by specifying date ranges
+
+# Download issues with specified date ranges. This chunk allows the user to manipulate the functions date_lower_bound and date_upper_bound that retrieves only jira issues that were 'created' between these bounds. These parameters need to be specified in YYYY-MM-DD format. They are optional parameters to retrieve a range. If both are set to NULL, then all issues will be retrieved. An example is if date_lower_bound is set to "2000-01-01" and date_upper_bound is set to "2005-01-01", then only issues created between these two dates will be retrieved. The API call will have "AND created >= 2000-01-01 AND created <= 2005-01-01" appended to it before making a GET request. 
+
+```{r}
+# eg date_lower_bound <- "1970-01-01"
+date_lower_bound <- "2012-01-01"
+date_upper_bound <- NULL
+message(date_lower_bound)
+
+all_issues <- download_and_save_jira_issues_by_created (issue_tracker_domain,
+                           credentials, 
+                           jql_query = paste0("project='",issue_tracker_project_key,"'"), 
+                           fields = c("summary", 
+                           "description",
+                           "creator",
+                           "assignee",
+                           "reporter",
+                           "issuetype",
+                           "status",
+                           "resolution",
+                           "components",
+                           "created",
+                           "updated",
+                           "resolutiondate"), 
+                           save_path_issue_tracker_issues, 
+                           maxResults = 5, 
+                           verbose = TRUE,
+                           maxDownloads = 400,
+                           date_lower_bound,
+                           date_upper_bound)
+
+```
+
+
+```{r}
+search_query <- "AND created >= 2015-01-01"
+message(search_query)
 all_issues <- download_and_save_jira_issues(issue_tracker_domain,
                            username, 
                            your_api_token, 
@@ -82,7 +139,7 @@ all_issues <- download_and_save_jira_issues(issue_tracker_domain,
                            maxResults = 5, 
                            verbose = TRUE,
                            maxDownloads = 400,
-                           created_latest)
+                           search_query = search_query)
 
 # save all_issues as a json file along the path save_path_issue_tracker_issues
 # jsonlite::write_json(all_issues, save_path_issue_tracker_issues)
