@@ -819,13 +819,11 @@ parse_mbox <- function(perceval_path,mbox_path){
 #' @family parsers
 parse_jira <- function(json_path){
 
-  if (json_path == "../../rawdata/issue_tracker/geronimo_issues.json") {
-    file_path <- gsub('geronimo_issues.json', '', json_path)
-    file_list <- list.files(file_path, pattern="geronimo_issues_.*.json")
-  }
-  else {
-    file_path <- gsub('geronimo_issue_comments.json', '', json_path)
-    file_list <- list.files(file_path, pattern="geronimo_issue_comments_.*.json")
+  file_list <- list.files(json_path)
+  time_list <- list()
+
+  for (j in 1:length(file_list)){
+    time_list <- append(time_list, sub(".json", "", sub(".*_.*_.*_", "", file_list[[j]])))
   }
 
   # Comments list parser. Comments may occur on any json issue.
@@ -859,7 +857,6 @@ parse_jira <- function(json_path){
     # Both tables can share the issue_key, so they can be joined if desired.
     all_issues <- list()
     all_issues_comments <- list()
-    dates <- list()
 
     for(i in 1:n_issues){
 
@@ -868,8 +865,6 @@ parse_jira <- function(json_path){
 
       # All other information is contained in "fields"
       issue_comment <- json_issue_comments[["issues"]][[i]][["fields"]]
-
-      dates <- append(dates, issue_comment[["created"]][[1]])
 
       # Parse all relevant *issue* fields
       all_issues[[i]] <- data.table(
@@ -924,9 +919,6 @@ parse_jira <- function(json_path){
     parsed_issues_comments <- list()
     parsed_issues_comments[["issues"]] <- all_issues
     parsed_issues_comments[["comments"]] <- all_issues_comments
-    dates_char <- sapply(dates, as.POSIXct)
-    dates_unix <- sapply(dates_char, as.numeric)
-    parsed_issues_comments[["latest_date"]] <- max(unlist(dates_unix))
 
     return(parsed_issues_comments)
   }
@@ -935,17 +927,15 @@ parse_jira <- function(json_path){
 
   issues_holder <- list()
   comments_holder <- list()
-  latest_dates_holder <- list()
 
   for(i in 1:n_files){
-    current_json <- paste0(file_path, "/", file_list[[i]])
+    current_json <- paste0(json_path, "/", file_list[[i]])
     parsed_data <- jira_parse_issues(current_json)
     issues_holder[[i]] <- parsed_data[["issues"]]
     comments_holder[[i]] <- parsed_data[["comments"]]
-    latest_dates_holder[[i]] <- parsed_data[["latest_date"]]
   }
 
-  overall_latest_date <- max(unlist(latest_dates_holder))
+  overall_latest_date <- max(sapply(time_list, as.numeric))
   c_format_date <- as.Date(as.POSIXct(overall_latest_date, origin = "1970-01-01"))
 
   issues_holder <- rbindlist(issues_holder, fill=TRUE)
