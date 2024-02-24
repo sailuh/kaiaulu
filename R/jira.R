@@ -26,28 +26,36 @@
 make_jira_issue <- function(jira_domain_url, issue_key, issue_type, status, resolution, title, description, components, creator_name, reporter_name, assignee_name, comments = NULL) {
 
   # Create an issue with the given parameters as a list. If comments are specified, then add comments to the list
-  issue <- list(
+  issue_info <- list(
     title = title,
     issuetype = create_issue_type(jira_domain_url, issue_type),
     components = create_components(jira_domain_url, components),
     creator = create_creator(jira_domain_url, creator_name),
-    created = list("2007-07-08T06:07:06.000+0000"),
+    created = "2007-07-08T06:07:06.000+0000",
     description = description,
     reporter = create_reporter(jira_domain_url, reporter_name),
     resolution = create_resolution(name = resolution),
     resolutiondate = "2007-08-13T19:12:33.000+0000",
     assignee = create_assignee(jira_domain_url, assignee_name),
-    updated = list("2008-05-12T08:01:39.000+0000"),
+    updated = "2008-05-12T08:01:39.000+0000",
     status = create_status(jira_domain_url, status)
   )
 
   if (!is.null(comments) && length(comments) > 0) {
 
-    issue[["comment"]][["comments"]] <- create_issue_comments(comments)
-    issue[["comment"]][["maxResults"]] <- length(issue[["comment"]][[1]])
-    issue[["comment"]][["total"]] <- length(issue[["comment"]][[1]])
-    issue[["comment"]][["startAt"]] <- 0
+    issue_info[["comment"]][["comments"]] <- create_issue_comments(comments)
+    issue_info[["comment"]][["maxResults"]] <- length(issue[["comment"]][[1]])
+    issue_info[["comment"]][["total"]] <- length(issue[["comment"]][[1]])
+    issue_info[["comment"]][["startAt"]] <- 0
   }
+
+  issue <- list(
+    expand = "expand",
+    id = 1,
+    self = "self",
+    key = "key",
+    fields = issue_info
+  )
 
   return(issue)
 
@@ -70,7 +78,7 @@ make_jira_issue_tracker <- function(issues,save_filepath) {
     stop("The issues parameter should be a list of issues.")
   }
 
-  rtn_json_issues <- list(
+  export_issues <- list(
     expand = "schema,names",
     startAt = 0,
     maxResults = 50,
@@ -78,8 +86,7 @@ make_jira_issue_tracker <- function(issues,save_filepath) {
     issues = issues
   )
 
-  jsonlite::write_json(rtn_json_issues,save_filepath)
-
+  jsonlite::write_json(export_issues, save_filepath, auto_unbox=TRUE)
   return(save_filepath)
 }
 
@@ -181,9 +188,9 @@ create_components <- function(jira_domain_url, components) {
     self_url <- paste0(jira_domain_url, "/rest/api/2/component/", id)
 
     component <- list(
-      self = list(self_url),
-      id = list(as.character(id)),
-      name = list(name)
+      self = self_url,
+      id = as.character(id),
+      name = name
     )
 
     # add component to list which will be returned at the end
@@ -242,13 +249,13 @@ create_reporter <- function(jira_domain_url, reporter_name) {
   )
 
   reporter <- list(
-    self = list(self_url),
+    self = self_url,
     name = "user_id",
     key = "user_id",
     avatarUrls = avatarUrls,
-    displayName = list(reporter_name),
-    active = list(TRUE),
-    timeZone = list("Etc/UTC")
+    displayName = reporter_name,
+    active = TRUE,
+    timeZone = "Etc/UTC"
   )
 
   return(reporter)
@@ -268,10 +275,10 @@ create_resolution <- function(self_url = "https://domain.org/jira/rest/api/2/res
                               description = "A fix for this issue is checked into the tree and tested.",
                               name = "Fixed") {
   resolution <- list(
-    self = list(self_url),
-    id = list(id),
-    description = list(description),
-    name = list(name)
+    self = self_url,
+    id = id,
+    description = description,
+    name = name
   )
 
   return(resolution)
@@ -296,13 +303,13 @@ create_assignee <- function(jira_domain_url, assignee_name) {
   )
 
   assignee <- list(
-    self = list(self_url),
+    self = self_url,
     name = "user_id",
     key = "user_id",
     avatarUrls = avatarUrls,
-    displayName = list(assignee_name),
-    active = list(TRUE),
-    timeZone = list("Etc/UTC")
+    displayName = assignee_name,
+    active = TRUE,
+    timeZone = "Etc/UTC"
   )
 
   return(assignee)
@@ -324,17 +331,17 @@ create_status <- function(jira_domain_url, status) {
   statusCategory_self_url <- paste0(jira_domain_url, "/rest/api/2/statuscategory/", status_category_id)
 
   status <- list(
-    self = list(self_url),
-    description = list("The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened."),
-    iconUrl = list("https://domain.org/jira/images/icons/statuses/closed.png"),
+    self = self_url,
+    description = "The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened.",
+    iconUrl = "https://domain.org/jira/images/icons/statuses/closed.png",
     name = status,
     id = as.character(status_id),
     statusCategory = list(
-      self = list(statusCategory_self_url),
-      id = list(status_category_id),
-      key = list("done"),
-      colorName = list("green"),
-      name = list("Done")
+      self = statusCategory_self_url,
+      id = status_category_id,
+      key = "done",
+      colorName = "green",
+      name = "Done"
     )
   )
 
