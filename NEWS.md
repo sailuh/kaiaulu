@@ -20,7 +20,7 @@ __kaiaulu 0.0.0.9700 (in development)__
  * A new text module was added. The module allows for extracting identifiers from source code. See the new `src_text_showcase.Rmd` for details. [#206](https://github.com/sailuh/kaiaulu/issues/206)
 
 ### MINOR IMPROVEMENTS
-
+ * The `parse_jira()` function now parses issues and comments over multiple json files found in the file path provided. It also returns the latest issue created date for use by the download refresher. [#276](https://github.com/sailuh/kaiaulu/issues/276) 
  * The line metrics notebook now provides further guidance on adjusting the snapshot and filtering.
  * The R File and R Function parser can now properly parse R folders which contain folders within (not following R package structure). Both `.r` and `.R` files are also now captured (previously only one of the two were specified, but R accepts both). [#235](https://github.com/sailuh/kaiaulu/issues/235)
  * Refactor GoF Notebook in Graph GoF and Text GoF Notebooks [#224](https://github.com/sailuh/kaiaulu/issues/224)

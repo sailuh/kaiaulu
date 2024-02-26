@@ -814,7 +814,9 @@ parse_mbox <- function(perceval_path,mbox_path){
 #'
 #' @param json_path path to jira json (issues or issues with comments) obtained using `download_jira_data.Rmd`.
 #' @return A named list of two named elements ("issues", and "comments"), each containing a data.table.
-#' Note the comments element will be empty if the downloaded json only contain issues.
+#' Note the comments element will be empty if the downloaded json only contain issues. Also,
+#' the jira json nameing convention is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
+#' or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json"
 #' @export
 #' @family parsers
 parse_jira <- function(json_path){
@@ -822,8 +824,14 @@ parse_jira <- function(json_path){
   file_list <- list.files(json_path)
   time_list <- list()
 
-  for (j in 1:length(file_list)){
-    time_list <- append(time_list, sub(".json", "", sub(".*_.*_.*_", "", file_list[[j]])))
+  if (identical(file_list, character(0))){
+    stop(stringi::stri_c("cannot open the connection"))
+  }
+
+  for (j in file_list){
+    j <- sub(".*_(\\w+)\\.[^.]+$", "\\1", j)
+    j <- as.numeric(j)
+    time_list <- append(time_list, j)
   }
 
   # Comments list parser. Comments may occur on any json issue.
@@ -847,6 +855,7 @@ parse_jira <- function(json_path){
     return(parsed_comment)
   }
 
+  # Issues parser
   jira_parse_issues <- function(jira_file){
 
     json_issue_comments <- jsonlite::read_json(jira_file)
@@ -923,19 +932,17 @@ parse_jira <- function(json_path){
     return(parsed_issues_comments)
   }
 
-  n_files <- length(file_list)
-
   issues_holder <- list()
   comments_holder <- list()
 
-  for(i in 1:n_files){
-    current_json <- paste0(json_path, "/", file_list[[i]])
+  for(i in file_list){
+    current_json <- paste0(json_path, "/", i)
     parsed_data <- jira_parse_issues(current_json)
-    issues_holder[[i]] <- parsed_data[["issues"]]
-    comments_holder[[i]] <- parsed_data[["comments"]]
+    issues_holder <- append(issues_holder, list(parsed_data[["issues"]]))
+    comments_holder <- append(comments_holder, list(parsed_data[["comments"]]))
   }
 
-  overall_latest_date <- max(sapply(time_list, as.numeric))
+  overall_latest_date <- max(unlist(time_list))
   c_format_date <- as.Date(as.POSIXct(overall_latest_date, origin = "1970-01-01"))
 
   issues_holder <- rbindlist(issues_holder, fill=TRUE)
@@ -948,6 +955,9 @@ parse_jira <- function(json_path){
 
   return(return_info)
 }
+
+
+
 #' Format Parsed Jira to Replies
 #'
 #' Combines the JIRA issue author and description to the comments author and
