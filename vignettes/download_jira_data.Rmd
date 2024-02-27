@@ -95,7 +95,6 @@ The json will be downloaded on the path specified in the project configuration f
 jira_issues_list <- parse_jira(save_path_issue_tracker_issues)
 jira_issues <- jira_issues_list[["issues"]]
 jira_comments <- jira_issues_list[["comments"]]
-print(jira_issues_list[["latest_date"]])
 kable(jira_issues[1:4])
 ```
 

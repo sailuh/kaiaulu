@@ -12,8 +12,6 @@ parse_jira(json_path)
 \value{
 A named list of two named elements ("issues", and "comments"), each containing a data.table.
 Note the comments element will be empty if the downloaded json only contain issues. Also,
-the jira json nameing convention is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
-or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json"
 }
 \description{
 Parse Jira issue and comments
@@ -29,6 +27,8 @@ Other parsers:
 \code{\link{parse_dependencies}()},
 \code{\link{parse_dv8_clusters}()},
 \code{\link{parse_gitlog}()},
+\code{\link{parse_jira_latest_date}()},
+\code{\link{parse_jira_new}()},
 \code{\link{parse_jira_rss_xml}()},
 \code{\link{parse_mbox}()},
 \code{\link{parse_nvdfeed}()}

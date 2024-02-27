@@ -10,6 +10,8 @@ reference:
   - parse_gitlog_entity
   - parse_mbox
   - parse_jira
+  - parse_jira_new
+  - parse_jira_latest_date
   - parse_jira_replies
   - parse_jira_rss_xml
   - parse_bugzilla_perceval_traditional_issue_comments
