@@ -210,20 +210,23 @@ example_jira_issue_components <- function(folder_path="~/Documents", folder_name
   # Create folder & repo
   folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
 
-  issue1 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
-                            issue_key = "GERONIMO-123",
-                            issue_type = "New Feature",
-                            status = "Open",
-                            resolution = "Finished",
-                            summary = "This is a summary.",
-                            description = "The new features have been implemented.",
-                            components = "x-core;x-spring",
-                            creator_name = "Bob",
-                            reporter_name = "Joe",
-                            assignee_name = "Moe",
+  issue1 <- make_jira_issue(
+    jira_domain_url = "https://project.org/jira",
+    issue_key = "GERONIMO-123",
+    version_names = c("3.4.3"),
+    resolution = "Finished",
+    priority = "Minor",
+    labels = c("pull-request-available"),
+    assigne_name = "Moe",
+    status = "Open",
+    components = c("jira", "mail"),
+    creator_name = "Bob",
+    reporter_name = "Joe",
+    issue_type = "New Feature",
+    project_type = "software",
+    description = "The new features have been implemented",
+    summary = "Summary of new feature"
   )
-
-  issues <- list(issue1)
 
   jira_json_path <- make_jira_issue_tracker(issues,
                                             save_filepath=file.path(folder_path,"single_issue.json"))
