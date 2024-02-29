@@ -2,20 +2,24 @@
 % Please edit documentation in R/jira.R
 \name{make_jira_issue}
 \alias{make_jira_issue}
-\title{Create JirAgileR Issue}
+\title{Create JIRA Issue}
 \usage{
 make_jira_issue(
   jira_domain_url,
   issue_key,
-  issue_type,
-  status,
+  version_names,
   resolution,
-  title,
-  description,
+  priority,
+  labels,
+  assignee_name,
+  status,
   components,
   creator_name,
   reporter_name,
-  assignee_name,
+  issue_type,
+  project_type,
+  description,
+  summary,
   comments = NULL
 )
 }
@@ -24,33 +28,33 @@ make_jira_issue(
 
 \item{issue_key}{issue key of JIRA issue (e.g. "PROJECT-68" or "GERONIMO-6723)}
 
-\item{issue_type}{type of JIRA issue (e.g. "New Feature", "Task", "Bug")}
-
-\item{status}{status of issue for development (e.g. "In Progress")}
+\item{version_names}{list of version names (e.g. c("3.1.5", "4.0.0"))}
 
 \item{resolution}{name of resolution for issue (e.g. "Fixed")}
 
-\item{title}{summary of the issue (e.g. "Site Keeps Crashing")}
+\item{assignee_name}{name of person the issue is being assigned to (e.g. "Joe Schmo")}
 
-\item{description}{more detailed description of issue (e.g. "The program keeps crashing because this reason")}
+\item{status}{status of issue for development (e.g. "In Progress")}
 
-\item{components}{components of issue separate by ; (e.g. "x-core;x-spring")}
+\item{components}{list of components of issue (e.g. c("PS", "Tests"))}
 
 \item{creator_name}{name of creator of issue (e.g. "John Doe")}
 
 \item{reporter_name}{name of reporter of issue (e.g. "Jane Doe")}
 
-\item{assignee_name}{name of person the issue is being assigned to (e.g. "Joe Schmo")}
+\item{issue_type}{type of JIRA issue (e.g. "New Feature", "Task", "Bug")}
 
-\item{comments}{character vector where each element is a comment string (e.g. c("This is first comment", "This is second comment"))}
+\item{description}{more detailed description of issue (e.g. "The program keeps crashing because this reason")}
+
+\item{summary}{summary of the issue (e.g. "Site Keeps Crashing")}
+
+\item{comments}{character list where each element is a comment string (e.g. c("This is first comment", "This is second comment"))}
 }
 \value{
-A list which represents the JirAgileR JSON in memory
+A list which represents the JIRA JSON in memory
 }
 \description{
 Creates a single JIRA Issue as a list, which can be saved as a JSON with or without comments.
-Note the JSON follows the format used by JirAgileR package when downloading
-JSONs, instead of the format specified by JIRA.
 }
 \seealso{
 Other {unittest}: 

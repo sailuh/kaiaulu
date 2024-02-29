@@ -10,51 +10,65 @@
 #'
 #' @param jira_domain_url URL of JIRA domain (e.g. "https://project.org/jira")
 #' @param issue_key issue key of JIRA issue (e.g. "PROJECT-68" or "GERONIMO-6723)
+#' @param version_names list of version names (e.g. c("3.1.5", "4.0.0"))
 #' @param issue_type type of JIRA issue (e.g. "New Feature", "Task", "Bug")
 #' @param status status of issue for development (e.g. "In Progress")
 #' @param resolution name of resolution for issue (e.g. "Fixed")
-#' @param title summary of the issue (e.g. "Site Keeps Crashing")
+#' @param summary summary of the issue (e.g. "Site Keeps Crashing")
 #' @param description more detailed description of issue (e.g. "The program keeps crashing because this reason")
-#' @param components components of issue separate by ; (e.g. "x-core;x-spring")
+#' @param components list of components of issue (e.g. c("PS", "Tests"))
 #' @param creator_name name of creator of issue (e.g. "John Doe")
 #' @param reporter_name name of reporter of issue (e.g. "Jane Doe")
 #' @param assignee_name name of person the issue is being assigned to (e.g. "Joe Schmo")
-#' @param comments character vector where each element is a comment string (e.g. c("This is first comment", "This is second comment"))
+#' @param comments character list where each element is a comment string (e.g. c("This is first comment", "This is second comment"))
 #' @return A list which represents the JIRA JSON in memory
 #' @export
 #' @family {unittest}
-make_jira_issue <- function(jira_domain_url, issue_key, issue_type, status, resolution, title, description, components, creator_name, reporter_name, assignee_name, comments = NULL) {
+make_jira_issue <- function(jira_domain_url, issue_key, version_names, resolution, priority, labels,
+                            assignee_name, status, components, creator_name, reporter_name, issue_type,
+                            project_type, description, summary, comments = NULL) {
 
   # Create an issue with the given parameters as a list. If comments are specified, then add comments to the list
-  issue_info <- list(
-    title = title,
-    issuetype = create_issue_type(jira_domain_url, issue_type),
+  fields <- list(
+    fixVersions = create_fix_versions(jira_domain_url, version_names),
+    resolution = create_resolution(name = resolution),
+    priority = create_priority(jira_domain_url, priority),
+    labels = labels,
+    assignee = create_assignee(jira_domain_url, assignee_name),
+    status = create_status(jira_domain_url, status),
     components = create_components(jira_domain_url, components),
     creator = create_creator(jira_domain_url, creator_name),
-    created = "2007-07-08T06:07:06.000+0000",
-    description = description,
     reporter = create_reporter(jira_domain_url, reporter_name),
-    resolution = create_resolution(name = resolution),
+    issuetype = create_issue_type(jira_domain_url, issue_type),
+    project = create_project(jira_domain_url, issue_key, project_type),
     resolutiondate = "2007-08-13T19:12:33.000+0000",
-    assignee = create_assignee(jira_domain_url, assignee_name),
+    created = "2007-07-08T06:07:06.000+0000",
     updated = "2008-05-12T08:01:39.000+0000",
-    status = create_status(jira_domain_url, status)
+    description = description,
+    summary = summary
   )
 
   if (!is.null(comments) && length(comments) > 0) {
 
-    issue_info[["comment"]][["comments"]] <- create_issue_comments(comments)
-    issue_info[["comment"]][["maxResults"]] <- length(issue[["comment"]][[1]])
-    issue_info[["comment"]][["total"]] <- length(issue[["comment"]][[1]])
-    issue_info[["comment"]][["startAt"]] <- 0
+    fields[["comment"]][["comments"]] <- create_issue_comments(comments)
+    fields[["comment"]][["maxResults"]] <- length(issue[["comment"]][[1]])
+    fields[["comment"]][["total"]] <- length(issue[["comment"]][[1]])
+    fields[["comment"]][["startAt"]] <- 0
   }
 
+  # generate a random id number
+  id <- sample(10000000: 99999999, 1)
+
+  # append the id to the Jira doman URL
+  self_url <- paste0(jira_domain_url, "/rest/api/2/issue", id)
+
+  # fill in the keys for the issue and append the 'fields' list
   issue <- list(
-    expand = "expand",
-    id = 1,
-    self = "self",
-    key = "key",
-    fields = issue_info
+    expand = "schema, names",
+    id = as.character(id),
+    self = self_url,
+    key = issue_key,
+    fields = fields
   )
 
   return(issue)
@@ -96,9 +110,11 @@ make_jira_issue_tracker <- function(issues,save_filepath) {
 #' Other parameters associated to the comments, such as the author
 #' and update author are currently hardcoded.
 #'
-#' @param comments A character vector containing the comment body.
+#' @param comments A character list containing the comment body.
+#' @return A list named 'comments_list' that has a list of comments
+
 create_issue_comments <- function(comments) {
-  comments_vector <- list()
+  comments_list <- list()
 
   # go through and make comment for each body in comment_bodies
   # only comment bodies changes for comments, the rest of comments information is hard coded below
@@ -138,10 +154,10 @@ create_issue_comments <- function(comments) {
       created = "2021-01-01T10:00:00.000+0000",
       updated = "2021-01-01T12:00:00.000+0000"
     )
-    comments_vector[[length(comments_vector) + 1]] <- comment
+    comments_list[[length(comments_list) + 1]] <- comment
   }
 
-  return(comments_vector)
+  return(comments_list)
 }
 
 #' Create Issue Type
@@ -174,23 +190,23 @@ create_issue_type <- function(jira_domain_url, issue_type) {
 #' Creates the component cells for \code{\link{make_jira_issue}}.
 #'
 #' @param jira_domain_url URL of JIRA domain
-#' @param components string of names of components (ex. "x-core;x-spring" is two components)
+#' @param components list of names of components
 #' @return A list named 'components' which contains each component and its details
 create_components <- function(jira_domain_url, components) {
-
-  # separate components names with ; (ex. "x-core;x-spring" is two components)
-  components_names <- unlist(stringi::stri_split_regex(components, pattern = ";"))
   components_list <- list()
 
   # for loop to create a component for each component name
-  for (name in components_names) {
-    id <- sample(10000000: 99999999, 1)
+  for (name in components) {
+
+    id <- sample(10000: 99999999, 1)
+
     self_url <- paste0(jira_domain_url, "/rest/api/2/component/", id)
 
     component <- list(
       self = self_url,
       id = as.character(id),
-      name = name
+      name = name,
+      description = "This is the description for the component"
     )
 
     # add component to list which will be returned at the end
@@ -346,4 +362,122 @@ create_status <- function(jira_domain_url, status) {
   )
 
   return(status)
+}
+
+#' Create Fix Version
+#'
+#' Create a fixVersions cell for \code{\link{make_jira_issue}}.
+#'
+#' @param jira_domain_url URL of JIRA domain
+#' @param version_names list of version names for the issue
+#' @return A list named 'fixVersions' with a list of versions.
+create_fix_versions <- function(jira_domain_url, version_names) {
+
+  fixVersions_list <- list()
+
+  for(version_name in version_names){
+    id <- sample(10000000: 99999999, 1)
+    self_url <- paste0(jira_domain_url, "/rest/api/2/version/", version_id)
+
+    version <- list(
+      self = self_url,
+      id = as.character(id),
+      description = "This is a description of the fixVersion",
+      name = version_name,
+      archived = FALSE,
+      released = TRUE,
+      releaseDate = "2021-01-01T10:00:00.000+0000"
+    )
+
+    fixVersions_list[[length(fixVersions_list) + 1]] <- version
+  }
+
+  return(fixVersions_list)
+}
+
+#' Create Priority
+#'
+#' Create a priority cell for \code{\link{make_jira_issue}}.
+#'
+#' @param jira_domain_url URL of JIRA domain
+#' @param priority the name of the priority of the issue (Major, Minor, Trivial)
+#' @return A list named 'priority' containing priority information.
+create_priority <- function(jira_domain_url, priority) {
+
+  id <- sample(1:10, 1)
+
+  self_url <- paste0(jira_domain_url, "/rest/api/2/priority/", id)
+
+  priority <- list(
+    self = self_url,
+    iconUrl = "https://issues.apache.org/jira/images/icons/priorities/major.svg",
+    name = priority,
+    id = as.character(id)
+  )
+
+  return(priority)
+}
+
+#' Create Parent
+#'
+#' Create a parent cell for \code{\link{make_jira_issue}}.
+#'
+#' @param jira_domain_url URL of JIRA domain
+#' @param issue_key issue key of JIRA issue (e.g. "PROJECT-68" or "GERONIMO-6723)
+#' @param status status of issue for development (e.g. "In Progress")
+#' @param priority the name of the priority of the issue (Major, Minor, Trivial)
+#' @param issue_type type of JIRA issue (e.g. "New Feature", "Task", "Bug")
+#' @return A list named 'parent' that contains information on a parent issue
+create_parent <- function(jira_domain_url, issue_key, status, priority, issue_type) {
+
+  id <- sample(10000000: 99999999, 1)
+
+  self_url <- paste0(jira_domain_url, "/rest/api/2/issue/", id)
+
+  fields <- list(
+    summary = "This is a summary",
+    status = create_status(jira_domain_url, status),
+    priority = create_priority(jira_domain_url, priority),
+    issuetype = create_issue_type(jira_domain_url, issue_type)
+  )
+
+  parent <- list(
+    id = as.character(id),
+    key = issue_key,
+    self = self_url,
+    fields = fields
+  )
+
+  return(parent)
+}
+
+#' Create Project
+#'
+#' Create a project cell for \code{\link{make_jira_issue}}.
+#'
+#' @param jira_domain_url URL of JIRA domain
+#' @param issue_key issue key of JIRA issue (e.g. "PROJECT-68" or "GERONIMO-6723)
+#' @param project_type the type of the project
+#' @return A list named 'project' that contains project type and other project information
+create_project <- function(jira_domain_url, issue_key, project_type) {
+
+  id <- sample(10000000: 99999999, 1)
+
+  self_url <- paste0(jira_domain_url, "/rest/api/2/project/", id)
+
+  avatarUrls = list(
+    "48x48" = "https://example.com/jira/secure/useravatar?size=large&ownerId=user1",
+    "24x24" = "https://example.com/jira/secure/useravatar?size=small&ownerId=user1",
+    "16x16" = "https://example.com/jira/secure/useravatar?size=xsmall&ownerId=user1",
+    "32x32" = "https://example.com/jira/secure/useravatar?size=medium&ownerId=user1"
+  )
+
+  project <- list(
+    self = self_url,
+    id = as.character(id),
+    key = issue_key,
+    name = issue_key,
+    projectTypeKey = project_type,
+    avartarUrls = avatarUrls
+  )
 }

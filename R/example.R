@@ -205,7 +205,7 @@ example_large_sized_commits <- function(folder_path="/tmp", folder_name) {
 #' @param folder_name The name of the folder
 #' @return the JSON path of the newly created issue issue tracker
 #' @export
-example_jira_issue_components <- function(folder_path="/tmp",folder_name) {
+example_jira_issue_components <- function(folder_path="~/Documents", folder_name) {
 
   # Create folder & repo
   folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
@@ -215,7 +215,7 @@ example_jira_issue_components <- function(folder_path="/tmp",folder_name) {
                             issue_type = "New Feature",
                             status = "Open",
                             resolution = "Finished",
-                            title = "This is a summary.",
+                            summary = "This is a summary.",
                             description = "The new features have been implemented.",
                             components = "x-core;x-spring",
                             creator_name = "Bob",
@@ -226,7 +226,7 @@ example_jira_issue_components <- function(folder_path="/tmp",folder_name) {
   issues <- list(issue1)
 
   jira_json_path <- make_jira_issue_tracker(issues,
-                                            save_filepath=file.path(folder_path,"issue_two_components.json"))
+                                            save_filepath=file.path(folder_path,"single_issue.json"))
 
   return(jira_json_path)
 }
@@ -249,7 +249,7 @@ example_jira_two_issues <- function(folder_path="/tmp",folder_name) {
                             issue_type = "New Feature",
                             status = "Open",
                             resolution = "Finished",
-                            title = "This is a summary.",
+                            summary = "This is a summary.",
                             description = "The new features have been implemented.",
                             components = "x-core",
                             creator_name = "Bob",
@@ -262,7 +262,7 @@ example_jira_two_issues <- function(folder_path="/tmp",folder_name) {
                             issue_type = "New Feature",
                             status = "Open",
                             resolution = "Finished",
-                            title = "This is a summary.",
+                            summary = "This is a summary.",
                             description = "The new features have been implemented.",
                             components = "x-spring",
                             creator_name = "Moe",
@@ -297,7 +297,7 @@ example_jira_issue_comments <- function(folder_path="/tmp",folder_name) {
                             issue_type = "Bug",
                             status = "In Progress",
                             resolution = "Incomplete",
-                            title = "Bug fixes need implementation.",
+                            summary = "Bug fixes need implementation.",
                             description = "The new features have not been implemented.",
                             components = "x-core",
                             creator_name = "Moe",
