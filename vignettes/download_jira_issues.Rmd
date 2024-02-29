@@ -41,8 +41,12 @@ In this notebook, we will obtain data from the issue tracker JIRA. We will use [
 conf <- yaml::read_yaml("../conf/geronimo.yml")
 issue_tracker_domain <- conf[["issue_tracker"]][["jira"]][["domain"]]
 issue_tracker_project_key <- conf[["issue_tracker"]][["jira"]][["project_key"]]
+# Altered save paths. Important for naming conventions
 save_path_issue_tracker_issues <- paste0(conf[["issue_tracker"]][["jira"]][["issues"]], issue_tracker_project_key, "_issues")
 save_path_issue_tracker_issue_comments <- paste0(conf[["issue_tracker"]][["jira"]][["issue_comments"]], issue_tracker_project_key, "_issue_comments")
+# Unaltered save paths from config file for use with refresh function
+refresh_issues <- conf[["issue_tracker"]][["jira"]][["issues"]]
+refresh_issue_comments <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
 # Read the credentials from the file
 # Assuming the first line is the username and the second line is the password
 # Username: jondoe@jondoe.com
@@ -55,9 +59,6 @@ credentials <- scan("~/.ssh/atlassian_credentials", what = "character", quiet = 
 This calls a function that interacts through the JIRA REST API through the rest/api/2/issues endpoint. It authenticates requests with your username and api token (used in this case as the password). It also specifies the parameters passed to the API request including fields. maxResult is the number of issues downloaded per page, verbose when set to TRUE prints operational messages, and maxDownloadsPerHour sets an upper limit on how many issues will be downloaded within an hour before the function sleeps until the hour elapses. 
 
 ```{r eval=FALSE}
-# We append '[project_key]_issues' to the save path
-save_path_issues <- paste0(save_path_issue_tracker_issues, issue_tracker_project_key, "_issues")
-
 all_issues <- download_and_save_jira_issues(issue_tracker_domain,
                            credentials, 
                            jql_query = paste0("project='",issue_tracker_project_key,"'"), 
@@ -76,7 +77,7 @@ all_issues <- download_and_save_jira_issues(issue_tracker_domain,
                            save_path_issue_tracker_issues, 
                            maxResults = 5, 
                            verbose = TRUE,
-                           maxDownloads = 20,
+                           maxDownloads = 500,
                            search_query = NULL)
 
 # save all_issues as a json file along the path save_path_issue_tracker_issues
@@ -88,8 +89,8 @@ all_issues <- download_and_save_jira_issues(issue_tracker_domain,
 
 ```{r}
 # eg date_lower_bound <- "1970-01-01". Change these as you need
-date_lower_bound <- "2012-01-01"
-date_upper_bound <- NULL
+date_lower_bound <- NULL
+date_upper_bound <- "2012-01-01"
 
 all_issues <- download_and_save_jira_issues_by_created (issue_tracker_domain,
                            credentials, 
@@ -150,11 +151,16 @@ all_issues <- download_and_save_jira_issues_by_issueKey (issue_tracker_domain,
 # Download only issues that you have not already downloaded (REFRESH)
 
 ```{r}
-# eg issueKey_lower_bound <- "GERONIMO-740"
-# this will be replaced with a parse function that ian builds.. Or I may make a new function that calls his function from within it, but it should return the greatest value already downloaded and then we can set the lower bound to that value and only download issues greater than that
-issueKey_lower_bound <- "GERONIMO-740"
+# # This sets a variable to find the most recent 'created' field of the issues that have been already save to the save path.
+date_issues_upper_bound <- NULL
+date_issues_lower_bound <- parse_jira_latest_date(refresh_issues)
+message("The most recent issue downloaded was on ", date_issues_lower_bound)
+message("Will download only issues created after this date")
+```
 
-all_issues <- download_and_save_jira_issues_by_issueKey (issue_tracker_domain,
+```{r}
+# REFRESH FUNCTION
+all_issues <- download_and_save_jira_issues_by_created (issue_tracker_domain,
                            credentials, 
                            jql_query = paste0("project='",issue_tracker_project_key,"'"), 
                            fields = c("summary", 
@@ -173,8 +179,8 @@ all_issues <- download_and_save_jira_issues_by_issueKey (issue_tracker_domain,
                            maxResults = 5, 
                            verbose = TRUE,
                            maxDownloads = 400,
-                           issueKey_lower_bound,
-                           issueKey_upper_bound)
+                           date_issues_lower_bound,
+                           date_issues_upper_bound)
 
 ```
 
@@ -236,7 +242,7 @@ all_issues_comments <- download_and_save_jira_issues_by_created(issue_tracker_do
                            save_path_issue_tracker_issue_comments, 
                            maxResults = 20, 
                            verbose = TRUE,
-                           maxDownloads = 4500,
+                           maxDownloads = 40,
                            date_lower_bound,
                            date_upper_bound)
 ```
@@ -245,8 +251,8 @@ all_issues_comments <- download_and_save_jira_issues_by_created(issue_tracker_do
 # Download issues with comments by specifying issueKey range
 
 ```{r eval=FALSE}
-issueKey_lower_bound <- "GERONIMO-700"
-issueKey_upper_bound <- NULL
+issueKey_lower_bound <- NULL
+issueKey_upper_bound <- "GERONIMO-700"
 
 all_issues_comments <- download_and_save_jira_issues_by_issueKey(issue_tracker_domain,
                            credentials, 
@@ -267,7 +273,7 @@ all_issues_comments <- download_and_save_jira_issues_by_issueKey(issue_tracker_d
                            save_path_issue_tracker_issue_comments, 
                            maxResults = 20, 
                            verbose = TRUE,
-                           maxDownloads = 4500,
+                           maxDownloads = 40,
                            issueKey_lower_bound,
                            issueKey_upper_bound)
 ```
@@ -275,11 +281,16 @@ all_issues_comments <- download_and_save_jira_issues_by_issueKey(issue_tracker_d
 # Download only issues with comments that you have not already downloaded (REFRESH)
 
 ```{r}
-# eg issueKey_lower_bound <- "GERONIMO-740"
-# this will be replaced with a parse function that ian builds.. Or I may make a new function that calls his function from within it, but it should return the greatest value already downloaded and then we can set the lower bound to that value and only download issues greater than that
-issueKey_lower_bound <- "GERONIMO-740"
+# # This sets a variable to find the most recent 'created' field of the issue_comments that have been already save to the save path.
+date_issue_comments_upper_bound <- NULL
+date_issue_comments_lower_bound <- parse_jira_latest_date(refresh_issue_comments)
+message("The most recent issue downloaded was on ", date_issue_comments_lower_bound)
+message("Will download only issues created after this date")
+```
 
-all_issues <- download_and_save_jira_issues_by_issueKey (issue_tracker_domain,
+```{r}
+# Call the function and return only issues created after issueKey_lower_bound
+all_issues <- download_and_save_jira_issues_by_created (issue_tracker_domain,
                            credentials, 
                            jql_query = paste0("project='",issue_tracker_project_key,"'"), 
                            fields = c("summary",
@@ -299,7 +310,7 @@ all_issues <- download_and_save_jira_issues_by_issueKey (issue_tracker_domain,
                            maxResults = 5, 
                            verbose = TRUE,
                            maxDownloads = 400,
-                           issueKey_lower_bound,
-                           issueKey_upper_bound)
+                           date_issue_comments_lower_bound,
+                           date_issue_comments_upper_bound)
 
 ```

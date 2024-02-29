@@ -641,6 +641,9 @@ download_and_save_jira_issues <- function(domain,
     # Prepare query parameters for the API call
     query_params <- list(jql = jql_query, fields = paste(fields, collapse = ","), maxResults = maxResults, startAt = startAt)
 
+    if (verbose && (downloadCount == 0)){
+      message("Query paramters: ", query_params)
+    }
     # Make the API call
     response <- httr::GET(url, query = query_params)
 
@@ -665,7 +668,7 @@ download_and_save_jira_issues <- function(domain,
     # This checks for only the first page (if downloadCount ==0)
     # If the total number of issues retrieved is less than maxResults, then of course issue_count
     # will be < maxResults so we check to make sure this is not true (total >= maxResults)
-    if ((downloadCount == 0) && (maxResults != issue_count) && (total >= maxResults)) {
+    if ((downloadCount == 0) && (maxResults != issue_count) && (total > maxResults)) {
       message("Total number of issues queried: ", total)
       message(". maxResults specified: ", maxResults)
       message(". Number of issues retrieved: ", issue_count)
@@ -695,6 +698,8 @@ download_and_save_jira_issues <- function(domain,
         unix_time <- as.numeric(posix_time)
         # append to the filename
         file_name <- paste0(file_name, "_", unix_time, ".json")
+        # less lines? But less readable
+        # file_name <- paste0(file_name, "_", as.numeric(as.POSIXct(R_object_content$issue[[i]]$fields$created, format = "%Y-%m-%dT%H:%M:%OS", tz = "UTC")), ".json")
       }
       if (i == issue_count){
         issue <- R_object_content$issue[[i]]
@@ -773,10 +778,10 @@ download_and_save_jira_issues_by_created <- function(domain,
                                                      date_upper_bound = NULL){
   created_query <- ""
   if (!is.null(date_lower_bound)){
-    created_query <- paste0(created_query, "AND created >= '", date_lower_bound, "'")
+    created_query <- paste0(created_query, "AND created >= '", date_lower_bound, "' ")
   }
   if (!is.null(date_upper_bound)){
-    created_query <- paste0(created_query, " AND created <= '", date_upper_bound, "'")
+    created_query <- paste0(created_query, "AND created <= '", date_upper_bound, "' ")
   }
 
   message("Appending ", created_query, " to api request.")
