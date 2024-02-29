@@ -978,11 +978,15 @@ parse_jira_new <- function(json_path){
         issue_key = issue_key,
 
         issue_summary = issue_comment[["summary"]][[1]],
+        issue_parent = issue_comment[["parent"]][["key"]][[1]],
         issue_type = issue_comment[["issuetype"]][["name"]][[1]],
         issue_status = issue_comment[["status"]][["statusCategory"]][["name"]][[1]],
         issue_resolution = issue_comment[["resolution"]][["name"]][[1]],
         issue_components = stringi::stri_c(unlist(sapply(issue_comment[["components"]],"[[","name")),collapse = ";"),
         issue_description = issue_comment[["description"]][[1]],
+        issue_priority = issue_comment[["priority"]][["name"]][[1]],
+        issue_fixVersions = stringi::stri_c(unlist(sapply(issue_comment[["fixVersions"]],"[[","name")),collapse = ";"),
+        issue_labels = stringi::stri_c(unlist(sapply(issue_comment[["labels"]],"[[","name")),collapse = ";"),
 
         issue_created_datetimetz = issue_comment[["created"]][[1]],
         issue_updated_datetimetz = issue_comment[["updated"]][[1]],

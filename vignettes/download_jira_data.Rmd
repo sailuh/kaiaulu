@@ -42,6 +42,7 @@ issue_tracker_domain <- conf[["issue_tracker"]][["jira"]][["domain"]]
 issue_tracker_project_key <- conf[["issue_tracker"]][["jira"]][["project_key"]]
 save_path_issue_tracker_issues <- conf[["issue_tracker"]][["jira"]][["issues"]]
 save_path_issue_tracker_issue_comments <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
+
 ```
 
 # Specifying the JIRA credentials
@@ -92,7 +93,7 @@ jsonlite::write_json(json_issues,save_path_issue_tracker_issues)
 The json will be downloaded on the path specified in the project configuration file, which by default is `kaiaulu/kaiaulu/rawdata/issue_tracker`. We can then use Kaiaulu's function to parse the data into a tabular format. Since our request did not include the  `comment` field, only the issues table will be available. A few rows of the json issues is shown next:
 
 ```{r}
-jira_issues_list <- parse_jira(save_path_issue_tracker_issues)
+jira_issues_list <- parse_jira_new(save_path_issue_tracker_issues)
 jira_issues <- jira_issues_list[["issues"]]
 jira_comments <- jira_issues_list[["comments"]]
 kable(jira_issues[1:4])
