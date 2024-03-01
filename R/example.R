@@ -217,7 +217,7 @@ example_jira_issue_components <- function(folder_path="~/Documents", folder_name
     resolution = "Finished",
     priority = "Minor",
     labels = c("pull-request-available"),
-    assigne_name = "Moe",
+    assignee_name = "Moe",
     status = "Open",
     components = c("jira", "mail"),
     creator_name = "Bob",
@@ -228,8 +228,10 @@ example_jira_issue_components <- function(folder_path="~/Documents", folder_name
     summary = "Summary of new feature"
   )
 
-  jira_json_path <- make_jira_issue_tracker(issues,
-                                            save_filepath=file.path(folder_path,"single_issue.json"))
+  issues <- list(issue1)
+
+  jira_json_path <- make_jira_issue_tracker(
+    issues, save_filepath=file.path(folder_path,"GERONIMO_issues_1121646814_1121719175.json.json"))
 
   return(jira_json_path)
 }

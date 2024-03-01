@@ -85,7 +85,7 @@ make_jira_issue <- function(jira_domain_url, issue_key, version_names, resolutio
 #' file name and extension.
 #' @return The `save_filepath` specified.
 #' @export
-make_jira_issue_tracker <- function(issues,save_filepath) {
+make_jira_issue_tracker <- function(issues, save_filepath) {
 
   # validate input
   if (!is.list(issues)) {
@@ -377,7 +377,7 @@ create_fix_versions <- function(jira_domain_url, version_names) {
 
   for(version_name in version_names){
     id <- sample(10000000: 99999999, 1)
-    self_url <- paste0(jira_domain_url, "/rest/api/2/version/", version_id)
+    self_url <- paste0(jira_domain_url, "/rest/api/2/version/", id)
 
     version <- list(
       self = self_url,
