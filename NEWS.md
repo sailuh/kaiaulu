@@ -2,7 +2,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 =========================
 
 ### NEW FEATURES
-
+ * `download_and_save_jira_issues_refresh()` had been added. It is a wrapper function for the previous downloader and downloads only issues greater than the greatest key already downloaded.
  * `download_and_save_jira_issues()`, `download_and_save_jira_issues_by_issueKey()`, and `download_and_save_jira_issues_by created()` has been added. This allows for downloading of Jira issues without the use of JirAgileR [#275](https://github.com/sailuh/kaiaulu/issues/275) and specification of issue Id and created ranges. It also interacts with `parse_jira_latest_date` to implement a refresh capability.
  * The `make_jira_issue()` and `make_jira_issue_tracker()` have been added, alongside examples and unit tests for `parse_jira()`. [#228](https://github.com/sailuh/kaiaulu/issues/228) 
  * We can now generate fake mailing lists `make_mbox_reply`, and `make_mbox_mailing_list` for unit testing and tool comparison [#238](https://github.com/sailuh/kaiaulu/issues/238)

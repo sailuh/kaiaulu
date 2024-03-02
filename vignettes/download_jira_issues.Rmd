@@ -173,17 +173,15 @@ all_issues <- download_and_save_jira_issues_by_issueKey (issue_tracker_domain,
 
 # Download only issues that you have not already downloaded (REFRESH)
 
+# Acquires the filename of the file that contains the greatest 'created' data
 ```{r}
-# # This sets a variable to find the most recent 'created' field of the issues that have been already save to the save path.
-date_issues_upper_bound <- NULL
-date_issues_lower_bound <- parse_jira_latest_date(refresh_issues)
-message("The most recent issue downloaded was on ", date_issues_lower_bound)
-message("Will download only issues created after this date")
+# placeholder value until parser is built
+file_name_with_greatest_issueKey <- "GERONIMO_issues_1121719349_1121802933.json"
 ```
-
+# Call the function that looks for the greatest issueKey in the file and then only downloads issues with issueKeys greater than that key
 ```{r}
-# REFRESH FUNCTION
-all_issues <- download_and_save_jira_issues_by_created (issue_tracker_domain,
+download_and_save_jira_issues_refresh(
+                           issue_tracker_domain,
                            credentials, 
                            jql_query = paste0("project='",issue_tracker_project_key,"'"), 
                            fields = c("summary", 
@@ -201,9 +199,9 @@ all_issues <- download_and_save_jira_issues_by_created (issue_tracker_domain,
                            save_path_issue_tracker_issues, 
                            maxResults = 5, 
                            verbose = TRUE,
-                           maxDownloads = 400,
-                           date_issues_lower_bound,
-                           date_issues_upper_bound)
+                           maxDownloads = 500,
+                           file_name_with_greatest_issueKey,
+                           refresh_issues)
 
 ```
 
@@ -303,17 +301,15 @@ all_issues_comments <- download_and_save_jira_issues_by_issueKey(issue_tracker_d
 
 # Download only issues with comments that you have not already downloaded (REFRESH)
 
+ Acquires the filename of the file that contains the greatest 'created' data
 ```{r}
-# # This sets a variable to find the most recent 'created' field of the issue_comments that have been already save to the save path.
-date_issue_comments_upper_bound <- NULL
-date_issue_comments_lower_bound <- parse_jira_latest_date(refresh_issue_comments)
-message("The most recent issue downloaded was on ", date_issue_comments_lower_bound)
-message("Will download only issues created after this date")
+# placeholder value until parser is built
+file_name_with_greatest_issueKey_issue_comments <- "GERONIMO_issue_comments_1121646814_1121719175.json"
 ```
-
+# Call the function that looks for the greatest issueKey in the file and then only downloads issues with issueKeys greater than that key
 ```{r}
-# Call the function and return only issues created after issueKey_lower_bound
-all_issues <- download_and_save_jira_issues_by_created (issue_tracker_domain,
+download_and_save_jira_issues_refresh(
+                           issue_tracker_domain,
                            credentials, 
                            jql_query = paste0("project='",issue_tracker_project_key,"'"), 
                            fields = c("summary",
@@ -332,8 +328,8 @@ all_issues <- download_and_save_jira_issues_by_created (issue_tracker_domain,
                            save_path_issue_tracker_issue_comments, 
                            maxResults = 5, 
                            verbose = TRUE,
-                           maxDownloads = 400,
-                           date_issue_comments_lower_bound,
-                           date_issue_comments_upper_bound)
+                           maxDownloads = 500,
+                           file_name_with_greatest_issueKey_issue_comments,
+                           refresh_issue_comments)
 
 ```

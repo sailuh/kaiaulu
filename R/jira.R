@@ -844,3 +844,55 @@ download_and_save_jira_issues_by_issueKey <- function(domain,
                                 maxDownloads,
                                 search_query = created_query)
 }
+
+#' Define function to extract greatest issueKey from a file and pass it to download_and_save_jira_issues_by_issueKey
+#'
+#' Download issue data from "rest/api/2/search" endpoint
+#'
+#' @param domain Custom JIRA domain URL set in config file
+#' @param credentials a path to text file containing your username/api token
+#' @param jql_query Specific query string to specify criteria for fetching
+#' @param fields List of fields that are downloaded in each issue
+#' @param save_path_issue_tracker_issues Path that files will be save along
+#' @param maxResults (optional) the maximum number of results to download per page.
+#' Default is 50
+#' @param verbose boolean flag to specify printing operational
+#' messages or not
+#' @param maxDownloads Maximum downloads per function call
+#' @param file_name The filename that contains the greatest issueKey. Returned by a parser
+#' @param unaltered_file_path the unaltered filepath set in the config file
+#' @export
+download_and_save_jira_issues_refresh <- function(domain,
+                                                  credentials,
+                                                  jql_query,
+                                                  fields,
+                                                  save_path_issue_tracker_issues,
+                                                  maxResults,
+                                                  verbose,
+                                                  maxDownloads,
+                                                  file_name,
+                                                  unaltered_file_path){
+
+  issue_refresh <- paste0(unaltered_file_path, file_name)
+
+  # Read the JSON file
+  json_data <- jsonlite::fromJSON(txt = issue_refresh, simplifyVector = FALSE)
+
+  # Extract the value with the greatest issueKey
+  issue_first <- json_data$issue[[1]]['key']
+
+  # Construct the search query to append to the JIRA API request
+  search_query <- paste0("AND issueKey > ", issue_first)
+
+  message("Appending ", search_query, " to JQL query")
+
+  download_and_save_jira_issues(domain,
+                                credentials,
+                                jql_query,
+                                fields,
+                                save_path_issue_tracker_issues,
+                                maxResults,
+                                verbose,
+                                maxDownloads,
+                                search_query)
+}
