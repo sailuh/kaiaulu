@@ -954,8 +954,9 @@ parse_jira <- function(json_path){
 }
 #' Parse Jira latest dates
 #'
-#' @param json_path path to jira json (issues or issues with comments) obtained from the improved Jira Dowmloader.
-#' @return The latest date that a jira issue was created/downloaded for use by the Jira Downloader refresher
+#' @param json_path path to save folder containing JIRA issue and/or comments json files.
+#' @return The name of the jira issue file with the latest created date that was created/downloaded for
+#' use by the Jira Downloader refresher
 #' Note the jira json naming convention is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
 #' or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json"
 #' For example: "KAIAULU_issues_1231234_2312413.json". Notice how the ProjectKey portion is in all caps.
@@ -976,10 +977,11 @@ parse_jira_latest_date <- function(json_path){
     time_list <- append(time_list, j)
   }
 
-  overall_latest_date <- max(unlist(time_list))
-  c_format_date <- as.Date(as.POSIXct(overall_latest_date, origin = "1970-01-01"))
+  overall_latest_date <- as.character(max(unlist(time_list)))
 
-  return(c_format_date)
+  latest_issue_file <- grep(overall_latest_date, file_list, value = TRUE)
+
+  return(latest_issue_file)
 }
 
 #' Format Parsed Jira to Replies
