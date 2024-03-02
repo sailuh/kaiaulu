@@ -7,11 +7,17 @@
 parse_jira(json_path)
 }
 \arguments{
-\item{json_path}{path to jira json (issues or issues with comments) obtained using `download_jira_data.Rmd`.}
+\item{json_path}{is a folder path containing a set of jira_issues as json files. The general folder structure is as follows:
+"../../rawdata/issue_tracker/geronimo/issues/" or "../../rawdata/issue_tracker/geronimo/issue_comments/". The issues folder only
+contains jira issue json files that don't include comments. The issue_comments folder contains jira issue json files that can
+include comments.}
 }
 \value{
 A named list of two named elements ("issues", and "comments"), each containing a data.table.
-Note the comments element will be empty if the downloaded json only contain issues. Also,
+Note the comments element will be empty if the downloaded json only contain issues.
+the jira json naming convention is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
+or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json".
+For example: "KAIAULU_issues_1231234_2312413.json". Notice how the ProjectKey portion is in all caps.
 }
 \description{
 Parse Jira issue and comments
@@ -28,7 +34,6 @@ Other parsers:
 \code{\link{parse_dv8_clusters}()},
 \code{\link{parse_gitlog}()},
 \code{\link{parse_jira_latest_date}()},
-\code{\link{parse_jira_new}()},
 \code{\link{parse_jira_rss_xml}()},
 \code{\link{parse_mbox}()},
 \code{\link{parse_nvdfeed}()}

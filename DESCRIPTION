@@ -47,4 +47,4 @@ Imports:
 VignetteBuilder: knitr
 URL: https://github.com/sailuh/kaiaulu
 BugReports: https://github.com/sailuh/kaiaulu/issues
-RoxygenNote: 7.3.0
+RoxygenNote: 7.2.3
