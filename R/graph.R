@@ -151,6 +151,12 @@ model_directed_graph <- function(edgelist,is_bipartite,color,aggregate_duplicate
 #' @export
 bipartite_graph_projection <- function(graph,mode,weight_scheme_function = NULL){
 
+  # If weight scheme is cum_temporal, then lag must be "all_lag":
+  if(identical(weight_scheme_function,kaiaulu::weight_scheme_cum_temporal)){
+    stop("The weight scheme for cumulative temporal should only be applied to the temporal_graph_projection
+         and lag = all_lag. See ?weight_scheme_cum_temporal.")
+  }
+
   get_combinations <- function(edgelist){
     dt <- edgelist
 
@@ -260,12 +266,23 @@ bipartite_graph_projection <- function(graph,mode,weight_scheme_function = NULL)
 #' doi: 10.1109/ICSE.2015.73.
 temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,timestamp_column,lag = c("one_lag","all_lag")){
 
+  # Check if the user specified a lag that doesn't exist
+  lag <- match.arg(lag)
+
+
+
+  # If weight scheme is cum_temporal, then lag must be "all_lag":
+  if(identical(weight_scheme_function,kaiaulu::weight_scheme_cum_temporal) &
+     lag != "all_lag"){
+    stop("The weight scheme for cumulative temporal should only be applied to all_lag. See ?weight_scheme_cum_temporal.")
+  }
+
   # We define the way the pair-wise edges are computed in two
   # separate functions: one_lag_combinations and
   # all_lag combinations.
 
   # The remainder of this function is documented
-  # refering to developers and files, however the
+  # referring to developers and files, however the
   # function can be applied to anything else
   # (e.g. threads and authors, files and commits, etc)
 
@@ -403,7 +420,7 @@ temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,t
              new = c("to_edgeid","from_edgeid"))
 
     # Because the function will not generate the final projection, but
-    # rather the intemediate step, showcasing what nodes were deleted, and
+    # rather the intermediate step, showcasing what nodes were deleted, and
     # what weights the pairs of edges had pointing to the deleted node,
     # we use the edge ID to add the information back. Without the edge id,
     # we would be unable to determine which temporal edge the information
@@ -433,8 +450,7 @@ temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,t
 
 
 
-  # Check if the user specified a lag that doesn't exist
-  lag <- match.arg(lag)
+
 
   # Copy the graph, so column renames by reference doesn't overwrite parameter objects
   graph <- copy(graph)
@@ -581,7 +597,7 @@ weight_scheme_count_deleted_nodes <- function(projected_graph){
 #' Weight Cumulative Temporal Projection Scheme
 #'
 #' This weight scheme sums the deleted node adjacent edges when re-wired
-#' in the projection graph that *occur before* the temporal edge and the
+#' in the projection graph that *occur before* the temporal edge. See the
 #' in line documentation for details.
 #'
 #' Note this function assumes the rows of `temporally_ordered_projected_graph`

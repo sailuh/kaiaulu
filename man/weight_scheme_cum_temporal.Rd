@@ -14,7 +14,7 @@ weight_scheme_function = NA and lag = all_lag.}
 }
 \description{
 This weight scheme sums the deleted node adjacent edges when re-wired
-in the projection graph that *occur before* the temporal edge and the
+in the projection graph that *occur before* the temporal edge. See the
 in line documentation for details.
 }
 \details{
