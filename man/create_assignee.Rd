@@ -17,3 +17,4 @@ A list named 'assignee' which contains the assignee's information
 \description{
 Creates a assignee cell for \code{\link{make_jira_issue}}.
 }
+\keyword{internal}

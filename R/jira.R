@@ -446,6 +446,7 @@ make_jira_issue_tracker <- function(issues,save_filepath) {
 #' @param jira_domain_url URL of JIRA domain
 #' @param issue_key key for JIRA issue
 #' @return A list named 'base_info_cell' containing all information for base cell in json file
+#' @keywords internal
 create_base_info <- function(jira_domain_url, issue_key) {
   id <- sample(1:10, 1)
   JirAgileR_id <- sample(1:10, 1)
@@ -478,6 +479,7 @@ create_base_info <- function(jira_domain_url, issue_key) {
 #' @param reporter_name name of reporter reporting the issue
 #' @param assignee_name name of person the issue is being assigned to
 #' @return A list named 'ext_info_cell' which contains all the parameters and its generated fake data formats
+#' @keywords internal
 create_ext_info <- function(jira_domain_url, issue_type, status, resolution, title, description, components, creator_name, reporter_name, assignee_name) {
 
   ext_info_cell <- list(
@@ -505,6 +507,7 @@ create_ext_info <- function(jira_domain_url, issue_type, status, resolution, tit
 #' and update author are currently hardcoded.
 #'
 #' @param comments A character vector containing the comment body.
+#' @keywords internal
 create_issue_comments <- function(comments) {
   comments_vector <- list()
 
@@ -559,6 +562,7 @@ create_issue_comments <- function(comments) {
 #' @param jira_domain_url URL of JIRA domain
 #' @param issue_type name of the issue type (e.g. New Feature)
 #' @return A list named 'issue_type' that represents the issue type of the JIRA issue
+#' @keywords internal
 create_issue_type <- function(jira_domain_url, issue_type) {
 
   issue_id <- sample(1:10, 1)
@@ -584,6 +588,7 @@ create_issue_type <- function(jira_domain_url, issue_type) {
 #' @param jira_domain_url URL of JIRA domain
 #' @param components string of names of components (ex. "x-core;x-spring" is two components)
 #' @return A list named 'components' which contains each component and its details
+#' @keywords internal
 create_components <- function(jira_domain_url, components) {
 
   # separate components names with ; (ex. "x-core;x-spring" is two components)
@@ -615,6 +620,7 @@ create_components <- function(jira_domain_url, components) {
 #' @param jira_domain_url URL of JIRA domain
 #' @param creator_name name of creator
 #' @return A list named 'creator' that has creator's information
+#' @keywords internal
 create_creator <- function(jira_domain_url, creator_name) {
   self_url <- paste0(jira_domain_url, "/rest/api/2/user?username=", creator_name)
 
@@ -645,6 +651,7 @@ create_creator <- function(jira_domain_url, creator_name) {
 #' @param jira_domain_url URL of JIRA domain
 #' @param reporter_name name of reporter
 #' @return A list named 'reporter' which contains the reporter's information
+#' @keywords internal
 create_reporter <- function(jira_domain_url, reporter_name) {
 
   self_url <- paste0(jira_domain_url, "/rest/api/2/user?username=", reporter_name)
@@ -678,6 +685,7 @@ create_reporter <- function(jira_domain_url, reporter_name) {
 #' @param description Description of resolution
 #' @param name Name of Resolution
 #' @return A list named 'resolution' which contains the resolution's information
+#' @keywords internal
 create_resolution <- function(self_url = "https://domain.org/jira/rest/api/2/resolution/1",
                               id = "1",
                               description = "A fix for this issue is checked into the tree and tested.",
@@ -699,6 +707,7 @@ create_resolution <- function(self_url = "https://domain.org/jira/rest/api/2/res
 #' @param jira_domain_url URL of JIRA domain
 #' @param assignee_name name of assignee
 #' @return A list named 'assignee' which contains the assignee's information
+#' @keywords internal
 create_assignee <- function(jira_domain_url, assignee_name) {
 
   self_url <- paste0(jira_domain_url, "/rest/api/2/user?username=", assignee_name)
@@ -730,6 +739,7 @@ create_assignee <- function(jira_domain_url, assignee_name) {
 #' @param jira_domain_url URL of JIRA domain
 #' @param status description of status
 #' @return A list named 'status' containing status's information
+#' @keywords internal
 create_status <- function(jira_domain_url, status) {
 
   status_id <- sample(1:10, 1)

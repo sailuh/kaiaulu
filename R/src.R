@@ -91,6 +91,7 @@ parse_dependencies <- function(depends_jar_path,git_repo_path,language,output_di
 #' Detection in Commit History," 40th
 #' International Conference on Software Engineering (ICSE 2018),
 #' Gothenburg, Sweden, May 27 - June 3, 2018.
+#' @keywords internal
 parse_java_code_refactoring_json <- function(rminer_path,git_repo_path,start_commit,end_commit){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   rminer_path <- path.expand(rminer_path)
@@ -139,6 +140,7 @@ parse_line_metrics <- function(scc_path,git_repo_path){
 #' @param filepath path to file
 #' @param kinds the entity kinds utags should identify per line.
 #' @export
+#' @keywords internal
 parse_line_type_file <- function(utags_path,filepath,kinds){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   utags_path <- path.expand(utags_path)

@@ -24,3 +24,4 @@ Developers keep alternating the lines changes.
 Useful to check how git log entity behaves with files it should
 recognize.
 }
+\keyword{internal}

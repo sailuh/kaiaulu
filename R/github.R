@@ -415,6 +415,7 @@ github_api_rate_limit <- function(token){
 #' Obtain the next GitHub response page.
 #' @param gh_response A response returned by any GitHub endpoint which is paginated (e.g. \code{\link{github_api_project_commits}}).
 #' @export
+#' @keywords internal
 github_api_page_next <- function(gh_response){
   gh::gh_next(gh_response)
 }
@@ -422,6 +423,7 @@ github_api_page_next <- function(gh_response){
 #' Obtain the previous GitHub response page.
 #' @param gh_response A response returned by any GitHub endpoint which is paginated (e.g. \code{\link{github_api_project_commits}}).
 #' @export
+#' @keywords internal
 github_api_page_prev <- function(gh_response){
   gh::gh_prev(gh_response)
 }
@@ -429,6 +431,7 @@ github_api_page_prev <- function(gh_response){
 #' Obtain the first GitHub response page.
 #' @param gh_response A response returned by any GitHub endpoint which is paginated (e.g. \code{\link{github_api_project_commits}}).
 #' @export
+#' @keywords internal
 github_api_page_first <- function(gh_response){
   gh::gh_first(gh_response)
 }
@@ -437,6 +440,7 @@ github_api_page_first <- function(gh_response){
 #' Obtain the last GitHub response page.
 #' @param gh_response A response returned by any GitHub endpoint which is paginated (e.g. \code{\link{github_api_project_commits}}).
 #' @export
+#' @keywords internal
 github_api_page_last <- function(gh_response){
   gh::gh_last(gh_response)
 }
@@ -455,6 +459,7 @@ github_api_page_last <- function(gh_response){
 #' @param max_pages The maximum number of pages to download. MAX = Available token requests left
 #' @references For details see \url{https://docs.github.com/en/free-pro-team@latest/rest/guides/traversing-with-pagination}.
 #' @export
+#' @keywords internal
 github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=NA,max_pages=NA){
   page_number <- 1
 

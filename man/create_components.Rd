@@ -17,3 +17,4 @@ A list named 'components' which contains each component and its details
 \description{
 Creates the component cells for \code{\link{make_jira_issue}}.
 }
+\keyword{internal}

@@ -17,3 +17,4 @@ A list named 'creator' that has creator's information
 \description{
 Creates the issue creator cell for \code{\link{make_jira_issue}}.
 }
+\keyword{internal}

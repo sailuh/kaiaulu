@@ -18,6 +18,7 @@
 #' @param folder_name The name of the folder
 #' @return git_repo of newly created empty repo
 #' @export
+#' @keywords internal
 example_renamed_file <- function(folder_path="/tmp",folder_name) {
 
   # Create folder & repo
@@ -60,7 +61,7 @@ example_renamed_file <- function(folder_path="/tmp",folder_name) {
 #' @param folder_name The name of the folder
 #' @return git_repo of newly created empty repo
 #' @export
-#' @export
+#' @keywords internal
 example_test_example_src_repo <- function(folder_path="/tmp",folder_name) {
 
   # Create folder & repo
@@ -100,6 +101,7 @@ example_test_example_src_repo <- function(folder_path="/tmp",folder_name) {
 #' @param folder_name The name of the folder
 #' @return git_repo_path of newly created empty repo
 #' @export
+#' @keywords internal
 example_empty_repo <- function(folder_path="/tmp",folder_name) {
 
   # Create empty folder named "empty_repo"
@@ -120,6 +122,7 @@ example_empty_repo <- function(folder_path="/tmp",folder_name) {
 #' @param folder_name The name of the folder
 #' @return git_repo_path of newly created empty repo
 #' @export
+#' @keywords internal
 example_different_branches <- function(folder_path="/tmp", folder_name) {
 
   # Create folder & repo
@@ -154,6 +157,7 @@ example_different_branches <- function(folder_path="/tmp", folder_name) {
 #' @param folder_name The name of the folder
 #' @return git_repo_path of newly created empty repo
 #' @export
+#' @keywords internal
 example_large_sized_commits <- function(folder_path="/tmp", folder_name) {
 
   # Create folder & repo
@@ -206,6 +210,7 @@ example_large_sized_commits <- function(folder_path="/tmp", folder_name) {
 #' @param folder_name The name of the folder
 #' @return git_repo_path of newly created empty repo
 #' @export
+#' @keywords internal
 example_notebook_function_in_code_blocks <- function(folder_path="/tmp", folder_name) {
 
   # Create folder & repo
@@ -259,6 +264,7 @@ example_notebook_function_in_code_blocks <- function(folder_path="/tmp", folder_
 #' @param folder_name The name of the folder
 #' @return git_repo_path of newly created empty repo
 #' @export
+#' @keywords internal
 example_function_in_files <- function(folder_path="/tmp", folder_name) {
 
   # Create folder & repo
@@ -307,6 +313,7 @@ example_function_in_files <- function(folder_path="/tmp", folder_name) {
 #' @param folder_name The name of the folder
 #' @return git_repo_path of newly created empty repo
 #' @export
+#' @keywords internal
 example_notebook_alternating_function_in_files <- function(folder_path="/tmp", folder_name) {
 
   # Create folder & repo
@@ -391,6 +398,7 @@ example_notebook_alternating_function_in_files <- function(folder_path="/tmp", f
 #' @param folder_name The name of the folder
 #' @return the JSON path of the newly created issue issue tracker
 #' @export
+#' @keywords internal
 example_jira_issue_components <- function(folder_path="/tmp",folder_name) {
 
   # Create folder & repo
@@ -426,6 +434,7 @@ example_jira_issue_components <- function(folder_path="/tmp",folder_name) {
 #' @param folder_name The name of the folder
 #' @return the JSON path of the newly created issue issue tracker
 #' @export
+#' @keywords internal
 example_jira_two_issues <- function(folder_path="/tmp",folder_name) {
 
   # Create folder & repo
@@ -474,6 +483,7 @@ example_jira_two_issues <- function(folder_path="/tmp",folder_name) {
 #' @param folder_name The name of the folder
 #' @return the JSON path of the newly created issue issue tracker
 #' @export
+#' @keywords internal
 example_jira_issue_comments <- function(folder_path="/tmp",folder_name) {
 
   # Create folder & repo
@@ -515,6 +525,7 @@ example_jira_issue_comments <- function(folder_path="/tmp",folder_name) {
 #' @param file_name Name of the file where .mbox will be stored
 #' @return Folder path of .mbox sample file that was created
 #' @export
+#' @keywords internal
 example_mailing_list_two_threads <- function(folder_path = "/tmp", folder_name, file_name) {
 
   # Create folder & repo

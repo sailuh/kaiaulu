@@ -22,3 +22,4 @@ one commit that modifies the same function by Dev 2.
 Useful to check how git log entity behaves with files it should
 recognize.
 }
+\keyword{internal}
