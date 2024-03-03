@@ -3,6 +3,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ * Temporal bipartite projections are now weighted. The temporal projection can be parameterized by `weight_scheme_cum_temporal()` `weight_scheme_pairwise_cum_temporal()` when all time lag edges are used, or the existing weight schemes can also be used when using a single lag. The all lag weight schemes reproduce the same behavior as Codeface's paper. See the issue for details. [#229](https://github.com/sailuh/kaiaulu/issues/229)  
  * The `make_jira_issue()` and `make_jira_issue_tracker()` have been added, alongside examples and unit tests for `parse_jira()`. [#228](https://github.com/sailuh/kaiaulu/issues/228) 
  * We can now generate fake mailing lists `make_mbox_reply`, and `make_mbox_mailing_list` for unit testing and tool comparison [#238](https://github.com/sailuh/kaiaulu/issues/238)
  * A condition to test if the user points parse_gitlog() and git_log() to an empty repository and returns a more helpful message than "object 'data.Author' not found' was included. A unit test also verifies the behavior of the tryCatch on an empty repo. [#108](https://github.com/sailuh/kaiaulu/issues/108)
