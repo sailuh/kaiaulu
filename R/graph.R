@@ -152,9 +152,10 @@ model_directed_graph <- function(edgelist,is_bipartite,color,aggregate_duplicate
 bipartite_graph_projection <- function(graph,mode,weight_scheme_function = NULL){
 
   # If weight scheme is cum_temporal, then lag must be "all_lag":
-  if(identical(weight_scheme_function,kaiaulu::weight_scheme_cum_temporal)){
+  if((identical(weight_scheme_function,kaiaulu::weight_scheme_cum_temporal) |
+      identical(weight_scheme_function,kaiaulu::weight_scheme_pairwise_cum_temporal))){
     stop("The weight scheme for cumulative temporal should only be applied to the temporal_graph_projection
-         and lag = all_lag. See ?weight_scheme_cum_temporal.")
+         and lag = all_lag. See ?weight_scheme_cum_temporal or ?weight_scheme_pairwise_cum_temporal.")
   }
 
   get_combinations <- function(edgelist){
@@ -272,9 +273,11 @@ temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,t
 
 
   # If weight scheme is cum_temporal, then lag must be "all_lag":
-  if(identical(weight_scheme_function,kaiaulu::weight_scheme_cum_temporal) &
-     lag != "all_lag"){
-    stop("The weight scheme for cumulative temporal should only be applied to all_lag. See ?weight_scheme_cum_temporal.")
+  if((identical(weight_scheme_function,kaiaulu::weight_scheme_cum_temporal) |
+      identical(weight_scheme_function,kaiaulu::weight_scheme_pairwise_cum_temporal)
+      ) & lag != "all_lag"){
+    stop("The weight scheme for cumulative temporal should only be applied to all_lag.
+         See ?weight_scheme_cum_temporal or ?weight_scheme_pairwise_cum_temporal.")
   }
 
   # We define the way the pair-wise edges are computed in two
