@@ -1478,6 +1478,27 @@ parse_gitlog_entity <- function(git_repo_path,utags_path,project_git_log,kinds,p
                                                 "committer_timestamp",
                                                 "committer_tz",
                                                 "committer_summary")]
+
+
+    # Adds additional columns for naming consistency with parse_gitlog()
+
+    entity_changes[,c("author_name_email",
+              "author_datetimetz",
+              "committer_name_email",
+              "commit_hash",
+              "committer_datetimetz",
+              "entity",
+              "weight"):=list(stri_c(author_name,author_email,sep= " "),
+                              as.POSIXct(as.integer(author_timestamp),
+                                         origin="1970-01-01",tz = "UTC"),
+                              stri_c(committer_name,committer_email,sep= " "),
+                              commit_hash,
+                              as.POSIXct(as.integer(committer_timestamp),
+                                         origin="1970-01-01",tz = "UTC"),
+                              entity_definition_name,
+                              n_lines_changed
+              )]
+
     return(entity_changes)
   }
   nrow_project_git_log <- nrow(project_git_log)
@@ -1560,13 +1581,17 @@ utils::globalVariables(c("."))
 #' @importFrom stringi stri_detect_regex
 #' @importFrom stringi stri_c
 #' @importFrom stringi stri_split_regex
+#' @importFrom stringi stri_trans_tolower
 #' @importFrom data.table data.table
 #' @importFrom data.table is.data.table
 #' @importFrom data.table as.data.table
 #' @importFrom data.table .N
+#' @importFrom data.table transpose
 #' @importFrom data.table :=
+#' @importFrom data.table copy
 #' @importFrom data.table rbindlist
 #' @importFrom data.table setkey
 #' @importFrom data.table setkeyv
 #' @importFrom data.table setnames
+#' @importFrom data.table last
 NULL

@@ -194,6 +194,192 @@ example_large_sized_commits <- function(folder_path="/tmp", folder_name) {
   return(git_repo_path)
 }
 
+#' Example Commit of R Notebooks
+#'
+#' One commit that defines the function by Dev 1, then
+#' one commit that modifies the same function by Dev 2.
+#'
+#' Useful to check how git log entity behaves with files it does
+#' not recognize.
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return git_repo_path of newly created empty repo
+#' @export
+example_notebook_function_in_code_blocks <- function(folder_path="/tmp", folder_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
+  git_init(folder_path)
+
+  #initial file
+  body1 <- "
+  ```{r}
+  car <- function(x){
+  return(x)
+  }
+  ```
+  "
+
+  #changed file
+  body2 <- "
+  ```{r}
+  car <- function(x){
+  print('hi!')
+  return(x)
+  }
+  ```
+  "
+
+  # first commit
+  git_repo_path <- file.path(folder_path, '.git')
+  file_path <- file.path(folder_path, "file1.Rmd")
+  io_make_file(file_path, body1)
+  git_add(git_repo_path, folder_path, file_path)
+  git_commit(git_repo_path, folder_path, "committing first file", "Author 1", "author1@email.com")
+
+  # second commit
+  file_path <- file.path(folder_path, "file1.Rmd")
+  io_make_file(file_path, body2)
+  git_add(git_repo_path, folder_path, file_path)
+  git_commit(git_repo_path, folder_path, "modifying first file", "Author 2", "author2@email.com")
+
+  return(git_repo_path)
+}
+
+#' Example Commit of R Function Declarations
+#'
+#' One commit that defines the function by Dev 1, then
+#' one commit that modifies the same function by Dev 2.
+#'
+#' Useful to check how git log entity behaves with files it should
+#' recognize.
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return git_repo_path of newly created empty repo
+#' @export
+example_function_in_files <- function(folder_path="/tmp", folder_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
+  git_init(folder_path)
+
+  #initial file
+  body1 <- "
+  car <- function(x){
+  return(x)
+  }
+  "
+
+  #changed file
+  body2 <- "
+  car <- function(x){
+  print('hi!')
+  return(x)
+  }
+  "
+
+  # first commit
+  git_repo_path <- file.path(folder_path, '.git')
+  file_path <- file.path(folder_path, "file1.R")
+  io_make_file(file_path, body1)
+  git_add(git_repo_path, folder_path, file_path)
+  git_commit(git_repo_path, folder_path, "committing first file", "Author 1", "author1@email.com")
+
+  # second commit
+  file_path <- file.path(folder_path, "file1.R")
+  io_make_file(file_path, body2)
+  git_add(git_repo_path, folder_path, file_path)
+  git_commit(git_repo_path, folder_path, "modifying first file", "Author 2", "author2@email.com")
+
+  return(git_repo_path)
+}
+
+#' Example Alternating Undecided Developers
+#'
+#' Developers keep alternating the lines changes.
+#'
+#' Useful to check how git log entity behaves with files it should
+#' recognize.
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return git_repo_path of newly created empty repo
+#' @export
+example_notebook_alternating_function_in_files <- function(folder_path="/tmp", folder_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
+  git_init(folder_path)
+
+  #initial file
+
+  body1 <- "
+  car <- function(x){return(x)}
+  "
+
+  body2 <- "
+  car <- function(x){
+  return(x)
+  }
+  "
+
+  #changed file
+  body3 <- "
+  car <- function(x){
+  print('hi!')
+  print('one more line!')
+  print('one more line again!')
+  print('one more line again 2!')
+  print('one more line again 3!')
+  return(x)
+  }
+  "
+
+  body4 <- "
+  car <- function(x){
+  print('hi!')
+  print('one more line!')
+  print('one more line again!')
+  print('5th line!')
+  print('6th line!')
+  print('7th line!')
+  print('8th line!')
+  print('9th line!')
+  print('10th line!')
+  print('11th line!')
+  return(x)
+  }
+  "
+
+  # first commit
+  git_repo_path <- file.path(folder_path, '.git')
+  file_path <- file.path(folder_path, "file1.R")
+  io_make_file(file_path, body1)
+  git_add(git_repo_path, folder_path, file_path)
+  git_commit(git_repo_path, folder_path, "committing 1", "dev 1", "")
+
+  # second commit
+  file_path <- file.path(folder_path, "file1.R")
+  io_make_file(file_path, body2)
+  git_add(git_repo_path, folder_path, file_path)
+  git_commit(git_repo_path, folder_path, "commit 2", "dev 2", "")
+
+  # third commit
+  file_path <- file.path(folder_path, "file1.R")
+  io_make_file(file_path, body3)
+  git_add(git_repo_path, folder_path, file_path)
+  git_commit(git_repo_path, folder_path, "commit 3", "dev 1", "")
+
+  # forth commit
+  file_path <- file.path(folder_path, "file1.R")
+  io_make_file(file_path, body4)
+  git_add(git_repo_path, folder_path, file_path)
+  git_commit(git_repo_path, folder_path, "commit 4", "dev 2", "")
+
+  return(git_repo_path)
+}
 
 #' Create one No-Comment Issue with Two Components
 #'
@@ -336,28 +522,28 @@ example_mailing_list_two_threads <- function(folder_path = "/tmp", folder_name, 
 
   # Step 1: Create fake mbox replies and assign them to variables for easy editing
   thread_1_reply_1 <- make_mbox_reply(mailing_list="test-list",
-                                    reply_from_author = "John Doe", reply_from_email = "johndoe@example.com",
-                                    reply_to_author = "", reply_to_email =  "dev@test-list.com",
-                                    reply_cc_author = "Smithsonian Doe", reply_cc_email = "smith_doe@example.com",
-                                    reply_datetime = "2023-01-15T08:30:00", timezone = "EST",
-                                    reply_subject = "Subject 1",
-                                    reply_body = "This is the body of the test email 1 of thread 1.")
+                                      reply_from_author = "John Doe", reply_from_email = "johndoe@example.com",
+                                      reply_to_author = "", reply_to_email =  "dev@test-list.com",
+                                      reply_cc_author = "Smithsonian Doe", reply_cc_email = "smith_doe@example.com",
+                                      reply_datetime = "2023-01-15T08:30:00", timezone = "EST",
+                                      reply_subject = "Subject 1",
+                                      reply_body = "This is the body of the test email 1 of thread 1.")
 
   thread_1_reply_2 <- make_mbox_reply(mailing_list="test-list",
-                                    reply_from_author = "Smithsonian Doe", reply_from_email = "smith_doe@example.com",
-                                    reply_to_author = "", reply_to_email =  "dev@test-list.com",
-                                    reply_cc_author = "John Doe", reply_cc_email = "johndoe@example.com",
-                                    reply_datetime = "2023-01-16T09:30:00", timezone = "EST",
-                                    reply_subject = "Re: Subject 1",
-                                    reply_body = "This is the body of the test email 2 of thread 1.")
+                                      reply_from_author = "Smithsonian Doe", reply_from_email = "smith_doe@example.com",
+                                      reply_to_author = "", reply_to_email =  "dev@test-list.com",
+                                      reply_cc_author = "John Doe", reply_cc_email = "johndoe@example.com",
+                                      reply_datetime = "2023-01-16T09:30:00", timezone = "EST",
+                                      reply_subject = "Re: Subject 1",
+                                      reply_body = "This is the body of the test email 2 of thread 1.")
 
   thread_2_reply_1 <- make_mbox_reply(mailing_list="test-list",
-                                             reply_from_author = "Smithsonian Doe", reply_from_email = "smith_doe@example.com",
-                                             reply_to_author = "", reply_to_email =  "dev@test-list.com",
-                                             reply_cc_author = "John Doe", reply_cc_email = "johndoe@example.com",
-                                             reply_datetime = "2023-01-16T09:30:00", timezone = "EST",
-                                             reply_subject = "Subject 2",
-                                             reply_body = "This is the body of the test email 1 of thread 2.")
+                                      reply_from_author = "Smithsonian Doe", reply_from_email = "smith_doe@example.com",
+                                      reply_to_author = "", reply_to_email =  "dev@test-list.com",
+                                      reply_cc_author = "John Doe", reply_cc_email = "johndoe@example.com",
+                                      reply_datetime = "2023-01-16T09:30:00", timezone = "EST",
+                                      reply_subject = "Subject 2",
+                                      reply_body = "This is the body of the test email 1 of thread 2.")
 
 
 
@@ -370,9 +556,3 @@ example_mailing_list_two_threads <- function(folder_path = "/tmp", folder_name, 
 
   return(mbox_path)
 }
-
-
-
-
-
-

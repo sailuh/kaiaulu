@@ -53,8 +53,11 @@ reference:
 - contents:
   - model_directed_graph
   - bipartite_graph_projection
+  - temporal_graph_projection
   - weight_scheme_sum_edges
   - weight_scheme_count_deleted_nodes
+  - weight_scheme_cum_temporal
+  - weight_scheme_pairwise_cum_temporal
   - community_oslom
   - recolor_network_by_community
   - graph_to_dsmj
@@ -94,6 +97,9 @@ reference:
 - title: __IO__
   desc:  Functions to create and read temporary files in R.
 - contents:
+  - io_make_folder
+  - io_delete_folder
+  - io_make_file
   - io_make_file
   - io_make_folder
   - io_delete_folder
@@ -102,10 +108,10 @@ reference:
 - title: __Git__
   desc:  Functions to interact with git interface to facilitate interval static code analysis.
 - contents:
-  - git_init
-  - git_mv
   - git_add
   - git_commit
+  - git_init
+  - git_mv
   - git_checkout
   - git_head
   - git_log
@@ -246,4 +252,6 @@ reference:
   - example_mailing_list_two_threads
   - example_renamed_file
   - example_test_example_src_repo
-
+  - example_function_in_files
+  - example_notebook_alternating_function_in_files
+  - example_notebook_function_in_code_blocks
