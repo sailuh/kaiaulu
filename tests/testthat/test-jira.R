@@ -1,3 +1,10 @@
+test_that("Incorrect jira issue comments path fails parse_jira", {
+  incorrect_jira_issue_comments_path <- "/incorrect/path/to/jira_issue_comments"
+  suppressWarnings({
+    expect_error(parse_jira(incorrect_jira_issue_comments_path), "cannot open the connection")
+  })
+})
+
 test_that("parse_jira parses one issue with two components as one row", {
 
   jira_json_path <- example_jira_issue_components(folder_path = "/tmp",
