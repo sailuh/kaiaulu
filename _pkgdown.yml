@@ -2,98 +2,6 @@ destination: docs
 template:
   bootstrap: 5
 reference:
-- title: __Parsers__
-  desc:  Provides various interfaces to external tools to parse data and filters.
-- contents:
-  - parse_gitlog
-  - parse_git_blame
-  - parse_gitlog_entity
-  - parse_mbox
-  - parse_jira
-  - parse_jira_replies
-  - parse_jira_rss_xml
-  - parse_bugzilla_perceval_traditional_issue_comments
-  - parse_bugzilla_perceval_rest_issue_comments
-  - parse_bugzilla_rest_issues
-  - parse_bugzilla_rest_comments
-  - parse_bugzilla_rest_issues_comments
-  - parse_github_replies
-  - parse_dependencies
-  - parse_r_dependencies
-  - parse_java_code_refactoring_json
-  - parse_nvdfeed
-  - parse_line_metrics
-  - parse_line_type_file
-  - parse_commit_message_id
-- title: __Filters__
-  desc:  Filters for file extensions, and substrings, such as test files, and time intervals.
-- contents:
-  - filter_by_file_extension
-  - filter_by_filepath_substring
-  - filter_by_commit_interval
-  - filter_by_last_files_change
-  - filter_by_commit_size
-- title: __Networks__
-  desc:  Transforms parsed data into a format suitable to network libraries
-- contents:
-  - transform_gitlog_to_bipartite_network
-  - transform_gitlog_to_temporal_network
-  - transform_gitlog_to_entity_bipartite_network
-  - transform_gitlog_to_entity_temporal_network
-  - transform_reply_to_bipartite_network
-  - transform_dependencies_to_network
-  - transform_r_dependencies_to_network
-  - transform_commit_message_id_to_network
-  - transform_cve_cwe_file_to_network
-  - transform_dependencies_to_sdsmj
-  - transform_gitlog_to_hdsmj
-  - transform_temporal_gitlog_to_adsmj
-- title: __Graph__
-  desc:  Provide graph models to construct networks and algorithms for graph analysis
-- contents:
-  - model_directed_graph
-  - bipartite_graph_projection
-  - temporal_graph_projection
-  - weight_scheme_sum_edges
-  - weight_scheme_count_deleted_nodes
-  - weight_scheme_cum_temporal
-  - weight_scheme_pairwise_cum_temporal
-  - community_oslom
-  - recolor_network_by_community
-  - graph_to_dsmj
-- title: __Motif__
-  desc:  Sub-graphs used in Software Engineering literature for socio-technical metrics.
-- contents:
-  - motif_factory
-  - motif_factory_triangle
-  - motif_factory_square
-  - motif_factory_anti_triangle
-  - motif_factory_anti_square
-- title: __Identity__
-  desc:  Provide the same id to authors who use variations of names or emails.
-- contents:
-  - format_name_email
-  - split_name_email
-  - is_same_identity
-  - assign_exact_identity
-  - identity_match
-- title: __Interval__
-  desc:  Provides different types of interval windows (e.g. release) for metric functions.
-- contents:
-  - interval_commit_metric
-  - get_date_from_commit_hash
-- title: __Metrics__
-  desc:  Various metrics used to estimate code quality, complexity and effort
-- contents:
-  - metric_file_bug_frequency
-  - metric_file_non_bug_frequency
-  - metric_file_bug_churn
-  - metric_file_non_bug_churn
-  - metric_file_churn
-  - metric_churn_per_commit_interval
-  - metric_churn_per_commit_per_file
-  - commit_message_id_coverage
-  - metric_churn
 - title: __IO__
   desc:  Functions to create and read temporary files in R.
 - contents:
@@ -104,9 +12,44 @@ reference:
   - io_make_folder
   - io_delete_folder
   - make_temporary_file
-  - read_temporary_file
+- title: __Source Code__
+  desc:  Source Code File Parsers and Network Transformations
+- subtitle: Static Dependencies
+  desc: Static Dependency Parsers
+- contents:
+  - parse_dependencies
+  - parse_r_dependencies
+  - transform_dependencies_to_network
+  - transform_r_dependencies_to_network
+- subtitle: __Gang of Four Patterns__
+  desc:  Gang of Four pattern detection
+- contents:
+  - parse_gof_patterns
+  - write_gof_patterns
+  - subset_gof_class
+- subtitle: __Syntax Extraction__
+  desc:  Annotate and query source code elements, such as identifiers and docstrings.
+- contents:
+  - annotate_src_text
+  - query_src_text
+  - query_src_text_class_names
+  - query_src_text_namespace
 - title: __Git__
-  desc:  Functions to interact with git interface to facilitate interval static code analysis.
+  desc:  Parsing, Network Transformers, and  Git Command Interface
+- subtitle: __Git Log__
+  desc:  Git Log Numstat and Git Blame Parsers
+- contents:
+  - parse_gitlog
+  - parse_git_blame
+  - parse_gitlog_entity
+  - parse_commit_message_id
+  - transform_gitlog_to_bipartite_network
+  - transform_gitlog_to_temporal_network
+  - transform_gitlog_to_entity_bipartite_network
+  - transform_gitlog_to_entity_temporal_network
+  - transform_commit_message_id_to_network
+- subtitle: __Git Command__
+  desc:  R Interface to Git Commands
 - contents:
   - git_add
   - git_commit
@@ -118,11 +61,38 @@ reference:
   - git_blame
   - git_create_sample_log
   - git_delete_sample_log
+- title: __Filters__
+  desc:  Filters for file extensions, and substrings, such as test files, and time intervals.
+- contents:
+  - filter_by_file_extension
+  - filter_by_filepath_substring
+  - filter_by_commit_interval
+  - filter_by_last_files_change
+  - filter_by_commit_size
+- title: __Mail__
+  desc:  Download, parsing and data generation of mailing lists.
+- contents:
+  - download_pipermail
+  - convert_pipermail_to_mbox
+  - download_mod_mbox
+  - download_mod_mbox_per_month
+  - parse_mbox
+  - make_mbox_reply
+  - make_mbox_mailing_list
+- title: __JIRA__
+  desc:  Downloading, parsing, data generation and network transformations of JIRA.
+- contents:
+  - parse_jira
+  - parse_jira_replies
+  - parse_jira_rss_xml
+  - make_jira_issue
+  - make_jira_issue_tracker
 - title: __GitHub__
   desc: Functions to interact and download data from GitHub API.
 - subtitle: Issues
-  desc: GitHub's Issues and Issues' Events
+  desc: Download and parsing GitHub's Issues, Pull Requests and Events
 - contents:
+  - parse_github_replies
   - github_api_project_issue_events
   - github_parse_project_issue_events
   - github_api_project_issue
@@ -146,37 +116,84 @@ reference:
   - github_api_project_issue_or_pr_comments
   - github_parse_project_issue_or_pr_comments
   - github_api_rate_limit
-- subtitle: Pagination and Requests
-  desc: >
-    Misc functions for GitHub pagination when
-    downloading data.
-- contents:
-  - github_api_page_next
-  - github_api_page_prev
-  - github_api_page_first
-  - github_api_page_last
-  - github_api_iterate_pages
-- title: __Social Smells__
-  desc:  Functions to compute social smells.
-- contents:
-  - smell_missing_links
-  - smell_organizational_silo
-  - smell_sociotechnical_congruence
-  - smell_radio_silence
-- title: __Download__
-  desc:  Functions to download data from various websites and convert to formats used in Kaiaulu.
+- title: __Bugzilla__
+  desc:  Downloading and parsing of Bugzilla.
 - contents:
   - download_bugzilla_perceval_traditional_issue_comments
   - download_bugzilla_perceval_rest_issue_comments
   - download_bugzilla_rest_issues
   - download_bugzilla_rest_comments
   - download_bugzilla_rest_issues_comments
-  - download_pipermail
-  - convert_pipermail_to_mbox
-  - download_mod_mbox
-  - download_mod_mbox_per_month
-- title: __DV8__
-  desc: Functions to interface with ArchDia’s DV8.
+  - parse_bugzilla_perceval_traditional_issue_comments
+  - parse_bugzilla_perceval_rest_issue_comments
+  - parse_bugzilla_rest_issues
+  - parse_bugzilla_rest_comments
+  - parse_bugzilla_rest_issues_comments
+- title: __Reply__
+  desc:  Functions used to parse communication data from mail and issue trackers.
+- contents:
+  - transform_reply_to_bipartite_network
+- title: __Software Vulnerabilities__
+  desc: Software Vulnerabilities feed parsers
+- contents:
+  - parse_nvdfeed
+  - transform_cve_cwe_file_to_network
+- title: __Identity__
+  desc:  Provide the same id to authors who use variations of names or emails.
+- contents:
+  - format_name_email
+  - split_name_email
+  - is_same_identity
+  - assign_exact_identity
+  - identity_match
+- title: __Interval__
+  desc:  Provides different types of interval windows (e.g. release) for metric functions.
+- contents:
+  - interval_commit_metric
+  - get_date_from_commit_hash
+- title: __Metrics__
+  desc:  Various metrics used to estimate code quality, complexity and effort
+- contents:
+  - parse_line_metrics
+  - metric_file_bug_frequency
+  - metric_file_non_bug_frequency
+  - metric_file_bug_churn
+  - metric_file_non_bug_churn
+  - metric_file_churn
+  - metric_churn_per_commit_interval
+  - metric_churn_per_commit_per_file
+  - commit_message_id_coverage
+  - metric_churn
+  - read_temporary_file
+- title: __Graph__
+  desc:  Provide graph models to construct networks and algorithms for graph analysis
+- contents:
+  - model_directed_graph
+  - bipartite_graph_projection
+  - temporal_graph_projection
+  - weight_scheme_sum_edges
+  - weight_scheme_count_deleted_nodes
+  - weight_scheme_cum_temporal
+  - weight_scheme_pairwise_cum_temporal
+  - community_oslom
+  - recolor_network_by_community
+  - graph_to_dsmj
+- title: __Social Smells__
+  desc:  Sub-graph patterns that identify bad social practices.
+- contents:
+  - motif_factory
+  - motif_factory_triangle
+  - motif_factory_square
+  - motif_factory_anti_triangle
+  - motif_factory_anti_square
+  - smell_missing_links
+  - smell_organizational_silo
+  - smell_sociotechnical_congruence
+  - smell_radio_silence
+- title: __Architectural Flaws__
+  desc: >
+   Sub-graph patterns that identify bad architectural practices.
+   Requires a DV8 Archdia license (https://archdia.com).
 - subtitle: Design Structure Matrix (DSM)
   desc: >
     Parsing DSMs from raw data, convert between
@@ -192,6 +209,9 @@ reference:
   - dv8_dsmb_to_dsmj
   - dv8_hdsmb_sdsmb_to_mdsmb
   - dv8_mdsmb_drhier_to_excel
+  - transform_dependencies_to_sdsmj
+  - transform_gitlog_to_hdsmj
+  - transform_temporal_gitlog_to_adsmj
 - subtitle: Metrics
   desc: >
     Various DV8 metrics, Parsing into R Memory,
@@ -210,29 +230,10 @@ reference:
   - dv8_clsxb_to_clsxj
   - dv8_clsxj_to_clsxb
   - parse_dv8_clusters
-- title: __Text__
-  desc:  Parses source code identifier for text analysis
-- contents:
-  - annotate_src_text
-  - query_src_text
-  - query_src_text_class_names
-  - query_src_text_namespace
-
-- title: __Gang of Four Patterns__
-  desc:  Functions related to Gang of Four Patterns
-- contents:
-  - parse_gof_patterns
-  - write_gof_patterns
-  - subset_gof_class
-- title: __Fake Data Generator__
-  desc:  Functions to create fake data for unit testing parsers
-- contents:
-  - make_mbox_reply
-  - make_mbox_mailing_list
-  - make_jira_issue
-  - make_jira_issue_tracker
 - title: internal
 - contents:
+  - parse_java_code_refactoring_json
+  - parse_line_type_file
   - create_assignee
   - create_base_info
   - create_components
@@ -255,3 +256,8 @@ reference:
   - example_function_in_files
   - example_notebook_alternating_function_in_files
   - example_notebook_function_in_code_blocks
+  - github_api_page_next
+  - github_api_page_prev
+  - github_api_page_first
+  - github_api_page_last
+  - github_api_iterate_pages
