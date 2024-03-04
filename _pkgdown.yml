@@ -12,23 +12,35 @@ reference:
   - io_make_folder
   - io_delete_folder
   - make_temporary_file
+  - read_temporary_file
 - title: __Source Code__
-  desc:  Source Code File Parsers and Network Transformations
+  desc: >
+    Source Code File Parsers and Network Transformations. Git
+    Log data is not required.
 - subtitle: Static Dependencies
-  desc: Static Dependency Parsers
+  desc: >
+    Identification of static dependencies from source code. See the
+    [File Networks](../articles/depends_showcase.html) or
+    [Kaiaulu Architecture](../articles/kaiaulu_architecture.html)
+    Notebooks for examples.
 - contents:
   - parse_dependencies
   - parse_r_dependencies
   - transform_dependencies_to_network
   - transform_r_dependencies_to_network
 - subtitle: __Gang of Four Patterns__
-  desc:  Gang of Four pattern detection
+  desc: >
+    Gang of Four pattern detection using sub-graphs.
+    See the [Graph GoF](../articles/graph_gof_showcase.html)
+    Notebook for examples.
 - contents:
   - parse_gof_patterns
   - write_gof_patterns
   - subset_gof_class
 - subtitle: __Syntax Extraction__
-  desc:  Annotate and query source code elements, such as identifiers and docstrings.
+  desc: >
+    Annotate and query source code elements, such as identifiers and docstrings.
+    See the [Text GoF](../articles/text_gof_showcase.html) Notebook for examples.
 - contents:
   - annotate_src_text
   - query_src_text
@@ -37,7 +49,9 @@ reference:
 - title: __Git__
   desc:  Parsing, Network Transformers, and  Git Command Interface
 - subtitle: __Git Log__
-  desc:  Git Log Numstat and Git Blame Parsers
+  desc: >
+     Git Log Numstat and Git Blame Parsers. See the
+     [Git Log](../articles/gitlog_showcase.html) Notebook for examples.
 - contents:
   - parse_gitlog
   - parse_git_blame
@@ -62,7 +76,12 @@ reference:
   - git_create_sample_log
   - git_delete_sample_log
 - title: __Filters__
-  desc:  Filters for file extensions, and substrings, such as test files, and time intervals.
+  desc: >
+     Filters for file extensions, and substrings, such as test files,
+     and time intervals. See the
+     [Git Log](../articles/gitlog_showcase.html) and
+     [Line Metrics](../articles/line_metrics_showcase.html) Notebooks for
+     examples.
 - contents:
   - filter_by_file_extension
   - filter_by_filepath_substring
@@ -70,7 +89,11 @@ reference:
   - filter_by_last_files_change
   - filter_by_commit_size
 - title: __Mail__
-  desc:  Download, parsing and data generation of mailing lists.
+  desc: >
+      Download, parsing and data generation of mailing lists.
+      See the [Download Mbox](../articles/download_mod_mbox.html)
+      and [Reply](../articles/reply_communication_showcase.html)
+      Notebooks for details.
 - contents:
   - download_pipermail
   - convert_pipermail_to_mbox
@@ -80,7 +103,11 @@ reference:
   - make_mbox_reply
   - make_mbox_mailing_list
 - title: __JIRA__
-  desc:  Downloading, parsing, data generation and network transformations of JIRA.
+  desc: >
+       Downloading, parsing, data generation and
+       network transformations of JIRA. See the
+       [JIRA](../articles/download_jira_data.html)
+       Notebook for details.
 - contents:
   - parse_jira
   - parse_jira_replies
@@ -88,21 +115,22 @@ reference:
   - make_jira_issue
   - make_jira_issue_tracker
 - title: __GitHub__
-  desc: Functions to interact and download data from GitHub API.
+  desc: >
+       Functions to interact and download data from GitHub API.
+       See the [GitHub API](../articles/github_api_showcase.html)
+       Notebook to learn how to set an API Key, and how to use
+       it to download issues and comments on the
+       [GitHub Downloader and Parser](../articles/download_github_comments.html)
+       Notebook.
 - subtitle: Issues
   desc: Download and parsing GitHub's Issues, Pull Requests and Events
 - contents:
+  - github_api_rate_limit
   - parse_github_replies
   - github_api_project_issue_events
   - github_parse_project_issue_events
   - github_api_project_issue
   - github_parse_project_issue
-- subtitle: Commits
-  desc: GitHub's Commits
-- contents:
-  - github_api_project_commits
-  - github_parse_project_commits
-  - github_api_project_contributors
 - subtitle: Pull Request
   desc: GitHub's Pull Request
 - contents:
@@ -115,9 +143,16 @@ reference:
 - contents:
   - github_api_project_issue_or_pr_comments
   - github_parse_project_issue_or_pr_comments
-  - github_api_rate_limit
+- subtitle: Commits
+  desc: GitHub's Commits
+- contents:
+  - github_api_project_commits
+  - github_parse_project_commits
+  - github_api_project_contributors
 - title: __Bugzilla__
-  desc:  Downloading and parsing of Bugzilla.
+  desc: >
+    Downloading and parsing of Bugzilla. See the
+    _bugzilla_showcase.Rmd Notebook source code for examples.
 - contents:
   - download_bugzilla_perceval_traditional_issue_comments
   - download_bugzilla_perceval_rest_issue_comments
@@ -134,12 +169,18 @@ reference:
 - contents:
   - transform_reply_to_bipartite_network
 - title: __Software Vulnerabilities__
-  desc: Software Vulnerabilities feed parsers
+  desc: >
+    Software Vulnerabilities feed parsers. See the
+    [Software Vulnerability](../articles/gitlog_vulnerabilities_showcase.html)
+    Notebook for examples.
 - contents:
   - parse_nvdfeed
   - transform_cve_cwe_file_to_network
 - title: __Identity__
-  desc:  Provide the same id to authors who use variations of names or emails.
+  desc: >
+      Provide the same id to authors who use variations of names or emails.
+      See the [Social Smells](../articles/social_smell_showcase.html)
+      Notebook for examples.
 - contents:
   - format_name_email
   - split_name_email
@@ -152,7 +193,12 @@ reference:
   - interval_commit_metric
   - get_date_from_commit_hash
 - title: __Metrics__
-  desc:  Various metrics used to estimate code quality, complexity and effort
+  desc: >
+      Various metrics used to estimate code quality,
+      complexity and effort. For example usage,
+      see [File Line Metrics](../articles/line_metrics_showcase.html),
+      [Causal Flaws](../articles/causal_flaws.html), or
+      [Bug Count](../articles/bug_count.html) Notebooks.
 - contents:
   - parse_line_metrics
   - metric_file_bug_frequency
@@ -164,9 +210,8 @@ reference:
   - metric_churn_per_commit_per_file
   - commit_message_id_coverage
   - metric_churn
-  - read_temporary_file
 - title: __Graph__
-  desc:  Provide graph models to construct networks and algorithms for graph analysis
+  desc:  Provide graph models to construct networks and algorithms for graph analysis.
 - contents:
   - model_directed_graph
   - bipartite_graph_projection
@@ -178,8 +223,11 @@ reference:
   - community_oslom
   - recolor_network_by_community
   - graph_to_dsmj
-- title: __Social Smells__
-  desc:  Sub-graph patterns that identify bad social practices.
+- title: __Social-Technical Congruence and Social Smells__
+  desc: >
+      Sub-graph patterns that identify bad social practices.
+      See [Social Motifs](../articles/motif_analysis.html), or
+      [Social Smells](../articles/social_smell_showcase.html) Notebooks.
 - contents:
   - motif_factory
   - motif_factory_triangle
@@ -193,7 +241,9 @@ reference:
 - title: __Architectural Flaws__
   desc: >
    Sub-graph patterns that identify bad architectural practices.
-   Requires a DV8 Archdia license (https://archdia.com).
+   Requires a DV8 Archdia license (https://archdia.com). See the
+   [Architectural Flaws](../articles/dv8_showcase.html) Notebook
+   for examples.
 - subtitle: Design Structure Matrix (DSM)
   desc: >
     Parsing DSMs from raw data, convert between
