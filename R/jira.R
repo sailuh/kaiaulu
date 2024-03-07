@@ -310,7 +310,7 @@ make_jira_issue_tracker <- function(issues, save_filepath) {
 #'
 #' @param comments A character list containing the comment body.
 #' @return A list named 'comments_list' that has a list of comments
-
+#' @keywords internal
 create_issue_comments <- function(comments) {
   comments_list <- list()
 
@@ -365,6 +365,7 @@ create_issue_comments <- function(comments) {
 #' @param jira_domain_url URL of JIRA domain
 #' @param issue_type name of the issue type (e.g. New Feature)
 #' @return A list named 'issue_type' that represents the issue type of the JIRA issue
+#' @keywords internal
 create_issue_type <- function(jira_domain_url, issue_type) {
 
   issue_id <- sample(1:10, 1)
@@ -390,6 +391,7 @@ create_issue_type <- function(jira_domain_url, issue_type) {
 #' @param jira_domain_url URL of JIRA domain
 #' @param components list of names of components
 #' @return A list named 'components' which contains each component and its details
+#' @keywords internal
 create_components <- function(jira_domain_url, components) {
   components_list <- list()
 
@@ -421,6 +423,7 @@ create_components <- function(jira_domain_url, components) {
 #' @param jira_domain_url URL of JIRA domain
 #' @param creator_name name of creator
 #' @return A list named 'creator' that has creator's information
+#' @keywords internal
 create_creator <- function(jira_domain_url, creator_name) {
   self_url <- paste0(jira_domain_url, "/rest/api/2/user?username=", creator_name)
 
@@ -451,6 +454,7 @@ create_creator <- function(jira_domain_url, creator_name) {
 #' @param jira_domain_url URL of JIRA domain
 #' @param reporter_name name of reporter
 #' @return A list named 'reporter' which contains the reporter's information
+#' @keywords internal
 create_reporter <- function(jira_domain_url, reporter_name) {
 
   self_url <- paste0(jira_domain_url, "/rest/api/2/user?username=", reporter_name)
@@ -484,6 +488,7 @@ create_reporter <- function(jira_domain_url, reporter_name) {
 #' @param description Description of resolution
 #' @param name Name of Resolution
 #' @return A list named 'resolution' which contains the resolution's information
+#' @keywords internal
 create_resolution <- function(self_url = "https://domain.org/jira/rest/api/2/resolution/1",
                               id = "1",
                               description = "A fix for this issue is checked into the tree and tested.",
@@ -505,6 +510,7 @@ create_resolution <- function(self_url = "https://domain.org/jira/rest/api/2/res
 #' @param jira_domain_url URL of JIRA domain
 #' @param assignee_name name of assignee
 #' @return A list named 'assignee' which contains the assignee's information
+#' @keywords internal
 create_assignee <- function(jira_domain_url, assignee_name) {
 
   self_url <- paste0(jira_domain_url, "/rest/api/2/user?username=", assignee_name)
@@ -536,6 +542,7 @@ create_assignee <- function(jira_domain_url, assignee_name) {
 #' @param jira_domain_url URL of JIRA domain
 #' @param status description of status
 #' @return A list named 'status' containing status's information
+#' @keywords internal
 create_status <- function(jira_domain_url, status) {
 
   status_id <- sample(1:10, 1)
@@ -569,6 +576,7 @@ create_status <- function(jira_domain_url, status) {
 #' @param jira_domain_url URL of JIRA domain
 #' @param version_names list of version names for the issue
 #' @return A list named 'fixVersions' with a list of versions.
+#' @keywords internal
 create_fix_versions <- function(jira_domain_url, version_names) {
 
   fixVersions_list <- list()
@@ -600,6 +608,7 @@ create_fix_versions <- function(jira_domain_url, version_names) {
 #' @param jira_domain_url URL of JIRA domain
 #' @param priority the name of the priority of the issue (Major, Minor, Trivial)
 #' @return A list named 'priority' containing priority information.
+#' @keywords internal
 create_priority <- function(jira_domain_url, priority) {
 
   id <- sample(1:10, 1)
@@ -626,6 +635,7 @@ create_priority <- function(jira_domain_url, priority) {
 #' @param priority the name of the priority of the issue (Major, Minor, Trivial)
 #' @param issue_type type of JIRA issue (e.g. "New Feature", "Task", "Bug")
 #' @return A list named 'parent' that contains information on a parent issue
+#' @keywords internal
 create_parent <- function(jira_domain_url, issue_key, status, priority, issue_type) {
 
   id <- sample(10000000: 99999999, 1)
@@ -657,6 +667,7 @@ create_parent <- function(jira_domain_url, issue_key, status, priority, issue_ty
 #' @param issue_key issue key of JIRA issue (e.g. "PROJECT-68" or "GERONIMO-6723)
 #' @param project_type the type of the project
 #' @return A list named 'project' that contains project type and other project information
+#' @keywords internal
 create_project <- function(jira_domain_url, issue_key, project_type) {
 
   id <- sample(10000000: 99999999, 1)

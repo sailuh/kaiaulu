@@ -17,3 +17,4 @@ A list named 'priority' containing priority information.
 \description{
 Create a priority cell for \code{\link{make_jira_issue}}.
 }
+\keyword{internal}

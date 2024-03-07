@@ -23,3 +23,4 @@ A list named 'parent' that contains information on a parent issue
 \description{
 Create a parent cell for \code{\link{make_jira_issue}}.
 }
+\keyword{internal}

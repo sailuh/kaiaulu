@@ -17,3 +17,4 @@ A list named 'fixVersions' with a list of versions.
 \description{
 Create a fixVersions cell for \code{\link{make_jira_issue}}.
 }
+\keyword{internal}

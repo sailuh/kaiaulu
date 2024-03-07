@@ -398,6 +398,7 @@ example_notebook_alternating_function_in_files <- function(folder_path="/tmp", f
 #' @param folder_name The name of the folder
 #' @return the JSON path of the newly created issue issue tracker
 #' @export
+#' @keywords internal
 example_jira_issue_components <- function(folder_path="~/Documents", folder_name) {
 
   # Create folder & repo
