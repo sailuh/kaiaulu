@@ -20,3 +20,4 @@ Folder path of .mbox sample file that was created
 Create a mailing list of two e-mail threads, with
 two and one reply respectively by two developers.
 }
+\keyword{internal}

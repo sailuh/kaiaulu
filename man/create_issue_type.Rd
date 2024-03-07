@@ -17,3 +17,4 @@ A list named 'issue_type' that represents the issue type of the JIRA issue
 \description{
 Create issue type cell for \code{\link{make_jira_issue}}.
 }
+\keyword{internal}

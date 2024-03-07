@@ -17,3 +17,4 @@ Create issue comments cell for \code{\link{make_jira_issue}}.
 Other parameters associated to the comments, such as the author
 and update author are currently hardcoded.
 }
+\keyword{internal}
