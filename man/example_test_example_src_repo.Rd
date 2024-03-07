@@ -24,3 +24,4 @@ The repo contains 3 commits, where 1 file has as prefix
  hello.R. The second renames the file to hi.R.
  The third adds a second file bye.R
 }
+\keyword{internal}

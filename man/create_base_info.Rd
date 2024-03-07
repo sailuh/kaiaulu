@@ -17,3 +17,4 @@ A list named 'base_info_cell' containing all information for base cell in json f
 \description{
 Creates and formats base_info_cell list for \code{\link{make_jira_issue}}.
 }
+\keyword{internal}

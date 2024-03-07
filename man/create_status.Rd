@@ -17,3 +17,4 @@ A list named 'status' containing status's information
 \description{
 Creates a status cell for \code{\link{make_jira_issue}}.
 }
+\keyword{internal}

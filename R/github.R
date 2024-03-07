@@ -4,6 +4,121 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+############## Parsers ##############
+
+#' Parse GitHub Issue and Pull Request Comments
+#'
+#' Parses Issue, Pull Request, and Comments Endpoints into a reply table.
+#' See example usage in the download_github_comments.Rmd vignette.
+#'
+#' @param github_replies_folder_path The folder path to where the github api json files have been downloaded.
+#' @return A single reply table which combines the communication from the three jsons.
+#' @export
+parse_github_replies <- function(github_replies_folder_path){
+
+  issues_json_folder_path <- paste0(github_replies_folder_path,"/issue/")
+  pull_requests_json_folder_path <- paste0(github_replies_folder_path,"/pull_request/")
+  comments_json_folder_path <- paste0(github_replies_folder_path,"/issue_or_pr_comment/")
+  commit_json_folder_path <- paste0(github_replies_folder_path,"/commit/")
+
+  # Tabulate Issues
+  all_issue <- lapply(list.files(issues_json_folder_path,
+                                 full.names = TRUE),jsonlite::read_json)
+  all_issue <- lapply(all_issue,
+                      github_parse_project_issue)
+  all_issue <- rbindlist(all_issue,fill=TRUE)
+
+  # Tabulate PRs
+  all_pr <- lapply(list.files(pull_requests_json_folder_path,
+                              full.names = TRUE),jsonlite::read_json)
+  all_pr <- lapply(all_pr,
+                   github_parse_project_pull_request)
+  all_pr <- rbindlist(all_pr,fill=TRUE)
+
+  # Tabulate Comments
+  all_issue_or_pr_comments <- lapply(list.files(comments_json_folder_path,
+                                                full.names = TRUE),jsonlite::read_json)
+  all_issue_or_pr_comments <- lapply(all_issue_or_pr_comments,
+                                     github_parse_project_issue_or_pr_comments)
+  all_issue_or_pr_comments <- rbindlist(all_issue_or_pr_comments,fill=TRUE)
+
+
+  all_issue <- all_issue[,.(reply_id=issue_id,
+                            in_reply_to_id=NA_character_,
+                            reply_datetimetz=created_at,
+                            reply_from=issue_user_login,
+                            reply_to=NA_character_,
+                            reply_cc=NA_character_,
+                            reply_subject=issue_number,
+                            reply_body=body)]
+
+  # Note because GitHub API treats PRs as Issues, then pr_number <=> issue_number
+  all_pr <- all_pr[,.(reply_id=pr_id,
+                      in_reply_to_id=NA_character_,
+                      reply_datetimetz=created_at,
+                      reply_from=pr_user_login,
+                      reply_to=NA_character_,
+                      reply_cc=NA_character_,
+                      reply_subject=pr_number,
+                      reply_body=body)]
+
+  all_issue_or_pr_comments <- all_issue_or_pr_comments[,.(reply_id=comment_id,
+                                                          in_reply_to_id=NA_character_,
+                                                          reply_datetimetz=created_at,
+                                                          reply_from=comment_user_login,
+                                                          reply_to=NA_character_,
+                                                          reply_cc=NA_character_,
+                                                          reply_subject=issue_url,
+                                                          reply_body=body)]
+
+  issue_or_pr_comments_reply_subject <- stringi::stri_split_regex(all_issue_or_pr_comments$reply_subject,
+                                                                  "/")
+  all_issue_or_pr_comments$reply_subject <- sapply(issue_or_pr_comments_reply_subject,"[[",8)
+
+  replies <- rbind(all_issue,
+                   all_pr,
+                   all_issue_or_pr_comments)
+
+  # We can then parse the commit messages, and format so we have a look-up table of authors
+  # and committers name, e-mail, and github ID:
+
+  all_commits <- lapply(list.files(commit_json_folder_path,
+                                   full.names = TRUE),jsonlite::read_json)
+  all_commits <- lapply(all_commits,
+                        github_parse_project_commits)
+  all_commits <- rbindlist(all_commits,fill=TRUE)
+
+  all_github_authors <- all_commits[,.(github_login=author_login,
+                                       name_email = stringi::stri_c(commit_author_name,
+                                                                    " ",
+                                                                    commit_author_email))]
+
+  all_github_committers <- all_commits[,.(github_login=committer_login,
+                                          name_email = stringi::stri_c(commit_committer_name,
+                                                                       " ",
+                                                                       commit_committer_email))]
+
+  all_github_developers <- rbind(all_github_authors,all_github_committers)
+
+  # For simplicity here, when the same GitHub id contains
+  # multiple e-mails, we choose one. In the future, we will
+  # consider including all e-mails.
+  all_github_developers <- all_github_developers[,.(name_email=name_email[1]),by="github_login"]
+
+  # Replace `reply_from` by name<space>email when information is available (i.e.)
+  # the github id modified as author or commiter at least one file.
+  replies <- merge(replies,all_github_developers,
+                   all.x=TRUE,
+                   by.x="reply_from",
+                   by.y="github_login")
+
+  replies[!is.na(name_email)]$reply_from <-  replies[!is.na(name_email)]$name_email
+  replies[,name_email:=NULL]
+
+  return(replies)
+}
+
+############## Downloader ##############
 
 #' Download Project Issue Events
 #'
@@ -300,6 +415,7 @@ github_api_rate_limit <- function(token){
 #' Obtain the next GitHub response page.
 #' @param gh_response A response returned by any GitHub endpoint which is paginated (e.g. \code{\link{github_api_project_commits}}).
 #' @export
+#' @keywords internal
 github_api_page_next <- function(gh_response){
   gh::gh_next(gh_response)
 }
@@ -307,6 +423,7 @@ github_api_page_next <- function(gh_response){
 #' Obtain the previous GitHub response page.
 #' @param gh_response A response returned by any GitHub endpoint which is paginated (e.g. \code{\link{github_api_project_commits}}).
 #' @export
+#' @keywords internal
 github_api_page_prev <- function(gh_response){
   gh::gh_prev(gh_response)
 }
@@ -314,6 +431,7 @@ github_api_page_prev <- function(gh_response){
 #' Obtain the first GitHub response page.
 #' @param gh_response A response returned by any GitHub endpoint which is paginated (e.g. \code{\link{github_api_project_commits}}).
 #' @export
+#' @keywords internal
 github_api_page_first <- function(gh_response){
   gh::gh_first(gh_response)
 }
@@ -322,6 +440,7 @@ github_api_page_first <- function(gh_response){
 #' Obtain the last GitHub response page.
 #' @param gh_response A response returned by any GitHub endpoint which is paginated (e.g. \code{\link{github_api_project_commits}}).
 #' @export
+#' @keywords internal
 github_api_page_last <- function(gh_response){
   gh::gh_last(gh_response)
 }
@@ -340,6 +459,7 @@ github_api_page_last <- function(gh_response){
 #' @param max_pages The maximum number of pages to download. MAX = Available token requests left
 #' @references For details see \url{https://docs.github.com/en/free-pro-team@latest/rest/guides/traversing-with-pagination}.
 #' @export
+#' @keywords internal
 github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=NA,max_pages=NA){
   page_number <- 1
 

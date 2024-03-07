@@ -21,3 +21,4 @@ Creates an empty git repo named "empty_repo".
 Useful to test the behavior of git_log exporter and parse_gitlog
 on repositories with no commits.
 }
+\keyword{internal}

@@ -17,8 +17,7 @@ Authors@R: c(
     person('Nicholas', 'Lee', role = c('ctb')),
     person('Ruben', 'Jacobo', role = c('ctb')),
     person('Waylon', 'Ho', role = c('ctb')),
-    person('Nicole', 'Hoess', role = c('ctb')),
-    person('Sean', 'Sunoo', role = c('ctb'))
+    person('Nicole', 'Hoess', role = c('ctb'))
     )
 Maintainer: Carlos Paradis <cvas@hawaii.edu>
 License: MPL-2.0 | file LICENSE
@@ -47,4 +46,4 @@ Imports:
 VignetteBuilder: knitr
 URL: https://github.com/sailuh/kaiaulu
 BugReports: https://github.com/sailuh/kaiaulu/issues
-RoxygenNote: 7.3.0
+RoxygenNote: 7.2.3

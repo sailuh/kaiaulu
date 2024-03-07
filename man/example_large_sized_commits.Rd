@@ -21,3 +21,4 @@ second commit contains only one file modified.
 \details{
 Useful to test unbalanced sized commits and filters.
 }
+\keyword{internal}

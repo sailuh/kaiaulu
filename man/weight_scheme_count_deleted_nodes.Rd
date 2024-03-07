@@ -36,4 +36,9 @@ and (file2,file3) = 1. In other words, in this example file2
 and file3 have a co-change of 2, and the remaining pairs a
 co-change of 1.
 }
+\seealso{
+Other weight_scheme: 
+\code{\link{weight_scheme_cum_temporal}()},
+\code{\link{weight_scheme_pairwise_cum_temporal}()}
+}
 \concept{weight_scheme}

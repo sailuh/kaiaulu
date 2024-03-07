@@ -7,7 +7,7 @@
 bipartite_graph_projection(graph, mode, weight_scheme_function = NULL)
 }
 \arguments{
-\item{graph}{A bipartite network (see transform_*_bipartite functions).}
+\item{graph}{A bipartite network (the same pair of nodes can *not* have multiple edges)}
 
 \item{mode}{Which of the two nodes the projection should be applied to. TRUE or FALSE}
 

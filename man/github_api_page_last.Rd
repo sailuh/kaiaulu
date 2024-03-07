@@ -12,3 +12,4 @@ github_api_page_last(gh_response)
 \description{
 Obtain the last GitHub response page.
 }
+\keyword{internal}
