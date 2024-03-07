@@ -175,8 +175,10 @@ all_issues <- download_and_save_jira_issues_by_issueKey (issue_tracker_domain,
 
 # Acquires the filename of the file that contains the greatest 'created' data
 ```{r}
-# placeholder value until parser is built
-file_name_with_greatest_issueKey <- "GERONIMO_issues_1121719349_1121802933.json"
+# placeholder value 
+#file_name_with_greatest_issueKey <- "GERONIMO_issues_1121719349_1121802933.json"
+file_name_with_greatest_issueKey <- parse_jira_latest_date(refresh_issues)
+message("Filename with latest date: ", file_name_with_greatest_issueKey)
 ```
 # Call the function that looks for the greatest issueKey in the file and then only downloads issues with issueKeys greater than that key
 ```{r}
@@ -304,7 +306,9 @@ all_issues_comments <- download_and_save_jira_issues_by_issueKey(issue_tracker_d
  Acquires the filename of the file that contains the greatest 'created' data
 ```{r}
 # placeholder value until parser is built
-file_name_with_greatest_issueKey_issue_comments <- "GERONIMO_issue_comments_1121646814_1121719175.json"
+#file_name_with_greatest_issueKey_issue_comments <- "GERONIMO_issue_comments_1121646814_1121719175.json"
+file_name_with_greatest_issueKey_issue_comments <- parse_jira_latest_date(refresh_issue_comments)
+message("Filename with latest date: ", file_name_with_greatest_issueKey_issue_comments)
 ```
 # Call the function that looks for the greatest issueKey in the file and then only downloads issues with issueKeys greater than that key
 ```{r}
