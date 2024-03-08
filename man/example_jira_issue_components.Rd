@@ -19,3 +19,4 @@ This example can be used to evaluate the parser does not replicate
 new components on new issues, which would severely bias metrics
 associated to issues such as bugs (see #244).
 }
+\keyword{internal}

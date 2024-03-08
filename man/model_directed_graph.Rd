@@ -4,7 +4,7 @@
 \alias{model_directed_graph}
 \title{Create a directed graph model}
 \usage{
-model_directed_graph(edgelist, is_bipartite, color)
+model_directed_graph(edgelist, is_bipartite, color, aggregate_duplicate = TRUE)
 }
 \arguments{
 \item{edgelist}{a 2-column data.table containing named columns
@@ -13,6 +13,8 @@ model_directed_graph(edgelist, is_bipartite, color)
 \item{is_bipartite}{boolean specifying if network is bipartite: TRUE or FALSE}
 
 \item{color}{a character vector of length 1 or 2 specifying the hexacolor}
+
+\item{aggregate_duplicate}{If duplicated rows are encoutered, define a weight column which counts them}
 }
 \value{
 a named list list(nodes,edgelist).

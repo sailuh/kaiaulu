@@ -26,3 +26,4 @@ A list named 'resolution' which contains the resolution's information
 \description{
 Creates a resolution cell for \code{\link{make_jira_issue}}.
 }
+\keyword{internal}

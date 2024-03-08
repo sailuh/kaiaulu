@@ -33,7 +33,7 @@ require(knitr)
 
 ```{r}
 tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/apr.yml")
+conf <- yaml::read_yaml("../conf/kaiaulu.yml")
 
 # 3rd Party Tools
 perceval_path <- tool[["perceval"]]
@@ -78,35 +78,15 @@ Entity analysis requires a much longer time to process than file analysis, and r
 
 ```{r}
 #project_git_slice <- project_git[author_datetimetz >= as.POSIXct("2019-01-01", format = "%Y-%m-%d",tz = "UTC") & author_datetimetz < as.POSIXct("2019-12-31", format = "%Y-%m-%d",tz = "UTC")]
-project_git_slice <- head(project_git,500)
+#project_git_slice <- head(project_git,500)
 ```
 
 ```{r}
-changed_entities <- parse_gitlog_entity(git_repo_path,utags_path,project_git_slice,kinds,progress_bar = TRUE)
+changed_entities <- parse_gitlog_entity(git_repo_path,utags_path,project_git,kinds,progress_bar = TRUE)
 ##changed_entities <- readRDS("~/Desktop/apr_full_gitlog_filtered_by_last_file_change.rds")
 kable(head(changed_entities))
 ```
 
-Naming.
-
-```{r}
-changed_entities[,c("author_name_email",
-                    "author_datetimetz",
-                    "committer_name_email",
-                    "commit_hash",
-                    "committer_datetimetz",
-                    "entity",
-                    "weight"):=list(stri_c(author_name,author_email,sep= " "),
-                                    as.POSIXct(as.integer(author_timestamp),
-                                               origin="1970-01-01",tz = "UTC"),
-                                    stri_c(committer_name,committer_email,sep= " "),
-                                    commit_hash,
-                                    as.POSIXct(as.integer(committer_timestamp),
-                                               origin="1970-01-01",tz = "UTC"),
-                                    entity_definition_name,
-                                    n_lines_changed
-                                    )]
-```
 
 # Identity Match
 
@@ -141,8 +121,7 @@ visIgraph(project_collaboration_network,randomSeed = 1)
 ```
 
 ```{r}
-project_commit_network <- transform_gitlog_to_entity_bipartite_network(last(id_project_git,
-                                                                                   1000),
+project_commit_network <- transform_gitlog_to_entity_bipartite_network(id_project_git,
                                                                               mode ="commit-entity")
 plot_project_commit_network <- igraph::graph_from_data_frame(d=project_commit_network[["edgelist"]], 
                       directed = TRUE, 
@@ -185,8 +164,7 @@ kable(co_change_matrix[1:10,1:10])
 
 
 ```{r}
-project_collaboration_network <- transform_gitlog_to_entity_bipartite_network(last(id_project_git,
-                                                                                   1000),
+project_collaboration_network <- transform_gitlog_to_entity_bipartite_network(id_project_git,
                                                                               mode = "author-entity")
 
 #plot_project_collaboration_network <- igraph::graph_from_data_frame(d=project_collaboration_network[["edgelist"]], 
@@ -215,7 +193,7 @@ visIgraph(plot_author_network,randomSeed = 1)
 
 
 ```{r}
-project_temporal_collaboration_network <- transform_gitlog_to_entity_temporal_network(last(id_project_git,1000))
+project_temporal_collaboration_network <- transform_gitlog_to_entity_temporal_network(id_project_git,mode = "author",lag = "all_lag",weight_scheme_function = weight_scheme_cum_temporal)
 project_temporal_collaboration_network <- igraph::graph_from_data_frame(d=project_temporal_collaboration_network[["edgelist"]], 
                       directed = TRUE, 
                       vertices = project_temporal_collaboration_network[["nodes"]])

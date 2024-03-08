@@ -21,3 +21,4 @@ renames the file to hi.R. and the third adds a second file bye.R.
 \details{
 This example can be used to test how parsers trace file renaming.
 }
+\keyword{internal}

@@ -67,10 +67,10 @@ The following code block reads the information explained just now:
 
 ```{r}
 tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/apr.yml")
+conf <- yaml::read_yaml("../conf/kaiaulu.yml")
 perceval_path <- tool[["perceval"]]
 git_repo_path <- conf[["version_control"]][["log"]]
-git_branch <- conf[["version_control"]][["branch"]][2]
+git_branch <- conf[["version_control"]][["branch"]][1]
 nvdfeed_folder_path <- conf[["vulnerabilities"]][["nvd_feed"]]
 
 # Filters
@@ -129,7 +129,8 @@ project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
 project_git$committer_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
                                               format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
 
-project_git_slice <- project_git[author_datetimetz >= as.POSIXct("2019-01-01", format = "%Y-%m-%d",tz = "UTC") & author_datetimetz < as.POSIXct("2019-12-31", format = "%Y-%m-%d",tz = "UTC")]
+#project_git_slice <- project_git[author_datetimetz >= as.POSIXct("2019-01-01", format = "%Y-%m-%d",tz = "UTC") & author_datetimetz < as.POSIXct("2019-12-31", format = "%Y-%m-%d",tz = "UTC")]
+project_git_slice <- project_git 
 ```
 
 ## Authors, Committers, Files and Commits
