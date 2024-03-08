@@ -3,6 +3,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ * The `parse_jira_latest_date()` has been added. This function returns the file name of the downloaded jira json containin gthe latest date for use by `download_and_save_jira_issues_by_created()` to implement a refresh capability. [#276] (https://github.com/sailuh/kaiaulu/issues/276)
  * Kaiaulu architecture has been refactored. Instead of using a parser, download, network module structure, Kaiaulu now uses a combination of data type and tool structure. In that manner, various parser functions of download,R, parser.R, and network.R now are separated in git.R, jira.R, git.R, etc. When only small functionality of a tool is required, functions are grouped based on the data type they are associated to, for example,  src.R. Kaiaulu API documentation has been updated accordingly. Functions signature and behavior remain the same: The only modification was the new placement of functions into files. For further rationale and changes, see the issue for more details. [#241](https://github.com/sailuh/kaiaulu/issues/241)
  * Temporal bipartite projections are now weighted. The temporal projection can be parameterized by `weight_scheme_cum_temporal()` `weight_scheme_pairwise_cum_temporal()` when all time lag edges are used, or the existing weight schemes can also be used when using a single lag. The all lag weight schemes reproduce the same behavior as Codeface's paper. See the issue for details. [#229](https://github.com/sailuh/kaiaulu/issues/229)  
  * The `make_jira_issue()` and `make_jira_issue_tracker()` have been added, alongside examples and unit tests for `parse_jira()`. [#228](https://github.com/sailuh/kaiaulu/issues/228) 
@@ -23,6 +24,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### MINOR IMPROVEMENTS
 
+ * The `parse_jira()` function now parses issues and comments over multiple json files found in the file path provided. [#276](https://github.com/sailuh/kaiaulu/issues/276)
  * The line metrics notebook now provides further guidance on adjusting the snapshot and filtering.
  * The R File and R Function parser can now properly parse R folders which contain folders within (not following R package structure). Both `.r` and `.R` files are also now captured (previously only one of the two were specified, but R accepts both). [#235](https://github.com/sailuh/kaiaulu/issues/235)
  * Refactor GoF Notebook in Graph GoF and Text GoF Notebooks [#224](https://github.com/sailuh/kaiaulu/issues/224)
