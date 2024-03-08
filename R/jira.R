@@ -4,6 +4,198 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+############## Parsers ##############
+
+#' Parse Jira issue and comments
+#'
+#' @param json_path path to jira json (issues or issues with comments) obtained using `download_jira_data.Rmd`.
+#' @return A named list of two named elements ("issues", and "comments"), each containing a data.table.
+#' Note the comments element will be empty if the downloaded json only contain issues.
+#' @export
+#' @family parsers
+parse_jira <- function(json_path){
+
+  json_issue_comments <- jsonlite::read_json(json_path)
+
+  # Comments list parser. Comments may occur on any json issue.
+  jira_parse_comment <- function(comment){
+    parsed_comment <- list()
+    parsed_comment[["comment_id"]] <- comment[["id"]]
+
+    parsed_comment[["comment_created_datetimetz"]] <- comment[["created"]][[1]]
+    parsed_comment[["comment_updated_datetimetz"]] <- comment[["updated"]][[1]]
+
+    parsed_comment[["comment_author_id"]] <- comment[["author"]][["name"]][[1]]
+    parsed_comment[["comment_author_name"]] <- comment[["author"]][["displayName"]][[1]]
+    parsed_comment[["comment_author_timezone"]] <- comment[["author"]][["timeZone"]][[1]]
+
+    parsed_comment[["comment_author_update_id"]] <- comment[["updateAuthor"]][["name"]][[1]]
+    parsed_comment[["comment_author_update_name"]] <- comment[["updateAuthor"]][["displayName"]][[1]]
+    parsed_comment[["comment_author_update_timezone"]] <- comment[["updateAuthor"]][["timeZone"]][[1]]
+
+    parsed_comment[["comment_body"]] <- comment[["body"]][[1]]
+
+    return(parsed_comment)
+  }
+
+  # names(json_issue_comments) => "base_info","ext_info"
+  # length([["base_info]]) == length([["ext_info]]) == n_issues.
+  # Choose either and store the total number of issues
+  n_issues <- length(json_issue_comments[["ext_info"]])
+
+  # Prepare two lists which will contain data.tables for all issues and all comments
+  # Both tables can share the issue_key, so they can be joined if desired.
+  all_issues <- list()
+  all_issues_comments <- list()
+
+  for(i in 1:n_issues){
+
+    # The only use of "base_info" is to obtain the issue_key
+    issue_key <- json_issue_comments[["base_info"]][[i]][["key"]]
+
+    # All other information is contained in "ext_info"
+    issue_comment <- json_issue_comments[["ext_info"]][[i]]
+
+    # Parse all relevant *issue* fields
+    all_issues[[i]] <- data.table(
+      issue_key = issue_key,
+
+      issue_summary = issue_comment[["summary"]][[1]],
+      issue_type = issue_comment[["issuetype"]][["name"]][[1]],
+      issue_status = issue_comment[["status"]][["name"]][[1]],
+      issue_resolution = issue_comment[["resolution"]][["name"]][[1]],
+      issue_components = stringi::stri_c(unlist(sapply(issue_comment[["components"]],"[[","name")),collapse = ";"),
+      issue_description = issue_comment[["description"]],
+
+      issue_created_datetimetz = issue_comment[["created"]][[1]],
+      issue_updated_datetimetz = issue_comment[["updated"]][[1]],
+      issue_resolution_datetimetz = issue_comment[["resolutiondate"]],
+
+      issue_creator_id = issue_comment[["creator"]][["name"]][[1]],
+      issue_creator_name = issue_comment[["creator"]][["displayName"]][[1]],
+      issue_creator_timezone = issue_comment[["creator"]][["timeZone"]][[1]],
+
+      issue_assignee_id = issue_comment[["assignee"]][["name"]][[1]],
+      issue_assignee_name = issue_comment[["assignee"]][["displayName"]][[1]],
+      issue_assignee_timezone = issue_comment[["assignee"]][["timeZone"]][[1]],
+
+      issue_reporter_id = issue_comment[["reporter"]][["name"]][[1]],
+      issue_reporter_name = issue_comment[["reporter"]][["displayName"]][[1]],
+      issue_reporter_timezone = issue_comment[["reporter"]][["timeZone"]][[1]]
+    )
+
+    # Comments
+    # For each issue, comment/comments contain 1 or more comments. Parse them
+    # in a separate table.
+    root_of_comments_list <- json_issue_comments[["ext_info"]][[i]][["comment"]]
+    # If root_of_comments_list does not exist, then this is an issue only json, skip parsing
+    if(length(root_of_comments_list) > 0){
+      comments_list <- json_issue_comments[["ext_info"]][[i]][["comment"]][["comments"]]
+      # Even on a json with comments, some issues may not have comments, check if comments exist:
+      if(length(comments_list) > 0){
+        # Parse all comments into issue_comments
+        issue_comments <- rbindlist(lapply(comments_list,
+                                           jira_parse_comment))
+        # Add issue_key column to the start of the table
+        issue_comments <- cbind(data.table(issue_key=issue_key),issue_comments)
+        all_issues_comments[[i]] <- issue_comments
+      }
+    }
+  }
+  all_issues <- rbindlist(all_issues,fill=TRUE)
+  all_issues_comments <- rbindlist(all_issues_comments,fill=TRUE)
+
+  parsed_issues_comments <- list()
+  parsed_issues_comments[["issues"]] <- all_issues
+  parsed_issues_comments[["comments"]] <- all_issues_comments
+
+  return(parsed_issues_comments)
+}
+#' Format Parsed Jira to Replies
+#'
+#' Combines the JIRA issue author and description to the comments author and
+#' description into a reply table suitable for communication analysis.
+#' @param parsed_jira A project's jira including issues and comments from \code{\link{parse_jira}}.
+#' @return A reply table.
+#' @export
+parse_jira_replies <- function(parsed_jira){
+
+
+  project_jira_issues <- parsed_jira[["issues"]]
+  project_jira_issues <- project_jira_issues[,.(reply_id=issue_key,
+                                                in_reply_to_id=NA_character_,
+                                                reply_datetimetz=issue_created_datetimetz,
+                                                reply_from=issue_creator_name,
+                                                reply_to=NA_character_,
+                                                reply_cc=NA_character_,
+                                                reply_subject=issue_key,
+                                                reply_body=issue_description)]
+
+
+  project_jira_comments <- parsed_jira[["comments"]]
+  project_jira_comments <- project_jira_comments[,.(reply_id=comment_id,
+                                                    in_reply_to_id=NA_character_,
+                                                    reply_datetimetz=comment_created_datetimetz,
+                                                    reply_from=comment_author_name,
+                                                    reply_to=NA_character_,
+                                                    reply_cc=NA_character_,
+                                                    reply_subject=issue_key,
+                                                    reply_body=comment_body)]
+
+  project_jira <- rbind(project_jira_issues,
+                        project_jira_comments)
+
+  return(project_jira)
+}
+#' Parse Jira Issue RSS XML Feed
+#'
+#' This function can be used to parse our prior TSE JIRA Issue Feed supplemental material.
+#' For new JIRA datasets, please refer to \code{\link{parse_jira}}.
+#'
+#' @param jira_issues_folderpath path to folder of XML issues (see references in this function docs)
+#' @return A data.table containing the parsed XML feed (not the fields are not exhaustive. Refer
+#' to the raw data for all possible fields.)
+#' @export
+#' @family parsers
+#' @references W. Mauerer, M. Joblin, D. A. Tamburri, C. Paradis, R. Kazman and S. Apel,
+#' "In Search of Socio-Technical Congruence: A Large-Scale Longitudinal Study,"
+#' in IEEE Transactions on Software Engineering, vol. 48, no. 8, pp. 3159-3184,
+#' 1 Aug. 2022, doi: 10.1109/TSE.2021.3082074.
+parse_jira_rss_xml <- function(jira_issues_folderpath){
+  #jira_issues_path <- path.expand(jira_issues_path)
+  #jira_issue_path <- "../../../../tse_motif_2021/dataset/jira/apex/APEXCORE_2015-7-2_2015-7-9.xml"
+  jira_issues_path <- list.files(jira_issues_folderpath,full.names = TRUE)
+
+  parse_jira_rss_issue_item <- function(jira_issue){
+    issue_key <- XML::xmlValue(jira_issue[["key"]])
+    issue_created <- XML::xmlValue(jira_issue[["created"]])
+    issue_updated <- XML::xmlValue(jira_issue[["updated"]])
+    issue_resolved <- XML::xmlValue(jira_issue[["resolved"]])
+    issue_type <- XML::xmlValue(jira_issue[["type"]])
+    issue_status <- XML::xmlValue(jira_issue[["status"]])
+    issue_resolution <- XML::xmlValue(jira_issue[["resolution"]])
+
+    return(data.table(issue_key=issue_key,
+                      issue_created=issue_created,
+                      issue_updated=issue_updated,
+                      issue_resolved=issue_resolved,
+                      issue_type=issue_type,
+                      issue_status=issue_status,
+                      issue_resolution=issue_resolution))
+  }
+  parse_jira_rss_issue <- function(jira_issue_path){
+    jira_issue_root <- XML::xmlRoot(XML::xmlTreeParse(jira_issue_path))
+    jira_issue_channel <- XML::xmlChildren(jira_issue_root)[[1]]
+    jira_issues <- jira_issue_channel[names(jira_issue_channel) %in% "item"]
+    issues_dt <- rbindlist(lapply(jira_issues,parse_jira_rss_issue_item))
+    return(issues_dt)
+  }
+  issues_dt <- rbindlist(lapply(jira_issues_path,parse_jira_rss_issue))
+}
+
+
+############## Fake Generator ##############
+
 #' Create JirAgileR Issue
 #'
 #' Creates a single JIRA Issue as a list, which can be saved as a JSON with or without comments.
@@ -254,6 +446,7 @@ make_jira_issue_tracker <- function(issues,save_filepath) {
 #' @param jira_domain_url URL of JIRA domain
 #' @param issue_key key for JIRA issue
 #' @return A list named 'base_info_cell' containing all information for base cell in json file
+#' @keywords internal
 create_base_info <- function(jira_domain_url, issue_key) {
   id <- sample(1:10, 1)
   JirAgileR_id <- sample(1:10, 1)
@@ -286,6 +479,7 @@ create_base_info <- function(jira_domain_url, issue_key) {
 #' @param reporter_name name of reporter reporting the issue
 #' @param assignee_name name of person the issue is being assigned to
 #' @return A list named 'ext_info_cell' which contains all the parameters and its generated fake data formats
+#' @keywords internal
 create_ext_info <- function(jira_domain_url, issue_type, status, resolution, title, description, components, creator_name, reporter_name, assignee_name) {
 
   ext_info_cell <- list(
@@ -313,6 +507,7 @@ create_ext_info <- function(jira_domain_url, issue_type, status, resolution, tit
 #' and update author are currently hardcoded.
 #'
 #' @param comments A character vector containing the comment body.
+#' @keywords internal
 create_issue_comments <- function(comments) {
   comments_vector <- list()
 
@@ -367,6 +562,7 @@ create_issue_comments <- function(comments) {
 #' @param jira_domain_url URL of JIRA domain
 #' @param issue_type name of the issue type (e.g. New Feature)
 #' @return A list named 'issue_type' that represents the issue type of the JIRA issue
+#' @keywords internal
 create_issue_type <- function(jira_domain_url, issue_type) {
 
   issue_id <- sample(1:10, 1)
@@ -392,6 +588,7 @@ create_issue_type <- function(jira_domain_url, issue_type) {
 #' @param jira_domain_url URL of JIRA domain
 #' @param components string of names of components (ex. "x-core;x-spring" is two components)
 #' @return A list named 'components' which contains each component and its details
+#' @keywords internal
 create_components <- function(jira_domain_url, components) {
 
   # separate components names with ; (ex. "x-core;x-spring" is two components)
@@ -423,6 +620,7 @@ create_components <- function(jira_domain_url, components) {
 #' @param jira_domain_url URL of JIRA domain
 #' @param creator_name name of creator
 #' @return A list named 'creator' that has creator's information
+#' @keywords internal
 create_creator <- function(jira_domain_url, creator_name) {
   self_url <- paste0(jira_domain_url, "/rest/api/2/user?username=", creator_name)
 
@@ -453,6 +651,7 @@ create_creator <- function(jira_domain_url, creator_name) {
 #' @param jira_domain_url URL of JIRA domain
 #' @param reporter_name name of reporter
 #' @return A list named 'reporter' which contains the reporter's information
+#' @keywords internal
 create_reporter <- function(jira_domain_url, reporter_name) {
 
   self_url <- paste0(jira_domain_url, "/rest/api/2/user?username=", reporter_name)
@@ -486,6 +685,7 @@ create_reporter <- function(jira_domain_url, reporter_name) {
 #' @param description Description of resolution
 #' @param name Name of Resolution
 #' @return A list named 'resolution' which contains the resolution's information
+#' @keywords internal
 create_resolution <- function(self_url = "https://domain.org/jira/rest/api/2/resolution/1",
                               id = "1",
                               description = "A fix for this issue is checked into the tree and tested.",
@@ -507,6 +707,7 @@ create_resolution <- function(self_url = "https://domain.org/jira/rest/api/2/res
 #' @param jira_domain_url URL of JIRA domain
 #' @param assignee_name name of assignee
 #' @return A list named 'assignee' which contains the assignee's information
+#' @keywords internal
 create_assignee <- function(jira_domain_url, assignee_name) {
 
   self_url <- paste0(jira_domain_url, "/rest/api/2/user?username=", assignee_name)
@@ -538,6 +739,7 @@ create_assignee <- function(jira_domain_url, assignee_name) {
 #' @param jira_domain_url URL of JIRA domain
 #' @param status description of status
 #' @return A list named 'status' containing status's information
+#' @keywords internal
 create_status <- function(jira_domain_url, status) {
 
   status_id <- sample(1:10, 1)

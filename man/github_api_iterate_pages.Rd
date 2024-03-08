@@ -32,3 +32,4 @@ available requests in the used user's token).
 \references{
 For details see \url{https://docs.github.com/en/free-pro-team@latest/rest/guides/traversing-with-pagination}.
 }
+\keyword{internal}
