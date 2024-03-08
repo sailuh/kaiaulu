@@ -32,6 +32,10 @@ make_jira_issue(
 
 \item{resolution}{name of resolution for issue (e.g. "Fixed")}
 
+\item{priority}{the name of the priority of the issue (e.g. "Major", "Minor", "Trivial")}
+
+\item{labels}{the labels of the project (e.g. "message", "mail", "jira")}
+
 \item{assignee_name}{name of person the issue is being assigned to (e.g. "Joe Schmo")}
 
 \item{status}{status of issue for development (e.g. "In Progress")}
@@ -43,6 +47,8 @@ make_jira_issue(
 \item{reporter_name}{name of reporter of issue (e.g. "Jane Doe")}
 
 \item{issue_type}{type of JIRA issue (e.g. "New Feature", "Task", "Bug")}
+
+\item{project_type}{the type of the project (e.g. "software")}
 
 \item{description}{more detailed description of issue (e.g. "The program keeps crashing because this reason")}
 

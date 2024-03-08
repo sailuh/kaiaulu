@@ -209,15 +209,18 @@ parse_jira_rss_xml <- function(jira_issues_folderpath){
 #' @param jira_domain_url URL of JIRA domain (e.g. "https://project.org/jira")
 #' @param issue_key issue key of JIRA issue (e.g. "PROJECT-68" or "GERONIMO-6723)
 #' @param version_names list of version names (e.g. c("3.1.5", "4.0.0"))
-#' @param issue_type type of JIRA issue (e.g. "New Feature", "Task", "Bug")
-#' @param status status of issue for development (e.g. "In Progress")
 #' @param resolution name of resolution for issue (e.g. "Fixed")
-#' @param summary summary of the issue (e.g. "Site Keeps Crashing")
-#' @param description more detailed description of issue (e.g. "The program keeps crashing because this reason")
+#' @param priority the name of the priority of the issue (e.g. "Major", "Minor", "Trivial")
+#' @param labels the labels of the project (e.g. "message", "mail", "jira")
+#' @param assignee_name name of person the issue is being assigned to (e.g. "Joe Schmo")
+#' @param status status of issue for development (e.g. "In Progress")
 #' @param components list of components of issue (e.g. c("PS", "Tests"))
 #' @param creator_name name of creator of issue (e.g. "John Doe")
 #' @param reporter_name name of reporter of issue (e.g. "Jane Doe")
-#' @param assignee_name name of person the issue is being assigned to (e.g. "Joe Schmo")
+#' @param issue_type type of JIRA issue (e.g. "New Feature", "Task", "Bug")
+#' @param project_type the type of the project (e.g. "software")
+#' @param description more detailed description of issue (e.g. "The program keeps crashing because this reason")
+#' @param summary summary of the issue (e.g. "Site Keeps Crashing")
 #' @param comments character list where each element is a comment string (e.g. c("This is first comment", "This is second comment"))
 #' @return A list which represents the JIRA JSON in memory
 #' @export
@@ -249,8 +252,8 @@ make_jira_issue <- function(jira_domain_url, issue_key, version_names, resolutio
   if (!is.null(comments) && length(comments) > 0) {
 
     fields[["comment"]][["comments"]] <- create_issue_comments(comments)
-    fields[["comment"]][["maxResults"]] <- length(issue[["comment"]][[1]])
-    fields[["comment"]][["total"]] <- length(issue[["comment"]][[1]])
+    fields[["comment"]][["maxResults"]] <- length(fields[["comment"]][[1]])
+    fields[["comment"]][["total"]] <- length(fields[["comment"]][[1]])
     fields[["comment"]][["startAt"]] <- 0
   }
 

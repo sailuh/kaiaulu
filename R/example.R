@@ -399,10 +399,10 @@ example_notebook_alternating_function_in_files <- function(folder_path="/tmp", f
 #' @return the JSON path of the newly created issue issue tracker
 #' @export
 #' @keywords internal
-example_jira_issue_components <- function(folder_path="~/Documents", folder_name) {
+example_jira_issue_components <- function(folder_path, folder_name) {
 
   # Create folder & repo
-  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
+  folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)
 
   issue1 <- make_jira_issue(
     jira_domain_url = "https://project.org/jira",
@@ -425,7 +425,7 @@ example_jira_issue_components <- function(folder_path="~/Documents", folder_name
   issues <- list(issue1)
 
   jira_json_path <- make_jira_issue_tracker(
-    issues, save_filepath=file.path(folder_path,"GERONIMO_issues_1121646814_1121719175.json.json"))
+    issues, save_filepath=file.path(folder_path, "GERONIMO_issues_1121646814_1121719175.json"))
 
   return(jira_json_path)
 }
@@ -439,42 +439,51 @@ example_jira_issue_components <- function(folder_path="~/Documents", folder_name
 #' @return the JSON path of the newly created issue issue tracker
 #' @export
 #' @keywords internal
-example_jira_two_issues <- function(folder_path="/tmp",folder_name) {
+example_jira_two_issues <- function(folder_path, folder_name) {
 
   # Create folder & repo
-  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
+  folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)
 
-  issue1 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
-                            issue_key = "GERONIMO-123",
-                            issue_type = "New Feature",
-                            status = "Open",
-                            resolution = "Finished",
-                            title = "This is a summary.",
-                            description = "The new features have been implemented.",
-                            components = "x-core",
-                            creator_name = "Bob",
-                            reporter_name = "Joe",
-                            assignee_name = "Moe",
+  issue1 <- make_jira_issue(
+    jira_domain_url = "https://project.org/jira",
+    issue_key = "PROJECT-11",
+    version_names = c("1.1.1"),
+    resolution = "Finished",
+    priority = "Minor",
+    labels = c("pull-request-available"),
+    assignee_name = "Moe",
+    status = "Open",
+    components = c("jira", "mail"),
+    creator_name = "Bob",
+    reporter_name = "Joe",
+    issue_type = "New Feature",
+    project_type = "software",
+    description = "The new features have been implemented",
+    summary = "This is issue 1"
   )
 
-  issue2 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
-                            issue_key = "GERONIMO-124",
-                            issue_type = "New Feature",
-                            status = "Open",
-                            resolution = "Finished",
-                            title = "This is a summary.",
-                            description = "The new features have been implemented.",
-                            components = "x-spring",
-                            creator_name = "Moe",
-                            reporter_name = "Larry",
-                            assignee_name = "Curly",
+  issue2 <- make_jira_issue(
+    jira_domain_url = "https://project.org/jira",
+    issue_key = "PROJECT-22",
+    version_names = c("2.2.2"),
+    resolution = "Fixed",
+    priority = "Major",
+    labels = c("pull-request-available"),
+    assignee_name = "Moe",
+    status = "Open",
+    components = c("jira"),
+    creator_name = "Carlos",
+    reporter_name = "Paul",
+    issue_type = "Improvement",
+    project_type = "software",
+    description = "This is the description for issue 2",
+    summary = "This is issue 2"
   )
 
-  # issues <- c(list(issue1), list(issue2))
   issues <- list(issue1, issue2)
 
-  jira_json_path <- make_jira_issue_tracker(issues,
-                                            save_filepath=file.path(folder_path,"issue_with_components.json"))
+  jira_json_path <- make_jira_issue_tracker(
+    issues, save_filepath=file.path(folder_path, "PROJECT_issues_1121646814_1121719175.json"))
 
   return(jira_json_path)
 }
@@ -488,33 +497,37 @@ example_jira_two_issues <- function(folder_path="/tmp",folder_name) {
 #' @return the JSON path of the newly created issue issue tracker
 #' @export
 #' @keywords internal
-example_jira_issue_comments <- function(folder_path="/tmp",folder_name) {
+example_jira_issue_comments <- function(folder_path, folder_name) {
 
   # Create folder & repo
-  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
+  folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)
 
-  issue1 <- make_jira_issue(jira_domain_url = "https://project.org/jira",
-                            issue_key = "GERONIMO-2",
-                            issue_type = "Bug",
-                            status = "In Progress",
-                            resolution = "Incomplete",
-                            title = "Bug fixes need implementation.",
-                            description = "The new features have not been implemented.",
-                            components = "x-core",
-                            creator_name = "Moe",
-                            reporter_name = "Larry",
-                            assignee_name = "Curly",
-                            comments = c(
-                              "This is the first body comment.",
-                              "This is the second body comment."
-                            )
+  issue1 <- make_jira_issue(
+    jira_domain_url = "https://project.org/jira",
+    issue_key = "SPARK-123",
+    version_names = c("3.4.3"),
+    resolution = "Finished",
+    priority = "Minor",
+    labels = c("pull-request-available"),
+    assignee_name = "Moe",
+    status = "Open",
+    components = c("jira", "mail"),
+    creator_name = "Bob",
+    reporter_name = "Joe",
+    issue_type = "New Feature",
+    project_type = "software",
+    description = "The new features have been implemented",
+    summary = "Summary of new feature",
+    comments = c(
+      "This is the first body comment.",
+      "This is the second body comment."
+    )
   )
 
-  # issues <- c(list(issue1))
   issues <- list(issue1)
 
-  jira_json_path <- make_jira_issue_tracker(issues,
-                                            save_filepath=file.path(folder_path,"one_issue_two_comments.json"))
+  jira_json_path <- make_jira_issue_tracker(
+    issues, save_filepath=file.path(folder_path,"SPARK_issues_1121646814_1121719175.json"))
 
   return(jira_json_path)
 }
