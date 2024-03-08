@@ -44,3 +44,4 @@ A list named 'ext_info_cell' which contains all the parameters and its generated
 \description{
 Creates and formats ext_info_cell list \code{\link{make_jira_issue}}.
 }
+\keyword{internal}

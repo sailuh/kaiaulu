@@ -12,3 +12,4 @@ github_api_page_next(gh_response)
 \description{
 Obtain the next GitHub response page.
 }
+\keyword{internal}

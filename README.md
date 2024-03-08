@@ -8,19 +8,7 @@
 
 Kaiaulu is an R package and common interface that helps with understanding evolving software development communities, and the artifacts (gitlog, mailing list, files, etc.) which developers collaborate and communicate about. You can read more Kaiaulu's motivation and architecture [in our paper's pre-print](https://arxiv.org/abs/2304.14570).
 
-Kaiaulu provides:
-
- * **Parsers** to tabulate and rename software artifacts (`R/parser.R`)
- * **Filters** to control the scope of analysis (`R/filter.R`)
- * **Downloaders** for both Issue Trackers, Pull Requests, and Mailing Lists (`R/download.R`, `R/github.R`)
- * **Networks** to represent software communities as graphs (`R/network.R`, `R/graph.R`)
- * **Identity Matching** to connect artifacts (`R/identity.R`)
- * **Metrics** commonly used in software research (`R/metrics.R`)
- * **Extended Interface** to third party tools for further analysis (`R/dv8.R`)
- * **Reusable Analysis Notebooks** which comprehensively present above features, and warn for threats and pitfalls known on research literature (`vignettes/`)
- * **CLI Interface** for server-side analysis on multiple projects (`exec/`)
- * **Project Configuration Files** that are readable, shareable, and enable reproducibility between both Notebooks and CLI (`conf/`) 
- * **A common and simple data model** using tables and sane nomenclature to various resources which can be combined performing table joins.
+For detailed functionality, see Kaiaulu's [API](http://itm0.shidler.hawaii.edu/kaiaulu/reference/index.html).
 
 Please [ask questions on Discussions](https://github.com/sailuh/kaiaulu/discussions) or open an issue on the [issue tracker](https://github.com/sailuh/kaiaulu/issues) if you found a bug, or your answer can't be found in the documentation. A more comprehensive and ever growing list of features is available on the [Project Wiki](https://github.com/sailuh/kaiaulu/wiki). 
 
@@ -54,9 +42,9 @@ To get started, browse through [the docs](http://itm0.shidler.hawaii.edu/kaiaulu
 ### Cheatsheets
 
 
-| Social Smells | DV8 |
+| Social Smells | Architectural Flaws |
 | ------------- | ------------- |
-| <a href="https://github.com/sailuh/kaiaulu_cheatsheet/blob/main/cheatsheets/social-smells-cheatsheet.pdf"><img src="https://github.com/sailuh/kaiaulu_cheatsheet/blob/main/cheatsheets/social_smells_cheatsheet.png" width="543" height="420"/></a> |  <a href="https://github.com/sailuh/kaiaulu_cheatsheet/blob/main/cheatsheets/dv8-cheatsheet.pdf"><img src="https://github.com/sailuh/kaiaulu_cheatsheet/blob/main/cheatsheets/dv8_cheatsheet.png" width="543" height="420"/></a>   |
+| <a href="https://github.com/sailuh/kaiaulu_cheatsheet/blob/main/cheatsheets/social-smells-cheatsheet.pdf"><img src="https://github.com/sailuh/kaiaulu_cheatsheet/blob/main/cheatsheets/social_smells_cheatsheet.png" width="272" height="210"/></a> |  <a href="https://github.com/sailuh/kaiaulu_cheatsheet/blob/main/cheatsheets/dv8-cheatsheet.pdf"><img src="https://github.com/sailuh/kaiaulu_cheatsheet/blob/main/cheatsheets/dv8_cheatsheet.png" width="272" height="210"/></a>   |
 
 
 

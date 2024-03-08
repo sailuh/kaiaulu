@@ -12,3 +12,4 @@ github_api_page_prev(gh_response)
 \description{
 Obtain the previous GitHub response page.
 }
+\keyword{internal}

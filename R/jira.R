@@ -856,7 +856,7 @@ download_and_save_jira_issues <- function(domain,
 
     # Extract issues. for iteration of naming convention and checks
     R_object_content <- jsonlite::fromJSON(httr::content(response, "text", encoding = "UTF-8"),
-                                   simplifyVector = FALSE)
+                                           simplifyVector = FALSE)
     # The number of issues downloaded
     issue_count <- length(R_object_content$issues)
     # save the raw content for a writeLines later

@@ -12,3 +12,4 @@ github_api_page_first(gh_response)
 \description{
 Obtain the first GitHub response page.
 }
+\keyword{internal}

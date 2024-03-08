@@ -17,3 +17,4 @@ A list named 'reporter' which contains the reporter's information
 \description{
 Creates a reporter cell for \code{\link{make_jira_issue}}
 }
+\keyword{internal}
