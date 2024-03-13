@@ -768,7 +768,9 @@ create_status <- function(jira_domain_url, status) {
 
 #' Define function to fetch issues from JIRA REST API and save as JSON
 #'
-#' Download issue data from "rest/api/lastest/search" endpoint
+#' Download issue data from "rest/api/lastest/search" JIRA endpoint. Use the parameters inside
+#' the download_jira_issues.Rmd notebook. These are either preset in the corresponding chunk
+#' in which they are called or are set to the values in the config file used.
 #'
 #' @param domain Custom JIRA domain URL set in config file
 #' @param credentials a path to text file containing your username/api token
@@ -782,6 +784,11 @@ create_status <- function(jira_domain_url, status) {
 #' @param maxDownloads Maximum downloads per function call
 #' @param search_query an optional API parameter that alters the GET request
 #' @export
+#' @family jira
+#' @family downloaders
+#' @seealso  \code{link{download_and_save_jira_issues_by_issueKey}} to download JIRA data using issueKey as a search criteria,
+#' @seealso  \code{link{download_and_save_jira_issues_by_created}} to download JIRA data using created as a search criteria,
+#' @seealso  \code{link{download_and_save_jira_issues_refresh}} to download only JIRA data that has not already been downloaded
 
 download_and_save_jira_issues <- function(domain,
                                           credentials,
@@ -953,7 +960,9 @@ download_and_save_jira_issues <- function(domain,
 
 #' Define function to fetch issues from 'created' date ranges from JIRA REST API and save as JSON
 #'
-#' Download issue data from "rest/api/lastest/search" endpoint
+#' Download issue data from "rest/api/lastest/search" JIRA endpoint. Use the parameters inside
+#' the download_jira_issues.Rmd notebook. These are either preset in the corresponding chunk
+#' in which they are called or are set to the values in the config file used.
 #'
 #' @param domain Custom JIRA domain URL set in config file
 #' @param credentials a path to text file containing your username/api token
@@ -968,6 +977,12 @@ download_and_save_jira_issues <- function(domain,
 #' @param date_lower_bound an optional API parameter that alters the GET request
 #' @param date_upper_bound an optional API parameter that alters the GET request
 #' @export
+#' @family jira
+#' @family downloaders
+#' @seealso  \code{link{download_and_save_jira_issues}} to download all JIRA issues data,
+#' @seealso  \code{link{download_and_save_jira_issues_by_issueKey}} to download JIRA data using issueKey as a search criteria,
+#' @seealso  \code{link{download_and_save_jira_issues_refresh}} to download only JIRA data that has not already been downloaded
+#' @seealso  \code{link{parse_jira}} to parse jira issues along a file-path
 download_and_save_jira_issues_by_created <- function(domain,
                                                      credentials,
                                                      jql_query,
@@ -1016,6 +1031,12 @@ download_and_save_jira_issues_by_created <- function(domain,
 #' @param issueKey_lower_bound an optional API parameter that alters the GET request
 #' @param issueKey_upper_bound an optional API parameter that alters the GET request
 #' @export
+#' @family jira
+#' @family downloaders
+#' @seealso  \code{link{download_and_save_jira_issues}} to download all JIRA issues data,
+#' @seealso  \code{link{download_and_save_jira_issues_by_created}} to download JIRA data using created as a search criteria,
+#' @seealso  \code{link{download_and_save_jira_issues_refresh}} to download only JIRA data that has not already been downloaded,
+#' @seealso  \code{link{parse_jira}} to parse jira issues along a file-path
 download_and_save_jira_issues_by_issueKey <- function(domain,
                                                       credentials,
                                                       jql_query,
@@ -1064,6 +1085,13 @@ download_and_save_jira_issues_by_issueKey <- function(domain,
 #' @param file_name The filename that contains the greatest issueKey. Returned by a parser
 #' @param unaltered_file_path the unaltered filepath set in the config file
 #' @export
+#' @family downloaders
+#' @family jira
+#' @seealso  \code{link{download_and_save_jira_issues_by_issueKey}} to download JIRA data using issueKey as a search criteria,
+#' @seealso  \code{link{download_and_save_jira_issues}} to download all JIRA issues data,
+#' @seealso  \code{link{download_and_save_jira_issues_by_created}} to download JIRA data using created as a search criteria,
+#' @seealso  \code{link{parse_jira}} to parse jira issues along a file-path,
+#' @seealso \code{link{parse_jira_latest_date}} to retrieve the file_name to be passed to this function
 download_and_save_jira_issues_refresh <- function(domain,
                                                   credentials,
                                                   jql_query,

@@ -38,5 +38,26 @@ messages or not}
 \item{search_query}{an optional API parameter that alters the GET request}
 }
 \description{
-Download issue data from "rest/api/lastest/search" endpoint
+Download issue data from "rest/api/lastest/search" JIRA endpoint. Use the parameters inside
+the download_jira_issues.Rmd notebook. These are either preset in the corresponding chunk
+in which they are called or are set to the values in the config file used.
 }
+\seealso{
+\code{link{download_and_save_jira_issues_by_issueKey}} to download JIRA data using issueKey as a search criteria,
+
+\code{link{download_and_save_jira_issues_by_created}} to download JIRA data using created as a search criteria,
+
+\code{link{download_and_save_jira_issues_refresh}} to download only JIRA data that has not already been downloaded
+
+Other jira: 
+\code{\link{download_and_save_jira_issues_by_created}()},
+\code{\link{download_and_save_jira_issues_by_issueKey}()},
+\code{\link{download_and_save_jira_issues_refresh}()}
+
+Other downloaders: 
+\code{\link{download_and_save_jira_issues_by_created}()},
+\code{\link{download_and_save_jira_issues_by_issueKey}()},
+\code{\link{download_and_save_jira_issues_refresh}()}
+}
+\concept{downloaders}
+\concept{jira}

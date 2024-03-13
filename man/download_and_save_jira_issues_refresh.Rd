@@ -43,3 +43,26 @@ messages or not}
 \description{
 Download issue data from "rest/api/2/search" endpoint
 }
+\seealso{
+\code{link{download_and_save_jira_issues_by_issueKey}} to download JIRA data using issueKey as a search criteria,
+
+\code{link{download_and_save_jira_issues}} to download all JIRA issues data,
+
+\code{link{download_and_save_jira_issues_by_created}} to download JIRA data using created as a search criteria,
+
+\code{link{parse_jira}} to parse jira issues along a file-path,
+
+\code{link{parse_jira_latest_date}} to retrieve the file_name to be passed to this function
+
+Other downloaders: 
+\code{\link{download_and_save_jira_issues_by_created}()},
+\code{\link{download_and_save_jira_issues_by_issueKey}()},
+\code{\link{download_and_save_jira_issues}()}
+
+Other jira: 
+\code{\link{download_and_save_jira_issues_by_created}()},
+\code{\link{download_and_save_jira_issues_by_issueKey}()},
+\code{\link{download_and_save_jira_issues}()}
+}
+\concept{downloaders}
+\concept{jira}
