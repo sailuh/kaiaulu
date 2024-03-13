@@ -4,17 +4,18 @@
 \alias{create_fix_versions}
 \title{Create Fix Version}
 \usage{
-create_fix_versions(jira_domain_url, version_names)
+create_fix_versions(jira_domain_url, fix_versions)
 }
 \arguments{
 \item{jira_domain_url}{URL of JIRA domain}
 
-\item{version_names}{list of version names for the issue}
+\item{fix_versions}{list of fixed versions for the issue}
 }
 \value{
-A list named 'fixVersions' with a list of versions.
+A list named 'fixVersions' with a list of fixed versions and version information
 }
 \description{
-Create a fixVersions cell for \code{\link{make_jira_issue}}.
+Create a fixVersions cell for \code{\link{make_jira_issue}}. This represents the
+'Fixed Version/s' label in JIRA
 }
 \keyword{internal}

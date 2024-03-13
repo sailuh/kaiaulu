@@ -207,42 +207,46 @@ parse_jira_rss_xml <- function(jira_issues_folderpath){
 #' Creates a single JIRA Issue as a list, which can be saved as a JSON with or without comments.
 #'
 #' @param jira_domain_url URL of JIRA domain (e.g. "https://project.org/jira")
-#' @param issue_key issue key of JIRA issue (e.g. "PROJECT-68" or "GERONIMO-6723)
-#' @param version_names list of version names (e.g. c("3.1.5", "4.0.0"))
+#' @param issue_key issue key of JIRA issue (e.g. "PROJECT-68" or "GERONIMO-6723")
+#' @param project_key key of the project that contains the JIRA issue (e.g. "SPARK" or "GERONIMO")
+#' @param summary summary of the issue (e.g. "Site Keeps Crashing")
+#' @param description more detailed description of issue (e.g. "The program keeps crashing because this reason")
+#' @param issue_type type of JIRA issue (e.g. "New Feature", "Task", "Bug")
 #' @param resolution name of resolution for issue (e.g. "Fixed")
 #' @param priority the name of the priority of the issue (e.g. "Major", "Minor", "Trivial")
-#' @param labels the labels of the project (e.g. "message", "mail", "jira")
-#' @param assignee_name name of person the issue is being assigned to (e.g. "Joe Schmo")
 #' @param status status of issue for development (e.g. "In Progress")
+#' @param labels the labels of the project (e.g. "message", "mail", "jira")
 #' @param components list of components of issue (e.g. c("PS", "Tests"))
+#' @param affects_versions list of affected versions (e.g. c("3.1.6", "4.1.0"))
+#' @param fix_versions list of fixed versions (e.g. c("3.1.5", "4.0.0"))
+#' @param assignee_name name of person the issue is being assigned to (e.g. "Joe Schmo")
 #' @param creator_name name of creator of issue (e.g. "John Doe")
 #' @param reporter_name name of reporter of issue (e.g. "Jane Doe")
-#' @param issue_type type of JIRA issue (e.g. "New Feature", "Task", "Bug")
-#' @param project_type the type of the project (e.g. "software")
-#' @param description more detailed description of issue (e.g. "The program keeps crashing because this reason")
-#' @param summary summary of the issue (e.g. "Site Keeps Crashing")
 #' @param comments character list where each element is a comment string (e.g. c("This is first comment", "This is second comment"))
 #' @return A list which represents the JIRA JSON in memory
 #' @export
 #' @family {unittest}
-make_jira_issue <- function(jira_domain_url, issue_key, version_names, resolution, priority, labels,
-                            assignee_name, status, components, creator_name, reporter_name, issue_type,
-                            project_type, description, summary, comments = NULL) {
+make_jira_issue <- function(jira_domain_url, issue_key, project_key, summary, description, issue_type,
+                            resolution, priority, status, labels, components, affects_versions, fix_versions,
+                            assignee_name, creator_name, reporter_name, comments = NULL) {
 
   # Create an issue with the given parameters as a list. If comments are specified, then add comments to the list
   fields <- list(
-    fixVersions = create_fix_versions(jira_domain_url, version_names),
+    fixVersions = create_fix_versions(jira_domain_url, fix_versions),
     resolution = create_resolution(name = resolution),
     priority = create_priority(jira_domain_url, priority),
     labels = labels,
+    versions = create_versions(jira_domain_url, affects_versions),
     assignee = create_assignee(jira_domain_url, assignee_name),
     status = create_status(jira_domain_url, status),
     components = create_components(jira_domain_url, components),
     creator = create_creator(jira_domain_url, creator_name),
     reporter = create_reporter(jira_domain_url, reporter_name),
+    votes = create_votes(jira_domain_url, issue_key),
     issuetype = create_issue_type(jira_domain_url, issue_type),
-    project = create_project(jira_domain_url, issue_key, project_type),
+    project = create_project(jira_domain_url, project_key),
     resolutiondate = "2007-08-13T19:12:33.000+0000",
+    watches = create_watches(jira_domain_url, issue_key),
     created = "2007-07-08T06:07:06.000+0000",
     updated = "2008-05-12T08:01:39.000+0000",
     description = description,
@@ -363,7 +367,8 @@ create_issue_comments <- function(comments) {
 
 #' Create Issue Type
 #'
-#' Create issue type cell for \code{\link{make_jira_issue}}.
+#' Create issue type cell for \code{\link{make_jira_issue}}. This represents the 'Type'
+#' label in JIRA
 #'
 #' @param jira_domain_url URL of JIRA domain
 #' @param issue_type name of the issue type (e.g. New Feature)
@@ -508,7 +513,7 @@ create_resolution <- function(self_url = "https://domain.org/jira/rest/api/2/res
 
 #' Create Assignee
 #'
-#' Creates a assignee cell for \code{\link{make_jira_issue}}.
+#' Creates an assignee cell for \code{\link{make_jira_issue}}.
 #'
 #' @param jira_domain_url URL of JIRA domain
 #' @param assignee_name name of assignee
@@ -544,7 +549,7 @@ create_assignee <- function(jira_domain_url, assignee_name) {
 #'
 #' @param jira_domain_url URL of JIRA domain
 #' @param status description of status
-#' @return A list named 'status' containing status's information
+#' @return A list named 'status' containing the status of the issue
 #' @keywords internal
 create_status <- function(jira_domain_url, status) {
 
@@ -574,17 +579,18 @@ create_status <- function(jira_domain_url, status) {
 
 #' Create Fix Version
 #'
-#' Create a fixVersions cell for \code{\link{make_jira_issue}}.
+#' Create a fixVersions cell for \code{\link{make_jira_issue}}. This represents the
+#' 'Fixed Version/s' label in JIRA
 #'
 #' @param jira_domain_url URL of JIRA domain
-#' @param version_names list of version names for the issue
-#' @return A list named 'fixVersions' with a list of versions.
+#' @param fix_versions list of fixed versions for the issue
+#' @return A list named 'fixVersions' with a list of fixed versions and version information
 #' @keywords internal
-create_fix_versions <- function(jira_domain_url, version_names) {
+create_fix_versions <- function(jira_domain_url, fix_versions) {
 
   fixVersions_list <- list()
 
-  for(version_name in version_names){
+  for(fix_version in fix_versions){
     id <- sample(10000000: 99999999, 1)
     self_url <- paste0(jira_domain_url, "/rest/api/2/version/", id)
 
@@ -592,7 +598,7 @@ create_fix_versions <- function(jira_domain_url, version_names) {
       self = self_url,
       id = as.character(id),
       description = "This is a description of the fixVersion",
-      name = version_name,
+      name = fix_version,
       archived = FALSE,
       released = TRUE,
       releaseDate = "2021-01-01T10:00:00.000+0000"
@@ -610,7 +616,7 @@ create_fix_versions <- function(jira_domain_url, version_names) {
 #'
 #' @param jira_domain_url URL of JIRA domain
 #' @param priority the name of the priority of the issue (Major, Minor, Trivial)
-#' @return A list named 'priority' containing priority information.
+#' @return A list named 'priority' containing the priority of the issue
 #' @keywords internal
 create_priority <- function(jira_domain_url, priority) {
 
@@ -633,13 +639,13 @@ create_priority <- function(jira_domain_url, priority) {
 #' Create a parent cell for \code{\link{make_jira_issue}}.
 #'
 #' @param jira_domain_url URL of JIRA domain
-#' @param issue_key issue key of JIRA issue (e.g. "PROJECT-68" or "GERONIMO-6723)
-#' @param status status of issue for development (e.g. "In Progress")
-#' @param priority the name of the priority of the issue (Major, Minor, Trivial)
-#' @param issue_type type of JIRA issue (e.g. "New Feature", "Task", "Bug")
-#' @return A list named 'parent' that contains information on a parent issue
+#' @param parent_issue_key issue key of the parent issue of the current JIRA issue
+#' @param status status of issue for development
+#' @param priority the name of the priority of the issue
+#' @param issue_type type of JIRA issue
+#' @return A list named 'parent' that contains a parent issue and it's fields
 #' @keywords internal
-create_parent <- function(jira_domain_url, issue_key, status, priority, issue_type) {
+create_parent <- function(jira_domain_url, parent_issue_key, status, priority, issue_type) {
 
   id <- sample(10000000: 99999999, 1)
 
@@ -654,7 +660,7 @@ create_parent <- function(jira_domain_url, issue_key, status, priority, issue_ty
 
   parent <- list(
     id = as.character(id),
-    key = issue_key,
+    key = parent_issue_key,
     self = self_url,
     fields = fields
   )
@@ -667,11 +673,10 @@ create_parent <- function(jira_domain_url, issue_key, status, priority, issue_ty
 #' Create a project cell for \code{\link{make_jira_issue}}.
 #'
 #' @param jira_domain_url URL of JIRA domain
-#' @param issue_key issue key of JIRA issue (e.g. "PROJECT-68" or "GERONIMO-6723)
-#' @param project_type the type of the project
-#' @return A list named 'project' that contains project type and other project information
+#' @param project_key key of the project that contains the JIRA issue (e.g. "SPARK" or "GERONIMO")
+#' @return A list named 'project' that contains the project's information
 #' @keywords internal
-create_project <- function(jira_domain_url, issue_key, project_type) {
+create_project <- function(jira_domain_url, project_key) {
 
   id <- sample(10000000: 99999999, 1)
 
@@ -687,9 +692,84 @@ create_project <- function(jira_domain_url, issue_key, project_type) {
   project <- list(
     self = self_url,
     id = as.character(id),
-    key = issue_key,
-    name = issue_key,
-    projectTypeKey = project_type,
+    key = project_key,
+    name = project_key,
+    projectTypeKey = "software",
     avartarUrls = avatarUrls
   )
+}
+
+#' Create Versions
+#'
+#' Create a versions cell for \code{\link{make_jira_issue}}. This cell represents
+#' the 'Affects Version/s' label in JIRA
+#'
+#' @param jira_domain_url URL of JIRA domain
+#' @param affects_versions list of version names for the issue
+#' @return A list named 'versions' with a list of versions
+#' @keywords internal
+create_versions <- function(jira_domain_url, affects_versions) {
+
+  versions_list <- list()
+
+  for(affects_version in affects_versions){
+    id <- sample(10000000: 99999999, 1)
+    self_url <- paste0(jira_domain_url, "/rest/api/2/version/", id)
+
+    version <- list(
+      self = self_url,
+      id = as.character(id),
+      description = "This is a description of the version",
+      name = affects_version,
+      archived = FALSE,
+      released = TRUE,
+      releaseDate = "2024-01-01T10:00:00.000+0000"
+    )
+
+    versions_list[[length(versions_list) + 1]] <- version
+  }
+
+  return(versions_list)
+}
+
+#' Create Votes
+#'
+#' Create a votes cell for \code{\link{make_jira_issue}}.
+#'
+#' @param jira_domain_url URL of JIRA domain
+#' @param issue_key issue key of JIRA issue
+#' @return A list named 'votes' that has the number of votes for the issue
+#' @keywords internal
+create_votes <- function(jira_domain_url, issue_key) {
+
+  self_url <- paste0(jira_domain_url, "/rest/api/2/issue/", issue_key, "votes")
+
+  votes <- list(
+    self = self_url,
+    votes = 10,
+    hasVoted = FALSE
+  )
+
+  return(votes)
+}
+
+#' Create Watches
+#'
+#' Create a watches cell for \code{\link{make_jira_issue}}.
+#'
+#' @param jira_domain_url URL of JIRA domain
+#' @param issue_key issue key of JIRA issue
+#' @return A list named 'watches' that has the number of watchers for the issue
+#' @keywords internal
+create_watches <- function(jira_domain_url, issue_key) {
+
+  self_url <- paste0(jira_domain_url, "/rest/api/2/issue/", issue_key, "watchers")
+
+  watches <- list(
+    self = self_url,
+    watchCount = 15,
+    isWatching = FALSE
+  )
+
+  return(watches)
 }

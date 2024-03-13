@@ -407,19 +407,20 @@ example_jira_issue_components <- function(folder_path, folder_name) {
   issue1 <- make_jira_issue(
     jira_domain_url = "https://project.org/jira",
     issue_key = "GERONIMO-123",
-    version_names = c("3.4.3"),
+    project_key = "GERONIMO",
+    summary = "Summary of new feature",
+    description = "The new features have been implemented",
+    issue_type = "New Feature",
     resolution = "Finished",
     priority = "Minor",
-    labels = c("pull-request-available"),
-    assignee_name = "Moe",
     status = "Open",
+    labels = c("pull-request-available"),
     components = c("jira", "mail"),
+    affects_versions = c("3.4.3"),
+    fix_versions = c("3.4.2"),
+    assignee_name = "Moe",
     creator_name = "Bob",
-    reporter_name = "Joe",
-    issue_type = "New Feature",
-    project_type = "software",
-    description = "The new features have been implemented",
-    summary = "Summary of new feature"
+    reporter_name = "Joe"
   )
 
   issues <- list(issue1)
@@ -447,37 +448,39 @@ example_jira_two_issues <- function(folder_path, folder_name) {
   issue1 <- make_jira_issue(
     jira_domain_url = "https://project.org/jira",
     issue_key = "PROJECT-11",
-    version_names = c("1.1.1"),
+    project_key = "PROJECT",
+    summary = "Summary of issue 1",
+    description = "Description of summary 1",
+    issue_type = "New Feature",
     resolution = "Finished",
     priority = "Minor",
+    status = "Closed",
     labels = c("pull-request-available"),
+    components = c("jira"),
+    affects_versions = c("1.1.1"),
+    fix_versions = c("1.1.1"),
     assignee_name = "Moe",
-    status = "Open",
-    components = c("jira", "mail"),
     creator_name = "Bob",
-    reporter_name = "Joe",
-    issue_type = "New Feature",
-    project_type = "software",
-    description = "The new features have been implemented",
-    summary = "This is issue 1"
+    reporter_name = "Joe"
   )
 
   issue2 <- make_jira_issue(
     jira_domain_url = "https://project.org/jira",
     issue_key = "PROJECT-22",
-    version_names = c("2.2.2"),
-    resolution = "Fixed",
-    priority = "Major",
-    labels = c("pull-request-available"),
-    assignee_name = "Moe",
+    project_key = "PROJECT",
+    summary = "Summary of issue 2",
+    description = "Description of summary 2",
+    issue_type = "New Feature",
+    resolution = "Finished",
+    priority = "Minor",
     status = "Open",
+    labels = c("pull-request-available"),
     components = c("jira"),
-    creator_name = "Carlos",
-    reporter_name = "Paul",
-    issue_type = "Improvement",
-    project_type = "software",
-    description = "This is the description for issue 2",
-    summary = "This is issue 2"
+    affects_versions = c("2.2.2"),
+    fix_versions = c("2.2.2"),
+    assignee_name = "Steven",
+    creator_name = "Nathan",
+    reporter_name = "Matthew"
   )
 
   issues <- list(issue1, issue2)
@@ -504,20 +507,21 @@ example_jira_issue_comments <- function(folder_path, folder_name) {
 
   issue1 <- make_jira_issue(
     jira_domain_url = "https://project.org/jira",
-    issue_key = "SPARK-123",
-    version_names = c("3.4.3"),
+    issue_key = "GERONIMO-123",
+    project_key = "GERONIMO",
+    summary = "Summary of new feature",
+    description = "The new features have been implemented",
+    issue_type = "New Feature",
     resolution = "Finished",
     priority = "Minor",
-    labels = c("pull-request-available"),
-    assignee_name = "Moe",
     status = "Open",
+    labels = c("pull-request-available"),
     components = c("jira", "mail"),
+    affects_versions = c("3.4.3"),
+    fix_versions = c("3.4.2"),
+    assignee_name = "Moe",
     creator_name = "Bob",
     reporter_name = "Joe",
-    issue_type = "New Feature",
-    project_type = "software",
-    description = "The new features have been implemented",
-    summary = "Summary of new feature",
     comments = c(
       "This is the first body comment.",
       "This is the second body comment."

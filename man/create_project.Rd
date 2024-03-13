@@ -4,17 +4,15 @@
 \alias{create_project}
 \title{Create Project}
 \usage{
-create_project(jira_domain_url, issue_key, project_type)
+create_project(jira_domain_url, project_key)
 }
 \arguments{
 \item{jira_domain_url}{URL of JIRA domain}
 
-\item{issue_key}{issue key of JIRA issue (e.g. "PROJECT-68" or "GERONIMO-6723)}
-
-\item{project_type}{the type of the project}
+\item{project_key}{key of the project that contains the JIRA issue (e.g. "SPARK" or "GERONIMO")}
 }
 \value{
-A list named 'project' that contains project type and other project information
+A list named 'project' that contains the project's information
 }
 \description{
 Create a project cell for \code{\link{make_jira_issue}}.

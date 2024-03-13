@@ -12,7 +12,7 @@ create_priority(jira_domain_url, priority)
 \item{priority}{the name of the priority of the issue (Major, Minor, Trivial)}
 }
 \value{
-A list named 'priority' containing priority information.
+A list named 'priority' containing the priority of the issue
 }
 \description{
 Create a priority cell for \code{\link{make_jira_issue}}.

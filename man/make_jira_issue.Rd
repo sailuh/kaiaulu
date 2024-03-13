@@ -7,52 +7,55 @@
 make_jira_issue(
   jira_domain_url,
   issue_key,
-  version_names,
+  project_key,
+  summary,
+  description,
+  issue_type,
   resolution,
   priority,
-  labels,
-  assignee_name,
   status,
+  labels,
   components,
+  affects_versions,
+  fix_versions,
+  assignee_name,
   creator_name,
   reporter_name,
-  issue_type,
-  project_type,
-  description,
-  summary,
   comments = NULL
 )
 }
 \arguments{
 \item{jira_domain_url}{URL of JIRA domain (e.g. "https://project.org/jira")}
 
-\item{issue_key}{issue key of JIRA issue (e.g. "PROJECT-68" or "GERONIMO-6723)}
+\item{issue_key}{issue key of JIRA issue (e.g. "PROJECT-68" or "GERONIMO-6723")}
 
-\item{version_names}{list of version names (e.g. c("3.1.5", "4.0.0"))}
+\item{project_key}{key of the project that contains the JIRA issue (e.g. "SPARK" or "GERONIMO")}
+
+\item{summary}{summary of the issue (e.g. "Site Keeps Crashing")}
+
+\item{description}{more detailed description of issue (e.g. "The program keeps crashing because this reason")}
+
+\item{issue_type}{type of JIRA issue (e.g. "New Feature", "Task", "Bug")}
 
 \item{resolution}{name of resolution for issue (e.g. "Fixed")}
 
 \item{priority}{the name of the priority of the issue (e.g. "Major", "Minor", "Trivial")}
 
-\item{labels}{the labels of the project (e.g. "message", "mail", "jira")}
-
-\item{assignee_name}{name of person the issue is being assigned to (e.g. "Joe Schmo")}
-
 \item{status}{status of issue for development (e.g. "In Progress")}
 
+\item{labels}{the labels of the project (e.g. "message", "mail", "jira")}
+
 \item{components}{list of components of issue (e.g. c("PS", "Tests"))}
+
+\item{affects_versions}{list of affected versions (e.g. c("3.1.6", "4.1.0"))}
+
+\item{fix_versions}{list of fixed versions (e.g. c("3.1.5", "4.0.0"))}
+
+\item{assignee_name}{name of person the issue is being assigned to (e.g. "Joe Schmo")}
 
 \item{creator_name}{name of creator of issue (e.g. "John Doe")}
 
 \item{reporter_name}{name of reporter of issue (e.g. "Jane Doe")}
-
-\item{issue_type}{type of JIRA issue (e.g. "New Feature", "Task", "Bug")}
-
-\item{project_type}{the type of the project (e.g. "software")}
-
-\item{description}{more detailed description of issue (e.g. "The program keeps crashing because this reason")}
-
-\item{summary}{summary of the issue (e.g. "Site Keeps Crashing")}
 
 \item{comments}{character list where each element is a comment string (e.g. c("This is first comment", "This is second comment"))}
 }
