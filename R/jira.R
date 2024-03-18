@@ -235,9 +235,9 @@ make_jira_issue <- function(jira_domain_url, issue_key, issue_type, status, reso
   if (!is.null(comments) && length(comments) > 0) {
 
     ext_info_cell[["comment"]][["comments"]] <- create_issue_comments(comments)
-    ext_info_cell[["comment"]][["maxResults"]] <- length(ext_info_cell[["comment"]][[1]])
+    ext_info_cell[["comment"]][["maxresults"]] <- length(ext_info_cell[["comment"]][[1]])
     ext_info_cell[["comment"]][["total"]] <- length(ext_info_cell[["comment"]][[1]])
-    ext_info_cell[["comment"]][["startAt"]] <- 0
+    ext_info_cell[["comment"]][["startat"]] <- 0
   }
 
   issues[["ext_info"]][[1]] <- ext_info_cell
@@ -764,4 +764,365 @@ create_status <- function(jira_domain_url, status) {
   )
 
   return(status)
+}
+
+#' Define function to fetch issues from JIRA REST API and save as JSON
+#'
+#' Download issue data from "rest/api/lastest/search" JIRA endpoint. Use the parameters inside
+#' the download_jira_issues.Rmd notebook. These are either preset in the corresponding chunk
+#' in which they are called or are set to the values in the config file used.
+#'
+#' @param domain Custom JIRA domain URL set in config file
+#' @param credentials a path to text file containing your username/api token
+#' @param jql_query Specific query string to specify criteria for fetching
+#' @param fields List of fields that are downloaded in each issue
+#' @param save_path_issue_tracker_issues Path that files will be save along
+#' @param maxresults (optional) the maximum number of results to download per page.
+#' Default is 50
+#' @param verbose boolean flag to specify printing operational
+#' messages or not
+#' @param maxdownloads Maximum downloads per function call
+#' @param search_query an optional API parameter that alters the GET request
+#' @export
+#' @family jira
+#' @family downloaders
+#' @seealso  \code{link{download_jira_issues_comments_by_issuekey}} to download JIRA data using issuekey as a search criteria,
+#' @seealso  \code{link{download_jira_issues_comments_by_date}} to download JIRA data using created as a search criteria,
+#' @seealso  \code{link{refresh_jira_issues_comments_by_issuekey}} to download only JIRA data that has not already been downloaded
+
+download_jira_issues_comments <- function(domain,
+                                          credentials,
+                                          jql_query,
+                                          fields,
+                                          save_path_issue_tracker_issues,
+                                          maxresults = 50,
+                                          verbose = FALSE,
+                                          maxdownloads = 5000,
+                                          search_query = NULL) {
+
+  # Ensure the domain starts with https:// for secure communication.
+  if (!grepl("^https?://", domain)) {
+    domain <- paste0("https://", domain)
+  }
+
+  # append search_query to jql_query if present
+  if (!is.null(search_query)){
+    jql_query <- paste(jql_query, search_query)
+    message(jql_query)
+  }
+
+  #Initialize variables for pagination
+  startat <- 0
+  total <- maxresults
+  all_issues <- list()
+  # This variable counts your download count. This is important to not exceed the max downloads per hour
+  download_count <- 0
+  time <- Sys.time()
+  message("Starting Downloads at ", time)
+  # Loop that downloads each issue into a file
+  repeat{
+
+    # Check update our download count and see if it is approaching the limit
+    if (download_count + maxresults > maxdownloads) {
+      # erorr message
+      time <- Sys.time()
+      message("Cannot download as maxdownloads will be exceeeded. Reccommend running again at a later time. Downloads ended at ", time)
+      break
+    } # Resume donwloading
+
+    # Construct the API endpoint URL
+    url <- paste0(domain, "/rest/api/2/search")
+
+    #Authenticate if username and password are provided
+    if(length(credentials) >= 2) {
+      username <- credentials[1]
+      password <- credentials[2]
+      # Use the credentials for authentication
+      auth <- httr::authenticate(as.character(username), as.character(password), "basic")
+      #message("successfully authenticated")
+    } else {
+      if(verbose){
+        message("No credentials present or are formatted incorrectly.")
+      }
+      auth <- NULL
+    }
+
+    # Prepare query parameters for the API call
+    query_params <- list(jql = jql_query, fields = paste(fields, collapse = ","), maxresults = maxresults, startat = startat)
+
+    if (verbose && (download_count == 0)){
+      message("Query paramters: ", query_params)
+    }
+    # Make the API call
+    response <- httr::GET(url, query = query_params)
+
+    # Stop if there's an HTTP error
+    if (httr::http_error(response)) {
+      stop("API request failed: ", httr::http_status(response)$message)
+    }
+
+    # Extract issues. for iteration of naming convention and checks
+    R_object_content <- jsonlite::fromJSON(httr::content(response, "text", encoding = "UTF-8"),
+                                           simplifyVector = FALSE)
+    # The number of issues downloaded
+    issue_count <- length(R_object_content$issues)
+    # save the raw content for a writeLines later
+    raw_content <- httr::content(response, "text", encoding = "UTF-8")
+
+    #message(class(response_content))
+    #io_make_file(save_path_issue_tracker_issues, response_content)
+    #jsonlite::write_json(response_content, save_path_issue_tracker_issue_comments)
+
+    # Check to make sure that the api is downloading the correct amount of issues specified by maxresults
+    # This checks for only the first page (if download_count ==0)
+    # If the total number of issues retrieved is less than maxresults, then of course issue_count
+    # will be < maxresults so we check to make sure this is not true (total >= maxresults)
+    if ((download_count == 0) && (maxresults != issue_count) && (total > maxresults)) {
+      message("Total number of issues queried: ", total)
+      message(". maxresults specified: ", maxresults)
+      message(". Number of issues retrieved: ", issue_count)
+      message(". Something went wrong with the API request. Changing maxresults to ", issue_count)
+      maxresults <- issue_count
+    }
+    # R_object_content <- jsonlite::read_json(response_content, simplifyVector = FALSE)
+    # all_issues <- append(all_issues, content$issues)
+
+    # Set the filename from the config file. It will be modified in the following code
+    file_name <- save_path_issue_tracker_issues
+
+    if (grepl("\\.json$", file_name)) {
+      # Remove .json if present in file_name. It will be added again in the naming convention
+      file_name <- sub("\\.json$", "", file_name)
+    }
+
+    # naming convention for each page
+    for (i in rev(seq_along(R_object_content$issues))) {
+      if (i == 1){
+        issue <- R_object_content$issue[[i]]
+        # Get the 'created' field
+        issue_created <- issue$fields$created
+        # Convert the time string to a POSIXct object, specifying the format
+        posix_time <- as.POSIXct(issue_created, format = "%Y-%m-%dT%H:%M:%OS", tz = "UTC")
+        # Convert the POSIXct object to UNIX time
+        unix_time <- as.numeric(posix_time)
+        # append to the filename
+        file_name <- paste0(file_name, "_", unix_time, ".json")
+        # less lines? But less readable
+        # file_name <- paste0(file_name, "_", as.numeric(as.POSIXct(R_object_content$issue[[i]]$fields$created, format = "%Y-%m-%dT%H:%M:%OS", tz = "UTC")), ".json")
+      }
+      if (i == issue_count){
+        issue <- R_object_content$issue[[i]]
+        # Get the 'created' field
+        issue_created <- issue$fields$created
+        # Convert the time string to a POSIXct object, specifying the format
+        posix_time <- as.POSIXct(issue_created, format = "%Y-%m-%dT%H:%M:%OS", tz = "UTC")
+        # Convert the POSIXct object to UNIX time
+        unix_time <- as.numeric(posix_time)
+        # append to the filename
+        file_name <- paste0(file_name, "_", unix_time)
+      }
+    }
+
+    # write the files if issues present
+    if (issue_count > 0){
+      writeLines(raw_content, file_name)
+    } else {
+      if(verbose){
+        message("You are all caught up!")
+      }
+    }
+
+    # update download_count and optional print statements
+    download_count <- download_count + issue_count
+    if (verbose && (issue_count > 0)){
+      message("saved file to ", file_name)
+      message("Saved ", download_count, " total issues")
+    }
+
+
+    #updates startat for next loop
+    if (issue_count < maxresults) {
+      break
+    } else {
+      startat <- startat + maxresults
+    }
+  }
+
+  # Final verbose output
+  if (verbose) {
+    message("Success! Fetched and saved issues.")
+  }
+
+  # Returns the content so that it can be saved to a variable via function call
+  return(NULL)
+}
+
+
+#' Define function to fetch issues from 'created' date ranges from JIRA REST API and save as JSON
+#'
+#' Download issue data from "rest/api/lastest/search" JIRA endpoint. Use the parameters inside
+#' the download_jira_issues.Rmd notebook. These are either preset in the corresponding chunk
+#' in which they are called or are set to the values in the config file used.
+#'
+#' @param domain Custom JIRA domain URL set in config file
+#' @param credentials a path to text file containing your username/api token
+#' @param jql_query Specific query string to specify criteria for fetching
+#' @param fields List of fields that are downloaded in each issue
+#' @param save_path_issue_tracker_issues Path that files will be save along
+#' @param maxresults (optional) the maximum number of results to download per page.
+#' Default is 50
+#' @param verbose boolean flag to specify printing operational
+#' messages or not
+#' @param maxdownloads Maximum downloads per function call
+#' @param date_lower_bound an optional API parameter that alters the GET request
+#' @param date_upper_bound an optional API parameter that alters the GET request
+#' @export
+#' @family jira
+#' @family downloaders
+#' @seealso  \code{link{download_jira_issues_comments}} to download all JIRA issues data,
+#' @seealso  \code{link{download_jira_issues_comments_by_issuekey}} to download JIRA data using issuekey as a search criteria,
+#' @seealso  \code{link{refresh_jira_issues_comments_by_issuekey}} to download only JIRA data that has not already been downloaded
+#' @seealso  \code{link{parse_jira}} to parse jira issues along a file-path
+download_jira_issues_comments_by_date <- function(domain,
+                                                     credentials,
+                                                     jql_query,
+                                                     fields,
+                                                     save_path_issue_tracker_issues,
+                                                     maxresults,
+                                                     verbose,
+                                                     maxdownloads,
+                                                     date_lower_bound = NULL,
+                                                     date_upper_bound = NULL){
+  created_query <- ""
+  if (!is.null(date_lower_bound)){
+    created_query <- paste0(created_query, "AND created >= '", date_lower_bound, "' ")
+  }
+  if (!is.null(date_upper_bound)){
+    created_query <- paste0(created_query, "AND created <= '", date_upper_bound, "' ")
+  }
+
+  message("Appending ", created_query, " to api request.")
+
+  download_jira_issues_comments(domain,
+                                credentials,
+                                jql_query,
+                                fields,
+                                save_path_issue_tracker_issues,
+                                maxresults,
+                                verbose,
+                                maxdownloads,
+                                search_query = created_query)
+}
+
+#' Define function to fetch issues from 'created' date ranges from JIRA REST API and save as JSON
+#'
+#' Download issue data from "rest/api/lastest/search" endpoint
+#'
+#' @param domain Custom JIRA domain URL set in config file
+#' @param credentials a path to text file containing your username/api token
+#' @param jql_query Specific query string to specify criteria for fetching
+#' @param fields List of fields that are downloaded in each issue
+#' @param save_path_issue_tracker_issues Path that files will be save along
+#' @param maxresults (optional) the maximum number of results to download per page.
+#' Default is 50
+#' @param verbose boolean flag to specify printing operational
+#' messages or not
+#' @param maxdownloads Maximum downloads per function call
+#' @param issuekey_lower_bound an optional API parameter that alters the GET request
+#' @param issuekey_upper_bound an optional API parameter that alters the GET request
+#' @export
+#' @family jira
+#' @family downloaders
+#' @seealso  \code{link{download_jira_issues_comments}} to download all JIRA issues data,
+#' @seealso  \code{link{download_jira_issues_comments_by_date}} to download JIRA data using created as a search criteria,
+#' @seealso  \code{link{refresh_jira_issues_comments_by_issuekey}} to download only JIRA data that has not already been downloaded,
+#' @seealso  \code{link{parse_jira}} to parse jira issues along a file-path
+download_jira_issues_comments_by_issuekey <- function(domain,
+                                                      credentials,
+                                                      jql_query,
+                                                      fields,
+                                                      save_path_issue_tracker_issues,
+                                                      maxresults,
+                                                      verbose,
+                                                      maxdownloads,
+                                                      issuekey_lower_bound = NULL,
+                                                      issuekey_upper_bound = NULL){
+  created_query <- ""
+  if (!is.null(issuekey_lower_bound)){
+    created_query <- paste0(created_query, "AND issuekey >= ", issuekey_lower_bound)
+  }
+  if (!is.null(issuekey_upper_bound)){
+    created_query <- paste0(created_query, " AND issuekey <= ", issuekey_upper_bound)
+  }
+
+  message("Appending ", created_query, " to api request.")
+
+  download_jira_issues_comments(domain,
+                                credentials,
+                                jql_query,
+                                fields,
+                                save_path_issue_tracker_issues,
+                                maxresults,
+                                verbose,
+                                maxdownloads,
+                                search_query = created_query)
+}
+
+#' Define function to extract greatest issuekey from a file and pass it to download_jira_issues_comments_by_issuekey
+#'
+#' Download issue data from "rest/api/2/search" endpoint
+#'
+#' @param domain Custom JIRA domain URL set in config file
+#' @param credentials a path to text file containing your username/api token
+#' @param jql_query Specific query string to specify criteria for fetching
+#' @param fields List of fields that are downloaded in each issue
+#' @param save_path_issue_tracker_issues Path that files will be save along
+#' @param maxresults (optional) the maximum number of results to download per page.
+#' Default is 50
+#' @param verbose boolean flag to specify printing operational
+#' messages or not
+#' @param maxdownloads Maximum downloads per function call
+#' @param file_name The filename that contains the greatest issuekey. Returned by a parser
+#' @param unaltered_file_path the unaltered filepath set in the config file
+#' @export
+#' @family downloaders
+#' @family jira
+#' @seealso  \code{link{download_jira_issues_comments_by_issuekey}} to download JIRA data using issuekey as a search criteria,
+#' @seealso  \code{link{download_jira_issues_comments}} to download all JIRA issues data,
+#' @seealso  \code{link{download_jira_issues_comments_by_date}} to download JIRA data using created as a search criteria,
+#' @seealso  \code{link{parse_jira}} to parse jira issues along a file-path,
+#' @seealso \code{link{parse_jira_latest_date}} to retrieve the file_name to be passed to this function
+refresh_jira_issues_comments_by_issuekey <- function(domain,
+                                                  credentials,
+                                                  jql_query,
+                                                  fields,
+                                                  save_path_issue_tracker_issues,
+                                                  maxresults,
+                                                  verbose,
+                                                  maxdownloads,
+                                                  file_name,
+                                                  unaltered_file_path){
+
+  issue_refresh <- paste0(unaltered_file_path, file_name)
+
+  # Read the JSON file
+  json_data <- jsonlite::fromJSON(txt = issue_refresh, simplifyVector = FALSE)
+
+  # Extract the value with the greatest issuekey
+  issue_first <- json_data$issue[[1]]['key']
+
+  # Construct the search query to append to the JIRA API request
+  search_query <- paste0("AND issuekey > ", issue_first)
+
+  message("Appending ", search_query, " to JQL query")
+
+  download_jira_issues_comments(domain,
+                                credentials,
+                                jql_query,
+                                fields,
+                                save_path_issue_tracker_issues,
+                                maxresults,
+                                verbose,
+                                maxdownloads,
+                                search_query)
 }
