@@ -12,12 +12,11 @@ parse_jira_latest_date(json_path)
 \value{
 The name of the jira issue file with the latest created date that was created/downloaded for
 use by the Jira Downloader refresher
+}
+\description{
 Note the jira json naming convention is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
 or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json"
 For example: "KAIAULU_issues_1231234_2312413.json". Notice how the ProjectKey portion is in all caps.
-}
-\description{
-Parse Jira latest dates
 }
 \seealso{
 Other parsers: 

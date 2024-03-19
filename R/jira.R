@@ -8,15 +8,16 @@
 
 #' Parse Jira issue and comments
 #'
+#' Note the comments element will be empty if the downloaded json only contain issues.
+#' the jira json naming convention is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
+#' or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json".
+#' For example: "KAIAULU_issues_1231234_2312413.json". Notice how the ProjectKey portion is in all caps.
+#'
 #' @param json_path is a folder path containing a set of jira_issues as json files. The general folder structure is as follows:
 #' "../../rawdata/issue_tracker/geronimo/issues/" or "../../rawdata/issue_tracker/geronimo/issue_comments/". The issues folder only
 #' contains jira issue json files that don't include comments. The issue_comments folder contains jira issue json files that can
 #' include comments.
 #' @return A named list of two named elements ("issues", and "comments"), each containing a data.table.
-#' Note the comments element will be empty if the downloaded json only contain issues.
-#' the jira json naming convention is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
-#' or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json".
-#' For example: "KAIAULU_issues_1231234_2312413.json". Notice how the ProjectKey portion is in all caps.
 #' @export
 #' @family parsers
 parse_jira <- function(json_path){
@@ -73,15 +74,18 @@ parse_jira <- function(json_path){
         issue_key = issue_key,
 
         issue_summary = issue_comment[["summary"]][[1]],
-        issue_parent = issue_comment[["parent"]][["self"]][[1]],
+        issue_parent = issue_comment[["parent"]][["name"]][[1]],
         issue_type = issue_comment[["issuetype"]][["name"]][[1]],
         issue_status = issue_comment[["status"]][["statusCategory"]][["name"]][[1]],
         issue_resolution = issue_comment[["resolution"]][["name"]][[1]],
         issue_components = stringi::stri_c(unlist(sapply(issue_comment[["components"]],"[[","name")),collapse = ";"),
         issue_description = issue_comment[["description"]][[1]],
         issue_priority = issue_comment[["priority"]][["name"]][[1]],
+        issue_affects_versions = stringi::stri_c(unlist(sapply(issue_comment[["versions"]],"[[","name")),collapse = ";"),
         issue_fixVersions = stringi::stri_c(unlist(sapply(issue_comment[["fixVersions"]],"[[","name")),collapse = ";"),
         issue_labels = stringi::stri_c(unlist(sapply(issue_comment[["labels"]],"[[","name")),collapse = ";"),
+        issue_votes = issue_comment[["votes"]][["votes"]][[1]],
+        issue_watchers = issue_comment[["watches"]][["watchCount"]][[1]],
 
         issue_created_datetimetz = issue_comment[["created"]][[1]],
         issue_updated_datetimetz = issue_comment[["updated"]][[1]],
@@ -150,12 +154,13 @@ parse_jira <- function(json_path){
 }
 #' Parse Jira latest dates
 #'
-#' @param json_path path to save folder containing JIRA issue and/or comments json files.
-#' @return The name of the jira issue file with the latest created date that was created/downloaded for
-#' use by the Jira Downloader refresher
 #' Note the jira json naming convention is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
 #' or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json"
 #' For example: "KAIAULU_issues_1231234_2312413.json". Notice how the ProjectKey portion is in all caps.
+#'
+#' @param json_path path to save folder containing JIRA issue and/or comments json files.
+#' @return The name of the jira issue file with the latest created date that was created/downloaded for
+#' use by the Jira Downloader refresher
 #' @export
 #' @family parsers
 parse_jira_latest_date <- function(json_path){

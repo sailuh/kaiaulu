@@ -14,13 +14,12 @@ include comments.}
 }
 \value{
 A named list of two named elements ("issues", and "comments"), each containing a data.table.
+}
+\description{
 Note the comments element will be empty if the downloaded json only contain issues.
 the jira json naming convention is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
 or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json".
 For example: "KAIAULU_issues_1231234_2312413.json". Notice how the ProjectKey portion is in all caps.
-}
-\description{
-Parse Jira issue and comments
 }
 \seealso{
 Other parsers: 

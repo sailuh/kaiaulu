@@ -42,6 +42,8 @@ issue_tracker_domain <- conf[["issue_tracker"]][["jira"]][["domain"]]
 issue_tracker_project_key <- conf[["issue_tracker"]][["jira"]][["project_key"]]
 save_path_issue_tracker_issues <- conf[["issue_tracker"]][["jira"]][["issues"]]
 save_path_issue_tracker_issue_comments <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
+
+save_path_issue_tracker_issues <- "../../rawdata/issue_tracker/geronimo/issues"
 ```
 
 # Specifying the JIRA credentials
@@ -95,7 +97,8 @@ The json will be downloaded on the path specified in the project configuration f
 jira_issues_list <- parse_jira(save_path_issue_tracker_issues)
 jira_issues <- jira_issues_list[["issues"]]
 jira_comments <- jira_issues_list[["comments"]]
-kable(jira_issues[1:4])
+parse_jira_latest_date(save_path_issue_tracker_issues)
+kable(jira_issues[5])
 ```
 
 # Download Issue with Comments
