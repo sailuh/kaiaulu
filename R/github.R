@@ -204,6 +204,56 @@ github_api_project_issue <- function(owner,repo,token){
          per_page=100,
          .token=token)
 }
+
+#' Download Project Issues after a date
+#'
+#' Download  Issues from "GET /repos/{owner}/{repo}/issues" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param created Github's created at date
+#' @param token Your GitHub API token
+#' @export
+#' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
+github_api_project_issue_refresh <- function(owner,repo,token,created){
+  # Construct the search query
+  # Ensure 'created' is in the format "YYYY-MM-DD"
+  # For more precise filtering, including time, use "YYYY-MM-DDTHH:MM:SSZ"
+  query <- sprintf("repo:%s/%s is:issue created:>%s", owner, repo, created)
+
+  # Use the Search API endpoint to search for issues
+  issues <- gh::gh("/search/issues",
+                   q = query,
+                   .token = token,
+                   .limit = 100) # Adjust .limit as needed, though GitHub API has its own paging mechanisms
+
+  return(issues)
+}
+
+#' Download Project Pull Requests after a date
+#'
+#' Download  Issues from "GET /repos/{owner}/{repo}/issues" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param created Github's created at date
+#' @param token Your GitHub API token
+#' @export
+#' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
+github_api_project_pull_request_refresh <- function(owner,repo,token,created){
+  # Construct the search query for pull requests
+  # Ensure 'created' is in the format "YYYY-MM-DD"
+  # For more precise filtering, including time, use "YYYY-MM-DDTHH:MM:SSZ"
+  query <- sprintf("repo:%s/%s is:pr created:>%s", owner, repo, created)
+
+  # Use the Search API endpoint to search for pull requests
+  pull_requests <- gh::gh("/search/issues",
+                          q = query,
+                          .token = token,
+                          .limit = 100) # Adjust .limit as needed, though GitHub API has its own paging mechanisms
+
+  return(pull_requests)
+}
 #' Parse Issues JSON to Table
 #'
 #' Note not all columns available in the downloaded json are parsed.
@@ -463,13 +513,38 @@ github_api_page_last <- function(gh_response){
 github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=NA,max_pages=NA){
   page_number <- 1
 
+  # Set the max_pages to your api limit unless specified
   if(is.na(max_pages)){
     max_pages <- github_api_rate_limit(token)$remaining
   }
 
+  # Get the most recent 'created_at' date in unixtime in this page
   while(!is.null(gh_response) & page_number < max_pages){
+    # Find the unixtime of created at at the first index.
+    # This will be the most recent by default in the file
+    # Error in gh_response[[1]]$created_at :
+    if(length(gh_response) > 0 && !is.null(gh_response[[1]]['created_at'])) {
+      # Get 'created_at' for the first issue in the initial response
+      most_recent_created_at <- as.POSIXct(gh_response[[1]]['created_at'], format = "%Y-%m-%dT%H:%M:%OS", tz = "UTC")
+      # Convert to Unix timestamp
+      most_recent_created_at_unix <- as.numeric(most_recent_created_at)
+      # Get the earliest date
+      least_recently_created <- as.POSIXct(gh_response[[length(gh_response)]]$created_at, tz = "UTC")
+      # Convert to Unix timestamp
+      least_recently_created_at_unix <- as.numeric(least_recently_created)
+    } else {
+      most_recent_created_at_unix <- "no_data"
+      least_recently_created_at_unix <- "no_data"
+    }
+
+
+
+  # Save the pages to file
     write_json(gh_response,paste0(save_folder_path,
-                                  owner,"_",repo,"_",prefix,"_","p_",page_number,
+                                  #put startunixtime_endunixtime
+                                  owner,"_",repo,"_",prefix,"_",
+                                  least_recently_created_at_unix, "_",
+                                  most_recent_created_at_unix,
                                   ".json"),
                pretty=TRUE,auto_unbox=TRUE)
     page_number <- page_number + 1

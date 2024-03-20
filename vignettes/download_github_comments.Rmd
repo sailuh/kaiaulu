@@ -56,6 +56,31 @@ token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 
 In this section we obtain the raw data (.json) containing all information the GitHub API endpoint provides. We parse the information of interest in the subsequent section.  
 
+#placeholder function to test refresh
+```{r}
+parse_jira_latest_date <- function(json_path){
+  file_list <- list.files(json_path)
+  time_list <- list()
+
+  # Checking if the save folder is empty
+  if (identical(file_list, character(0))){
+    stop(stringi::stri_c("cannot open the connection"))
+  }
+
+  for (j in file_list){
+    j <- sub(".*_(\\w+)\\.[^.]+$", "\\1", j)
+    j <- as.numeric(j)
+    time_list <- append(time_list, j)
+  }
+ 
+  overall_latest_date <- as.character(max(unlist(time_list)))
+
+  latest_issue_file <- grep(overall_latest_date, file_list, value = TRUE)
+
+  return(latest_issue_file)
+}
+```
+
 ```{r eval = FALSE}
 dir.create(paste0(save_path))
 ```
@@ -71,12 +96,48 @@ save_path_issue <- paste0(save_path,"/issue/")
 
 ```{r Collect all issues, eval = FALSE}
 gh_response <- github_api_project_issue(owner,repo,token)
+#message(gh_response)
+```
+```{r}
 dir.create(save_path_issue)
 github_api_iterate_pages(token,gh_response,
                          save_path_issue,
                          prefix="issue")
 ```
 
+#REFRESH Issues
+```{r}
+# get the filename of the latest date
+latest_date_issue <- paste0(save_path_issue, parse_jira_latest_date(save_path_issue))
+message(latest_date_issue)
+
+```
+```{r}
+# Function to read a JSON file and format the 'created_at' date of the first item
+format_created_at_from_file <- function(filename) {
+  # Read the JSON file
+  data <- jsonlite::fromJSON(txt= filename, simplifyVector = FALSE)
+  
+  # Extract the 'created_at' value of the first issue. This is the most recent date
+  most_recent_created_at <- data[[1]]['created_at']
+  
+  return(most_recent_created_at)
+}
+```
+```{r}
+# Example usage
+issue_most_recent_created_date <- format_created_at_from_file(latest_date_issue)
+print(issue_most_recent_created_date)
+```
+```{r Collect all issues, eval = FALSE}
+#gh call but with date
+#created <- paste0('>',most_recent_created_date)
+gh_response <- github_api_project_issue_refresh(owner,repo,token,issue_most_recent_created_date)
+dir.create(save_path_issue)
+github_api_iterate_pages(token,gh_response,
+                         save_path_issue,
+                         prefix="issue")
+```
 ## Pull Requests
 
 Next we obtain the "first comment" of every pull request.
@@ -94,6 +155,23 @@ github_api_iterate_pages(token,gh_response,
                          prefix="pull_request")
 ```
 
+#REFRESH PULL REQUESTS
+```{r}
+latest_date <- paste0(save_path_issue, parse_jira_latest_date(save_path_issue))
+message(latest_date)
+pr_most_recent_created_date <- format_created_at_from_file(latest_date)
+print(most_recent_created_date)
+```
+
+```{r Collect all issues, eval = FALSE}
+#gh call but with date
+#created <- paste0('>',most_recent_created_date)
+gh_response <- github_api_project_issue_refresh(owner,repo,token,issue_most_recent_created_date)
+dir.create(save_path_issue)
+github_api_iterate_pages(token,gh_response,
+                         save_path_issue,
+                         prefix="issue")
+```
 ## Issues and Pull Requests Comments
 
 Finally we obtain the comments of both issue and pull requests (which does not contain the data obtained in the prior two endpoints).
