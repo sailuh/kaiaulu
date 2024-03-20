@@ -205,55 +205,6 @@ github_api_project_issue <- function(owner,repo,token){
          .token=token)
 }
 
-#' Download Project Issues after a date
-#'
-#' Download  Issues from "GET /repos/{owner}/{repo}/issues" endpoint.
-#'
-#' @param owner GitHub's repository owner (e.g. sailuh)
-#' @param repo GitHub's repository name (e.g. kaiaulu)
-#' @param created Github's created at date
-#' @param token Your GitHub API token
-#' @export
-#' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
-github_api_project_issue_refresh <- function(owner,repo,token,created){
-  # Construct the search query
-  # Ensure 'created' is in the format "YYYY-MM-DD"
-  # For more precise filtering, including time, use "YYYY-MM-DDTHH:MM:SSZ"
-  query <- sprintf("repo:%s/%s is:issue created:>%s", owner, repo, created)
-
-  # Use the Search API endpoint to search for issues
-  issues <- gh::gh("/search/issues",
-                   q = query,
-                   .token = token,
-                   .limit = 100) # Adjust .limit as needed, though GitHub API has its own paging mechanisms
-
-  return(issues)
-}
-
-#' Download Project Pull Requests after a date
-#'
-#' Download  Issues from "GET /repos/{owner}/{repo}/issues" endpoint.
-#'
-#' @param owner GitHub's repository owner (e.g. sailuh)
-#' @param repo GitHub's repository name (e.g. kaiaulu)
-#' @param created Github's created at date
-#' @param token Your GitHub API token
-#' @export
-#' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
-github_api_project_pull_request_refresh <- function(owner,repo,token,created){
-  # Construct the search query for pull requests
-  # Ensure 'created' is in the format "YYYY-MM-DD"
-  # For more precise filtering, including time, use "YYYY-MM-DDTHH:MM:SSZ"
-  query <- sprintf("repo:%s/%s is:pr created:>%s", owner, repo, created)
-
-  # Use the Search API endpoint to search for pull requests
-  pull_requests <- gh::gh("/search/issues",
-                          q = query,
-                          .token = token,
-                          .limit = 100) # Adjust .limit as needed, though GitHub API has its own paging mechanisms
-
-  return(pull_requests)
-}
 #' Parse Issues JSON to Table
 #'
 #' Note not all columns available in the downloaded json are parsed.
@@ -518,25 +469,25 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
     max_pages <- github_api_rate_limit(token)$remaining
   }
 
-  # Get the most recent 'created_at' date in unixtime in this page
+  #Get the most and least recent 'created_at' date in unixtime in this page
   while(!is.null(gh_response) & page_number < max_pages){
     # Find the unixtime of created at at the first index.
     # This will be the most recent by default in the file
-    # Error in gh_response[[1]]$created_at :
-    if(length(gh_response) > 0 && !is.null(gh_response[[1]]['created_at'])) {
-      # Get 'created_at' for the first issue in the initial response
-      most_recent_created_at <- as.POSIXct(gh_response[[1]]['created_at'], format = "%Y-%m-%dT%H:%M:%OS", tz = "UTC")
+    if(length(gh_response) > 0 && !is.null(gh_response[[1]]$created_at)) {
+      # Get 'created_at' for the first issue in the response
+      most_recent_created_at <- as.POSIXct(gh_response[[1]]$created_at, format = "%Y-%m-%dT%H:%M:%OS", tz = "UTC")
       # Convert to Unix timestamp
       most_recent_created_at_unix <- as.numeric(most_recent_created_at)
       # Get the earliest date
-      least_recently_created <- as.POSIXct(gh_response[[length(gh_response)]]$created_at, tz = "UTC")
+      #length(gh_response)
+      least_recently_created <- as.POSIXct(gh_response[[1]]$created_at, tz = "UTC")
       # Convert to Unix timestamp
       least_recently_created_at_unix <- as.numeric(least_recently_created)
     } else {
       most_recent_created_at_unix <- "no_data"
       least_recently_created_at_unix <- "no_data"
     }
-
+  message("extracted dates")
 
 
   # Save the pages to file
@@ -547,6 +498,7 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
                                   most_recent_created_at_unix,
                                   ".json"),
                pretty=TRUE,auto_unbox=TRUE)
+    message("written to file")
     page_number <- page_number + 1
     res <- try(
       {
@@ -556,4 +508,101 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
       gh_response <- NULL
     }
   }
+}
+
+
+#' Download Project Issues after a date
+#'
+#' Download  Issues from "GET /repos/{owner}/{repo}/issues" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param created Github's created at date
+#' @param token Your GitHub API token
+#' @export
+#' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
+github_api_project_issue_refresh <- function(owner,repo,token,created){
+  # Construct the search query
+  # Ensure 'created' is in the format "YYYY-MM-DD"
+  # For more precise filtering, including time, use "YYYY-MM-DDTHH:MM:SSZ"
+  query <- sprintf("repo:%s/%s is:issue created:>%s", owner, repo, created)
+
+  # Use the Search API endpoint to search for issues
+  issues <- gh::gh("/search/issues",
+                   q = query,
+                   .token = token,
+                   .limit = 100) # Adjust .limit as needed, though GitHub API has its own paging mechanisms
+
+  items_only <- issues$items
+  #issues_json <- jsonlite::toJSON(items_only, auto_unbox = TRUE, pretty = TRUE)
+  return(items_only)
+}
+
+#' Download Project Pull Requests after a date
+#'
+#' Download  Issues from "GET /repos/{owner}/{repo}/issues" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param created Github's created at date
+#' @param token Your GitHub API token
+#' @export
+#' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
+github_api_project_pull_request_refresh <- function(owner,repo,token,created){
+  # Construct the search query for pull requests
+  # Ensure 'created' is in the format "YYYY-MM-DD"
+  # For more precise filtering, including time, use "YYYY-MM-DDTHH:MM:SSZ"
+  query <- sprintf("repo:%s/%s is:pr created:>%s", owner, repo, created)
+
+  # Use the Search API endpoint to search for pull requests
+  pull_requests <- gh::gh("/search/issues",
+                          q = query,
+                          .token = token,
+                          .limit = 100) # Adjust .limit as needed, though GitHub API has its own paging mechanisms
+  items_only <- issues$items
+  return(items_only)
+}
+#' parse latest date
+#'
+#' Download  Issues from "GET /repos/{owner}/{repo}/issues" endpoint.
+#'
+#' @param json_path the path
+#' @export
+parse_jira_latest_date <- function(json_path){
+  file_list <- list.files(json_path)
+  time_list <- list()
+
+  # Checking if the save folder is empty
+  if (identical(file_list, character(0))){
+    stop(stringi::stri_c("cannot open the connection"))
+  }
+
+  for (j in file_list){
+    j <- sub(".*_(\\w+)\\.[^.]+$", "\\1", j)
+    j <- as.numeric(j)
+    time_list <- append(time_list, j)
+  }
+
+  overall_latest_date <- as.character(max(unlist(time_list)))
+
+  latest_issue_file <- grep(overall_latest_date, file_list, value = TRUE)
+
+  return(latest_issue_file)
+}
+
+#' get the created_at field from a filename
+#'
+#' Download  Issues from "GET /repos/{owner}/{repo}/issues" endpoint.
+#'
+#' @param filename the path and the filename
+#' @export
+# Function to read a JSON file and format the 'created_at' date of the first item
+format_created_at_from_file <- function(filename) {
+  # Read the JSON file
+  data <- jsonlite::fromJSON(txt= filename, simplifyVector = FALSE)
+
+  # Extract the 'created_at' value of the first issue. This is the most recent date
+  most_recent_created_at <- data[[1]]['created_at']
+
+  return(most_recent_created_at)
 }
