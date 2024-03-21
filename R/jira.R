@@ -232,6 +232,7 @@ make_jira_issue <- function(jira_domain_url, issue_key, project_key, summary, de
 
   # Create an issue with the given parameters as a list. If comments are specified, then add comments to the list
   fields <- list(
+    parent = create_parent(jira_domain_url, issue_key, status, priority, issue_type),
     fixVersions = create_fix_versions(jira_domain_url, fix_versions),
     resolution = create_resolution(name = resolution),
     priority = create_priority(jira_domain_url, priority),
@@ -636,7 +637,8 @@ create_priority <- function(jira_domain_url, priority) {
 
 #' Create Parent
 #'
-#' Create a parent cell for \code{\link{make_jira_issue}}.
+#' Create a parent cell for \code{\link{make_jira_issue}}. Currently, the parent has the same
+#' issue_key, status, priority, and issue_type as the base issue
 #'
 #' @param jira_domain_url URL of JIRA domain
 #' @param parent_issue_key issue key of the parent issue of the current JIRA issue
@@ -645,7 +647,7 @@ create_priority <- function(jira_domain_url, priority) {
 #' @param issue_type type of JIRA issue
 #' @return A list named 'parent' that contains a parent issue and it's fields
 #' @keywords internal
-create_parent <- function(jira_domain_url, parent_issue_key, status, priority, issue_type) {
+create_parent <- function(jira_domain_url, issue_key, status, priority, issue_type) {
 
   id <- sample(10000000: 99999999, 1)
 
@@ -660,7 +662,7 @@ create_parent <- function(jira_domain_url, parent_issue_key, status, priority, i
 
   parent <- list(
     id = as.character(id),
-    key = parent_issue_key,
+    key = issue_key,
     self = self_url,
     fields = fields
   )

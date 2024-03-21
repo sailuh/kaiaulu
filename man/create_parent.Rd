@@ -4,23 +4,24 @@
 \alias{create_parent}
 \title{Create Parent}
 \usage{
-create_parent(jira_domain_url, parent_issue_key, status, priority, issue_type)
+create_parent(jira_domain_url, issue_key, status, priority, issue_type)
 }
 \arguments{
 \item{jira_domain_url}{URL of JIRA domain}
-
-\item{parent_issue_key}{issue key of the parent issue of the current JIRA issue}
 
 \item{status}{status of issue for development}
 
 \item{priority}{the name of the priority of the issue}
 
 \item{issue_type}{type of JIRA issue}
+
+\item{parent_issue_key}{issue key of the parent issue of the current JIRA issue}
 }
 \value{
 A list named 'parent' that contains a parent issue and it's fields
 }
 \description{
-Create a parent cell for \code{\link{make_jira_issue}}.
+Create a parent cell for \code{\link{make_jira_issue}}. Currently, the parent has the same
+issue_key, status, priority, and issue_type as the base issue
 }
 \keyword{internal}

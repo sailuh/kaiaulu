@@ -399,15 +399,15 @@ example_notebook_alternating_function_in_files <- function(folder_path="/tmp", f
 #' @return the JSON path of the newly created issue issue tracker
 #' @export
 #' @keywords internal
-example_jira_issue_components <- function(folder_path, folder_name) {
+example_jira_issue_components <- function(folder_path = "/tmp", folder_name) {
 
   # Create folder & repo
   folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)
 
   issue1 <- make_jira_issue(
     jira_domain_url = "https://project.org/jira",
-    issue_key = "GERONIMO-123",
-    project_key = "GERONIMO",
+    issue_key = "PROJECT-123",
+    project_key = "PROJECT",
     summary = "Summary of new feature",
     description = "The new features have been implemented",
     issue_type = "New Feature",
@@ -426,7 +426,7 @@ example_jira_issue_components <- function(folder_path, folder_name) {
   issues <- list(issue1)
 
   jira_json_path <- make_jira_issue_tracker(
-    issues, save_filepath=file.path(folder_path, "GERONIMO_issues_1121646814_1121719175.json"))
+    issues, save_filepath=file.path(folder_path, "ONE_ISSUE_NO_COMMENTS_issues_1121646814_1121719175.json"))
 
   return(jira_json_path)
 }
@@ -440,7 +440,7 @@ example_jira_issue_components <- function(folder_path, folder_name) {
 #' @return the JSON path of the newly created issue issue tracker
 #' @export
 #' @keywords internal
-example_jira_two_issues <- function(folder_path, folder_name) {
+example_jira_two_issues <- function(folder_path = "/tmp", folder_name) {
 
   # Create folder & repo
   folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)
@@ -486,7 +486,7 @@ example_jira_two_issues <- function(folder_path, folder_name) {
   issues <- list(issue1, issue2)
 
   jira_json_path <- make_jira_issue_tracker(
-    issues, save_filepath=file.path(folder_path, "PROJECT_issues_1121646814_1121719175.json"))
+    issues, save_filepath=file.path(folder_path, "TWO_ISSUES_NO_COMMENTS_issues_1121646814_1121719175.json"))
 
   return(jira_json_path)
 }
@@ -500,15 +500,15 @@ example_jira_two_issues <- function(folder_path, folder_name) {
 #' @return the JSON path of the newly created issue issue tracker
 #' @export
 #' @keywords internal
-example_jira_issue_comments <- function(folder_path, folder_name) {
+example_jira_issue_comments <- function(folder_path = "/tmp", folder_name) {
 
   # Create folder & repo
   folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)
 
   issue1 <- make_jira_issue(
     jira_domain_url = "https://project.org/jira",
-    issue_key = "GERONIMO-123",
-    project_key = "GERONIMO",
+    issue_key = "PROJECT-123",
+    project_key = "PROJECT",
     summary = "Summary of new feature",
     description = "The new features have been implemented",
     issue_type = "New Feature",
@@ -531,7 +531,7 @@ example_jira_issue_comments <- function(folder_path, folder_name) {
   issues <- list(issue1)
 
   jira_json_path <- make_jira_issue_tracker(
-    issues, save_filepath=file.path(folder_path,"SPARK_issues_1121646814_1121719175.json"))
+    issues, save_filepath=file.path(folder_path,"ONE_ISSUE_WITH_COMMENTS_issues_1121646814_1121719175.json"))
 
   return(jira_json_path)
 }
