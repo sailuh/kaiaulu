@@ -9,7 +9,7 @@ create_components(jira_domain_url, components)
 \arguments{
 \item{jira_domain_url}{URL of JIRA domain}
 
-\item{components}{string of names of components (ex. "x-core;x-spring" is two components)}
+\item{components}{list of names of components}
 }
 \value{
 A list named 'components' which contains each component and its details

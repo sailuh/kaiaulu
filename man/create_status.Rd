@@ -12,7 +12,7 @@ create_status(jira_domain_url, status)
 \item{status}{description of status}
 }
 \value{
-A list named 'status' containing status's information
+A list named 'status' containing the status of the issue
 }
 \description{
 Creates a status cell for \code{\link{make_jira_issue}}.

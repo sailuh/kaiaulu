@@ -7,7 +7,10 @@
 create_issue_comments(comments)
 }
 \arguments{
-\item{comments}{A character vector containing the comment body.}
+\item{comments}{A character list containing the comment body.}
+}
+\value{
+A list named 'comments_list' that has a list of comments
 }
 \description{
 Create issue comments cell for \code{\link{make_jira_issue}}.
