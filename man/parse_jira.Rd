@@ -7,19 +7,20 @@
 parse_jira(json_path)
 }
 \arguments{
-\item{json_path}{is a folder path containing a set of jira_issues as json files. The general folder structure is as follows:
-"../../rawdata/issue_tracker/geronimo/issues/" or "../../rawdata/issue_tracker/geronimo/issue_comments/". The issues folder only
-contains jira issue json files that don't include comments. The issue_comments folder contains jira issue json files that can
-include comments.}
+\item{json_path}{is a folder path containing a set of jira_issues as json files.}
 }
 \value{
 A named list of two named elements ("issues", and "comments"), each containing a data.table.
 }
 \description{
-Note the comments element will be empty if the downloaded json only contain issues.
-the jira json naming convention is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
+Parses Jira issues and comments into a table; any fields missing in a json file simply is not included in the table.
+The jira json naming convention is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
 or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json".
 For example: "KAIAULU_issues_1231234_2312413.json". Notice how the ProjectKey portion is in all caps.
+The general folder structure for the folder path containing the json files is as follows:
+"../../rawdata/issue_tracker/geronimo/issues/" or "../../rawdata/issue_tracker/geronimo/issue_comments/". The issues folder only
+contains jira issue json files that don't include comments. The issue_comments folder contains jira issue json files that can
+include comments. The issue files are obtained via \link{download_and_save_jira_issues}
 }
 \seealso{
 Other parsers: 

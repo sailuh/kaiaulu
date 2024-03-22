@@ -14,7 +14,8 @@ The name of the jira issue file with the latest created date that was created/do
 use by the Jira Downloader refresher
 }
 \description{
-Note the jira json naming convention is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
+This is a function that returns the json file containing the Jira issue with the latest created date.
+It is based on the name of the file, which is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
 or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json"
 For example: "KAIAULU_issues_1231234_2312413.json". Notice how the ProjectKey portion is in all caps.
 }

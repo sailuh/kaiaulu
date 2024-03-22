@@ -8,15 +8,16 @@
 
 #' Parse Jira issue and comments
 #'
-#' Note the comments element will be empty if the downloaded json only contain issues.
-#' the jira json naming convention is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
+#' Parses Jira issues and comments into a table; any fields missing in a json file simply is not included in the table.
+#' The jira json naming convention is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
 #' or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json".
 #' For example: "KAIAULU_issues_1231234_2312413.json". Notice how the ProjectKey portion is in all caps.
-#'
-#' @param json_path is a folder path containing a set of jira_issues as json files. The general folder structure is as follows:
+#' The general folder structure for the folder path containing the json files is as follows:
 #' "../../rawdata/issue_tracker/geronimo/issues/" or "../../rawdata/issue_tracker/geronimo/issue_comments/". The issues folder only
 #' contains jira issue json files that don't include comments. The issue_comments folder contains jira issue json files that can
-#' include comments.
+#' include comments. The issue files are obtained via \link{download_and_save_jira_issues}
+#'
+#' @param json_path is a folder path containing a set of jira_issues as json files.
 #' @return A named list of two named elements ("issues", and "comments"), each containing a data.table.
 #' @export
 #' @family parsers
@@ -154,9 +155,11 @@ parse_jira <- function(json_path){
 }
 #' Parse Jira latest dates
 #'
-#' Note the jira json naming convention is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
+#' This is a function that returns the json file containing the Jira issue with the latest created date.
+#' It is based on the name of the file, which is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
 #' or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json"
 #' For example: "KAIAULU_issues_1231234_2312413.json". Notice how the ProjectKey portion is in all caps.
+#'
 #'
 #' @param json_path path to save folder containing JIRA issue and/or comments json files.
 #' @return The name of the jira issue file with the latest created date that was created/downloaded for
