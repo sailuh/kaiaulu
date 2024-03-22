@@ -13,7 +13,7 @@ github_api_project_issue_refresh(owner, repo, token, created)
 
 \item{token}{Your GitHub API token}
 
-\item{created}{Github's created at date}
+\item{created}{Only issues created after this date are fetched}
 }
 \description{
 Download  Issues from "GET /repos/{owner}/{repo}/issues" endpoint.

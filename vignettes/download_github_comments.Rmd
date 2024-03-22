@@ -136,11 +136,11 @@ print(pr_most_recent_created_date)
 ```{r Collect all issues, eval = FALSE}
 #gh call but with date
 #created <- paste0('>',most_recent_created_date)
-gh_response_pr <- github_api_project_issue_refresh(owner,repo,token,pr_most_recent_created_date)
+gh_response_pr <- github_api_project_pull_request_refresh(owner,repo,token,pr_most_recent_created_date)
 dir.create(save_path_pull_request)
 github_api_iterate_pages(token,gh_response_pr,
                          save_path_pull_request,
-                         prefix="pull_request")
+                         prefix="pr")
 ```
 ## Issues and Pull Requests Comments
 
@@ -155,6 +155,28 @@ save_path_issue_or_pr_comments <- paste0(save_path,"/issue_or_pr_comment/")
 gh_response <- github_api_project_issue_or_pr_comments(owner,repo,token)
 dir.create(save_path_issue_or_pr_comments)
 github_api_iterate_pages(token,gh_response,
+                         save_path_issue_or_pr_comments,
+                         prefix="issue_or_pr_comment")
+```
+#REFRESH ISSUE OR PR COMMENT
+```{r}
+# get the filename
+latest_date_issue_or_pr_comment <- paste0(save_path_issue_or_pr_comments, parse_jira_latest_date(save_path_issue_or_pr_comments))
+
+message(latest_date_issue_or_pr_comment)
+# get the created_at 
+issue_or_pr_comment_most_recent_created_date <- format_created_at_from_file(latest_date_issue_or_pr_comment)
+
+print(issue_or_pr_comment_most_recent_created_date)
+```
+```{r Collect all issues, eval = FALSE}
+#gh call but with date
+# get the data
+gh_response_issue_or_pr_comment <- github_api_project_issue_or_pr_comment_refresh(owner,repo,token,issue_or_pr_comment_most_recent_created_date)
+
+# create direcetory and iterate over data
+dir.create(save_path_issue_or_pr_comments)
+github_api_iterate_pages(token,gh_response_issue_or_pr_comment,
                          save_path_issue_or_pr_comments,
                          prefix="issue_or_pr_comment")
 ```
@@ -173,6 +195,28 @@ save_path_commit <- paste0(save_path,"/commit/")
 gh_response <- github_api_project_commits(owner,repo,token)
 dir.create(save_path_commit)
 github_api_iterate_pages(token,gh_response,
+                         save_path_commit,
+                         prefix="commit")
+
+```
+#REFRESH Commit data
+```{r}
+# get the filename
+latest_date_commit <- paste0(save_path_commit, parse_jira_latest_date(save_path_commit))
+message(latest_date_commit)
+# get the created_at 
+commit_most_recent_created_date <- format_created_at_from_file(latest_date_commit)
+print(commit_most_recent_created_date)
+```
+
+```{r Collect all issues, eval = FALSE}
+#gh call but with date
+#created <- paste0('>',most_recent_created_date)
+gh_response_issue_or_pr_comment <- github_api_project_commit_refresh(owner,repo,token,issue_or_pr_comment_most_recent_created_date)
+
+dir.create(save_path_commit)
+
+github_api_iterate_pages(token,gh_response_issue_or_pr_comment,
                          save_path_commit,
                          prefix="commit")
 ```

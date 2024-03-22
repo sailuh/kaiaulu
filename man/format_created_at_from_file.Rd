@@ -10,5 +10,6 @@ format_created_at_from_file(filename)
 \item{filename}{the path and the filename}
 }
 \description{
-Download  Issues from "GET /repos/{owner}/{repo}/issues" endpoint.
+Function to read a JSON file along a path and return the 'created_at'
+date of the first item
 }

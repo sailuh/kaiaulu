@@ -7,8 +7,9 @@
 parse_jira_latest_date(json_path)
 }
 \arguments{
-\item{json_path}{the path}
+\item{json_path}{the path with folders to read}
 }
 \description{
-Download  Issues from "GET /repos/{owner}/{repo}/issues" endpoint.
+Takes a filepath and returns a filename of the .json file that contains the
+most recent 'created_at' value
 }
