@@ -15,7 +15,7 @@
 #' The general folder structure for the folder path containing the json files is as follows:
 #' "../../rawdata/issue_tracker/geronimo/issues/" or "../../rawdata/issue_tracker/geronimo/issue_comments/". The issues folder only
 #' contains jira issue json files that don't include comments. The issue_comments folder contains jira issue json files that can
-#' include comments. The issue files are obtained via \link{download_and_save_jira_issues}
+#' include comments. To see how the issue data is downloaded, refer to \code{\link{download_and_save_jira_issues}}
 #'
 #' @param json_path is a folder path containing a set of jira_issues as json files.
 #' @return A named list of two named elements ("issues", and "comments"), each containing a data.table.

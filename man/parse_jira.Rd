@@ -20,7 +20,7 @@ For example: "KAIAULU_issues_1231234_2312413.json". Notice how the ProjectKey po
 The general folder structure for the folder path containing the json files is as follows:
 "../../rawdata/issue_tracker/geronimo/issues/" or "../../rawdata/issue_tracker/geronimo/issue_comments/". The issues folder only
 contains jira issue json files that don't include comments. The issue_comments folder contains jira issue json files that can
-include comments. The issue files are obtained via \link{download_and_save_jira_issues}
+include comments. To see how the issue data is downloaded, refer to \code{\link{download_and_save_jira_issues}}
 }
 \seealso{
 Other parsers: 
