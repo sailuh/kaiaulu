@@ -6,13 +6,6 @@
 
 ############## Configuration File Getter Functions ##############
 
-## Variables ##
-tool <- yaml::read_yaml("tools.yml")
-conf_apr <- yaml::read_yaml("conf/apr.yml")
-conf_camel <- yaml::read_yaml("conf/camel.yml")
-conf_geronimo <- yaml::read_yaml("conf/geronimo.yml")
-conf_junit5 <- yaml::read_yaml("conf/junit5.yml")
-
 
 #### tools.yml ####
 
@@ -21,59 +14,20 @@ conf_junit5 <- yaml::read_yaml("conf/junit5.yml")
 #' @return the tools.yml file
 #' @export
 get_tools <- function() {
+  tool <- yaml::read_yaml("tools.yml")
   return(tool)
 }
 
-#' Get srcml path from tools.yml
+#' Get Tool Path
 #'
-#' @return the srcml path from tools.yml
-#' @export
-get_tools_srcml <- function() {
-  srcml_path <- tool[["srcml"]]
-  return(srcml_path)
-}
-
-#' Get perceval path from tools.yml
+#' Gets the tool path from the tools.yml file
 #'
-#' @return the srcml path from tools.yml
+#' @param tool_name the name of the tool (e.g. "perceval" or "dv8")
+#' @return the tool path from tools.yml
 #' @export
-get_tools_perceval <- function() {
-  perceval_path <- tool[["perceval"]]
-  return(perceval_path)
-}
-
-#' Get utags path from tools.yml
-#'
-#' @return the srcml path from tools.yml
-#' @export
-get_tools_utags <- function () {
-  utags_path <- tool[["utags"]]
-  return(utags_path)
-}
-
-#' Get dv8 path from tools.yml
-#'
-#' @return the dv8 path from tools.yml
-#' @export
-get_tools_dv8 <- function () {
-  dv8_path <- tool[["dv8"]]
-  return(dv8_path)
-}
-
-#' Get scc path from tools.yml
-#'
-#' @return the scc path from tools.yml
-#' @export
-get_tools_scc <- function () {
-  scc_path <- tool[["scc"]]
-}
-
-#' Get depends path from tools.yml
-#'
-#' @return the depends path from tools.yml
-#' @export
-get_tools_depends <- function () {
-  depends_jar_path <- tool[["depends"]]
+get_tools_project <- function(tool_name) {
+  tool_path <- tool[[tool_name]]
+  return(tool_path)
 }
 
 
@@ -94,10 +48,10 @@ get_conf <- function(project_name) {
 
 #' Get Project Git Repo Path
 #'
-#' Gets the project git repo path
+#' Gets the local project git repo path from the config file
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
-#' @return the git repo path from the project config file
+#' @return the local git repo path
 #' @export
 get_project_git_repo_path <- function(project_name) {
   conf_path <- paste0("conf/", project_name, ".yml")
@@ -111,11 +65,26 @@ get_project_git_repo_path <- function(project_name) {
       return(git_repo_path)
 
     } else {
-      stop("This field does not exist in the configuration file.")
+      stop("The \"version_control\" field does not exist in the configuration file.")
     }
   } else {
-    stop("This field does not exist in the configuration file.")
+    stop("The \"log\" field does not exist in the configuration file.")
   }
+}
+
+#' Get Project Git Branch
+#'
+#' Gets the git branch from the config file
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the file extensions from the project config file
+#' @export
+get_project_git_branch <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  git_branch <- conf[["version_control"]][["branch"]][4]
 }
 
 #' Get File Extensions
@@ -123,7 +92,7 @@ get_project_git_repo_path <- function(project_name) {
 #' Gets the file extensions from the config file for filtering
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
-#' @return the file extensions from the project config file
+#' @return the file extensions
 #' @export
 get_project_file_extensions <- function(project_name) {
 
@@ -139,7 +108,7 @@ get_project_file_extensions <- function(project_name) {
 #' Gets the substring filepaths from the config file for filtering
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
-#' @return the file extensions from the project config file
+#' @return the substring filepaths
 #' @export
 get_project_substring_filepath <- function(project_name) {
 
@@ -148,6 +117,22 @@ get_project_substring_filepath <- function(project_name) {
 
   substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
   return(substring_filepath)
+}
+
+#' Get Filter Commit Size
+#'
+#' Gets the commit size to filter out from the config file
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the commit size to filter out
+#' @export
+get_project_filter_commit_size <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  filter_commit_size <- conf[["filter"]][["remove_filepaths_on_commit_size_greather_than"]]
+  return(filter_commit_size)
 }
 
 #' Get Uctags Line Types
@@ -168,10 +153,10 @@ get_project_uctags_line_types <- function(project_name) {
 
 #' Get Code Language
 #'
-#' Gets the code language of the project
+#' Gets the code language of the project from the project config file
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
-#' @return the uctags line type from the project config file
+#' @return the code language
 #' @export
 get_project_code_language <- function(project_name) {
 
@@ -182,12 +167,28 @@ get_project_code_language <- function(project_name) {
   return (language)
 }
 
+#' Get Keep Dependencies Type
+#'
+#' Gets the type of dependencies to keep from the config file
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the types of dependencies to keep
+#' @export
+get_project_keep_dependencies_type <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  keep_dependencies_type <- conf[["tool"]][["depends"]][["keep_dependencies_type"]]
+  return (keep_dependencies_type)
+}
+
 #' Get Issue Id Regex
 #'
 #' Gets the issue ID regex on commit messages from the project config file
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
-#' @return the issue id regex from geronimo.yml
+#' @return the issue id regex
 #' @export
 get_project_issue_id_regex <- function(project_name) {
 
@@ -203,7 +204,7 @@ get_project_issue_id_regex <- function(project_name) {
 #' Gets the path to the Jira issues from the project config file
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
-#' @return the Jira issues path from geronimo.yml
+#' @return the Jira issues path
 #' @export
 get_project_jira_issues_path <- function(project_name) {
 
@@ -214,12 +215,28 @@ get_project_jira_issues_path <- function(project_name) {
   return(jira_issues_path)
 }
 
+#' Get Jira Issues Comments Path
+#'
+#' Gets the path to the Jira issues with comments from the project config file
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the Jira issues comments path
+#' @export
+get_project_jira_issues_comments_path <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  jira_issue_comments_path <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
+  return(jira_issue_comments_path)
+}
+
 #' Get SrcML Filepath
 #'
 #' Gets the SrcML filepath from the project config file
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
-#' @return the srcml filepath from junit5.yml
+#' @return the srcml filepath
 #' @export
 get_project_srcml_filepath <- function(project_name) {
 
@@ -232,16 +249,192 @@ get_project_srcml_filepath <- function(project_name) {
 
 #' Get Topics
 #'
-#' Gets the topics and keywords from the project config file
+#' Gets the topics and keywords
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
-#' @return the topics from junit5.yml
+#' @return the topics
 #' @export
-get_junit5_topics <- function(project_name) {
+get_project_topics <- function(project_name) {
 
   conf_path <- paste0("conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
-  topics <- conf_junit5[["analysis"]][["topics"]]
+  topics <- conf[["analysis"]][["topics"]]
   return(topics)
+}
+
+#' Get Mbox Save Path
+#'
+#' Gets the local mbox save path from the project config file
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the local mbox save path
+#' @export
+get_project_mbox_path <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  mbox_path <- conf[["mailing_list"]][["mbox"]]
+  return(mbox_path)
+}
+
+#' Get Mbox Domain
+#'
+#' Gets the domain of the mailing list archive
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the domain of the mailing list archive
+#' @export
+get_project_mbox_domain <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  mod_mbox_url <- conf[["mailing_list"]][["domain"]]
+  return(mbox_domain)
+}
+
+#' Get Mbox Lists
+#'
+#' Gets the list keys of the domain to be used
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the domain of the mailing list archive
+#' @export
+get_project_mbox_list_key <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  mailing_list <- conf[["mailing_list"]][["list_key"]]
+  return(mbox_domain)
+}
+
+#' Get DV8 Project Folder Path
+#'
+#' Gets the dv8 project folder path from the project config file
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the dv8 project folder path
+#' @export
+get_project_dv8_folder_path <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  project_path <- conf[["tool"]][["dv8"]][["folder_path"]]
+  return(project_path)
+}
+
+#' Get Flaws Params
+#'
+#' Gets the architectural flaws thresholds
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the flaws params
+#' @export
+get_project_dv8_flaws_params <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  flaws_params <- conf[["tool"]][["dv8"]][["architectural_flaws"]]
+  return(flaws_params)
+}
+
+#' Get GitHub Project Owner
+#'
+#' Gets the owner of a GitHub project form the config file
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the GitHub project owner name
+#' @export
+get_project_github_owner <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  owner <- conf[["issue_tracker"]][["github"]][["owner"]]
+  return(flaws_params)
+}
+
+#' Get GitHub Repository
+#'
+#' Gets the name of a GitHub repository from the config file
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the GitHub repository name
+#' @export
+get_project_github_repo_name <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  repo <- conf[["issue_tracker"]][["github"]][["repo"]]
+  return(repo)
+}
+
+#' Get Jira Issue Tracker Domain
+#'
+#' Gets the Jira issue tracker domain from the config file
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the issue tracker domain
+#' @export
+get_project_jira_issue_tracker_domain <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  domain <- conf[["issue_tracker"]][["jira"]][["domain"]]
+  return(domain)
+}
+
+#' Get Jira Issue Tracker Project Key
+#'
+#' Gets the Jira issue tracker project key from the config file
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the issue tracker project key
+#' @export
+get_project_jira_issue_tracker_key <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  key <- conf[["issue_tracker"]][["jira"]][["project_key"]]
+  return(domain)
+}
+
+#' Get Jira Issue Tracker Issues Path
+#'
+#' Gets the local path of the Jira issue tracker issues in the config file
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the local issue tracker issues path
+#' @export
+get_project_jira_issue_save_path <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  save_path_issue <- conf[["issue_tracker"]][["jira"]][["issues"]]
+  return(save_path_issue)
+}
+
+#' Get Jira Issue Tracker Issue Comments Path
+#'
+#' Gets the local path of the Jira issue tracker issues with comments in the config file
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the local issue tracker issues with comments path
+#' @export
+get_project_jira_issue_comments_save_path <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  save_path_issue_comments <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
+  return(save_path)
 }
