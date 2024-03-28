@@ -4,7 +4,7 @@
 \alias{github_api_project_issue_refresh}
 \title{Download Project Issues after a date}
 \usage{
-github_api_project_issue_refresh(owner, repo, token, created)
+github_api_project_issue_refresh(owner, repo, token)
 }
 \arguments{
 \item{owner}{GitHub's repository owner (e.g. sailuh)}
@@ -13,10 +13,13 @@ github_api_project_issue_refresh(owner, repo, token, created)
 
 \item{token}{Your GitHub API token}
 
-\item{created}{Only issues created after this date are fetched}
+\item{created}{Github's created at date}
 }
 \description{
-Download  Issues from "GET /repos/{owner}/{repo}/issues" endpoint.
+Returns issue data that has not already been downloaded
+Gets the name of the file with the most recent data along the designated save path.
+Extracts the greatest 'created_at' date from that file
+Calls search/issues endpoint to download issues created after that date
 }
 \references{
 For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.

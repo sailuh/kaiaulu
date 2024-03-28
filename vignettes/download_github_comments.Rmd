@@ -81,26 +81,12 @@ github_api_iterate_pages(token,gh_response,
                          prefix="issue")
 ```
 
-#REFRESH Issues
-```{r}
-# get the filename of the latest date
-latest_date_issue <- paste0(save_path_issue, parse_jira_latest_date(save_path_issue))
-message(latest_date_issue)
+# REFRESH Issues
 
-```
-
-```{r}
-# Example usage
-issue_most_recent_created_date <- format_created_at_from_file(latest_date_issue)
-print(issue_most_recent_created_date)
-```
+The above function call downloads all the available issues less than the specified limit (default to API limit). The following chunk allows the downloading of issues that have been created only after the most recently created issue already downloaded. This allows the user to 'refresh' their data or continue downloading if a rate limit was previously reached. 
 ```{r Collect all issues, eval = FALSE}
 #gh call but with date
-#created <- paste0('>',most_recent_created_date)
-gh_response <- github_api_project_issue_refresh(owner,repo,token,issue_most_recent_created_date)
-#message(gh_response)
-```
-```{r}
+gh_response <- github_api_project_issue_refresh(owner,repo,token)
 #dir.create(save_path_issue)
 github_api_iterate_pages(token,gh_response,
                          save_path_issue,
@@ -122,26 +108,6 @@ github_api_iterate_pages(token,gh_response,
                          save_path_pull_request,
                          prefix="pull_request")
 ```
-
-#REFRESH PULL REQUESTS
-```{r}
-# get the filename
-latest_date_pr <- paste0(save_path_pull_request, parse_jira_latest_date(save_path_pull_request))
-message(latest_date)
-# get the created_at 
-pr_most_recent_created_date <- format_created_at_from_file(latest_date_pr)
-print(pr_most_recent_created_date)
-```
-
-```{r Collect all issues, eval = FALSE}
-#gh call but with date
-#created <- paste0('>',most_recent_created_date)
-gh_response_pr <- github_api_project_pull_request_refresh(owner,repo,token,pr_most_recent_created_date)
-dir.create(save_path_pull_request)
-github_api_iterate_pages(token,gh_response_pr,
-                         save_path_pull_request,
-                         prefix="pr")
-```
 ## Issues and Pull Requests Comments
 
 Finally we obtain the comments of both issue and pull requests (which does not contain the data obtained in the prior two endpoints).
@@ -159,20 +125,12 @@ github_api_iterate_pages(token,gh_response,
                          prefix="issue_or_pr_comment")
 ```
 #REFRESH ISSUE OR PR COMMENT
-```{r}
-# get the filename
-latest_date_issue_or_pr_comment <- paste0(save_path_issue_or_pr_comments, parse_jira_latest_date(save_path_issue_or_pr_comments))
 
-message(latest_date_issue_or_pr_comment)
-# get the created_at 
-issue_or_pr_comment_most_recent_created_date <- format_created_at_from_file(latest_date_issue_or_pr_comment)
-
-print(issue_or_pr_comment_most_recent_created_date)
-```
+Similar to the refresh of the issues, this chunk allows for the downloading of comments that have been created since the most recently created date among data already downloaded. This allows us to 'refresh' the comments, downloading comments made since that date or continue downloading if a rate limit was reached. 
 ```{r Collect all issues, eval = FALSE}
 #gh call but with date
 # get the data
-gh_response_issue_or_pr_comment <- github_api_project_issue_or_pr_comment_refresh(owner,repo,token,issue_or_pr_comment_most_recent_created_date)
+gh_response_issue_or_pr_comment <- github_api_project_issue_or_pr_comment_refresh(owner,repo,token)
 
 # create direcetory and iterate over data
 dir.create(save_path_issue_or_pr_comments)
@@ -198,27 +156,6 @@ github_api_iterate_pages(token,gh_response,
                          save_path_commit,
                          prefix="commit")
 
-```
-#REFRESH Commit data
-```{r}
-# get the filename
-latest_date_commit <- paste0(save_path_commit, parse_jira_latest_date(save_path_commit))
-message(latest_date_commit)
-# get the created_at 
-commit_most_recent_created_date <- format_created_at_from_file(latest_date_commit)
-print(commit_most_recent_created_date)
-```
-
-```{r Collect all issues, eval = FALSE}
-#gh call but with date
-#created <- paste0('>',most_recent_created_date)
-gh_response_issue_or_pr_comment <- github_api_project_commit_refresh(owner,repo,token,issue_or_pr_comment_most_recent_created_date)
-
-dir.create(save_path_commit)
-
-github_api_iterate_pages(token,gh_response_issue_or_pr_comment,
-                         save_path_commit,
-                         prefix="commit")
 ```
 
 # Parsing Raw Data to Csv

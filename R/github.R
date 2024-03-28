@@ -541,19 +541,25 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
 
 #' Download Project Issues after a date
 #'
-#' Download  Issues from "GET /repos/{owner}/{repo}/issues" endpoint.
+#' Returns issue data that has not already been downloaded
+#' Gets the name of the file with the most recent data along the designated save path.
+#' Extracts the greatest 'created_at' date from that file
+#' Calls search/issues endpoint to download issues created after that date
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param created Github's created at date
 #' @param token Your GitHub API token
-#' @param created Only issues created after this date are fetched
 #' @export
 #' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
-github_api_project_issue_refresh <- function(owner,repo,token,created){
-  # Construct the search query
-  # Ensure 'created' is in the format "YYYY-MM-DD"
-  # For more precise filtering, including time, use "YYYY-MM-DDTHH:MM:SSZ"
+github_api_project_issue_refresh <- function(owner,repo,token){
+  # Get the name of the file with the most recent date
+  latest_date_issue <- paste0(save_path_issue, parse_jira_latest_date(save_path_issue))
+  message(latest_date_issue)
+  # get the created_at value
+  created <- format_created_at_from_file(latest_date_issue)
+  message("Date of latest issue downloaded: ", issue_most_recent_created_date)
+  # API Call
   query <- sprintf("repo:%s/%s is:issue created:>%s", owner, repo, created)
 
   # Use the Search API endpoint to search for issues
@@ -569,32 +575,25 @@ github_api_project_issue_refresh <- function(owner,repo,token,created){
 
 #' Download Project issues or pr comments after certain date
 #'
-#' Download  Issues from "GET /repos/{owner}/{repo}/issues" endpoint.
+#' Returns issue and pull request comements that has not already been downloaded
+#' Gets the name of the file with the most recent date along the designated save path.
+#' Extracts the greatest 'created_at' date from that file
+#' Calls issues/comments endpoint to download comments created after that date
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param created Github's created at date
 #' @param token Your GitHub API token
-#' @param created Only issues created after this date are fetched
 #' @export
 #' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
-github_api_project_issue_or_pr_comment_refresh <- function(owner,repo,token,created){
-  # Construct the search query
-  # Ensure 'created' is in the format "YYYY-MM-DD"
-  # For more precise filtering, including time, use "YYYY-MM-DDTHH:MM:SSZ"
-  # query <- sprintf("repo:%s/%s is:issue created:>%s", owner, repo, created)
-  #
-  # # Use the Search API endpoint to search for issues
-  # issues <- gh::gh("/search/issues",
-  #                  q = query,
-  #                  .token = token,
-  #                  .limit = 100) # Adjust .limit as needed, though GitHub API has its own paging mechanisms
-  #
-  # items_only <- issues$items
-  # #issues_json <- jsonlite::toJSON(items_only, auto_unbox = TRUE, pretty = TRUE)
-  # return(items_only)
-
-
+github_api_project_issue_or_pr_comment_refresh <- function(owner,repo,token){
+  # Get the name of the file with the most recent date
+  latest_date_issue_or_pr_comment <- paste0(save_path_issue_or_pr_comments, parse_jira_latest_date(save_path_issue_or_pr_comments))
+  message(latest_date_issue_or_pr_comment)
+  # get the created_at value
+  created <- format_created_at_from_file(latest_date_issue_or_pr_comment)
+  message("Date of most recent comment: ", issue_or_pr_comment_most_recent_created_date)
+  # Github API Call
   gh::gh("GET /repos/{owner}/{repo}/issues/comments",
          owner=owner,
          repo=repo,
@@ -602,99 +601,6 @@ github_api_project_issue_or_pr_comment_refresh <- function(owner,repo,token,crea
          page=1,
          per_page=100,
          .token=token)
-}
-
-#' Download Project Pull Requests after a date
-#'
-#' Download  Issues from "GET /repos/{owner}/{repo}/search/issues" endpoint.
-#'
-#' @param owner GitHub's repository owner (e.g. sailuh)
-#' @param repo GitHub's repository name (e.g. kaiaulu)
-#' @param created Github's created at date
-#' @param token Your GitHub API token
-#' @param created Only issues created after this date are fetched
-#' @export
-#' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
-github_api_project_pull_request_refresh <- function(owner,repo,token,created){
-
-  query <- sprintf('repo:%s/%s+type:issue+in:comments+created:>%s', owner, repo, since)
-
-  # Perform the API call to search issues/comments
-  comments <- gh::gh("/search/issues",
-                     q=query,
-                     page=1,
-                     per_page=100,
-                     .token=token)
-
-
-  #items_only <- pull_requests$items
-  return(items_only)
-}
-
-#' Download Project Pull Requests after a date
-#'
-#' Download  Issues from "GET /repos/{owner}/{repo}/search/issues" endpoint.
-#'
-#' @param owner GitHub's repository owner (e.g. sailuh)
-#' @param repo GitHub's repository name (e.g. kaiaulu)
-#' @param created Github's created at date
-#' @param token Your GitHub API token
-#' @param created Only issues created after this date are fetched
-#' @export
-#' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
-github_api_project_commit_refresh <- function(owner,repo,token,created){
-  # Construct the search query for pull requests
-  # Ensure 'created' is in the format "YYYY-MM-DD"
-  # For more precise filtering, including time, use "YYYY-MM-DDTHH:MM:SSZ"
-  query <- sprintf("repo:%s/%s is:pr created:>%s", owner, repo, created)
-
-  # Use the Search API endpoint to search for pull requests
-  pull_requests <- gh::gh("/search/issues",
-                          q = query,
-                          .token = token,
-                          .limit = 100) # Adjust .limit as needed, though GitHub API has its own paging mechanisms
-  items_only <- pull_requests$items
-  return(items_only)
-  # Call the GitHub API to get issue comments created after a certain date
-  #comments <-
-    gh::gh("GET /repos/{owner}/{repo}/issues/comments",
-                     owner=owner,
-                     repo=repo,
-                     since=created,  # Pass the `since` parameter in the API request
-                     page=1,
-                     per_page=100,
-                     .token=token)
-
-  #return(comments)
-}
-
-#' parse latest date
-#'
-#' Takes a filepath and returns a filename of the .json file that contains the
-#' most recent 'created_at' value
-#'
-#' @param json_path the path with folders to read
-#' @export
-parse_jira_latest_date <- function(json_path){
-  file_list <- list.files(json_path)
-  time_list <- list()
-
-  # Checking if the save folder is empty
-  if (identical(file_list, character(0))){
-    stop(stringi::stri_c("cannot open the connection"))
-  }
-
-  for (j in file_list){
-    j <- sub(".*_(\\w+)\\.[^.]+$", "\\1", j)
-    j <- as.numeric(j)
-    time_list <- append(time_list, j)
-  }
-
-  overall_latest_date <- as.character(max(unlist(time_list)))
-
-  latest_issue_file <- grep(overall_latest_date, file_list, value = TRUE)
-
-  return(latest_issue_file)
 }
 
 #' get the created_at field from a filename
