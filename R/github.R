@@ -548,7 +548,6 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
-#' @param created Github's created at date
 #' @param token Your GitHub API token
 #' @export
 #' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
@@ -582,7 +581,6 @@ github_api_project_issue_refresh <- function(owner,repo,token){
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
-#' @param created Github's created at date
 #' @param token Your GitHub API token
 #' @export
 #' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.

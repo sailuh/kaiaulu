@@ -12,8 +12,6 @@ github_api_project_issue_or_pr_comment_refresh(owner, repo, token)
 \item{repo}{GitHub's repository name (e.g. kaiaulu)}
 
 \item{token}{Your GitHub API token}
-
-\item{created}{Github's created at date}
 }
 \description{
 Returns issue and pull request comements that has not already been downloaded

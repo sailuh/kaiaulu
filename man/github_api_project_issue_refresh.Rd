@@ -12,8 +12,6 @@ github_api_project_issue_refresh(owner, repo, token)
 \item{repo}{GitHub's repository name (e.g. kaiaulu)}
 
 \item{token}{Your GitHub API token}
-
-\item{created}{Github's created at date}
 }
 \description{
 Returns issue data that has not already been downloaded
