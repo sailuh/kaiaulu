@@ -56,6 +56,7 @@ token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 
 In this section we obtain the raw data (.json) containing all information the GitHub API endpoint provides. We parse the information of interest in the subsequent section.  
 
+
 ```{r eval = FALSE}
 dir.create(paste0(save_path))
 ```
@@ -71,12 +72,26 @@ save_path_issue <- paste0(save_path,"/issue/")
 
 ```{r Collect all issues, eval = FALSE}
 gh_response <- github_api_project_issue(owner,repo,token)
+#message(gh_response)
+```
+```{r}
 dir.create(save_path_issue)
 github_api_iterate_pages(token,gh_response,
                          save_path_issue,
                          prefix="issue")
 ```
 
+# REFRESH Issues
+
+The above function call downloads all the available issues less than the specified limit (default to API limit). The following chunk allows the downloading of issues that have been created only after the most recently created issue already downloaded. This allows the user to 'refresh' their data or continue downloading if a rate limit was previously reached. 
+```{r Collect all issues, eval = FALSE}
+#gh call but with date
+gh_response <- github_api_project_issue_refresh(owner,repo,token)
+#dir.create(save_path_issue)
+github_api_iterate_pages(token,gh_response,
+                         save_path_issue,
+                         prefix="issue")
+```
 ## Pull Requests
 
 Next we obtain the "first comment" of every pull request.
@@ -93,7 +108,6 @@ github_api_iterate_pages(token,gh_response,
                          save_path_pull_request,
                          prefix="pull_request")
 ```
-
 ## Issues and Pull Requests Comments
 
 Finally we obtain the comments of both issue and pull requests (which does not contain the data obtained in the prior two endpoints).
@@ -107,6 +121,20 @@ save_path_issue_or_pr_comments <- paste0(save_path,"/issue_or_pr_comment/")
 gh_response <- github_api_project_issue_or_pr_comments(owner,repo,token)
 dir.create(save_path_issue_or_pr_comments)
 github_api_iterate_pages(token,gh_response,
+                         save_path_issue_or_pr_comments,
+                         prefix="issue_or_pr_comment")
+```
+#REFRESH ISSUE OR PR COMMENT
+
+Similar to the refresh of the issues, this chunk allows for the downloading of comments that have been created since the most recently created date among data already downloaded. This allows us to 'refresh' the comments, downloading comments made since that date or continue downloading if a rate limit was reached. 
+```{r Collect all issues, eval = FALSE}
+#gh call but with date
+# get the data
+gh_response_issue_or_pr_comment <- github_api_project_issue_or_pr_comment_refresh(owner,repo,token)
+
+# create direcetory and iterate over data
+dir.create(save_path_issue_or_pr_comments)
+github_api_iterate_pages(token,gh_response_issue_or_pr_comment,
                          save_path_issue_or_pr_comments,
                          prefix="issue_or_pr_comment")
 ```
@@ -127,6 +155,7 @@ dir.create(save_path_commit)
 github_api_iterate_pages(token,gh_response,
                          save_path_commit,
                          prefix="commit")
+
 ```
 
 # Parsing Raw Data to Csv
