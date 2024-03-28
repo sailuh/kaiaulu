@@ -74,17 +74,19 @@ get_project_git_repo_path <- function(project_name) {
 
 #' Get Project Git Branch
 #'
-#' Gets the git branch from the config file
+#' Gets a git branch of the project. Since there may be multiple branches for the project, a specific
+#' branch must be specified. The order of the branch list can be viewed in the config file.
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
-#' @return the file extensions from the project config file
+#' @param branch_index the index of the branch
+#' @return the git branch
 #' @export
 get_project_git_branch <- function(project_name) {
 
   conf_path <- paste0("conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
-  git_branch <- conf[["version_control"]][["branch"]][4]
+  git_branch <- conf[["version_control"]][["branch"]][branch_index]
 }
 
 #' Get File Extensions
@@ -233,7 +235,7 @@ get_project_jira_issues_comments_path <- function(project_name) {
 
 #' Get SrcML Filepath
 #'
-#' Gets the SrcML filepath from the project config file
+#' Gets the SrcML filepath where the output is stored
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
 #' @return the srcml filepath
@@ -245,6 +247,38 @@ get_project_srcml_filepath <- function(project_name) {
 
   srcml_filepath <- conf[["tool"]][["srcml"]][["srcml_path"]]
   return(srcml_filepath)
+}
+
+#' Get Pattern4 Class Folder Path
+#'
+#' Gets the Pattern4 class folder path where the output is stored
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the class folder path
+#' @export
+get_project_pattern4_folder_path <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  class_folder_path <- conf[["tool"]][["pattern4"]][["class_folder_path"]]
+  return(class_folder_path)
+}
+
+#' Get Pattern4 Output Filepath
+#'
+#' Gets the Pattern4 filepath where the output is stored
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the output filepath
+#' @export
+get_project_pattern4_folder_path <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  pattern4_output_filepath <- conf[["tool"]][["pattern4"]][["output_filepath"]]
+  return(pattern4_output_filepath)
 }
 
 #' Get Topics
@@ -345,7 +379,7 @@ get_project_dv8_flaws_params <- function(project_name) {
 
 #' Get GitHub Project Owner
 #'
-#' Gets the owner of a GitHub project form the config file
+#' Gets the owner of the GitHub project
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
 #' @return the GitHub project owner name
@@ -361,7 +395,7 @@ get_project_github_owner <- function(project_name) {
 
 #' Get GitHub Repository
 #'
-#' Gets the name of a GitHub repository from the config file
+#' Gets the name of the GitHub repository
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
 #' @return the GitHub repository name
@@ -373,6 +407,22 @@ get_project_github_repo_name <- function(project_name) {
 
   repo <- conf[["issue_tracker"]][["github"]][["repo"]]
   return(repo)
+}
+
+#' Get GitHub Replies Save Path
+#'
+#' Gets the local save path for the GitHub replies
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the local save path for GitHub replies
+#' @export
+get_project_github_replies_save_path <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  save_path <- path.expand(conf[["issue_tracker"]][["github"]][["replies"]])
+  return(save_path)
 }
 
 #' Get Jira Issue Tracker Domain
@@ -437,4 +487,102 @@ get_project_jira_issue_comments_save_path <- function(project_name) {
 
   save_path_issue_comments <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
   return(save_path)
+}
+
+#' Get Nvd Feed Folder Path
+#'
+#' Gets the folder path with nvd cve feeds
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the folder path with nvd cve feeds
+#' @export
+get_project_nvdfeed_folder_path <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  nvdfeed_folder_path <- conf[["vulnerabilities"]][["nvd_feed"]]
+  return(nvdfeed_folder_path)
+}
+
+#' Get CVE ID Regex
+#'
+#' Gets the commit message CVE
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the commit message CVE
+#' @export
+get_project_cveid_regex <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  cveid_regex <- conf[["commit_message_id_regex"]][["cve_id"]]
+  return(cveid_regex)
+}
+
+#' Get Enumeration Commit
+#'
+#' Gets the enumerated commit intervals for analysis. Since there may be multiple commits for the project,
+#' a specific commit must be specified. The order of the commit list can be viewed in the config file.
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @param commit_index the index of the commit in the list
+#' @return the commit interval
+#' @export
+get_project_enumeration_commit <- function(project_name, commit_index) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  commit <- conf[["analysis"]][["enumeration"]][["commit"]][commit_index]
+  return(commit)
+}
+
+#' Get Window Start Commit
+#'
+#' Gets the analysis window start commit
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the analysis window size
+#' @export
+get_project_window_start_commit <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  start_commit <- conf[["analysis"]][["window"]][["start_commit"]]
+  return(start_commit)
+}
+
+#' Get Window End Commit
+#'
+#' Gets the analysis window end commit
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the analysis window size
+#' @export
+get_project_window_end_commit <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  end_commit <- conf[["analysis"]][["window"]][["end_commit"]]
+  return(end_commit)
+}
+
+#' Get Analysis Window Size
+#'
+#' Gets the analysis window size
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the analysis window size
+#' @export
+get_project_window_size <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  window_size <- conf[["analysis"]][["window"]][["size_days"]]
+  return(window_size)
 }
