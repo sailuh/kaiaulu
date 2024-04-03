@@ -67,21 +67,19 @@ get_project_git_repo_path <- function(project_name) {
   }
 }
 
-#' Get Project Git Branch
+#' Get Project Git Branches
 #'
-#' Gets a git branch of the project. Since there may be multiple branches for the project, a specific
-#' branch must be specified. The order of the branch list can be viewed in the config file.
+#' Gets a list of the git branches of the project
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
-#' @param branch_index the index of the branch
-#' @return the git branch
+#' @return the git branches as a list
 #' @export
-get_project_git_branch <- function(project_name) {
+get_project_git_branches <- function(project_name) {
 
   conf_path <- paste0("conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
-  git_branch <- conf[["version_control"]][["branch"]][branch_index]
+  git_branch <- conf[["version_control"]][["branch"]]
 
   if(is.null(git_branch)) {
     stop("This field does not exist in the configuration file.")
@@ -364,14 +362,14 @@ get_project_topics <- function(project_name) {
   }
 }
 
-#' Get Mbox Save Path
+#' Get Mbox Save Paths
 #'
-#' Gets the local mbox save path from the project config file
+#' Gets the list of local paths to store Mbox data
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
-#' @return the local mbox save path
+#' @return the list of mbox paths
 #' @export
-get_project_mbox_path <- function(project_name) {
+get_project_mbox_paths <- function(project_name) {
 
   conf_path <- paste0("conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
@@ -511,14 +509,14 @@ get_project_jira_issue_tracker_domain <- function(project_name) {
   }
 }
 
-#' Get Jira Issue Tracker Project Key
+#' Get Jira Issue Tracker Project Keys
 #'
-#' Gets the Jira issue tracker project key
+#' Gets the list of Jira issue tracker project keys
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
-#' @return the issue tracker project key
+#' @return the issue tracker project keys
 #' @export
-get_project_jira_issue_tracker_key <- function(project_name) {
+get_project_jira_project_keys <- function(project_name) {
 
   conf_path <- paste0("conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
@@ -532,14 +530,14 @@ get_project_jira_issue_tracker_key <- function(project_name) {
   }
 }
 
-#' Get Jira Issues Path
+#' Get Jira Issues Paths
 #'
-#' Gets the path to the Jira issues
+#' Gets the list of local paths to store Jira issues
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
-#' @return the Jira issues path
+#' @return the list of Jira issues paths
 #' @export
-get_project_jira_issues_path <- function(project_name) {
+get_project_jira_issues_paths <- function(project_name) {
 
   conf_path <- paste0("conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
@@ -553,14 +551,14 @@ get_project_jira_issues_path <- function(project_name) {
   }
 }
 
-#' Get Jira Issues Comments Path
+#' Get Jira Issues Comments Paths
 #'
-#' Gets the path to the Jira issues with comments
+#' Gets the list of local paths to store Jira issues with comments
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
-#' @return the Jira issues comments path
+#' @return the list of Jira issues comments paths
 #' @export
-get_project_jira_issues_comments_path <- function(project_name) {
+get_project_jira_issues_comments_paths <- function(project_name) {
 
   conf_path <- paste0("conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
@@ -616,21 +614,19 @@ get_project_cveid_regex <- function(project_name) {
   }
 }
 
-#' Get Enumeration Commit
+#' Get Enumeration Commits
 #'
-#' Gets the enumerated commit intervals for analysis. Since there may be multiple commits for the project,
-#' a specific commit must be specified. The order of the commit list can be viewed in the config file.
+#' Gets the list of enumerated commit intervals for analysis.
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
-#' @param commit_index the index of the commit in the list
-#' @return the commit interval
+#' @return the commit intervals as a list
 #' @export
-get_project_enumeration_commit <- function(project_name, commit_index) {
+get_project_enumeration_commits <- function(project_name) {
 
   conf_path <- paste0("conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
-  commit <- conf[["analysis"]][["enumeration"]][["commit"]][commit_index]
+  commit <- conf[["analysis"]][["enumeration"]][["commit"]]
 
   if(is.null(commit)) {
     stop("This field does not exist in the configuration file.")
