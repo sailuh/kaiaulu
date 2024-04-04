@@ -213,6 +213,31 @@ download_bugzilla_rest_issues_comments <- function(bugzilla_site, start_timestam
     if(httr::content(issues)$total_matches > 0){
       issues_content <- httr::content(issues, "text")
       issues_content <- jsonlite::fromJSON(issues_content)
+
+      # Set the file_name from the config file. It will be modified in the following code
+      file_name <- save_folder_path
+
+      # Remove .json if present in file_name. It will be added again in the naming convention
+      if (grepl("\.json$", file_name)) {
+        # Remove .json if present in file_name. It will be added again in the naming convention
+        file_name <- sub("\.json$", "", file_name)
+      }
+
+      # Get the first bug to get the start date of the page
+      first_issue <- issues_content$bugs[[1]]
+
+      # Get the creation time of the first bug
+      first_issue_created <- first_issues%creation_time
+
+      # Convert the time string to a POSIXct obvject, specifiying the format
+      posix_time <- as.POSIXct(issue_created, format = "%Y-%m-%dT%H:%M:%OS", tz = "UTC")
+
+      #Convert the POSIXct object to UNIX time
+      unix_time <- as.numeric(posix_time)
+
+      # append to the filename
+      file_name <- paste0(file_name, "_", unix_time, ".json")
+
       jsonlite::write_json(issues_content, file.path(save_folder_path, paste0(page, ".json")), auto_unbox = TRUE)
       page <- page + 1
       offset <- offset + limit
@@ -221,6 +246,10 @@ download_bugzilla_rest_issues_comments <- function(bugzilla_site, start_timestam
     }
   }
 }
+
+# iterate through the downloaded issues to find the latest created date for the page name
+# find the value that stores the date created
+# look at api and see if I can get issues after the created date
 
 ############## Parsers ##############
 
