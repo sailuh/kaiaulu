@@ -43,7 +43,7 @@ API call would reach or surpass this value.}
 }
 \description{
 Extracts the greatest 'issueKey' value from files along save_folder_path. This is passed to
-\code{link{download_jira_issues_by_issuekey}} and only issue keys with greater value
+\code{link{download_jira_issues}} and only issue keys with greater value
 will then be downloaded. This allows us to download only issues that have not already been
 downloaded previously.
 }

@@ -771,7 +771,7 @@ create_status <- function(jira_domain_url, status) {
 #' Download issue data from [rest/api/2/search](https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issue-search/#api-rest-api-2-search-post) JIRA endpoint.
 #' These are either preset in the corresponding chunk
 #' in which they are called or are set to the values in the config file used.
-#' Files are saved along save_folder_path a la ../../rawdata/project_name/project_management_tool/issues.
+#' Files are saved along save_folder_path. for example: ../../rawdata/project_name/project_management_tool/issues.
 #' example: ../../rawdata/kaiaulu/JIRA/issues
 #' Files are downloaded as .json files with naming convention
 #' (project name)_issues_(UNIX time of lowest 'created' value)_(UNIX time of greatest 'created' value)
@@ -821,18 +821,18 @@ download_jira_issues <- function(domain,
   }
 
   #Initialize variables for pagination
-  startAt <- 0
+  start_at <- 0
   total <- max_results
   all_issues <- list()
   # This variable counts your download count. This is important to not exceed the max downloads per hour
-  downloadCount <- 0
+  download_count <- 0
   time <- Sys.time()
   message("Starting Downloads at ", time)
   # Loop that downloads each issue into a file
   repeat{
 
     # Check update our download count and see if it is approaching the limit
-    if (downloadCount + max_results > max_downloads) {
+    if (download_count + max_results > max_downloads) {
       # erorr message
       time <- Sys.time()
       message("Cannot download as max_downloads will be exceeeded. Reccommend running again at a later time. Downloads ended at ", time)
@@ -857,9 +857,9 @@ download_jira_issues <- function(domain,
     }
 
     # Prepare query parameters for the API call
-    query_params <- list(jql = jql_query, fields = paste(fields, collapse = ","), max_results = max_results, startAt = startAt)
+    query_params <- list(jql = jql_query, fields = paste(fields, collapse = ","), maxResults = max_results, startAt = start_at)
 
-    if (verbose && (downloadCount == 0)){
+    if (verbose && (download_count == 0)){
       message("Query paramters: ", query_params)
     }
     # Make the API call
@@ -871,18 +871,18 @@ download_jira_issues <- function(domain,
     }
 
     # Extract issues. for iteration of naming convention and checks
-    R_object_content <- jsonlite::fromJSON(httr::content(response, "text", encoding = "UTF-8"),
+    r_object_content <- jsonlite::fromJSON(httr::content(response, "text", encoding = "UTF-8"),
                                            simplifyVector = FALSE)
     # The number of issues downloaded
-    issue_count <- length(R_object_content$issues)
+    issue_count <- length(r_object_content$issues)
     # save the raw content for a writeLines later
     raw_content <- httr::content(response, "text", encoding = "UTF-8")
 
     # Check to make sure that the api is downloading the correct amount of issues specified by max_results
-    # This checks for only the first page (if downloadCount ==0)
+    # This checks for only the first page (if download_count ==0)
     # If the total number of issues retrieved is less than max_results, then of course issue_count
     # will be < maxResults so we check to make sure this is not true (total >= max_results)
-    if ((downloadCount == 0) && (max_results != issue_count) && (total > max_results)) {
+    if ((download_count == 0) && (max_results != issue_count) && (total > max_results)) {
       message("Total number of issues queried: ", total)
       message(". max_results specified: ", max_results)
       message(". Number of issues retrieved: ", issue_count)
@@ -899,9 +899,9 @@ download_jira_issues <- function(domain,
     }
 
     # naming convention for each page
-    for (i in rev(seq_along(R_object_content$issues))) {
+    for (i in rev(seq_along(r_object_content$issues))) {
       if (i == 1){
-        issue <- R_object_content$issue[[i]]
+        issue <- r_object_content$issue[[i]]
         # Get the 'created' field
         issue_created <- issue$fields$created
         # Convert the time string to a POSIXct object, specifying the format
@@ -912,7 +912,7 @@ download_jira_issues <- function(domain,
         file_name <- paste0(file_name, "_", unix_time, ".json")
       }
       if (i == issue_count){
-        issue <- R_object_content$issue[[i]]
+        issue <- r_object_content$issue[[i]]
         # Get the 'created' field
         issue_created <- issue$fields$created
         # Convert the time string to a POSIXct object, specifying the format
@@ -933,19 +933,19 @@ download_jira_issues <- function(domain,
       }
     }
 
-    # update downloadCount and optional print statements
-    downloadCount <- downloadCount + issue_count
+    # update download_count and optional print statements
+    download_count <- download_count + issue_count
     if (verbose && (issue_count > 0)){
       message("saved file to ", file_name)
-      message("Saved ", downloadCount, " total issues")
+      message("Saved ", download_count, " total issues")
     }
 
 
-    #updates startat for next loop
+    #updates start_at for next loop
     if (issue_count < max_results) {
       break
     } else {
-      startAt <- startAt + max_results
+      start_at <- start_at + max_results
     }
   }
 
@@ -1084,7 +1084,7 @@ download_jira_issues_by_issue_key <- function(domain,
 #' Download JIRA issues Refresh
 #'
 #' Extracts the greatest 'issueKey' value from files along save_folder_path. This is passed to
-#' \code{link{download_jira_issues_by_issuekey}} and only issue keys with greater value
+#' \code{link{download_jira_issues}} and only issue keys with greater value
 #' will then be downloaded. This allows us to download only issues that have not already been
 #' downloaded previously.
 #'

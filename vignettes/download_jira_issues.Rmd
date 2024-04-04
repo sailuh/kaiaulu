@@ -57,6 +57,7 @@ credentials <- scan("~/.ssh/atlassian_credentials", what = "character", quiet = 
 ```
 
 # Create the directories specified in the config files. 
+The file schema of files for JIRA projects will be ../../rawdata/JIRA/project_name/issues or ../../rawdata/JIRA/project_name/issues_comments
 
 # If you have already created your directories, there is no need to run this chunk. 
 ```{r eval = FALSE}
@@ -144,7 +145,7 @@ Download issues with specified date ranges. This chunk allows the user to manipu
 
 ```{r}
 # eg issueKey_lower_bound <- "GERONIMO-740"
-issue_key_lower_bound <- "GERONIMO-740"
+issue_key_lower_bound <- "GERONIMO-500"
 issue_key_upper_bound <- NULL
 
 all_issues <- download_jira_issues_by_issue_key (issue_tracker_domain,
