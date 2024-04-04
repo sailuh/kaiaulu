@@ -1024,6 +1024,7 @@ download_jira_issues_by_date <- function(domain,
 #'
 #' Calls \code{link{download_jira_issues}} with search_query specifying issue key
 #' Only issues with issue key value in the range specified will be downloaded.
+#' default issue key format: <project key>-<issue number>
 #' example of search query: 'issukey >= PROJECTNAME-800'
 #' [How to use issue key](https://support.atlassian.com/jira-software-cloud/docs/jql-fields/#Issue-key)
 #'

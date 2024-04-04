@@ -46,7 +46,7 @@ Examples are 'created > date' or 'issueKey < value'.}
 Download issue data from [rest/api/2/search](https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issue-search/#api-rest-api-2-search-post) JIRA endpoint.
 These are either preset in the corresponding chunk
 in which they are called or are set to the values in the config file used.
-Files are saved along save_folder_path a la ../../rawdata/project_name/project_management_tool/issues.
+Files are saved along save_folder_path. for example: ../../rawdata/project_name/project_management_tool/issues.
 example: ../../rawdata/kaiaulu/JIRA/issues
 Files are downloaded as .json files with naming convention
 (project name)_issues_(UNIX time of lowest 'created' value)_(UNIX time of greatest 'created' value)
