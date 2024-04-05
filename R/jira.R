@@ -8,10 +8,17 @@
 
 #' Parse Jira issue and comments
 #'
-#' Parses Jira issues and comments into a table; any fields missing in a json file simply is not included in the table.
+#' parse_jira takes jira issue json files and parses the issue data into table data. With this table data,
+#' the information of the jira issues can be put and seen in a table format. It is able to parse multiple
+#' jira issues in a single json file. Some jira json files include comments and some don't; to save time
+#' on parsing, it checks for comments and decides to skip the parsing or not depending on what it finds.
+#' In the case that a field does not exist in an issue but does for others, then it will simply not include
+#' the field for that issue in the table.
+#'
 #' The jira json naming convention is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
-#' or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json".
-#' For example: "KAIAULU_issues_1231234_2312413.json". Notice how the ProjectKey portion is in all caps.
+#' or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json". The project key should be in all
+#' caps. For example: "KAIAULU_issues_1231234_2312413.json".
+#'
 #' The general folder structure for the folder path containing the json files is as follows:
 #' "../../rawdata/issue_tracker/geronimo/issues/" or "../../rawdata/issue_tracker/geronimo/issue_comments/". The issues folder only
 #' contains jira issue json files that don't include comments. The issue_comments folder contains jira issue json files that can
@@ -156,10 +163,13 @@ parse_jira <- function(json_path){
 #' Parse Jira latest dates
 #'
 #' This is a function that returns the json file containing the Jira issue with the latest created date.
+#'
 #' It is based on the name of the file, which is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
 #' or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json"
 #' For example: "KAIAULU_issues_1231234_2312413.json". Notice how the ProjectKey portion is in all caps.
 #'
+#' This parser is created to be used by the jira refresher functions to help with finding the start point
+#' in which to refresh the downloaded jira issues. To see the jira issue refresher, refer to \code{\link{refresh_jira_issues}}
 #'
 #' @param json_path path to save folder containing JIRA issue and/or comments json files.
 #' @return The name of the jira issue file with the latest created date that was created/downloaded for

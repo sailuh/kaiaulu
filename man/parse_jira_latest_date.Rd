@@ -15,9 +15,14 @@ use by the Jira Downloader refresher
 }
 \description{
 This is a function that returns the json file containing the Jira issue with the latest created date.
+}
+\details{
 It is based on the name of the file, which is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
 or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json"
 For example: "KAIAULU_issues_1231234_2312413.json". Notice how the ProjectKey portion is in all caps.
+
+This parser is created to be used by the jira refresher functions to help with finding the start point
+in which to refresh the downloaded jira issues. To see the jira issue refresher, refer to \code{\link{refresh_jira_issues}}
 }
 \seealso{
 Other parsers: 
