@@ -109,7 +109,7 @@ all_issues <- download_jira_issues(issue_tracker_domain,
                            save_path_issue_tracker_issues, 
                            max_results = 50, 
                            verbose = TRUE,
-                           max_downloads = 5000,
+                           max_total_downloads = 5000,
                            search_query = NULL)
 
 # save all_issues as a json file along the path save_path_issue_tracker_issues
@@ -151,7 +151,7 @@ all_issues <- download_jira_issues_by_date (issue_tracker_domain,
                            save_path_issue_tracker_issues, 
                            max_results = 50, 
                            verbose = TRUE,
-                           max_downloads = 5000,
+                           max_total_downloads = 5000,
                            date_lower_bound,
                            date_upper_bound)
 
@@ -187,7 +187,7 @@ all_issues <- download_jira_issues_by_issue_key (issue_tracker_domain,
                            save_path_issue_tracker_issues, 
                            max_results = 50, 
                            verbose = TRUE,
-                           max_downloads = 5000,
+                           max_total_downloads = 5000,
                            issue_key_lower_bound,
                            issue_key_upper_bound)
 
@@ -218,7 +218,7 @@ refresh_jira_issues(
                            save_path_issue_tracker_issues, 
                            max_results = 50, 
                            verbose = TRUE,
-                           max_downloads = 5000,
+                           max_total_downloads = 5000,
                            refresh_issues)
 
 ```
@@ -251,7 +251,7 @@ all_issues_comments <- download_jira_issues(issue_tracker_domain,
                            save_path_issue_tracker_issue_comments, 
                            max_results = 50, 
                            verbose = TRUE,
-                           max_downloads = 5000,
+                           max_total_downloads = 5000,
                            search_query = NULL)
 ```
 
@@ -291,7 +291,7 @@ all_issues_comments <- download_jira_issues_by_date(issue_tracker_domain,
                            save_path_issue_tracker_issue_comments, 
                            max_results = 50, 
                            verbose = TRUE,
-                           max_downloads = 5000,
+                           max_total_downloads = 5000,
                            date_lower_bound,
                            date_upper_bound)
 ```
@@ -328,7 +328,7 @@ all_issues_comments <- download_jira_issues_by_issue_key(issue_tracker_domain,
                            save_path_issue_tracker_issue_comments, 
                            max_results = 50, 
                            verbose = TRUE,
-                           max_downloads = 5000,
+                           max_total_downloads = 5000,
                            issue_key_lower_bound,
                            issue_key_upper_bound)
 ```
@@ -361,7 +361,7 @@ refresh_jira_issues(
                            save_path_issue_tracker_issue_comments, 
                            max_results = 50, 
                            verbose = TRUE,
-                           max_downloads = 5000,
+                           max_total_downloads = 5000,
                            refresh_issue_comments)
 
 ```

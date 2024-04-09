@@ -12,7 +12,7 @@ download_jira_issues_by_issue_key(
   save_folder_path,
   max_results,
   verbose,
-  max_downloads,
+  max_total_downloads,
   issue_key_lower_bound = NULL,
   issue_key_upper_bound = NULL
 )
@@ -36,7 +36,7 @@ messages or not. These messages will describe errors or successes in executing c
 And example may be declaring the file name of a successfully downloaded file or printing
 how many issues have been downloaded so far}
 
-\item{max_downloads}{Maximum downloads per function call.
+\item{max_total_downloads}{Maximum downloads per function call.
 This value specifies how many issues should be extracted and API calls will cease if a subsequent
 API call would reach or surpass this value.}
 

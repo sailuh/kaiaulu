@@ -12,7 +12,7 @@ refresh_jira_issues(
   save_folder_path,
   max_results,
   verbose,
-  max_downloads,
+  max_total_downloads,
   unaltered_file_path
 )
 }
@@ -25,7 +25,7 @@ refresh_jira_issues(
 
 \item{fields}{List of fields that are downloaded in each issue}
 
-\item{save_folder_path}{Path that files will be save along in .json format}
+\item{save_folder_path}{Path that files will be save along in .json format. Includes the prefix for projectname_issues}
 
 \item{max_results}{(optional) the maximum number of results to download per page.
 Default is 50. [How to use max_results](https://confluence.atlassian.com/jirakb/how-to-use-the-maxresults-api-parameter-for-jira-issue-search-rest-api-1251999998.html)}
@@ -35,17 +35,17 @@ messages or not. These messages will describe errors or successes in executing c
 And example may be declaring the file name of a successfully downloaded file or printing
 how many issues have been downloaded so far}
 
-\item{max_downloads}{Maximum downloads per function call.
+\item{max_total_downloads}{Maximum downloads per function call.
 This value specifies how many issues should be extracted and API calls will cease if a subsequent
 API call would reach or surpass this value.}
 
-\item{unaltered_file_path}{the unaltered file path set in the config file}
+\item{unaltered_file_path}{the path to the directory that contains the files}
 }
 \description{
 Extracts the greatest 'issueKey' value from files along save_folder_path. This is passed to
 \code{link{download_jira_issues}} and only issue keys with greater value
 will then be downloaded. This allows us to download only issues that have not already been
-downloaded previously.
+downloaded previously. If the directory is empty, then it will download all issues.
 }
 \seealso{
 \code{link{download_jira_issues_by_issue_key}} to download JIRA data using issuekey as a search criteria,

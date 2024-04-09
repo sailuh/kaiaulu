@@ -12,7 +12,7 @@ download_jira_issues(
   save_folder_path,
   max_results = 50,
   verbose = FALSE,
-  max_downloads = 5000,
+  max_total_downloads = 5000,
   search_query = NULL
 )
 }
@@ -35,7 +35,7 @@ messages or not. These messages will describe errors or successes in executing c
 And example may be declaring the file name of a successfully downloaded file or printing
 how many issues have been downloaded so far}
 
-\item{max_downloads}{Maximum downloads per function call.
+\item{max_total_downloads}{Maximum downloads per function call.
 This value specifies how many issues should be extracted and API calls will cease if a subsequent
 API call would reach or surpass this value.}
 
@@ -51,6 +51,8 @@ example: ../../rawdata/kaiaulu/JIRA/issues
 Files are downloaded as .json files with naming convention
 (project name)_issues_(UNIX time of lowest 'created' value)_(UNIX time of greatest 'created' value)
 example: Kaiaulu_issues_1121495281_1121527069.json
+If a project requires authentication and authentication fails, the function will end without downloading any data.
+If the number of results per page returned is less than the number specified, the max_results value will adjust to that value.
 }
 \seealso{
 \code{link{download_jira_issues_by_issue_key}} to download JIRA data using issuekey as a search criteria,
