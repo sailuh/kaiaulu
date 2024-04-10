@@ -69,7 +69,7 @@ get_project_git_repo_path <- function(project_name) {
 
 #' Get Project Git Branches
 #'
-#' Gets a list of the git branches of the project
+#' Gets the list of git branches of the project
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
 #' @return the git branches as a list
@@ -488,33 +488,12 @@ get_project_github_replies_save_path <- function(project_name) {
   }
 }
 
-#' Get Jira Issue Tracker Domain
-#'
-#' Gets the Jira issue tracker domain
-#'
-#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
-#' @return the issue tracker domain
-#' @export
-get_project_jira_issue_tracker_domain <- function(project_name) {
-
-  conf_path <- paste0("conf/", project_name, ".yml")
-  conf <- yaml::read_yaml(conf_path)
-
-  domain <- conf[["issue_tracker"]][["jira"]][["domain"]]
-
-  if(is.null(domain)) {
-    stop("This field does not exist in the configuration file.")
-  } else {
-    return(domain)
-  }
-}
-
 #' Get Jira Issue Tracker Project Keys
 #'
 #' Gets the list of Jira issue tracker project keys
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
-#' @return the issue tracker project keys
+#' @return the list of issue tracker project keys
 #' @export
 get_project_jira_project_keys <- function(project_name) {
 
@@ -530,19 +509,40 @@ get_project_jira_project_keys <- function(project_name) {
   }
 }
 
-#' Get Jira Issues Paths
+#' Get Jira Project Domain
 #'
-#' Gets the list of local paths to store Jira issues
+#' Gets the Jira domain for a specific project key index
 #'
-#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
-#' @return the list of Jira issues paths
+#' @param project_key_index the name of the index of theproject key (e.g. "project_key_1" or "project_key_2")
+#' @return the Jira domain of the project key index
 #' @export
-get_project_jira_issues_paths <- function(project_name) {
+get_project_jira_domain <- function(project_key) {
 
   conf_path <- paste0("conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
-  jira_issues_path <- conf[["issue_tracker"]][["jira"]][["issues"]]
+  domain <- conf[["issue_tracker"]][["jira"]][[project_key]][["domain"]]
+
+  if(is.null(domain)) {
+    stop("This field does not exist in the configuration file.")
+  } else {
+    return(domain)
+  }
+}
+
+#' Get Jira Project Key Name
+#'
+#' Gets the project key name for a specific project key index
+#'
+#' @param project_key_index the name of the index of theproject key (e.g. "project_key_1" or "project_key_2")
+#' @return the project key name
+#' @export
+get_project_jira_project_key_name <- function(project_key_index) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  name <- conf[["issue_tracker"]][["jira"]][[project_key_index]][["project_key"]]
 
   if(is.null(jira_issues_path)) {
     stop("This field does not exist in the configuration file.")
@@ -551,19 +551,40 @@ get_project_jira_issues_paths <- function(project_name) {
   }
 }
 
-#' Get Jira Issues Comments Paths
+#' Get Jira Issues Path
 #'
-#' Gets the list of local paths to store Jira issues with comments
+#' Gets the local path to store Jira issues for a specific project key index
 #'
-#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
-#' @return the list of Jira issues comments paths
+#' @param project_key_index the name of the index of theproject key (e.g. "project_key_1" or "project_key_2")
+#' @return the Jira issue path
 #' @export
-get_project_jira_issues_comments_paths <- function(project_name) {
+get_project_jira_issues_paths <- function(project_key_index) {
 
   conf_path <- paste0("conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
-  jira_issue_comments_path <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
+  jira_issues_path <- conf[["issue_tracker"]][["jira"]][[project_key_index]][["issues"]]
+
+  if(is.null(jira_issues_path)) {
+    stop("This field does not exist in the configuration file.")
+  } else {
+    return(jira_issues_path)
+  }
+}
+
+#' Get Jira Issues Comments Path
+#'
+#' Gets the local path to store Jira issues with comments for a specific project key index
+#'
+#' @param project_key_index the name of the index of theproject key (e.g. "project_key_1" or "project_key_2")
+#' @return the list of Jira issues comments paths
+#' @export
+get_project_jira_issues_comments_paths <- function(project_key_index) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  jira_issue_comments_path <- conf[["issue_tracker"]][["jira"]][[project_key_index]][["issue_comments"]]
 
   if(is.null(jira_issue_comments_path)) {
     stop("This field does not exist in the configuration file.")
