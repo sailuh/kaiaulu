@@ -2,14 +2,17 @@
 % Please edit documentation in R/github.R
 \name{format_created_at_from_file}
 \alias{format_created_at_from_file}
-\title{get the created_at field from a filename}
+\title{get the created_at field from a file name}
 \usage{
 format_created_at_from_file(filename)
 }
 \arguments{
-\item{filename}{the path and the filename}
+\item{filename}{the path and the file name. For example:
+../../rawdata/github/kaiaulu/issue_or_pr_comment/sailuh_kaiaulu_issue_or_pr_comment_1701216000_1701261374.json}
 }
 \description{
 Function to read a JSON file along a path and return the 'created_at'
-date of the first item
+date of the greatest value for the issue key. Note that the 'created_at'
+value must be in index 1 among issues. This format is returned by the
+issue endpoint currently, but is in index 2 of data returned by search endpoint
 }

@@ -474,7 +474,7 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
   while(!is.null(gh_response) & page_number < max_pages){
     # Find the unixtime of created at at the first index.
     # This will be the most recent by default in the file
-    if(length(gh_response) > 0 && !is.null(gh_response[[1]]$created_at) && (prefix != "commit")) {
+    if(length(gh_response) > 0 && !is.null(gh_response[[1]]$created_at)) {
       # Get 'created_at' for the first issue in the response
       most_recent_created_at <- as.POSIXct(gh_response[[1]]$created_at, format = "%Y-%m-%dT%H:%M:%OS", tz = "UTC")
       # Convert to Unix timestamp
@@ -484,54 +484,34 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
       least_recently_created <- as.POSIXct(gh_response[[1]]$created_at, tz = "UTC")
       # Convert to Unix timestamp
       least_recently_created_at_unix <- as.numeric(least_recently_created)
-      message("extracted dates")
+      message("extracted dates for page ", page_number)
     } else {
-      if (prefix != "commit"){
         most_recent_created_at_unix <- paste0("_", page_number)
         least_recently_created_at_unix <- "no_data"
         data_exists = FALSE
         message("Nothing to download")
-      }
     }
-
-    # Extract dates for commit
-    if (prefix == "commit"){
-      if(length(gh_response) > 0 && !is.null(gh_response[[1]]$commit$author$date)){
-        commit_date = gh_response[[1]]$commit$author$date
-        most_recent_created_at <- as.POSIXct(commit_date, format = "%Y-%m-%dT%H:%M:%OS", tz = "UTC")
-        # Convert to Unix timestamp
-        most_recent_created_at_unix <- as.numeric(most_recent_created_at)
-
-        least_recently_created <- as.POSIXct(commit_date, tz = "UTC")
-        # Convert to Unix timestamp
-        least_recently_created_at_unix <- as.numeric(least_recently_created)
-        message("extracted dates")
-      } else {
-        most_recent_created_at_unix <- paste0("_", page_number)
-        least_recently_created_at_unix <- "no_data"
-        data_exists = FALSE
-        message("Nothing to download")
-      } }
-
-
 
 
   # Save the pages to file
-    if (data_exists == TRUE){write_json(gh_response,paste0(save_folder_path,
-                                  #put startunixtime_endunixtime
-                                  owner,"_",repo,"_",prefix,"_",
-                                  least_recently_created_at_unix, "_",
-                                  most_recent_created_at_unix,
-                                  ".json"),
+    if (data_exists == TRUE){
+      # construct the file name
+      file_name <- paste0(save_folder_path,
+                          owner,"_",repo,"_",prefix,"_",
+                          least_recently_created_at_unix, "_",
+                          most_recent_created_at_unix,
+                          ".json")
+      # Write to file
+      write_json(gh_response,file_name,
                pretty=TRUE,auto_unbox=TRUE)
-    message("written to file")
+    message("Written to file: ", file_name)
   }
-
+    # increment the page number
     page_number <- page_number + 1
     res <- try(
       {
         gh_response <- github_api_page_next(gh_response)
-      },silent=TRUE)
+      },silent=FALSE)
     if(inherits(res,"try-error")) {
       gh_response <- NULL
     }
@@ -545,31 +525,47 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
 #' Gets the name of the file with the most recent data along the designated save path.
 #' Extracts the greatest 'created_at' date from that file
 #' Calls search/issues endpoint to download issues created after that date
+#' #' If no files exist in the file, \code{link{github_api_project_issue}} is called instead.
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
 #' @export
 #' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
+#' @seealso  \code{link{github_api_project_issue}} to download all issue data
+#' @seealso  \code{link{format_created_at_from_file}} for function that iterates through
+#' a .json file and returns the greatest 'created_at' value
+#' @seealso  \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
 github_api_project_issue_refresh <- function(owner,repo,token){
+
+  contents <- list.files(path = save_path_issue)
+
+  # If the file is empty, download all issues
+  if(length(contents) == 0) {
+    # Run regular downloader
+    issues <- github_api_project_issue(owner,repo,token)
+    return(issues)
+  } else {
   # Get the name of the file with the most recent date
   latest_date_issue <- paste0(save_path_issue, parse_jira_latest_date(save_path_issue))
   message(latest_date_issue)
   # get the created_at value
   created <- format_created_at_from_file(latest_date_issue)
-  message("Date of latest issue downloaded: ", issue_most_recent_created_date)
+  # message("Date of latest issue downloaded: ", created)
   # API Call
   query <- sprintf("repo:%s/%s is:issue created:>%s", owner, repo, created)
-
+  message(query)
   # Use the Search API endpoint to search for issues
   issues <- gh::gh("/search/issues",
                    q = query,
-                   .token = token,
-                   .limit = 100) # Adjust .limit as needed, though GitHub API has its own paging mechanisms
+                   state = 'all',
+                   page = 1,
+                   per_page = 100,
+                   .token = token)
+                    # Adjust .limit as needed, though GitHub API has its own paging mechanisms
 
-  items_only <- issues$items
-  #issues_json <- jsonlite::toJSON(items_only, auto_unbox = TRUE, pretty = TRUE)
-  return(items_only)
+  return(issues)
+  }
 }
 
 #' Download Project issues or pr comments after certain date
@@ -578,19 +574,33 @@ github_api_project_issue_refresh <- function(owner,repo,token){
 #' Gets the name of the file with the most recent date along the designated save path.
 #' Extracts the greatest 'created_at' date from that file
 #' Calls issues/comments endpoint to download comments created after that date
+#' If no files exist in the file, \code{link{github_api_project_issue_or_pr_comments}} is called instead.
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
 #' @export
 #' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
+#' @seealso  \code{link{github_api_project_issue_or_pr_comments}} to download all comment data
+#' @seealso  \code{link{format_created_at_from_file}} for function that iterates through
+#' a .json file and returns the greatest 'created_at' value
+#' @seealso  \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
 github_api_project_issue_or_pr_comment_refresh <- function(owner,repo,token){
+    # Check if the file is empty by checking its size
+    # List all files and subdirectories in the directory
+    contents <- list.files(path = save_path_issue_or_pr_comments)
+
+    # If the file is empty, download all issues
+    if(length(contents) == 0) {
+     # Run regular downloader
+      issues <- github_api_project_issue_or_pr_comments(owner,repo,token)
+      return (issues)
+    } else {
   # Get the name of the file with the most recent date
   latest_date_issue_or_pr_comment <- paste0(save_path_issue_or_pr_comments, parse_jira_latest_date(save_path_issue_or_pr_comments))
   message(latest_date_issue_or_pr_comment)
   # get the created_at value
   created <- format_created_at_from_file(latest_date_issue_or_pr_comment)
-  message("Date of most recent comment: ", issue_or_pr_comment_most_recent_created_date)
   # Github API Call
   gh::gh("GET /repos/{owner}/{repo}/issues/comments",
          owner=owner,
@@ -599,21 +609,38 @@ github_api_project_issue_or_pr_comment_refresh <- function(owner,repo,token){
          page=1,
          per_page=100,
          .token=token)
+    } #end if/else
 }
 
-#' get the created_at field from a filename
+#' get the created_at field from a file name
 #'
 #' Function to read a JSON file along a path and return the 'created_at'
-#' date of the first item
+#' date of the greatest value for the issue key. Note that the 'created_at'
+#' value must be in index 1 among issues. This format is returned by the
+#' issue endpoint currently, but is in index 2 of data returned by search endpoint
 #'
-#' @param filename the path and the filename
+#' @param filename the path and the file name. For example:
+#' ../../rawdata/github/kaiaulu/issue_or_pr_comment/sailuh_kaiaulu_issue_or_pr_comment_1701216000_1701261374.json
 #' @export
 format_created_at_from_file <- function(filename) {
   # Read the JSON file
-  data <- jsonlite::fromJSON(txt= filename, simplifyVector = FALSE)
+  json_data <- jsonlite::fromJSON(txt= filename, simplifyVector = FALSE)
 
-  # Extract the 'created_at' value of the first issue. This is the most recent date
-  most_recent_created_at <- data[[1]]['created_at']
+  # Initialize a variable to keep track of the greatest date
+  greatest_date <- as.POSIXct("1970-01-01T00:00:00Z", tz = "UTC")
 
-  return(most_recent_created_at)
+  # Iterate through each element in the list
+  for(item in json_data) {
+    # Assuming 'created_at' is directly under each item
+    current_date <- as.POSIXct(item$created_at, format = "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+
+    # Update greatest_date if the current item's date is later
+    if(current_date > greatest_date) {
+      greatest_date <- current_date
+    }
+  }
+  formatted_greatest_date <- format(greatest_date, "%Y-%m-%dT%H:%M:%SZ")
+
+  # greatest_date now holds the latest 'created_at' value
+  return(formatted_greatest_date)
 }

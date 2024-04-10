@@ -18,7 +18,16 @@ Returns issue and pull request comements that has not already been downloaded
 Gets the name of the file with the most recent date along the designated save path.
 Extracts the greatest 'created_at' date from that file
 Calls issues/comments endpoint to download comments created after that date
+If no files exist in the file, \code{link{github_api_project_issue_or_pr_comments}} is called instead.
 }
 \references{
 For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
+}
+\seealso{
+\code{link{github_api_project_issue_or_pr_comments}} to download all comment data
+
+\code{link{format_created_at_from_file}} for function that iterates through
+a .json file and returns the greatest 'created_at' value
+
+\code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
 }
