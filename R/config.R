@@ -72,7 +72,7 @@ get_project_git_repo_path <- function(project_name) {
 #' Gets the list of git branches of the project
 #'
 #' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
-#' @return the git branches as a list
+#' @return the list of git branches
 #' @export
 get_project_git_branches <- function(project_name) {
 
@@ -425,6 +425,27 @@ get_project_mbox_list_key <- function(project_name) {
   }
 }
 
+#' Get GitHub Project Keys
+#'
+#' Gets the list of GitHub project keys
+#'
+#' @param project_name the name of the project config file (e.g. "kaiaulu" or "geronimo")
+#' @return the list of GitHub project keys
+#' @export
+get_project_github_project_keys <- function(project_name) {
+
+  conf_path <- paste0("conf/", project_name, ".yml")
+  conf <- yaml::read_yaml(conf_path)
+
+  keys <- conf[["issue_tracker"]][["github"]]
+
+  if(is.null(keys)) {
+    stop("This field does not exist in the configuration file.")
+  } else {
+    return(keys)
+  }
+}
+
 #' Get GitHub Project Owner
 #'
 #' Gets the owner of the GitHub project
@@ -544,10 +565,10 @@ get_project_jira_project_key_name <- function(project_key_index) {
 
   name <- conf[["issue_tracker"]][["jira"]][[project_key_index]][["project_key"]]
 
-  if(is.null(jira_issues_path)) {
+  if(is.null(name)) {
     stop("This field does not exist in the configuration file.")
   } else {
-    return(jira_issues_path)
+    return(name)
   }
 }
 
