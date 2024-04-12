@@ -11,10 +11,10 @@ download_jira_issues_by_issue_key(
   fields,
   save_folder_path,
   max_results,
-  verbose,
   max_total_downloads,
   issue_key_lower_bound = NULL,
-  issue_key_upper_bound = NULL
+  issue_key_upper_bound = NULL,
+  verbose
 )
 }
 \arguments{
@@ -31,11 +31,6 @@ download_jira_issues_by_issue_key(
 \item{max_results}{(optional) the maximum number of results to download per page.
 Default is 50. [How to use max_results](https://confluence.atlassian.com/jirakb/how-to-use-the-maxresults-api-parameter-for-jira-issue-search-rest-api-1251999998.html)}
 
-\item{verbose}{boolean flag to specify printing operational
-messages or not. These messages will describe errors or successes in executing code.
-And example may be declaring the file name of a successfully downloaded file or printing
-how many issues have been downloaded so far}
-
 \item{max_total_downloads}{Maximum downloads per function call.
 This value specifies how many issues should be extracted and API calls will cease if a subsequent
 API call would reach or surpass this value.}
@@ -43,6 +38,11 @@ API call would reach or surpass this value.}
 \item{issue_key_lower_bound}{an optional API parameter that alters the GET request}
 
 \item{issue_key_upper_bound}{an optional API parameter that alters the GET request}
+
+\item{verbose}{boolean flag to specify printing operational
+messages or not. These messages will describe errors or successes in executing code.
+And example may be declaring the file name of a successfully downloaded file or printing
+how many issues have been downloaded so far}
 }
 \description{
 Calls \code{link{download_jira_issues}} with search_query specifying issue key

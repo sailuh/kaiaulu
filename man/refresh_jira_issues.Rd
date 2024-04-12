@@ -11,9 +11,9 @@ refresh_jira_issues(
   fields,
   save_folder_path,
   max_results,
-  verbose,
   max_total_downloads,
-  unaltered_file_path
+  unaltered_file_path,
+  verbose
 )
 }
 \arguments{
@@ -30,16 +30,16 @@ refresh_jira_issues(
 \item{max_results}{(optional) the maximum number of results to download per page.
 Default is 50. [How to use max_results](https://confluence.atlassian.com/jirakb/how-to-use-the-maxresults-api-parameter-for-jira-issue-search-rest-api-1251999998.html)}
 
-\item{verbose}{boolean flag to specify printing operational
-messages or not. These messages will describe errors or successes in executing code.
-And example may be declaring the file name of a successfully downloaded file or printing
-how many issues have been downloaded so far}
-
 \item{max_total_downloads}{Maximum downloads per function call.
 This value specifies how many issues should be extracted and API calls will cease if a subsequent
 API call would reach or surpass this value.}
 
 \item{unaltered_file_path}{the path to the directory that contains the files}
+
+\item{verbose}{boolean flag to specify printing operational
+messages or not. These messages will describe errors or successes in executing code.
+And example may be declaring the file name of a successfully downloaded file or printing
+how many issues have been downloaded so far}
 }
 \description{
 Extracts the greatest 'issueKey' value from files along save_folder_path. This is passed to

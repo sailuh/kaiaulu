@@ -108,9 +108,9 @@ all_issues <- download_jira_issues(issue_tracker_domain,
                            "resolutiondate"), 
                            save_path_issue_tracker_issues, 
                            max_results = 50, 
-                           verbose = TRUE,
                            max_total_downloads = 5000,
-                           search_query = NULL)
+                           search_query = NULL,
+                           verbose = TRUE)
 
 # save all_issues as a json file along the path save_path_issue_tracker_issues
 # jsonlite::write_json(all_issues, save_path_issue_tracker_issues)
@@ -150,10 +150,10 @@ all_issues <- download_jira_issues_by_date (issue_tracker_domain,
                            "resolutiondate"), 
                            save_path_issue_tracker_issues, 
                            max_results = 50, 
-                           verbose = TRUE,
                            max_total_downloads = 5000,
                            date_lower_bound,
-                           date_upper_bound)
+                           date_upper_bound,
+                           verbose = TRUE)
 
 ```
 ## Download issues by specifying issue key ranges
@@ -186,10 +186,10 @@ all_issues <- download_jira_issues_by_issue_key (issue_tracker_domain,
                            "resolutiondate"), 
                            save_path_issue_tracker_issues, 
                            max_results = 50, 
-                           verbose = TRUE,
                            max_total_downloads = 5000,
                            issue_key_lower_bound,
-                           issue_key_upper_bound)
+                           issue_key_upper_bound,
+                           verbose = TRUE)
 
 ```
 
@@ -217,9 +217,9 @@ refresh_jira_issues(
                            "resolutiondate"), 
                            save_path_issue_tracker_issues, 
                            max_results = 50, 
-                           verbose = TRUE,
                            max_total_downloads = 5000,
-                           refresh_issues)
+                           refresh_issues,
+                           verbose = TRUE)
 
 ```
 
@@ -250,9 +250,9 @@ all_issues_comments <- download_jira_issues(issue_tracker_domain,
                            "comment"), 
                            save_path_issue_tracker_issue_comments, 
                            max_results = 50, 
-                           verbose = TRUE,
                            max_total_downloads = 5000,
-                           search_query = NULL)
+                           search_query = NULL,
+                           verbose = TRUE)
 ```
 
 ## Download issues with comments by date ranges
@@ -290,10 +290,10 @@ all_issues_comments <- download_jira_issues_by_date(issue_tracker_domain,
                            "comment"), 
                            save_path_issue_tracker_issue_comments, 
                            max_results = 50, 
-                           verbose = TRUE,
                            max_total_downloads = 5000,
                            date_lower_bound,
-                           date_upper_bound)
+                           date_upper_bound,
+                           verbose = TRUE)
 ```
 
 
@@ -327,10 +327,10 @@ all_issues_comments <- download_jira_issues_by_issue_key(issue_tracker_domain,
                            "comment"), 
                            save_path_issue_tracker_issue_comments, 
                            max_results = 50, 
-                           verbose = TRUE,
                            max_total_downloads = 5000,
                            issue_key_lower_bound,
-                           issue_key_upper_bound)
+                           issue_key_upper_bound,
+                           verbose = TRUE)
 ```
 
 ## Refresh issue data
@@ -360,8 +360,8 @@ refresh_jira_issues(
                            "comment"), 
                            save_path_issue_tracker_issue_comments, 
                            max_results = 50, 
-                           verbose = TRUE,
                            max_total_downloads = 5000,
-                           refresh_issue_comments)
+                           refresh_issue_comments,
+                           verbose = TRUE)
 
 ```

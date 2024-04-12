@@ -786,15 +786,15 @@ create_status <- function(jira_domain_url, status) {
 #' @param save_folder_path Path that files will be save along as .json format
 #' @param max_results (optional) the maximum number of results to download per page.
 #' Default is 50. [How to use max_results](https://confluence.atlassian.com/jirakb/how-to-use-the-maxresults-api-parameter-for-jira-issue-search-rest-api-1251999998.html)
-#' @param verbose boolean flag to specify printing operational
-#' messages or not. These messages will describe errors or successes in executing code.
-#' And example may be declaring the file name of a successfully downloaded file or printing
-#' how many issues have been downloaded so far
 #' @param max_total_downloads Maximum downloads per function call.
 #' This value specifies how many issues should be extracted and API calls will cease if a subsequent
 #' API call would reach or surpass this value.
 #' @param search_query an optional API parameter that alters the GET request.
 #' Examples are 'created > date' or 'issueKey < value'.
+#' @param verbose boolean flag to specify printing operational
+#' messages or not. These messages will describe errors or successes in executing code.
+#' And example may be declaring the file name of a successfully downloaded file or printing
+#' how many issues have been downloaded so far
 #' @export
 #' @family jira
 #' @family downloaders
@@ -807,9 +807,9 @@ download_jira_issues <- function(domain,
                                           fields,
                                           save_folder_path,
                                           max_results = 50,
-                                          verbose = FALSE,
-                                 max_total_downloads = 5000,
-                                          search_query = NULL) {
+                                          max_total_downloads = 5000,
+                                          search_query = NULL,
+                                          verbose = FALSE) {
 
   # Ensure the domain starts with https:// for secure communication.
   if (!grepl("^https?://", domain)) {
@@ -892,7 +892,6 @@ download_jira_issues <- function(domain,
     # will be < maxResults so we check to make sure this is not true (total >= max_results)
     if ((download_count == 0) && (max_results != issue_count)) {
       if(verbose){
-        message("Total number of issues queried: ", total)
         message(". max_results specified: ", max_results)
         message(". Number of issues retrieved: ", issue_count)
         message(". Something went wrong with the API request. Changing max_results to ", issue_count)
@@ -900,38 +899,33 @@ download_jira_issues <- function(domain,
       max_results <- issue_count
     }
 
+    if (issue_count > 0){
+
     # Set the filename from the config file. It will be modified in the following code
     file_name <- save_folder_path
 
-    if (grepl("\\.json$", file_name)) {
-      # Remove .json if present in file_name. It will be added again in the naming convention
-      file_name <- sub("\\.json$", "", file_name)
-    }
+    # Extract 'created' dates
+    created_dates <- sapply(r_object_content$issues, function(issue) issue$fields$created)
 
-    # naming convention for each page
-    for (i in rev(seq_along(r_object_content$issues))) {
-      if (i == 1){
-        issue <- r_object_content$issue[[i]]
-        # Get the 'created' field
-        issue_created <- issue$fields$created
-        # Convert the time string to a POSIXct object, specifying the format
-        posix_time <- as.POSIXct(issue_created, format = "%Y-%m-%dT%H:%M:%OS", tz = "UTC")
-        # Convert the POSIXct object to UNIX time
-        unix_time <- as.numeric(posix_time)
-        # append to the filename
-        file_name <- paste0(file_name, "_", unix_time, ".json")
-      }
-      if (i == issue_count){
-        issue <- r_object_content$issue[[i]]
-        # Get the 'created' field
-        issue_created <- issue$fields$created
-        # Convert the time string to a POSIXct object, specifying the format
-        posix_time <- as.POSIXct(issue_created, format = "%Y-%m-%dT%H:%M:%OS", tz = "UTC")
-        # Convert the POSIXct object to UNIX time
-        unix_time <- as.numeric(posix_time)
-        # append to the filename
-        file_name <- paste0(file_name, "_", unix_time)
-      }
+    # Convert to POSIXct date objects
+    date_objects <- as.POSIXct(created_dates, format="%Y-%m-%dT%H:%M:%S", tz="UTC")
+
+    # Find the greatest and smallest date
+    latest_date <- max(date_objects)
+    latest_date_unix <- as.numeric(latest_date)
+    oldest_date <- min(date_objects)
+    oldest_date_unix <- as.numeric(oldest_date)
+
+    # Append oldest and latest dates to the file name
+    file_name <- paste0(file_name, "_", oldest_date_unix)
+    file_name <- paste0(file_name, "_", latest_date_unix, ".json")
+
+    # Print the latest and oldest dates and file name
+    if (verbose){
+      message("Latest date:", latest_date_unix)
+      message("Oldest date:", oldest_date_unix)
+      message("File name: ", file_name)
+    }
     }
 
     # write the files if issues present
@@ -983,15 +977,15 @@ download_jira_issues <- function(domain,
 #' @param save_folder_path Path that files will be save along in .json format
 #' @param max_results (optional) the maximum number of results to download per page.
 #' Default is 50. [How to use max_results](https://confluence.atlassian.com/jirakb/how-to-use-the-maxresults-api-parameter-for-jira-issue-search-rest-api-1251999998.html)
-#' @param verbose boolean flag to specify printing operational
-#' messages or not. These messages will describe errors or successes in executing code.
-#' And example may be declaring the file name of a successfully downloaded file or printing
-#' how many issues have been downloaded so far
 #' @param max_total_downloads Maximum downloads per function call.
 #' This value specifies how many issues should be extracted and API calls will cease if a subsequent
 #' API call would reach or surpass this value.
 #' @param date_lower_bound an optional API parameter that alters the GET request
 #' @param date_upper_bound an optional API parameter that alters the GET request
+#' @param verbose boolean flag to specify printing operational
+#' messages or not. These messages will describe errors or successes in executing code.
+#' And example may be declaring the file name of a successfully downloaded file or printing
+#' how many issues have been downloaded so far
 #' @export
 #' @family jira
 #' @family downloaders
@@ -1005,10 +999,10 @@ download_jira_issues_by_date <- function(domain,
                                                      fields,
                                                      save_folder_path,
                                                      max_results,
-                                                     verbose,
-                                         max_total_downloads,
+                                                     max_total_downloads,
                                                      date_lower_bound = NULL,
-                                                     date_upper_bound = NULL){
+                                                     date_upper_bound = NULL,
+                                                     verbose){
   created_query <- ""
   if (!is.null(date_lower_bound)){
     created_query <- paste0(created_query, "AND created >= '", date_lower_bound, "' ")
@@ -1021,14 +1015,14 @@ download_jira_issues_by_date <- function(domain,
   }
 
   download_jira_issues(domain,
-                                credentials,
-                                jql_query,
-                                fields,
-                                save_folder_path,
-                                max_results,
-                                verbose,
-                                max_total_downloads,
-                                search_query = created_query)
+                       credentials,
+                       jql_query,
+                       fields,
+                       save_folder_path,
+                       max_results,
+                       max_total_downloads,
+                       search_query = created_query,
+                       verbose)
 }
 
 #' Download JIRA issues filtering by issue key
@@ -1046,15 +1040,15 @@ download_jira_issues_by_date <- function(domain,
 #' @param save_folder_path Path that files will be save along in .json format
 #' @param max_results (optional) the maximum number of results to download per page.
 #' Default is 50. [How to use max_results](https://confluence.atlassian.com/jirakb/how-to-use-the-maxresults-api-parameter-for-jira-issue-search-rest-api-1251999998.html)
-#' @param verbose boolean flag to specify printing operational
-#' messages or not. These messages will describe errors or successes in executing code.
-#' And example may be declaring the file name of a successfully downloaded file or printing
-#' how many issues have been downloaded so far
 #' @param max_total_downloads Maximum downloads per function call.
 #' This value specifies how many issues should be extracted and API calls will cease if a subsequent
 #' API call would reach or surpass this value.
 #' @param issue_key_lower_bound an optional API parameter that alters the GET request
 #' @param issue_key_upper_bound an optional API parameter that alters the GET request
+#' @param verbose boolean flag to specify printing operational
+#' messages or not. These messages will describe errors or successes in executing code.
+#' And example may be declaring the file name of a successfully downloaded file or printing
+#' how many issues have been downloaded so far
 #' @export
 #' @family jira
 #' @family downloaders
@@ -1068,10 +1062,10 @@ download_jira_issues_by_issue_key <- function(domain,
                                                       fields,
                                                       save_folder_path,
                                                       max_results,
-                                                      verbose,
                                                       max_total_downloads,
                                                       issue_key_lower_bound = NULL,
-                                                      issue_key_upper_bound = NULL){
+                                                      issue_key_upper_bound = NULL,
+                                                      verbose){
   created_query <- ""
   if (!is.null(issue_key_lower_bound)){
     created_query <- paste0(created_query, "AND issueKey >= ", issue_key_lower_bound)
@@ -1084,14 +1078,14 @@ download_jira_issues_by_issue_key <- function(domain,
   }
 
   download_jira_issues(domain,
-                                credentials,
-                                jql_query,
-                                fields,
-                                save_folder_path,
-                                max_results,
-                                verbose,
-                                max_total_downloads,
-                                search_query = created_query)
+                       credentials,
+                       jql_query,
+                       fields,
+                       save_folder_path,
+                       max_results,
+                       max_total_downloads,
+                       search_query = created_query,
+                       verbose)
 }
 
 #' Download JIRA issues Refresh
@@ -1108,14 +1102,14 @@ download_jira_issues_by_issue_key <- function(domain,
 #' @param save_folder_path Path that files will be save along in .json format. Includes the prefix for projectname_issues
 #' @param max_results (optional) the maximum number of results to download per page.
 #' Default is 50. [How to use max_results](https://confluence.atlassian.com/jirakb/how-to-use-the-maxresults-api-parameter-for-jira-issue-search-rest-api-1251999998.html)
-#' @param verbose boolean flag to specify printing operational
-#' messages or not. These messages will describe errors or successes in executing code.
-#' And example may be declaring the file name of a successfully downloaded file or printing
-#' how many issues have been downloaded so far
 #' @param max_total_downloads Maximum downloads per function call.
 #' This value specifies how many issues should be extracted and API calls will cease if a subsequent
 #' API call would reach or surpass this value.
 #' @param unaltered_file_path the path to the directory that contains the files
+#' @param verbose boolean flag to specify printing operational
+#' messages or not. These messages will describe errors or successes in executing code.
+#' And example may be declaring the file name of a successfully downloaded file or printing
+#' how many issues have been downloaded so far
 #' @export
 #' @family downloaders
 #' @family jira
@@ -1125,14 +1119,14 @@ download_jira_issues_by_issue_key <- function(domain,
 #' @seealso  \code{link{parse_jira}} to parse jira issues along a file-path,
 #' @seealso \code{link{parse_jira_latest_date}} to retrieve the file_name to be passed to this function
 refresh_jira_issues <- function(domain,
-                                                  credentials,
-                                                  jql_query,
-                                                  fields,
-                                                  save_folder_path,
-                                                  max_results,
-                                                  verbose,
-                                                  max_total_downloads,
-                                                  unaltered_file_path){
+                                credentials,
+                                jql_query,
+                                fields,
+                                save_folder_path,
+                                max_results,
+                                max_total_downloads,
+                                unaltered_file_path,
+                                verbose){
 
   # Check if the file exists
   if(file.exists(unaltered_file_path)) {
@@ -1146,15 +1140,14 @@ refresh_jira_issues <- function(domain,
         message("The file is empty.Downloading all\n")
       }
       download_jira_issues(domain,
-                                    credentials,
-                                    jql_query,
-                                    fields,
-                                    save_folder_path,
-                                    max_results,
-                                    verbose,
+                           credentials,
+                           jql_query,
+                           fields,
+                           save_folder_path,
+                           max_results,
                            max_total_downloads,
-                                    search_query = NULL
-                                    )
+                           search_query = NULL,
+                           verbose)
     } else {
       # If file is not empty, run the refresh function
       # Get the file name with the latest 'issueKey' value
@@ -1203,14 +1196,14 @@ refresh_jira_issues <- function(domain,
 
       # Call the downloader with appended query
       download_jira_issues(domain,
-                                    credentials,
-                                    jql_query,
-                                    fields,
-                                    save_folder_path,
-                                    max_results,
-                                    verbose,
-                           max_total_downloads,
-                                    search_query)
+                          credentials,
+                          jql_query,
+                          fields,
+                          save_folder_path,
+                          max_results,
+                          max_total_downloads,
+                          search_query,
+                          verbose)
     }
   } else {
     if(verbose){
