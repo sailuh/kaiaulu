@@ -6,31 +6,30 @@
 
 ############## Parsers ##############
 
-#' Parse Jira issue and comments
+#' Parse JIRA Issues and Comments
 #'
-#' parse_jira takes jira issue json files and parses the issue data into table data. With this table data,
-#' the information of the jira issues can be put and seen in a table format. It is able to parse multiple
-#' jira issues in a single json file. Some jira json files include comments and some don't; to save time
-#' on parsing, it checks for comments and decides to skip the parsing or not depending on what it finds.
-#' In the case that a field does not exist in an issue but does for others, then it will simply not include
-#' the field for that issue in the table.
+#' Parses JIRA issues without or with comments contained in a folder following a standardized file nomenclature.
+#' as obtained from \code{\link{download_jira_issues}}. A named list with two elements (issues, comments) is returned
+#' containing the issue table and optionally comments table.
 #'
-#' The jira json naming convention is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
-#' or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json". The project key should be in all
-#' caps. For example: "KAIAULU_issues_1231234_2312413.json".
+#' The following fields are expected on the raw data:
 #'
-#' The general folder structure for the folder path containing the json files is as follows:
-#' "../../rawdata/issue_tracker/geronimo/issues/" or "../../rawdata/issue_tracker/geronimo/issue_comments/". The issues folder only
-#' contains jira issue json files that don't include comments. The issue_comments folder contains jira issue json files that can
-#' include comments. To see how the issue data is downloaded, refer to \code{\link{download_and_save_jira_issues}}
+#' issuekey, issuetype, components, creator, created, description, reporter, status, resolution
+#' resolutiondate, assignee, updated, comment, priority, votes, watches, versions, fixVersions, labels
 #'
-#' @param json_path is a folder path containing a set of jira_issues as json files.
+#' which are the default parameters of \code{\link{download_jira_issues}}. If the `comment` field is
+#' specified, then the comments table is included.
+#'
+#' If a field is not present in an issue, then its value will be NA.
+#'
+#'
+#' @param json_folder_path is a folder path containing a set of jira_issues as json files.
 #' @return A named list of two named elements ("issues", and "comments"), each containing a data.table.
 #' @export
 #' @family parsers
-parse_jira <- function(json_path){
+parse_jira <- function(json_folder_path){
 
-  file_list <- list.files(json_path)
+  file_list <- list.files(json_folder_path)
 
   if (identical(file_list, character(0))){
     stop(stringi::stri_c("cannot open the connection"))
@@ -144,8 +143,8 @@ parse_jira <- function(json_path){
   issues_holder <- list()
   comments_holder <- list()
 
-  for(i in file_list){
-    current_json <- paste0(json_path, "/", i)
+  for(filename in file_list){
+    current_json <- paste0(json_folder_path, "/", filename)
     parsed_data <- jira_parse_issues(current_json)
     issues_holder <- append(issues_holder, list(parsed_data[["issues"]]))
     comments_holder <- append(comments_holder, list(parsed_data[["comments"]]))
@@ -160,24 +159,21 @@ parse_jira <- function(json_path){
 
   return(return_info)
 }
-#' Parse Jira latest dates
+#' Parse JIRA current issue
 #'
-#' This is a function that returns the json file containing the Jira issue with the latest created date.
+#' Returns the file containing the most current issue in the specified folder.
 #'
-#' It is based on the name of the file, which is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
-#' or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json"
-#' For example: "KAIAULU_issues_1231234_2312413.json". Notice how the ProjectKey portion is in all caps.
+#' The folder assumes the following convention: "(PROJECTKEY)_issues_(uniextimestamp_lowerbound)_(unixtimestamp_upperbound).json"
+#' or ""(PROJECTKEY)_issue_comments_(uniextimestamp_lowerbound)_(unixtimestamp_upperbound).json"
+#' For example: "KAIAULU_issues_1231234_2312413.json". This nomenclature is guaranteed by \code{\link{download_jira_issues}}.
 #'
-#' This parser is created to be used by the jira refresher functions to help with finding the start point
-#' in which to refresh the downloaded jira issues. To see the jira issue refresher, refer to \code{\link{refresh_jira_issues}}
-#'
-#' @param json_path path to save folder containing JIRA issue and/or comments json files.
+#' @param json_folder_path path to save folder containing JIRA issue and/or comments json files.
 #' @return The name of the jira issue file with the latest created date that was created/downloaded for
 #' use by the Jira Downloader refresher
 #' @export
 #' @family parsers
-parse_jira_latest_date <- function(json_path){
-  file_list <- list.files(json_path)
+parse_jira_latest_date <- function(json_folder_path){
+  file_list <- list.files(json_folder_path)
   time_list <- list()
 
   # Checking if the save folder is empty
