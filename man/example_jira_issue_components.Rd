@@ -12,7 +12,7 @@ example_jira_issue_components(folder_path = "/tmp", folder_name)
 \item{folder_name}{The name of the folder}
 }
 \value{
-the JSON path of the newly created issue issue tracker
+the JSON folder path of the newly created issue issue tracker
 }
 \description{
 This example can be used to evaluate the parser does not replicate

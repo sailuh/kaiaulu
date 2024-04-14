@@ -396,7 +396,7 @@ example_notebook_alternating_function_in_files <- function(folder_path="/tmp", f
 #'
 #' @param folder_path The path where the folder will be created
 #' @param folder_name The name of the folder
-#' @return the JSON path of the newly created issue issue tracker
+#' @return the JSON folder path of the newly created issue issue tracker
 #' @export
 #' @keywords internal
 example_jira_issue_components <- function(folder_path = "/tmp", folder_name) {
@@ -428,7 +428,7 @@ example_jira_issue_components <- function(folder_path = "/tmp", folder_name) {
   jira_json_path <- make_jira_issue_tracker(
     issues, save_filepath=file.path(folder_path, "ONE_ISSUE_NO_COMMENTS_issues_1121646814_1121719175.json"))
 
-  return(jira_json_path)
+  return(folder_path)
 }
 
 #' Example JIRA Issue Tracker No Comments
@@ -437,7 +437,7 @@ example_jira_issue_components <- function(folder_path = "/tmp", folder_name) {
 #'
 #' @param folder_path The path where the folder will be created
 #' @param folder_name The name of the folder
-#' @return the JSON path of the newly created issue issue tracker
+#' @return the JSON folder path of the newly created issue issue tracker
 #' @export
 #' @keywords internal
 example_jira_two_issues <- function(folder_path = "/tmp", folder_name) {
@@ -488,7 +488,7 @@ example_jira_two_issues <- function(folder_path = "/tmp", folder_name) {
   jira_json_path <- make_jira_issue_tracker(
     issues, save_filepath=file.path(folder_path, "TWO_ISSUES_NO_COMMENTS_issues_1121646814_1121719175.json"))
 
-  return(jira_json_path)
+  return(folder_path)
 }
 
 #' Example Jira Issue Tracker With Comments
@@ -497,7 +497,7 @@ example_jira_two_issues <- function(folder_path = "/tmp", folder_name) {
 #'
 #' @param folder_path The path where the folder will be created
 #' @param folder_name The name of the folder
-#' @return the JSON path of the newly created issue issue tracker
+#' @return the JSON folder path of the newly created issue issue tracker
 #' @export
 #' @keywords internal
 example_jira_issue_comments <- function(folder_path = "/tmp", folder_name) {
@@ -533,7 +533,7 @@ example_jira_issue_comments <- function(folder_path = "/tmp", folder_name) {
   jira_json_path <- make_jira_issue_tracker(
     issues, save_filepath=file.path(folder_path,"ONE_ISSUE_WITH_COMMENTS_issues_1121646814_1121719175.json"))
 
-  return(jira_json_path)
+  return(folder_path)
 }
 
 #' Two Thread and Three Replies Mailing List

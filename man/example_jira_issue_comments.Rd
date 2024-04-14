@@ -12,7 +12,7 @@ example_jira_issue_comments(folder_path = "/tmp", folder_name)
 \item{folder_name}{The name of the folder}
 }
 \value{
-the JSON path of the newly created issue issue tracker
+the JSON folder path of the newly created issue issue tracker
 }
 \description{
 Create fake jira issue tracker with one issue with 2 comments
