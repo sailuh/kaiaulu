@@ -90,8 +90,8 @@ parse_jira <- function(json_path){
         issue_description = issue_comment[["description"]][[1]],
         issue_priority = issue_comment[["priority"]][["name"]][[1]],
         issue_affects_versions = stringi::stri_c(unlist(sapply(issue_comment[["versions"]],"[[","name")),collapse = ";"),
-        issue_fixVersions = stringi::stri_c(unlist(sapply(issue_comment[["fixVersions"]],"[[","name")),collapse = ";"),
-        issue_labels = stringi::stri_c(unlist(sapply(issue_comment[["labels"]],"[[","name")),collapse = ";"),
+        issue_fix_versions = stringi::stri_c(unlist(sapply(issue_comment[["fixVersions"]],"[[","name")),collapse = ";"),
+        issue_labels = stringi::stri_c(unlist(sapply(issue_comment[["labels"]],"[[",1)),collapse = ";"),
         issue_votes = issue_comment[["votes"]][["votes"]][[1]],
         issue_watchers = issue_comment[["watches"]][["watchCount"]][[1]],
 
