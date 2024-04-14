@@ -451,7 +451,9 @@ refresh_jira_issues <- function(domain,
     }
   }
 
-  
+}
+
+
 ############## Parsers ##############
 
 #' Parse JIRA Issues and Comments
