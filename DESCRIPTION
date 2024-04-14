@@ -18,7 +18,8 @@ Authors@R: c(
     person('Ruben', 'Jacobo', role = c('ctb')),
     person('Waylon', 'Ho', role = c('ctb')),
     person('Nicole', 'Hoess', role = c('ctb')),
-    person('Anthony', 'Lau', role = c('ctb'))
+    person('Anthony', 'Lau', role = c('ctb')),
+    person('Ian Jaymes', 'Iwata', role= c('ctb'))
     )
 Maintainer: Carlos Paradis <cvas@hawaii.edu>
 License: MPL-2.0 | file LICENSE

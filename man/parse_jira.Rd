@@ -7,14 +7,28 @@
 parse_jira(json_path)
 }
 \arguments{
-\item{json_path}{path to jira json (issues or issues with comments) obtained using `download_jira_data.Rmd`.}
+\item{json_path}{is a folder path containing a set of jira_issues as json files.}
 }
 \value{
 A named list of two named elements ("issues", and "comments"), each containing a data.table.
-Note the comments element will be empty if the downloaded json only contain issues.
 }
 \description{
-Parse Jira issue and comments
+parse_jira takes jira issue json files and parses the issue data into table data. With this table data,
+the information of the jira issues can be put and seen in a table format. It is able to parse multiple
+jira issues in a single json file. Some jira json files include comments and some don't; to save time
+on parsing, it checks for comments and decides to skip the parsing or not depending on what it finds.
+In the case that a field does not exist in an issue but does for others, then it will simply not include
+the field for that issue in the table.
+}
+\details{
+The jira json naming convention is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
+or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json". The project key should be in all
+caps. For example: "KAIAULU_issues_1231234_2312413.json".
+
+The general folder structure for the folder path containing the json files is as follows:
+"../../rawdata/issue_tracker/geronimo/issues/" or "../../rawdata/issue_tracker/geronimo/issue_comments/". The issues folder only
+contains jira issue json files that don't include comments. The issue_comments folder contains jira issue json files that can
+include comments. To see how the issue data is downloaded, refer to \code{\link{download_and_save_jira_issues}}
 }
 \seealso{
 Other parsers: 
@@ -27,6 +41,7 @@ Other parsers:
 \code{\link{parse_dependencies}()},
 \code{\link{parse_dv8_clusters}()},
 \code{\link{parse_gitlog}()},
+\code{\link{parse_jira_latest_date}()},
 \code{\link{parse_jira_rss_xml}()},
 \code{\link{parse_mbox}()},
 \code{\link{parse_nvdfeed}()}
