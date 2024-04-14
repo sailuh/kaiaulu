@@ -278,12 +278,6 @@ parse_jira_rss_xml <- function(jira_issues_folderpath){
 
 ############## Fake Generator ##############
 
-# Kaiaulu - https://github.com/sailuh/kaiaulu
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at https://mozilla.org/MPL/2.0/.
-
 #' Create JIRA Issue
 #'
 #' Creates a single JIRA Issue as a list, which can be saved as a JSON with or without comments.
