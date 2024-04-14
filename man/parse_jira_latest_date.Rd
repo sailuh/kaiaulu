@@ -2,27 +2,24 @@
 % Please edit documentation in R/jira.R
 \name{parse_jira_latest_date}
 \alias{parse_jira_latest_date}
-\title{Parse Jira latest dates}
+\title{Parse JIRA current issue}
 \usage{
-parse_jira_latest_date(json_path)
+parse_jira_latest_date(json_folder_path)
 }
 \arguments{
-\item{json_path}{path to save folder containing JIRA issue and/or comments json files.}
+\item{json_folder_path}{path to save folder containing JIRA issue and/or comments json files.}
 }
 \value{
 The name of the jira issue file with the latest created date that was created/downloaded for
 use by the Jira Downloader refresher
 }
 \description{
-This is a function that returns the json file containing the Jira issue with the latest created date.
+Returns the file containing the most current issue in the specified folder.
 }
 \details{
-It is based on the name of the file, which is as follows: "(ProjectKey)_issues_(UNIXTIMElowerbound)_(UNITITMEupperbound).json"
-or "(ProjectKey)_issue_comments_(UNIXTIMElowerbound)_(UNIXTIMEupperbound).json"
-For example: "KAIAULU_issues_1231234_2312413.json". Notice how the ProjectKey portion is in all caps.
-
-This parser is created to be used by the jira refresher functions to help with finding the start point
-in which to refresh the downloaded jira issues. To see the jira issue refresher, refer to \code{\link{refresh_jira_issues}}
+The folder assumes the following convention: "(PROJECTKEY)_issues_(uniextimestamp_lowerbound)_(unixtimestamp_upperbound).json"
+or ""(PROJECTKEY)_issue_comments_(uniextimestamp_lowerbound)_(unixtimestamp_upperbound).json"
+For example: "KAIAULU_issues_1231234_2312413.json". This nomenclature is guaranteed by \code{\link{download_jira_issues}}.
 }
 \seealso{
 Other parsers: 
