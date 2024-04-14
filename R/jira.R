@@ -6,16 +6,34 @@
 
 ############## Parsers ##############
 
-#' Parse Jira issue and comments
+#' Parse JIRA Issues and Comments
 #'
-#' @param json_path path to jira json (issues or issues with comments) obtained using `download_jira_data.Rmd`.
+#' Parses JIRA issues without or with comments contained in a folder following a standardized file nomenclature.
+#' as obtained from \code{\link{download_jira_issues}}. A named list with two elements (issues, comments) is returned
+#' containing the issue table and optionally comments table.
+#'
+#' The following fields are expected on the raw data:
+#'
+#' issuekey, issuetype, components, creator, created, description, reporter, status, resolution
+#' resolutiondate, assignee, updated, comment, priority, votes, watches, versions, fixVersions, labels
+#'
+#' which are the default parameters of \code{\link{download_jira_issues}}. If the `comment` field is
+#' specified, then the comments table is included.
+#'
+#' If a field is not present in an issue, then its value will be NA.
+#'
+#'
+#' @param json_folder_path is a folder path containing a set of jira_issues as json files.
 #' @return A named list of two named elements ("issues", and "comments"), each containing a data.table.
-#' Note the comments element will be empty if the downloaded json only contain issues.
 #' @export
 #' @family parsers
-parse_jira <- function(json_path){
+parse_jira <- function(json_folder_path){
 
-  json_issue_comments <- jsonlite::read_json(json_path)
+  file_list <- list.files(json_folder_path)
+
+  if (identical(file_list, character(0))){
+    stop(stringi::stri_c("cannot open the connection"))
+  }
 
   # Comments list parser. Comments may occur on any json issue.
   jira_parse_comment <- function(comment){
@@ -38,78 +56,142 @@ parse_jira <- function(json_path){
     return(parsed_comment)
   }
 
-  # names(json_issue_comments) => "base_info","ext_info"
-  # length([["base_info]]) == length([["ext_info]]) == n_issues.
-  # Choose either and store the total number of issues
-  n_issues <- length(json_issue_comments[["ext_info"]])
+  # Issues parser
+  jira_parse_issues <- function(jira_file){
 
-  # Prepare two lists which will contain data.tables for all issues and all comments
-  # Both tables can share the issue_key, so they can be joined if desired.
-  all_issues <- list()
-  all_issues_comments <- list()
+    json_issue_comments <- jsonlite::read_json(jira_file)
 
-  for(i in 1:n_issues){
+    n_issues <- length(json_issue_comments[["issues"]])
 
-    # The only use of "base_info" is to obtain the issue_key
-    issue_key <- json_issue_comments[["base_info"]][[i]][["key"]]
+    # Prepare two lists which will contain data.tables for all issues and all comments
+    # Both tables can share the issue_key, so they can be joined if desired.
+    all_issues <- list()
+    all_issues_comments <- list()
 
-    # All other information is contained in "ext_info"
-    issue_comment <- json_issue_comments[["ext_info"]][[i]]
+    for(i in 1:n_issues){
 
-    # Parse all relevant *issue* fields
-    all_issues[[i]] <- data.table(
-      issue_key = issue_key,
+      # This is the issue key
+      issue_key <- json_issue_comments[["issues"]][[i]][["key"]][[1]]
 
-      issue_summary = issue_comment[["summary"]][[1]],
-      issue_type = issue_comment[["issuetype"]][["name"]][[1]],
-      issue_status = issue_comment[["status"]][["name"]][[1]],
-      issue_resolution = issue_comment[["resolution"]][["name"]][[1]],
-      issue_components = stringi::stri_c(unlist(sapply(issue_comment[["components"]],"[[","name")),collapse = ";"),
-      issue_description = issue_comment[["description"]],
+      # All other information is contained in "fields"
+      issue_comment <- json_issue_comments[["issues"]][[i]][["fields"]]
 
-      issue_created_datetimetz = issue_comment[["created"]][[1]],
-      issue_updated_datetimetz = issue_comment[["updated"]][[1]],
-      issue_resolution_datetimetz = issue_comment[["resolutiondate"]],
+      # Parse all relevant *issue* fields
+      all_issues[[i]] <- data.table(
+        issue_key = issue_key,
 
-      issue_creator_id = issue_comment[["creator"]][["name"]][[1]],
-      issue_creator_name = issue_comment[["creator"]][["displayName"]][[1]],
-      issue_creator_timezone = issue_comment[["creator"]][["timeZone"]][[1]],
+        issue_summary = issue_comment[["summary"]][[1]],
+        issue_parent = issue_comment[["parent"]][["name"]][[1]],
+        issue_type = issue_comment[["issuetype"]][["name"]][[1]],
+        issue_status = issue_comment[["status"]][["statusCategory"]][["name"]][[1]],
+        issue_resolution = issue_comment[["resolution"]][["name"]][[1]],
+        issue_components = stringi::stri_c(unlist(sapply(issue_comment[["components"]],"[[","name")),collapse = ";"),
+        issue_description = issue_comment[["description"]][[1]],
+        issue_priority = issue_comment[["priority"]][["name"]][[1]],
+        issue_affects_versions = stringi::stri_c(unlist(sapply(issue_comment[["versions"]],"[[","name")),collapse = ";"),
+        issue_fix_versions = stringi::stri_c(unlist(sapply(issue_comment[["fixVersions"]],"[[","name")),collapse = ";"),
+        issue_labels = stringi::stri_c(unlist(sapply(issue_comment[["labels"]],"[[",1)),collapse = ";"),
+        issue_votes = issue_comment[["votes"]][["votes"]][[1]],
+        issue_watchers = issue_comment[["watches"]][["watchCount"]][[1]],
 
-      issue_assignee_id = issue_comment[["assignee"]][["name"]][[1]],
-      issue_assignee_name = issue_comment[["assignee"]][["displayName"]][[1]],
-      issue_assignee_timezone = issue_comment[["assignee"]][["timeZone"]][[1]],
+        issue_created_datetimetz = issue_comment[["created"]][[1]],
+        issue_updated_datetimetz = issue_comment[["updated"]][[1]],
+        issue_resolution_datetimetz = issue_comment[["resolutiondate"]][[1]],
 
-      issue_reporter_id = issue_comment[["reporter"]][["name"]][[1]],
-      issue_reporter_name = issue_comment[["reporter"]][["displayName"]][[1]],
-      issue_reporter_timezone = issue_comment[["reporter"]][["timeZone"]][[1]]
-    )
+        issue_creator_id = issue_comment[["creator"]][["name"]][[1]],
+        issue_creator_name = issue_comment[["creator"]][["displayName"]][[1]],
+        issue_creator_timezone = issue_comment[["creator"]][["timeZone"]][[1]],
 
-    # Comments
-    # For each issue, comment/comments contain 1 or more comments. Parse them
-    # in a separate table.
-    root_of_comments_list <- json_issue_comments[["ext_info"]][[i]][["comment"]]
-    # If root_of_comments_list does not exist, then this is an issue only json, skip parsing
-    if(length(root_of_comments_list) > 0){
-      comments_list <- json_issue_comments[["ext_info"]][[i]][["comment"]][["comments"]]
-      # Even on a json with comments, some issues may not have comments, check if comments exist:
-      if(length(comments_list) > 0){
-        # Parse all comments into issue_comments
-        issue_comments <- rbindlist(lapply(comments_list,
-                                           jira_parse_comment))
-        # Add issue_key column to the start of the table
-        issue_comments <- cbind(data.table(issue_key=issue_key),issue_comments)
-        all_issues_comments[[i]] <- issue_comments
+        issue_assignee_id = issue_comment[["assignee"]][["name"]][[1]],
+        issue_assignee_name = issue_comment[["assignee"]][["displayName"]][[1]],
+        issue_assignee_timezone = issue_comment[["assignee"]][["timeZone"]][[1]],
+
+        issue_reporter_id = issue_comment[["reporter"]][["name"]][[1]],
+        issue_reporter_name = issue_comment[["reporter"]][["displayName"]][[1]],
+        issue_reporter_timezone = issue_comment[["reporter"]][["timeZone"]][[1]]
+      )
+      # Comments
+      # For each issue, comment/comments contain 1 or more comments. Parse them
+      # in a separate table.
+      root_of_comments_list <- json_issue_comments[["issues"]][[i]][["fields"]][["comment"]]
+      # If root_of_comments_list does not exist, then this is an issue only json, skip parsing
+      if(length(root_of_comments_list) > 0){
+        comments_list <- json_issue_comments[["issues"]][[i]][["fields"]][["comment"]][["comments"]]
+        # Even on a json with comments, some issues may not have comments, check if comments exist:
+        if(length(comments_list) > 0){
+          # Parse all comments into issue_comments
+          issue_comments <- rbindlist(lapply(comments_list,
+                                             jira_parse_comment))
+          # Add issue_key column to the start of the table
+          issue_comments <- cbind(data.table(issue_key=issue_key),issue_comments)
+          all_issues_comments[[i]] <- issue_comments
+        }
       }
     }
+
+
+    all_issues <- rbindlist(all_issues,fill=TRUE)
+    all_issues_comments <- rbindlist(all_issues_comments,fill=TRUE)
+
+    parsed_issues_comments <- list()
+    parsed_issues_comments[["issues"]] <- all_issues
+    parsed_issues_comments[["comments"]] <- all_issues_comments
+
+    return(parsed_issues_comments)
   }
-  all_issues <- rbindlist(all_issues,fill=TRUE)
-  all_issues_comments <- rbindlist(all_issues_comments,fill=TRUE)
 
-  parsed_issues_comments <- list()
-  parsed_issues_comments[["issues"]] <- all_issues
-  parsed_issues_comments[["comments"]] <- all_issues_comments
+  issues_holder <- list()
+  comments_holder <- list()
 
-  return(parsed_issues_comments)
+  for(filename in file_list){
+    current_json <- paste0(json_folder_path, "/", filename)
+    parsed_data <- jira_parse_issues(current_json)
+    issues_holder <- append(issues_holder, list(parsed_data[["issues"]]))
+    comments_holder <- append(comments_holder, list(parsed_data[["comments"]]))
+  }
+
+  issues_holder <- rbindlist(issues_holder, fill=TRUE)
+  comments_holder <- rbindlist(comments_holder, fill=TRUE)
+
+  return_info <- list()
+  return_info[["issues"]] <- issues_holder
+  return_info[["comments"]] <- comments_holder
+
+  return(return_info)
+}
+#' Parse JIRA current issue
+#'
+#' Returns the file containing the most current issue in the specified folder.
+#'
+#' The folder assumes the following convention: "(PROJECTKEY)_issues_(uniextimestamp_lowerbound)_(unixtimestamp_upperbound).json"
+#' or ""(PROJECTKEY)_issue_comments_(uniextimestamp_lowerbound)_(unixtimestamp_upperbound).json"
+#' For example: "KAIAULU_issues_1231234_2312413.json". This nomenclature is guaranteed by \code{\link{download_jira_issues}}.
+#'
+#' @param json_folder_path path to save folder containing JIRA issue and/or comments json files.
+#' @return The name of the jira issue file with the latest created date that was created/downloaded for
+#' use by the Jira Downloader refresher
+#' @export
+#' @family parsers
+parse_jira_latest_date <- function(json_folder_path){
+  file_list <- list.files(json_folder_path)
+  time_list <- list()
+
+  # Checking if the save folder is empty
+  if (identical(file_list, character(0))){
+    stop(stringi::stri_c("cannot open the connection"))
+  }
+
+  for (j in file_list){
+    j <- sub(".*_(\\w+)\\.[^.]+$", "\\1", j)
+    j <- as.numeric(j)
+    time_list <- append(time_list, j)
+  }
+
+  overall_latest_date <- as.character(max(unlist(time_list)))
+
+  latest_issue_file <- grep(overall_latest_date, file_list, value = TRUE)
+
+  return(latest_issue_file)
 }
 #' Format Parsed Jira to Replies
 #'
