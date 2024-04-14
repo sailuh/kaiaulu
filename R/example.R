@@ -425,8 +425,8 @@ example_jira_issue_components <- function(folder_path = "/tmp", folder_name) {
 
   issues <- list(issue1)
 
-  jira_json_path <- make_jira_issue_tracker(
-    issues, save_filepath=file.path(folder_path, "ONE_ISSUE_NO_COMMENTS_issues_1121646814_1121719175.json"))
+  jira_json_path <- make_jira_issue_tracker(issues,
+                                            save_filepath=file.path(folder_path, "ONE_ISSUE_NO_COMMENTS_issues_1121646814_1121719175.json"))
 
   return(folder_path)
 }
@@ -485,8 +485,8 @@ example_jira_two_issues <- function(folder_path = "/tmp", folder_name) {
 
   issues <- list(issue1, issue2)
 
-  jira_json_path <- make_jira_issue_tracker(
-    issues, save_filepath=file.path(folder_path, "TWO_ISSUES_NO_COMMENTS_issues_1121646814_1121719175.json"))
+  jira_json_path <- make_jira_issue_tracker(issues,
+                                            save_filepath=file.path(folder_path, "TWO_ISSUES_NO_COMMENTS_issues_1121646814_1121719175.json"))
 
   return(folder_path)
 }
