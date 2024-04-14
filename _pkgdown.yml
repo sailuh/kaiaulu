@@ -110,6 +110,7 @@ reference:
        Notebook for details.
 - contents:
   - parse_jira
+  - parse_jira_latest_date
   - parse_jira_replies
   - parse_jira_rss_xml
   - make_jira_issue
