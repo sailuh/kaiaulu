@@ -27,8 +27,6 @@ require(jsonlite)
 
 # Introduction
 
-This example is adapted from the JirAgileR package [README.md](https://github.com/matbmeijer/JirAgileR). 
-
 As usual, the first step is to load the project configuration file. 
 
 # Project Configuration File
@@ -49,8 +47,8 @@ issue_tracker_domain <- conf[["issue_tracker"]][["jira"]][["domain"]]
 # Project key
 issue_tracker_project_key <- conf[["issue_tracker"]][["jira"]][["project_key"]]
 # Altered save paths. Important for naming conventions
-save_path_issue_tracker_issues <- paste0(conf[["issue_tracker"]][["jira"]][["issues"]], issue_tracker_project_key, "_issues")
-save_path_issue_tracker_issue_comments <- paste0(conf[["issue_tracker"]][["jira"]][["issue_comments"]], issue_tracker_project_key, "_issue_comments")
+save_path_issue_tracker_issues <- conf[["issue_tracker"]][["jira"]][["issues"]]
+save_path_issue_tracker_issue_comments <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
 # Unaltered save paths from config file for use with refresh function
 refresh_issues <- conf[["issue_tracker"]][["jira"]][["issues"]]
 refresh_issue_comments <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
@@ -59,6 +57,8 @@ refresh_issue_comments <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
 # Username: jondoe@jondoe.com
 # Password: jondoespassword
 credentials <- scan("~/.ssh/atlassian_credentials", what = "character", quiet = TRUE)
+username <- credentials[1]
+password <- credentials[2]
 ```
 
 ## Create the directories specified in the config files. 
@@ -106,6 +106,8 @@ all_issues <- download_jira_issues(issue_tracker_domain,
                            "created",
                            "updated",
                            "resolutiondate"), 
+             #              username = username,
+            #               password,
                            save_path_issue_tracker_issues, 
                            max_results = 50, 
                            max_total_downloads = 5000,
@@ -167,10 +169,9 @@ If issues with issue key greater than an issue key value are desired, set issue_
 ```{r}
 # eg issueKey_lower_bound <- "GERONIMO-740"
 issue_key_lower_bound <- "GERONIMO-500"
-issue_key_upper_bound <- NULL
+issue_key_upper_bound <- "GERONIMO-560"
 
-all_issues <- download_jira_issues_by_issue_key (issue_tracker_domain,
-                           credentials, 
+all_issues <- download_jira_issues_by_issue_key(domain = issue_tracker_domain,
                            jql_query = paste0("project='",issue_tracker_project_key,"'"), 
                            fields = c("summary", 
                            "description",
@@ -184,14 +185,19 @@ all_issues <- download_jira_issues_by_issue_key (issue_tracker_domain,
                            "created",
                            "updated",
                            "resolutiondate"), 
-                           save_path_issue_tracker_issues, 
+                           save_folder_path = save_path_issue_tracker_issues, 
                            max_results = 50, 
                            max_total_downloads = 5000,
-                           issue_key_lower_bound,
-                           issue_key_upper_bound,
+                           issue_key_lower_bound = issue_key_lower_bound,
+                           issue_key_upper_bound = issue_key_upper_bound,
                            verbose = TRUE)
 
 ```
+```{r}
+parsed_jira_issues <- parse_jira(save_path_issue_tracker_issues)
+parsed_jira_issues[["issues"]]
+```
+
 
 ## Refresh issue data
 

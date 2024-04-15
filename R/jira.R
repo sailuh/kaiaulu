@@ -20,7 +20,8 @@
 #' If the number of results per page returned is less than the number specified, the max_results value will adjust to that value.
 #'
 #' @param domain Custom JIRA domain URL set in config file
-#' @param credentials a path to text file containing your username/api token
+#' @param username the JIRA username
+#' @param password the JIRA password/API token
 #' @param jql_query Specific query string to specify criteria for fetching
 #' @param fields List of fields that are downloaded in each issue
 #' @param save_folder_path Path that files will be save along as .json format
@@ -42,9 +43,10 @@
 #' @seealso  \code{link{download_jira_issues_by_date}} to download JIRA data using created as a search criteria,
 #' @seealso  \code{link{refresh_jira_issues}} to download only JIRA data that has not already been downloaded
 download_jira_issues <- function(domain,
-                                          credentials,
                                           jql_query,
                                           fields,
+                                          username = NULL,
+                                          password = NULL,
                                           save_folder_path,
                                           max_results = 50,
                                           max_total_downloads = 5000,
@@ -79,27 +81,25 @@ download_jira_issues <- function(domain,
 
     # Check update our download count and see if it is approaching the limit
     if (download_count + max_results > max_total_downloads) {
-      # erorr message
+      # error message
       time <- Sys.time()
       if(verbose){
-        message("Cannot download as max_total_downloads will be exceeeded. Reccommend running again at a later time. Downloads ended at ", time)
+        message("Cannot download as max_total_downloads will be exceeded. Try again at a later time. Download ended at ", time)
       }
         break
-    } # Resume donwloading
+    } # Resume downloading
 
     # Construct the API endpoint URL
     url <- paste0(domain, "/rest/api/2/search")
 
     #Authenticate if username and password are provided
-    if(length(credentials) >= 2) {
-      username <- credentials[1]
-      password <- credentials[2]
-      # Use the credentials for authentication
+    if(!is.null(username)&&!is.null(password)) {
+      # Use the username/password for authentication
       auth <- httr::authenticate(as.character(username), as.character(password), "basic")
       #message("successfully authenticated")
     } else {
       if(verbose){
-        message("No credentials present or are formatted incorrectly.")
+        message("No username or password present or are formatted incorrectly.")
       }
       auth <- NULL
     }
@@ -108,7 +108,7 @@ download_jira_issues <- function(domain,
     query_params <- list(jql = jql_query, fields = paste(fields, collapse = ","), maxResults = max_results, startAt = start_at)
 
     if (verbose && (download_count == 0)){
-      message("Query paramters: ", query_params)
+      message("Query parameters: ", query_params)
     }
     # Make the API call
     response <- httr::GET(url, query = query_params)
@@ -141,8 +141,11 @@ download_jira_issues <- function(domain,
 
     if (issue_count > 0){
 
-    # Set the filename from the config file. It will be modified in the following code
-    file_name <- save_folder_path
+    # Construct JSON file name based on refresh convention
+
+
+    # The file name prefix is the JIRA project key. The from and to unix timestamps are then added.
+    file_name <- stringi::stri_extract_first_regex(str=s, pattern="(?<=project=')[:alpha:]+")
 
     # Extract 'created' dates
     created_dates <- sapply(r_object_content$issues, function(issue) issue$fields$created)
@@ -159,6 +162,11 @@ download_jira_issues <- function(domain,
     # Append oldest and latest dates to the file name
     file_name <- paste0(file_name, "_", oldest_date_unix)
     file_name <- paste0(file_name, "_", latest_date_unix, ".json")
+
+
+
+    # Add path where file will be saved
+    file_name <- file.path(save_folder_path,file_name)
 
     # Print the latest and oldest dates and file name
     if (verbose){
@@ -211,7 +219,8 @@ download_jira_issues <- function(domain,
 #' [How to use created](https://support.atlassian.com/jira-software-cloud/docs/jql-fields/#Created)
 #'
 #' @param domain Custom JIRA domain URL set in config file
-#' @param credentials a path to text file containing your username/api token
+#' @param username the JIRA username
+#' @param password the JIRA password/API token
 #' @param jql_query Specific query string to specify criteria for fetching
 #' @param fields List of fields that are downloaded in each issue
 #' @param save_folder_path Path that files will be save along in .json format
@@ -234,15 +243,16 @@ download_jira_issues <- function(domain,
 #' @seealso  \code{link{refresh_jira_issues}} to download only JIRA data that has not already been downloaded
 #' @seealso  \code{link{parse_jira}} to parse jira issues along a file-path
 download_jira_issues_by_date <- function(domain,
-                                                     credentials,
-                                                     jql_query,
-                                                     fields,
-                                                     save_folder_path,
-                                                     max_results,
-                                                     max_total_downloads,
-                                                     date_lower_bound = NULL,
-                                                     date_upper_bound = NULL,
-                                                     verbose){
+                                         jql_query,
+                                         fields,
+                                         username = NULL,
+                                         password = NULL,
+                                         save_folder_path,
+                                         max_results,
+                                         max_total_downloads,
+                                         date_lower_bound = NULL,
+                                         date_upper_bound = NULL,
+                                         verbose){
   created_query <- ""
   if (!is.null(date_lower_bound)){
     created_query <- paste0(created_query, "AND created >= '", date_lower_bound, "' ")
@@ -254,15 +264,16 @@ download_jira_issues_by_date <- function(domain,
     message("Appending ", created_query, " to api request.")
   }
 
-  download_jira_issues(domain,
-                       credentials,
-                       jql_query,
-                       fields,
-                       save_folder_path,
-                       max_results,
-                       max_total_downloads,
+  download_jira_issues(domain = domain,
+                       jql_query = jql_query,
+                       fields = fields,
+                       username = username,
+                       password = password,
+                       save_folder_path = save_folder_path,
+                       max_results = max_results,
+                       max_total_downloads = max_total_downloads,
                        search_query = created_query,
-                       verbose)
+                       verbose = verbose)
 }
 
 #' Download JIRA issues filtering by issue key
@@ -274,7 +285,8 @@ download_jira_issues_by_date <- function(domain,
 #' [How to use issue key](https://support.atlassian.com/jira-software-cloud/docs/jql-fields/#Issue-key)
 #'
 #' @param domain Custom JIRA domain URL set in config file
-#' @param credentials a path to text file containing your username/api token
+#' @param username the JIRA username
+#' @param password the JIRA password/API token
 #' @param jql_query Specific query string to specify criteria for fetching
 #' @param fields List of fields that are downloaded in each issue
 #' @param save_folder_path Path that files will be save along in .json format
@@ -297,15 +309,16 @@ download_jira_issues_by_date <- function(domain,
 #' @seealso  \code{link{refresh_jira_issues}} to download only JIRA data that has not already been downloaded,
 #' @seealso  \code{link{parse_jira}} to parse jira issues along a file-path
 download_jira_issues_by_issue_key <- function(domain,
-                                                      credentials,
-                                                      jql_query,
-                                                      fields,
-                                                      save_folder_path,
-                                                      max_results,
-                                                      max_total_downloads,
-                                                      issue_key_lower_bound = NULL,
-                                                      issue_key_upper_bound = NULL,
-                                                      verbose){
+                                              jql_query,
+                                              fields,
+                                              username = NULL,
+                                              password = NULL,
+                                              save_folder_path,
+                                              max_results,
+                                              max_total_downloads,
+                                              issue_key_lower_bound = NULL,
+                                              issue_key_upper_bound = NULL,
+                                              verbose){
   created_query <- ""
   if (!is.null(issue_key_lower_bound)){
     created_query <- paste0(created_query, "AND issueKey >= ", issue_key_lower_bound)
@@ -317,13 +330,14 @@ download_jira_issues_by_issue_key <- function(domain,
     message("Appending ", created_query, " to api request.")
   }
 
-  download_jira_issues(domain,
-                       credentials,
-                       jql_query,
-                       fields,
-                       save_folder_path,
-                       max_results,
-                       max_total_downloads,
+  download_jira_issues(domain = domain,
+                       jql_query = jql_query,
+                       fields = fields,
+                       username = username,
+                       password = password,
+                       save_folder_path = save_folder_path,
+                       max_results = max_results,
+                       max_total_downloads = max_total_downloads,
                        search_query = created_query,
                        verbose)
 }
@@ -336,7 +350,8 @@ download_jira_issues_by_issue_key <- function(domain,
 #' downloaded previously. If the directory is empty, then it will download all issues.
 #'
 #' @param domain Custom JIRA domain URL set in config file
-#' @param credentials a path to text file containing your username/api token
+#' @param username the JIRA username
+#' @param password the JIRA password/API token
 #' @param jql_query Specific query string to specify criteria for fetching
 #' @param fields List of fields that are downloaded in each issue
 #' @param save_folder_path Path that files will be save along in .json format. Includes the prefix for projectname_issues
@@ -359,9 +374,10 @@ download_jira_issues_by_issue_key <- function(domain,
 #' @seealso  \code{link{parse_jira}} to parse jira issues along a file-path,
 #' @seealso \code{link{parse_jira_latest_date}} to retrieve the file_name to be passed to this function
 refresh_jira_issues <- function(domain,
-                                credentials,
                                 jql_query,
                                 fields,
+                                username = NULL,
+                                password = NULL,
                                 save_folder_path,
                                 max_results,
                                 max_total_downloads,
@@ -379,15 +395,16 @@ refresh_jira_issues <- function(domain,
       if(verbose){
         message("The file is empty.Downloading all\n")
       }
-      download_jira_issues(domain,
-                           credentials,
-                           jql_query,
-                           fields,
-                           save_folder_path,
-                           max_results,
-                           max_total_downloads,
+      download_jira_issues(domain = domain,
+                           jql_query = jql_query,
+                           fields = fields,
+                           username = username,
+                           password = password,
+                           save_folder_path = save_folder_path,
+                           max_results = max_results,
+                           max_total_downloads = max_total_downloads,
                            search_query = NULL,
-                           verbose)
+                           verbose = verbose)
     } else {
       # If file is not empty, run the refresh function
       # Get the file name with the latest 'issueKey' value
@@ -435,15 +452,16 @@ refresh_jira_issues <- function(domain,
       }
 
       # Call the downloader with appended query
-      download_jira_issues(domain,
-                          credentials,
-                          jql_query,
-                          fields,
-                          save_folder_path,
-                          max_results,
-                          max_total_downloads,
-                          search_query,
-                          verbose)
+      download_jira_issues(domain = domain,
+                          jql_query = jql_query,
+                          fields = fields,
+                          username = username,
+                          password =password,
+                          save_folder_path = save_folder_path,
+                          max_results = max_results,
+                          max_total_downloads = max_total_downloads,
+                          search_query = search_query,
+                          verbose = verbose)
     }
   } else {
     if(verbose){
@@ -619,7 +637,7 @@ parse_jira <- function(json_folder_path){
 #'
 #' @param json_folder_path path to save folder containing JIRA issue and/or comments json files.
 #' @return The name of the jira issue file with the latest created date that was created/downloaded for
-#' use by the Jira Downloader refresher
+#' use by the Jira downloader refresher
 #' @export
 #' @family parsers
 parse_jira_latest_date <- function(json_folder_path){
