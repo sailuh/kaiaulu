@@ -385,7 +385,6 @@ download_jira_issues_by_issue_key <- function(domain,
 #' @param max_total_downloads Maximum downloads per function call.
 #' This value specifies how many issues should be extracted and API calls will cease if a subsequent
 #' API call would reach or surpass this value.
-#' @param unaltered_file_path the path to the directory that contains the files
 #' @param verbose boolean flag to specify printing operational
 #' messages or not. These messages will describe errors or successes in executing code.
 #' And example may be declaring the file name of a successfully downloaded file or printing
@@ -406,94 +405,93 @@ refresh_jira_issues <- function(domain,
                                 save_folder_path,
                                 max_results,
                                 max_total_downloads,
-                                unaltered_file_path,
                                 verbose){
 
-  # Check if the file exists
-  if(file.exists(unaltered_file_path)) {
-    # Check if the file is empty by checking its size
-    # List all files and subdirectories in the directory
-    contents <- list.files(path = unaltered_file_path)
+  # List all files and subdirectories in the directory
+  existing_issues <- list.files(path = save_folder_path)
 
-    # If the file is empty, download all issues
-    if(length(contents) == 0) {
-      if(verbose){
-        message("The file is empty.Downloading all\n")
-      }
-      download_jira_issues(domain = domain,
-                           jql_query = jql_query,
-                           fields = fields,
-                           username = username,
-                           password = password,
-                           save_folder_path = save_folder_path,
-                           max_results = max_results,
-                           max_total_downloads = max_total_downloads,
-                           search_query = NULL,
-                           verbose = verbose)
-    } else {
-      # If file is not empty, run the refresh function
-      # Get the file name with the latest 'issueKey' value
-      file_name_with_greatest_issue_key <- parse_jira_latest_date(unaltered_file_path)
-      if(verbose){
-        message("Filename with latest date: ", file_name_with_greatest_issue_key)
-      }
-
-      # Prep the path and filename
-      issue_refresh <- paste0(unaltered_file_path, file_name_with_greatest_issue_key)
-
-      # Read the JSON file
-      json_data <- jsonlite::fromJSON(txt = issue_refresh, simplifyVector = FALSE)
-
-      # Extract the Maximum issue key value
-      # Start with a low value assuming no negative numbers
-      max_numeric_part <- -1
-      max_key <- ""
-
-      for (issue in json_data$issues) {
-        # Extract the key for the current issue
-        current_key <- issue$key
-
-        # Extract the numeric part of the key
-        # Assuming the key format is "PROJECTNAME-NUMBER"
-        numeric_part <- as.numeric(sub("^[^-]+-", "", current_key))
-
-        # Check if the numeric part is greater than the current maximum
-        if (numeric_part > max_numeric_part) {
-          # Update the maximum numeric part and the corresponding key
-          max_numeric_part <- numeric_part
-          max_key <- current_key
-        }
-      }
-
-      # Print the key with the maximum numeric part
-      if(verbose){
-        message("The greatest issue key value is ", max_key)
-      }
-
-      # Construct the search query to append to the JIRA API request
-      search_query <- paste0("AND issueKey > ", max_key)
-      if(verbose){
-        message("Appending ", search_query, " to JQL query")
-      }
-
-      # Call the downloader with appended query
-      download_jira_issues(domain = domain,
-                          jql_query = jql_query,
-                          fields = fields,
-                          username = username,
-                          password =password,
-                          save_folder_path = save_folder_path,
-                          max_results = max_results,
-                          max_total_downloads = max_total_downloads,
-                          search_query = search_query,
-                          verbose = verbose)
-    }
-  } else {
+  # If the folder is empty, then start by downloading all issues.
+  if(length(existing_issues) == 0) {
     if(verbose){
-      message("The file does not exist.\n")
+      message("The folder is empty. Downloading all issues. \n")
     }
-  }
+    download_jira_issues(domain = domain,
+                         jql_query = jql_query,
+                         fields = fields,
+                         username = username,
+                         password = password,
+                         save_folder_path = save_folder_path,
+                         max_results = max_results,
+                         max_total_downloads = max_total_downloads,
+                         search_query = NULL,
+                         verbose = verbose)
+  } else {
+    # If folder is not empty, find the highest issue key, and resume download after it.
+    # First, get the file name with the last downloaded 'issueKey' value
+    file_name_with_greatest_issue_key <- parse_jira_latest_date(save_folder_path)
 
+    # Prepare the path and filename
+    issue_refresh <- file.path(save_folder_path, file_name_with_greatest_issue_key)
+
+    # Check if the file exists
+    if(file.exists(issue_refresh)) {
+    # Check if the file is empty by checking its size
+    } else {
+      if(verbose){
+        stop("The file does not exist.\n")
+      }
+    }
+    if(verbose){
+      message("Filename with highest date (and therefore latest issue key is inside): ", issue_refresh)
+    }
+
+    # Read the JSON file
+    json_data <- jsonlite::fromJSON(txt = issue_refresh, simplifyVector = FALSE)
+
+    # Extract the Maximum issue key value
+    # Start with a low value assuming no negative numbers
+    max_numeric_part <- -1
+    max_key <- ""
+
+    for (issue in json_data$issues) {
+      # Extract the key for the current issue
+      current_key <- issue$key
+
+      # Extract the numeric part of the key
+      # Assuming the key format is "PROJECTNAME-NUMBER"
+      numeric_part <- as.numeric(sub("^[^-]+-", "", current_key))
+
+      # Check if the numeric part is greater than the current maximum
+      if (numeric_part > max_numeric_part) {
+        # Update the maximum numeric part and the corresponding key
+        max_numeric_part <- numeric_part
+        max_key <- current_key
+      }
+    }
+
+    # Print the key with the maximum numeric part
+    if(verbose){
+      message("The greatest issue key value is ", max_key)
+    }
+
+    # Construct the search query to append to the JIRA API request
+    search_query <- paste0("AND issueKey > ", max_key)
+    if(verbose){
+      message("Appending ", search_query, " to JQL query")
+    }
+
+    # Call the downloader with appended query
+    download_jira_issues(domain = domain,
+                        jql_query = jql_query,
+                        fields = fields,
+                        username = username,
+                        password = password,
+                        save_folder_path = save_folder_path,
+                        max_results = max_results,
+                        max_total_downloads = max_total_downloads,
+                        search_query = search_query,
+                        verbose = verbose)
+  }
 }
 
 

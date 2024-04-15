@@ -27,18 +27,18 @@ require(jsonlite)
 
 # Introduction
 
-As usual, the first step is to load the project configuration file. 
+This Notebook showcases how to obtain JIRA issues and comments using Kaiaulu with and without authentication. We also demonstrate how you can use the `refresher` capability: I.e. by calling the function again, Kaiaulu will only download more recent data in a folder. This is useful for server-side deployment, in combination with CRON jobs. While you have flexibility in choosing what type of fields should be included on the downloader JSON data, bear in mind only the default fields specified on the downloaders are available on the parser. These, however, are easily extensible. 
 
-# Project Configuration File
+# Project Configuration File and Setup
 
-In this notebook, we will obtain data from the issue tracker JIRA. We will use [Apache's Geronimo open source project](https://geronimo.apache.org). Refer to the `conf/` folder on Kaiaulu's git repository for Geronimo and other project configuration files. It is in this project configuration file we specify where Kaiaulu can find the jira sources from Geronimo. We will use the issue_tracker -> jira fields only. In regards to the "issues" and "issue_comments" fields, these should be set to paths where you want to store the jira data. Then, you can access this jira data later using these same paths.
+In this notebook, we will obtain data from the issue tracker JIRA. We will use [Apache's Geronimo open source project](https://geronimo.apache.org). Refer to the `conf/` folder on Kaiaulu's git repository for Geronimo and other project configuration files. It is in this project configuration file we specify where Kaiaulu can find the jira sources from Geronimo. 
 
-# your_api_token is your atlassian token that is used as your password. This is optional but may be required depending on the project's permissions. Your username is your atlassian username (usually your email). These can be created by navigating to the indicated directories and creating a plain text file (vim atlassian_username or vim atlassian_token) and typing in your username and token. Example format: 
+In the "issues" and "issue_comments" fields, you should also specify the folder path where the data will be saved. We recommend you adopt the convention adopted in Kaiaulu if you are collaborating with others, as other sections of the configuration file used in other Notebooks will also adopt this overall structure.
 
-Username: jondoe@jondoe.com
-Password: jondoespassword
+In general, projects such as Apache Software Foundation do not require authentication to obtain issue data. Authentication is only required to obtain more sensitive data. If you are using Kaiaulu for an internal JIRA account, however, authentication may be useful for you. The free version of JIRA (e.g. https://sailuh.atlassian.net/) also requires authentication. In the case of the free JIRA version, your API username is your account e-mail, and your password is an API token [you create](https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/). We explain how to load your username and password below.
 
-Details on [how to obtain an atlassian token](https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/)
+
+First, we will load Geronimo configuration file:
 
 ```{r}
 conf <- yaml::read_yaml("../conf/kaiaulu.yml")
@@ -51,21 +51,148 @@ save_path_issue_tracker_issues <- conf[["issue_tracker"]][["jira"]][["issues"]]
 save_path_issue_tracker_issue_comments <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
 # Unaltered save paths from config file for use with refresh function
 refresh_issues <- conf[["issue_tracker"]][["jira"]][["issues"]]
-refresh_issue_comments <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
-# Read the credentials from the file
-# Assuming the first line is the username and the second line is the password
-# Username: jondoe@jondoe.com
-# Password: jondoespassword
-credentials <- scan("~/.ssh/atlassian_credentials", what = "character", quiet = TRUE)
-username <- credentials[1]
-password <- credentials[2]
+```
+
+If authentication is needed, save your username (e-mail) and password (API token) in a file, e.g. atlassian_credentials, where the first line is the username, and the second the API token, e.g.
+
+```
+jondoe@jondoe.com
+jondoespassword
+```
+
+And remove the `eval = FALSE` from the code block below (note you do not want to use this code block if you are accessing a JIRA instance that you do not have an account, or you will have authentication errors):
+
+```{r eval = FALSE}
+if(file.exists("~/.ssh/atlassian_credentials")){
+  credentials <- scan("~/.ssh/atlassian_credentials", what = "character", quiet = TRUE)  
+  username <- credentials[1]
+  password <- credentials[2]
+}
 ```
 
 ## Create the directories specified in the config files. 
 
 Before proceeding, make sure you created the folder structure you specified on the project configuration file. This Notebook will not create the folders automatically.
 
-## Download issues
+# Downloading Issues
+
+Kaiaulu offers three ways to download issues with or without comment: By Date, by Issue Key, and Custom. The Date and Issue Key range functions wrap around the Custom function, serving as examples on how to customize it. 
+
+## Issues and Comments by date ranges
+
+Using the `download_jira_issues_by_date()`, you can download issues based on their ['created'](https://support.atlassian.com/jira-software-cloud/docs/jql-fields/#Created) dates. Th acceptable formats are:
+
+ * "yyyy/MM/dd HH:mm"
+ * "yyyy-MM-dd HH:mm"
+ * "yyyy/MM/dd"
+ * "yyyy-MM-dd"
+
+If both date range pparameters are set to `NULL`, then all issues will be retrieved. Alternatively, if for example `date_lower_bound` is set to "2000-01-01" and `date_upper_bound` is set to "2005-01-01", then only issues created between these two dates will be retrieved.
+
+If you would like to retrieve issues only **after** a certain date, set `date_upper_bound=NULL` and `date_lower_bound` to the date. 
+
+If you would like to retrieve only issues **before** a certain date, set `date_lower_bound=NULL` and date_upper_bound to the date. 
+
+Note in this code block we specified the fields from the issue we are interested in downloading. Again, you may specify [any fields](https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issue-fields/#api-rest-api-2-field-get) of interest for the downloader, including custom fields of your JIRA instance, but the parser currently only support those listed here (in addition to comments data, not exemplified yet). 
+
+Beware that even if only 3 issues exist in a JIRA, a large time range will still request several API calls (in contrast to the issue endpoint below). Therefore, it is advisable to use the issue key query instead.
+
+```{r eval = FALSE}
+# e.g. date_lower_bound <- "1970/01/01". 
+date_lower_bound <- "2023/11/16 21:00"
+date_upper_bound <- "2023/11/17 21:00"
+
+all_issues <- download_jira_issues_by_date(issue_tracker_domain,
+                           jql_query = paste0("project='",issue_tracker_project_key,"'"), 
+                           fields = c("summary", 
+                           "description",
+                           "creator",
+                           "assignee",
+                           "reporter",
+                           "issuetype",
+                           "status",
+                           "resolution",
+                           "components",
+                           "created",
+                           "updated",
+                           "resolutiondate",
+                           "priority",
+                           "votes",
+                           "watches",
+                           "versions",
+                           "fixVersions",
+                           "labels"), 
+                           username = username,
+                           password = password,
+                           save_folder_path = save_path_issue_tracker_issues, 
+                           max_results = 50, 
+                           max_total_downloads = 60,
+                           date_lower_bound = date_lower_bound,
+                           date_upper_bound = date_upper_bound,
+                           verbose = TRUE)
+
+```
+
+Note if authentication is required, you should also uncomment the username and password parameters. The downloaded data can be also parsed in Kaiaulu:
+
+```{r}
+parsed_jira_issues <- parse_jira(save_path_issue_tracker_issues)
+parsed_jira_issues[["issues"]]
+```
+
+
+
+
+## Download issues by specifying issue key ranges
+
+Download issues with specified date ranges. This chunk allows the user to manipulate the functions issue_key_lower_bound and issue_key_upper_bound that retrieves only JIRA issues with the issue key between these bounds. These parameters need to be specified in accordance with the issue key format relevant to your project. The default format is <project key>-<issue number>.
+
+They are optional parameters to retrieve a range. If both are set to NULL, then all issues will be retrieved as the request will not be bounded. An example is if issue_key_lower_bound is set to "GERONIMO-740" and issue_key_upper_bound is set to "GERONIMO-6000", then only issues with issue keys between these two issue keys will be retrieved.
+
+If issues with issue key greater than an issue key value are desired, set issue_key_upper_bound to NULL and issue_key_lower_bound to the issue key value. If issues with issue key less than an issue key value are desired, set issue_key_upper_bound to the issue key and issue_key_lower_bound to NULL. 
+
+```{r eval = FALSE}
+# eg issueKey_lower_bound <- "GERONIMO-740"
+#issue_key_lower_bound <- "GERONIMO-500"
+#issue_key_upper_bound <- "GERONIMO-560"
+
+issue_key_lower_bound <- "SAILUH-1"
+issue_key_upper_bound <- "SAILUH-3"
+
+all_issues <- download_jira_issues_by_issue_key(domain = issue_tracker_domain,
+                           jql_query = paste0("project='",issue_tracker_project_key,"'"), 
+                           fields = c("summary", 
+                           "description",
+                           "creator",
+                           "assignee",
+                           "reporter",
+                           "issuetype",
+                           "status",
+                           "resolution",
+                           "components",
+                           "created",
+                           "updated",
+                           "resolutiondate",
+                           "priority",
+                           "votes",
+                           "watches",
+                           "versions",
+                           "fixVersions",
+                           "labels"), 
+                           username = username,
+                           password = password,
+                           save_folder_path = save_path_issue_tracker_issues, 
+                           max_results = 50, 
+                           max_total_downloads = 60,
+                           issue_key_lower_bound = issue_key_lower_bound,
+                           issue_key_upper_bound = issue_key_upper_bound,
+                           verbose = TRUE)
+
+
+
+```
+
+# Downloading Issues
 
 This calls a function that downloads all issue data (without comments) from a repository specified in the config file. 
 
@@ -103,101 +230,6 @@ all_issues <- download_jira_issues(issue_tracker_domain,
 
 # save all_issues as a json file along the path save_path_issue_tracker_issues
 # jsonlite::write_json(all_issues, save_path_issue_tracker_issues)
-```
-## Download issues by date ranges
-
-Download issues with specified date ranges. This chunk allows the user to manipulate the functions date_lower_bound and date_upper_bound that retrieves only jira issues that were ['created'](https://support.atlassian.com/jira-software-cloud/docs/jql-fields/#Created) between these bounds. They are optional parameters to retrieve a range. acceptable formats include: 
-
-"yyyy/MM/dd HH:mm"
-"yyyy-MM-dd HH:mm"
-"yyyy/MM/dd"
-"yyyy-MM-dd"
-
-If both are set to NULL, then all issues will be retrieved. An example is if date_lower_bound is set to "2000-01-01" and date_upper_bound is set to "2005-01-01", then only issues created between these two dates will be retrieved. The API call will have "AND created >= 2000-01-01 AND created <= 2005-01-01" appended to it before retrieving data.
-
-If you would like to retrieve issues only after a certain date, set date_upper_bound to NULL and date_lower_bound to the date. If you would like to retrieve only issues before a certain date, set date_lower_bound to NULL and date_upper_bound to the date. 
-
-```{r}
-# eg date_lower_bound <- "1970-01-01". Change these as you need
-date_lower_bound <- "2015-01-01"
-date_upper_bound <- "2020-01-01"
-
-all_issues <- download_jira_issues_by_date (issue_tracker_domain,
-                           credentials, 
-                           jql_query = paste0("project='",issue_tracker_project_key,"'"), 
-                           fields = c("summary", 
-                           "description",
-                           "creator",
-                           "assignee",
-                           "reporter",
-                           "issuetype",
-                           "status",
-                           "resolution",
-                           "components",
-                           "created",
-                           "updated",
-                           "resolutiondate",
-                           "priority",
-                           "votes",
-                           "watches",
-                           "versions",
-                           "fixVersions",
-                           "labels"), 
-                           save_path_issue_tracker_issues, 
-                           max_results = 50, 
-                           max_total_downloads = 5000,
-                           date_lower_bound,
-                           date_upper_bound,
-                           verbose = TRUE)
-
-```
-## Download issues by specifying issue key ranges
-
-Download issues with specified date ranges. This chunk allows the user to manipulate the functions issue_key_lower_bound and issue_key_upper_bound that retrieves only JIRA issues with the issue key between these bounds. These parameters need to be specified in accordance with the issue key format relevant to your project. The default format is <project key>-<issue number>.
-
-They are optional parameters to retrieve a range. If both are set to NULL, then all issues will be retrieved as the request will not be bounded. An example is if issue_key_lower_bound is set to "GERONIMO-740" and issue_key_upper_bound is set to "GERONIMO-6000", then only issues with issue keys between these two issue keys will be retrieved.
-
-If issues with issue key greater than an issue key value are desired, set issue_key_upper_bound to NULL and issue_key_lower_bound to the issue key value. If issues with issue key less than an issue key value are desired, set issue_key_upper_bound to the issue key and issue_key_lower_bound to NULL. 
-
-```{r}
-# eg issueKey_lower_bound <- "GERONIMO-740"
-issue_key_lower_bound <- "GERONIMO-500"
-issue_key_upper_bound <- "GERONIMO-560"
-
-#issue_key_lower_bound <- "SAILUH-1"
-#issue_key_upper_bound <- "SAILUH-3"
-
-all_issues <- download_jira_issues_by_issue_key(domain = issue_tracker_domain,
-                           jql_query = paste0("project='",issue_tracker_project_key,"'"), 
-                           fields = c("summary", 
-                           "description",
-                           "creator",
-                           "assignee",
-                           "reporter",
-                           "issuetype",
-                           "status",
-                           "resolution",
-                           "components",
-                           "created",
-                           "updated",
-                           "resolutiondate",
-                           "priority",
-                           "votes",
-                           "watches",
-                           "versions",
-                           "fixVersions",
-                           "labels"), 
-                  #         username = username,
-                  #         password = password,
-                           save_folder_path = save_path_issue_tracker_issues, 
-                           max_results = 50, 
-                           max_total_downloads = 5000,
-                           issue_key_lower_bound = issue_key_lower_bound,
-                           issue_key_upper_bound = issue_key_upper_bound,
-                           verbose = TRUE)
-
-
-
 ```
 
 
@@ -354,6 +386,7 @@ all_issues_comments <- download_jira_issues_by_issue_key(issue_tracker_domain,
 ```
 
 ## Refresh issue data
+
 This chunk is identical to refresh issue data except that it also downloads comments.
 
 There are a few instances in which downloading the issue data with comments does not capture all the issues. (1) The JIRA rest API rate limit (currently 5000/hour) is reached. (2) Function ends before completing. (3) max_downloads was set to a value lower than total issues. (4) more issues were committed after downloading. (5) etc. 
@@ -362,10 +395,10 @@ The issue with comment refresh functionality allows only issues with comments wi
 
 ```{r}
 refresh_jira_issues(
-                           issue_tracker_domain,
-                           credentials, 
+                           domain = issue_tracker_domain,
                            jql_query = paste0("project='",issue_tracker_project_key,"'"), 
                            fields = c("summary",
+                           fields = c("summary", 
                            "description",
                            "creator",
                            "assignee",
@@ -377,11 +410,26 @@ refresh_jira_issues(
                            "created",
                            "updated",
                            "resolutiondate",
-                           "comment"), 
-                           save_path_issue_tracker_issue_comments, 
+                           "priority",
+                           "votes",
+                           "watches",
+                           "versions",
+                           "fixVersions",
+                           "labels") 
+                           #"comment"), 
+                           ),
+                           username = username,
+                           password = password,
+                           save_folder_path = save_path_issue_tracker_issues, 
                            max_results = 50, 
-                           max_total_downloads = 5000,
-                           refresh_issue_comments,
+                           max_total_downloads = 60,
                            verbose = TRUE)
 
 ```
+
+
+```{r}
+parsed_jira_issues <- parse_jira(save_path_issue_tracker_issues)
+parsed_jira_issues[["issues"]]
+```
+
