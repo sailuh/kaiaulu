@@ -90,7 +90,8 @@ download_jira_issues <- function(domain,
     } # Resume downloading
 
     # Construct the API endpoint URL
-    url <- paste0(domain, "/rest/api/2/search")
+    #url <- paste0(domain, "/rest/api/2/search")
+    url <- httr::parse_url(domain)
 
     #Authenticate if username and password are provided
     if(!is.null(username)&&!is.null(password)) {
@@ -104,14 +105,38 @@ download_jira_issues <- function(domain,
       auth <- NULL
     }
 
-    # Prepare query parameters for the API call
-    query_params <- list(jql = jql_query, fields = paste(fields, collapse = ","), maxResults = max_results, startAt = start_at)
+    url<-httr::modify_url(url = url,
+                          scheme = if(is.null(url$scheme)){"https"},
+                          path = c(url$path,"/rest/api/2/search"),
+                          query=list(jql = jql_query,
+                                     fields = paste(fields, collapse = ","),
+                                     startAt = start_at,
+                                     maxResults = max_results))
 
-    if (verbose && (download_count == 0)){
-      message("Query parameters: ", query_params)
-    }
+    url <- httr::parse_url(url)
+    url_built <- httr::build_url(url)
+
+    # Prepare query parameters for the API call
+    #query_params <- list(jql = jql_query, fields = paste(fields, collapse = ","), maxResults = max_results, startAt = start_at)
+
+#    if (verbose && (download_count == 0)){
+#      message("Query parameters: ", query_params)
+#    }
     # Make the API call
-    response <- httr::GET(url, query = query_params)
+    if(!is.null(username)&&!is.null(password)){
+      response <- httr::GET(url_built,
+                            if(verbose){httr::verbose()},
+                            auth,
+                            httr::user_agent("github.com/sailuh/kaiaulu"))
+    }else{
+        response <- httr::GET(url_built,
+                              if(verbose){httr::verbose()},
+                              httr::user_agent("github.com/sailuh/kaiaulu"))
+    }
+
+    if(verbose){
+      message("Requested: ", response$request$url)
+    }
 
     # Stop if there's an HTTP error
     if (httr::http_error(response)) {
@@ -145,7 +170,7 @@ download_jira_issues <- function(domain,
 
 
     # The file name prefix is the JIRA project key. The from and to unix timestamps are then added.
-    file_name <- stringi::stri_extract_first_regex(str=s, pattern="(?<=project=')[:alpha:]+")
+    file_name <- stringi::stri_extract_first_regex(str=jql_query, pattern="(?<=project=')[:alpha:]+")
 
     # Extract 'created' dates
     created_dates <- sapply(r_object_content$issues, function(issue) issue$fields$created)

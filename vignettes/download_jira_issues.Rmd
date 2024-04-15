@@ -6,7 +6,7 @@ output:
     number_sections: true
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{Download JIRA Issues and Commentss}
+  %\VignetteIndexEntry{Download JIRA Issues and Comments}
   %\VignetteEncoding{UTF-8}
 ---
 
@@ -41,7 +41,7 @@ Password: jondoespassword
 Details on [how to obtain an atlassian token](https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/)
 
 ```{r}
-conf <- yaml::read_yaml("../conf/geronimo.yml")
+conf <- yaml::read_yaml("../conf/kaiaulu.yml")
 # Project domain
 issue_tracker_domain <- conf[["issue_tracker"]][["jira"]][["domain"]]
 # Project key
@@ -63,26 +63,7 @@ password <- credentials[2]
 
 ## Create the directories specified in the config files. 
 
-The file schema of files for JIRA projects will be ../../rawdata/JIRA/project_name/issues or ../../rawdata/JIRA/project_name/issues_comments
-
-If you have already created your directories, there is no need to run this chunk. 
-```{r eval = FALSE}
-# Check if the directory for issues exists, create if it doesn't
-if (!dir.exists(refresh_issues)) {
-  dir.create(refresh_issues)
-  message("Directory ", refresh_issues, " created")
-} else {
-  message("Directory ", refresh_issues, " already exists")
-}
-
-# Check if the directory for issue comments exists, create if it doesn't
-if (!dir.exists(refresh_issue_comments)) {
-  dir.create(refresh_issue_comments)
-  message("Directory ", refresh_issue_comments, " created")
-} else {
-  message("Directory ", refresh_issue_comments, " already exists")
-}
-```
+Before proceeding, make sure you created the folder structure you specified on the project configuration file. This Notebook will not create the folders automatically.
 
 ## Download issues
 
@@ -105,7 +86,13 @@ all_issues <- download_jira_issues(issue_tracker_domain,
                            "components",
                            "created",
                            "updated",
-                           "resolutiondate"), 
+                           "resolutiondate",
+                           "priority",
+                           "votes",
+                           "watches",
+                           "versions",
+                           "fixVersions",
+                           "labels"), 
              #              username = username,
             #               password,
                            save_path_issue_tracker_issues, 
@@ -149,7 +136,13 @@ all_issues <- download_jira_issues_by_date (issue_tracker_domain,
                            "components",
                            "created",
                            "updated",
-                           "resolutiondate"), 
+                           "resolutiondate",
+                           "priority",
+                           "votes",
+                           "watches",
+                           "versions",
+                           "fixVersions",
+                           "labels"), 
                            save_path_issue_tracker_issues, 
                            max_results = 50, 
                            max_total_downloads = 5000,
@@ -171,6 +164,9 @@ If issues with issue key greater than an issue key value are desired, set issue_
 issue_key_lower_bound <- "GERONIMO-500"
 issue_key_upper_bound <- "GERONIMO-560"
 
+#issue_key_lower_bound <- "SAILUH-1"
+#issue_key_upper_bound <- "SAILUH-3"
+
 all_issues <- download_jira_issues_by_issue_key(domain = issue_tracker_domain,
                            jql_query = paste0("project='",issue_tracker_project_key,"'"), 
                            fields = c("summary", 
@@ -184,7 +180,15 @@ all_issues <- download_jira_issues_by_issue_key(domain = issue_tracker_domain,
                            "components",
                            "created",
                            "updated",
-                           "resolutiondate"), 
+                           "resolutiondate",
+                           "priority",
+                           "votes",
+                           "watches",
+                           "versions",
+                           "fixVersions",
+                           "labels"), 
+                  #         username = username,
+                  #         password = password,
                            save_folder_path = save_path_issue_tracker_issues, 
                            max_results = 50, 
                            max_total_downloads = 5000,
@@ -192,7 +196,11 @@ all_issues <- download_jira_issues_by_issue_key(domain = issue_tracker_domain,
                            issue_key_upper_bound = issue_key_upper_bound,
                            verbose = TRUE)
 
+
+
 ```
+
+
 ```{r}
 parsed_jira_issues <- parse_jira(save_path_issue_tracker_issues)
 parsed_jira_issues[["issues"]]
@@ -220,7 +228,13 @@ refresh_jira_issues(
                            "components",
                            "created",
                            "updated",
-                           "resolutiondate"), 
+                           "resolutiondate",
+                           "priority",
+                           "votes",
+                           "watches",
+                           "versions",
+                           "fixVersions",
+                           "labels"), 
                            save_path_issue_tracker_issues, 
                            max_results = 50, 
                            max_total_downloads = 5000,
