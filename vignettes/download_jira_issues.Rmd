@@ -21,8 +21,8 @@ set.seed(seed)
 require(kaiaulu)
 require(data.table)
 require(knitr, quietly = T)
-require(dplyr, quietly = T)
 require(jsonlite)
+require(gt)
 ```
 
 # Introduction
@@ -74,7 +74,7 @@ if(file.exists("~/.ssh/atlassian_credentials")){
 }
 ```
 
-## Create the directories specified in the config files. 
+## Create the directories specified in the config files
 
 Before proceeding, make sure you created the folder structure you specified on the project configuration file. This Notebook will not create the folders automatically.
 
@@ -141,10 +141,12 @@ Note if authentication is not required, you should also comment the `username` a
 
 ```{r}
 parsed_jira_issues <- parse_jira(save_path_issue_tracker_issues)
-parsed_jira_issues[["issues"]]
+
+head(parsed_jira_issues[["issues"]])  %>%
+  gt(auto_align = FALSE)
 ```
 
-## Download Issues by Issue Key Range
+## Issues by Key Range
 
 A way to download issues requiring less API calls is using the issue keys, using `download_jira_issues_by_issue_key()`.
 
@@ -206,7 +208,10 @@ Observe the parser function returns a named list of two tables. We showed before
 
 ```{r}
 parsed_jira_issues <- parse_jira(save_path_issue_tracker_issue_comments)
-parsed_jira_issues[["comments"]]
+
+
+head(parsed_jira_issues[["comments"]])  %>%
+  gt(auto_align = FALSE)
 ```
 
 ## Downloading Issues with Customizations

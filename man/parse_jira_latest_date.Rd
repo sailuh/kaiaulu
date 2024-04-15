@@ -17,9 +17,8 @@ use by the Jira downloader refresher
 Returns the file containing the most current issue in the specified folder.
 }
 \details{
-The folder assumes the following convention: "(PROJECTKEY)_issues_(uniextimestamp_lowerbound)_(unixtimestamp_upperbound).json"
-or ""(PROJECTKEY)_issue_comments_(uniextimestamp_lowerbound)_(unixtimestamp_upperbound).json"
-For example: "KAIAULU_issues_1231234_2312413.json". This nomenclature is guaranteed by \code{\link{download_jira_issues}}.
+The folder assumes the following convention: "(PROJECTKEY)_(uniextimestamp_lowerbound)_(unixtimestamp_upperbound).json"
+For example: "SAILUH_1231234_2312413.json". This nomenclature is defined by \code{\link{download_jira_issues}}.
 }
 \seealso{
 Other parsers: 

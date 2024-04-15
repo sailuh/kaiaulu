@@ -2,7 +2,7 @@
 % Please edit documentation in R/jira.R
 \name{download_jira_issues_by_issue_key}
 \alias{download_jira_issues_by_issue_key}
-\title{Download JIRA issues filtering by issue key}
+\title{Download JIRA Issues and/or Comments by Issue Key Range}
 \usage{
 download_jira_issues_by_issue_key(
   domain,
@@ -19,7 +19,7 @@ download_jira_issues_by_issue_key(
 )
 }
 \arguments{
-\item{domain}{Custom JIRA domain URL set in config file}
+\item{domain}{Custom JIRA domain URL}
 
 \item{jql_query}{Specific query string to specify criteria for fetching}
 
@@ -29,39 +29,42 @@ download_jira_issues_by_issue_key(
 
 \item{password}{the JIRA password/API token}
 
-\item{save_folder_path}{Path that files will be save along in .json format}
+\item{save_folder_path}{Path that files will be saved in .json format}
 
-\item{max_results}{(optional) the maximum number of results to download per page.
-Default is 50. [How to use max_results](https://confluence.atlassian.com/jirakb/how-to-use-the-maxresults-api-parameter-for-jira-issue-search-rest-api-1251999998.html)}
+\item{max_results}{(optional) the [maximum number of results](https://confluence.atlassian.com/jirakb/how-to-use-the-maxresults-api-parameter-for-jira-issue-search-rest-api-1251999998.html)
+to download per page. Default is 50.}
 
 \item{max_total_downloads}{Maximum downloads per function call.
-This value specifies how many issues should be extracted and API calls will cease if a subsequent
-API call would reach or surpass this value.}
+This parameter specifies how many issues should be downloaded. Subsequent API calls will stop if they
+reach or surpass this value.
+See \code{\link{download_jira_issues_by_date}} and \code{\link{download_jira_issues_by_issue_key}}
+source code for examples.}
 
-\item{issue_key_lower_bound}{an optional API parameter that alters the GET request}
+\item{issue_key_lower_bound}{Optional. Specify the lower bound issue key (e.g. SAILUH-1)}
 
-\item{issue_key_upper_bound}{an optional API parameter that alters the GET request}
+\item{issue_key_upper_bound}{Optional. Specify the upper bound issue key (e.g. SAILUH-3)}
 
-\item{verbose}{boolean flag to specify printing operational
-messages or not. These messages will describe errors or successes in executing code.
-And example may be declaring the file name of a successfully downloaded file or printing
-how many issues have been downloaded so far}
+\item{verbose}{Set verbose=TRUE to print execution details.}
 }
 \description{
-Calls \code{link{download_jira_issues}} with search_query specifying issue key
-Only issues with issue key value in the range specified will be downloaded.
-default issue key format: <project key>-<issue number>
-example of search query: 'issukey >= PROJECTNAME-800'
-[How to use issue key](https://support.atlassian.com/jira-software-cloud/docs/jql-fields/#Issue-key)
+#' Wraps around \code{\link{download_jira_issues}} providing jql query parameters for specifying issue key ranges.
+Only issues created in the specified date range inclusive will be downloaded.
+}
+\details{
+The acceptable format for `issue_key_lower_bound` and `issue_key_upper_bound` is: <project key>-<issue number>
+
+For example: `issue_key_lower_bound=SAILUH-1` (SAILUH-1 will also be downloaded).
+
+For further details on the `issueKey` JQL Query see [the associated JIRA API documentation](https://support.atlassian.com/jira-software-cloud/docs/jql-fields/#Issue-key)
 }
 \seealso{
-\code{link{download_jira_issues}} to download all JIRA issues data,
+\code{\link{download_jira_issues_by_date}} to download JIRA issues and/or comments by date range
 
-\code{link{download_jira_issues_by_date}} to download JIRA data using created as a search criteria,
+\code{\link{download_jira_issues}} for more flexibility in specifying the JQL query
 
-\code{link{refresh_jira_issues}} to download only JIRA data that has not already been downloaded,
+\code{\link{parse_jira}} to parse jira data with or without comments
 
-\code{link{parse_jira}} to parse jira issues along a file-path
+\code{\link{refresh_jira_issues}} to obtain more recent data from any of the downloader functions
 
 Other jira: 
 \code{\link{download_jira_issues_by_date}()},
