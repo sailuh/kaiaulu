@@ -6,24 +6,26 @@
 \usage{
 refresh_jira_issues(
   domain,
-  credentials,
   jql_query,
   fields,
+  username = NULL,
+  password = NULL,
   save_folder_path,
   max_results,
   max_total_downloads,
-  unaltered_file_path,
   verbose
 )
 }
 \arguments{
 \item{domain}{Custom JIRA domain URL set in config file}
 
-\item{credentials}{a path to text file containing your username/api token}
-
 \item{jql_query}{Specific query string to specify criteria for fetching}
 
 \item{fields}{List of fields that are downloaded in each issue}
+
+\item{username}{the JIRA username}
+
+\item{password}{the JIRA password/API token}
 
 \item{save_folder_path}{Path that files will be save along in .json format. Includes the prefix for projectname_issues}
 
@@ -33,8 +35,6 @@ Default is 50. [How to use max_results](https://confluence.atlassian.com/jirakb/
 \item{max_total_downloads}{Maximum downloads per function call.
 This value specifies how many issues should be extracted and API calls will cease if a subsequent
 API call would reach or surpass this value.}
-
-\item{unaltered_file_path}{the path to the directory that contains the files}
 
 \item{verbose}{boolean flag to specify printing operational
 messages or not. These messages will describe errors or successes in executing code.

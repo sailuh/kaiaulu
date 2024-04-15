@@ -6,9 +6,10 @@
 \usage{
 download_jira_issues(
   domain,
-  credentials,
   jql_query,
   fields,
+  username = NULL,
+  password = NULL,
   save_folder_path,
   max_results = 50,
   max_total_downloads = 5000,
@@ -19,11 +20,13 @@ download_jira_issues(
 \arguments{
 \item{domain}{Custom JIRA domain URL set in config file}
 
-\item{credentials}{a path to text file containing your username/api token}
-
 \item{jql_query}{Specific query string to specify criteria for fetching}
 
 \item{fields}{List of fields that are downloaded in each issue}
+
+\item{username}{the JIRA username}
+
+\item{password}{the JIRA password/API token}
 
 \item{save_folder_path}{Path that files will be save along as .json format}
 

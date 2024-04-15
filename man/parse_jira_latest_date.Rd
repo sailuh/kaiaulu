@@ -11,7 +11,7 @@ parse_jira_latest_date(json_folder_path)
 }
 \value{
 The name of the jira issue file with the latest created date that was created/downloaded for
-use by the Jira Downloader refresher
+use by the Jira downloader refresher
 }
 \description{
 Returns the file containing the most current issue in the specified folder.
