@@ -4,6 +4,503 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+############## Downloaders ##############
+
+#' Download JIRA Issues and/or Comments
+#'
+#' Download JIRA issues and/or comments using [rest/api/2/search](https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issue-search/#api-rest-api-2-search-post) endpoint
+#' to the specified `save_folder_path`.
+#'
+#' The folder assumes the following convention: "(PROJECTKEY)_(uniextimestamp_lowerbound)_(unixtimestamp_upperbound).json"
+#' For example: "SAILUH_1231234_2312413.json".
+#'
+#' Comments data are added when the field `comment` is included.
+#'
+#' If a project requires authentication and authentication fails, the function will end without downloading any data.
+#'
+#' If the number of results per page returned is less than the number specified, the max_results value will adjust to that value.
+#'
+#' @param domain Custom JIRA domain URL
+#' @param username the JIRA username
+#' @param password the JIRA password/API token
+#' @param jql_query Specific query string to specify criteria for fetching
+#' @param fields List of fields that are downloaded in each issue
+#' @param save_folder_path Path that files will be saved in .json format
+#' @param max_results (optional) the [maximum number of results](https://confluence.atlassian.com/jirakb/how-to-use-the-maxresults-api-parameter-for-jira-issue-search-rest-api-1251999998.html)
+#' to download per page. Default is 50.
+#' @param max_total_downloads Maximum downloads per function call.
+#' This parameter specifies how many issues should be downloaded. Subsequent API calls will stop if they
+#' reach or surpass this value.
+#' @param search_query an optional API parameter that alters the GET request.
+#' See \code{\link{download_jira_issues_by_date}} and \code{\link{download_jira_issues_by_issue_key}}
+#' source code for examples.
+#' @param verbose Set verbose=TRUE to print execution details.
+#' @export
+#' @family jira
+#' @family downloaders
+#' @seealso \code{\link{download_jira_issues_by_date}} to download JIRA issues and/or comments by date range
+#' @seealso \code{\link{download_jira_issues_by_issue_key}} to download JIRA issues and/or comments by issue key range
+#' @seealso \code{\link{parse_jira}} to parse jira data with or without comments
+#' @seealso  \code{\link{refresh_jira_issues}} to obtain more recent data from any of the downloader functions
+download_jira_issues <- function(domain,
+                                          jql_query,
+                                          fields,
+                                          username = NULL,
+                                          password = NULL,
+                                          save_folder_path,
+                                          max_results = 50,
+                                          max_total_downloads = 5000,
+                                          search_query = NULL,
+                                          verbose = FALSE) {
+
+  # Ensure the domain starts with https:// for secure communication.
+  if (!grepl("^https?://", domain)) {
+    domain <- paste0("https://", domain)
+  }
+
+  # append search_query to jql_query if present
+  if (!is.null(search_query)){
+    jql_query <- paste(jql_query, search_query)
+    if(verbose){
+      message(jql_query)
+    }
+  }
+
+  # Initialize variables for pagination
+  start_at <- 0
+  total <- max_results
+  all_issues <- list()
+  # This variable counts your download count. This is important to not exceed the max downloads per hour
+  download_count <- 0
+  time <- Sys.time()
+  if(verbose){
+    message("Starting Downloads at ", time)
+  }
+  # Loop that downloads each issue into a file
+  repeat{
+
+    # Check update our download count and see if it is approaching the limit
+    if (download_count + max_results > max_total_downloads) {
+      # error message
+      time <- Sys.time()
+      if(verbose){
+        message("Cannot download as max_total_downloads will be exceeded. Try again at a later time. Download ended at ", time)
+      }
+        break
+    } # Resume downloading
+
+    # Construct the API endpoint URL
+    url <- httr::parse_url(domain)
+
+    #Authenticate if username and password are provided
+    if(!is.null(username)&&!is.null(password)) {
+      # Use the username/password for authentication
+      auth <- httr::authenticate(as.character(username), as.character(password), "basic")
+      #message("successfully authenticated")
+    } else {
+      if(verbose){
+        message("No username or password present or are formatted incorrectly.")
+      }
+      auth <- NULL
+    }
+
+    url<-httr::modify_url(url = url,
+                          scheme = if(is.null(url$scheme)){"https"},
+                          path = c(url$path,"/rest/api/2/search"),
+                          query=list(jql = jql_query,
+                                     fields = paste(fields, collapse = ","),
+                                     startAt = start_at,
+                                     maxResults = max_results))
+
+    url <- httr::parse_url(url)
+    url_built <- httr::build_url(url)
+
+    # Make the API call
+    if(!is.null(username)&&!is.null(password)){
+      response <- httr::GET(url_built,
+                            if(verbose){httr::verbose()},
+                            auth,
+                            httr::user_agent("github.com/sailuh/kaiaulu"))
+    }else{
+        response <- httr::GET(url_built,
+                              if(verbose){httr::verbose()},
+                              httr::user_agent("github.com/sailuh/kaiaulu"))
+    }
+
+    if(verbose){
+      message("Requested: ", response$request$url)
+    }
+
+    # Stop if there's an HTTP error
+    if (httr::http_error(response)) {
+      stop("API request failed: ", httr::http_status(response)$message)
+    }
+
+    # Extract issues. for iteration of naming convention and checks
+    r_object_content <- jsonlite::fromJSON(httr::content(response, "text", encoding = "UTF-8"),
+                                           simplifyVector = FALSE)
+    # The number of issues downloaded
+    issue_count <- length(r_object_content$issues)
+    # save the raw content for a writeLines later
+    raw_content <- httr::content(response, "text", encoding = "UTF-8")
+
+    # Check to make sure that the api is downloading the correct amount of issues specified by max_results
+    # This checks for only the first page (if download_count ==0)
+    # If the total number of issues retrieved is less than max_results, then of course issue_count
+    # will be < maxResults so we check to make sure this is not true (total >= max_results)
+    if ((download_count == 0) && (max_results != issue_count)) {
+      if(verbose){
+        message(". max_results specified: ", max_results)
+        message(". Number of issues retrieved: ", issue_count)
+        message(". Something went wrong with the API request. Changing max_results to ", issue_count)
+      }
+      max_results <- issue_count
+    }
+
+    if (issue_count > 0){
+
+    # Construct JSON file name based on refresh convention
+
+
+    # The file name prefix is the JIRA project key. The from and to unix timestamps are then added.
+    file_name <- stringi::stri_extract_first_regex(str=jql_query, pattern="(?<=project=')[:alpha:]+")
+
+    # Extract 'created' dates
+    created_dates <- sapply(r_object_content$issues, function(issue) issue$fields$created)
+
+    # Convert to POSIXct date objects
+    date_objects <- as.POSIXct(created_dates, format="%Y-%m-%dT%H:%M:%S", tz="UTC")
+
+    # Find the greatest and smallest date
+    latest_date <- max(date_objects)
+    latest_date_unix <- as.numeric(latest_date)
+    oldest_date <- min(date_objects)
+    oldest_date_unix <- as.numeric(oldest_date)
+
+    # Append oldest and latest dates to the file name
+    file_name <- paste0(file_name, "_", oldest_date_unix)
+    file_name <- paste0(file_name, "_", latest_date_unix, ".json")
+
+
+
+    # Add path where file will be saved
+    file_name <- file.path(save_folder_path,file_name)
+
+    # Print the latest and oldest dates and file name
+    if (verbose){
+      message("Latest date:", latest_date_unix)
+      message("Oldest date:", oldest_date_unix)
+      message("File name: ", file_name)
+    }
+    }
+
+    # write the files if issues present
+    if (issue_count > 0){
+      writeLines(raw_content, file_name)
+    } else {
+      if(verbose){
+        message("You are all caught up!")
+      }
+    }
+
+    # update download_count and optional print statements
+    download_count <- download_count + issue_count
+    if (verbose && (issue_count > 0)){
+      message("saved file to ", file_name)
+      message("Saved ", download_count, " total issues")
+    }
+
+
+    #updates start_at for next loop
+    if (issue_count < max_results) {
+      break
+    } else {
+      start_at <- start_at + max_results
+    }
+  }
+
+  # Final verbose output
+  if (verbose) {
+    message("Success! Fetched and saved issues.")
+  }
+
+  # Returns the content so that it can be saved to a variable via function call
+  return(NULL)
+}
+
+
+#' Download JIRA Issues and/or Comments by Date Range
+#'
+#' Wraps around \code{\link{download_jira_issues}} providing JQL query parameters for specifying date ranges.
+#' Only issues created in the specified date range will be downloaded.
+#'
+#' Acceptable formats for `date_lower_bound` and `date_upper_bound` are:
+#'
+#' * "yyyy/MM/dd HH:mm"
+#' * "yyyy-MM-dd HH:mm"
+#' * "yyyy/MM/dd"
+#' * "yyyy-MM-dd"
+#'
+#' For example: `date_lower_bound=2023/11/16 21:00` (an issue ocurring at the exact specified time will also be downloaded).
+#'
+#' For further details on the `created` JQL Query see [the associated JIRA API documentation](https://support.atlassian.com/jira-software-cloud/docs/jql-fields/#Created).
+#'
+#' @param domain Custom JIRA domain URL
+#' @param username the JIRA username
+#' @param password the JIRA password/API token
+#' @param jql_query Specific query string to specify criteria for fetching
+#' @param fields List of fields that are downloaded in each issue
+#' @param save_folder_path Path that files will be saved in .json format
+#' @param max_results (optional) the [maximum number of results](https://confluence.atlassian.com/jirakb/how-to-use-the-maxresults-api-parameter-for-jira-issue-search-rest-api-1251999998.html)
+#' to download per page. Default is 50.
+#' @param max_total_downloads Maximum downloads per function call.
+#' This parameter specifies how many issues should be downloaded. Subsequent API calls will stop if they
+#' reach or surpass this value.
+#' See \code{\link{download_jira_issues_by_date}} and \code{\link{download_jira_issues_by_issue_key}}
+#' source code for examples.
+#' @param date_lower_bound Optional. Specify the lower bound date time (e.g. 2023/11/16 21:00)
+#' @param date_upper_bound Optional. Specify the upper bound date time (e.g. 2023/11/17 21:00)
+#' @param verbose Set verbose=TRUE to print execution details.
+#' @export
+#' @family jira
+#' @family downloaders
+#' @seealso \code{\link{download_jira_issues_by_issue_key}} to download JIRA issues and/or comments by issue key range
+#' @seealso \code{\link{download_jira_issues}} for more flexibility in specifying the JQL query
+#' @seealso \code{\link{parse_jira}} to parse jira data with or without comments
+#' @seealso  \code{\link{refresh_jira_issues}} to obtain more recent data from any of the downloader functions
+download_jira_issues_by_date <- function(domain,
+                                         jql_query,
+                                         fields,
+                                         username = NULL,
+                                         password = NULL,
+                                         save_folder_path,
+                                         max_results,
+                                         max_total_downloads,
+                                         date_lower_bound = NULL,
+                                         date_upper_bound = NULL,
+                                         verbose){
+  created_query <- ""
+  if (!is.null(date_lower_bound)){
+    created_query <- paste0(created_query, "AND created >= '", date_lower_bound, "' ")
+  }
+  if (!is.null(date_upper_bound)){
+    created_query <- paste0(created_query, "AND created <= '", date_upper_bound, "' ")
+  }
+  if(verbose){
+    message("Appending ", created_query, " to api request.")
+  }
+
+  download_jira_issues(domain = domain,
+                       jql_query = jql_query,
+                       fields = fields,
+                       username = username,
+                       password = password,
+                       save_folder_path = save_folder_path,
+                       max_results = max_results,
+                       max_total_downloads = max_total_downloads,
+                       search_query = created_query,
+                       verbose = verbose)
+}
+
+#' Download JIRA Issues and/or Comments by Issue Key Range
+#'
+#' #' Wraps around \code{\link{download_jira_issues}} providing jql query parameters for specifying issue key ranges.
+#' Only issues created in the specified date range inclusive will be downloaded.
+#'
+#' The acceptable format for `issue_key_lower_bound` and `issue_key_upper_bound` is: <project key>-<issue number>
+#'
+#' For example: `issue_key_lower_bound=SAILUH-1` (SAILUH-1 will also be downloaded).
+#'
+#' For further details on the `issueKey` JQL Query see [the associated JIRA API documentation](https://support.atlassian.com/jira-software-cloud/docs/jql-fields/#Issue-key)
+#'
+#'
+#' @param domain Custom JIRA domain URL
+#' @param username the JIRA username
+#' @param password the JIRA password/API token
+#' @param jql_query Specific query string to specify criteria for fetching
+#' @param fields List of fields that are downloaded in each issue
+#' @param save_folder_path Path that files will be saved in .json format
+#' @param max_results (optional) the [maximum number of results](https://confluence.atlassian.com/jirakb/how-to-use-the-maxresults-api-parameter-for-jira-issue-search-rest-api-1251999998.html)
+#' to download per page. Default is 50.
+#' @param max_total_downloads Maximum downloads per function call.
+#' This parameter specifies how many issues should be downloaded. Subsequent API calls will stop if they
+#' reach or surpass this value.
+#' See \code{\link{download_jira_issues_by_date}} and \code{\link{download_jira_issues_by_issue_key}}
+#' source code for examples.
+#' @param issue_key_lower_bound Optional. Specify the lower bound issue key (e.g. SAILUH-1)
+#' @param issue_key_upper_bound Optional. Specify the upper bound issue key (e.g. SAILUH-3)
+#' @param verbose Set verbose=TRUE to print execution details.
+#' @export
+#' @family jira
+#' @family downloaders
+#' @seealso \code{\link{download_jira_issues_by_date}} to download JIRA issues and/or comments by date range
+#' @seealso \code{\link{download_jira_issues}} for more flexibility in specifying the JQL query
+#' @seealso \code{\link{parse_jira}} to parse jira data with or without comments
+#' @seealso  \code{\link{refresh_jira_issues}} to obtain more recent data from any of the downloader functions
+download_jira_issues_by_issue_key <- function(domain,
+                                              jql_query,
+                                              fields,
+                                              username = NULL,
+                                              password = NULL,
+                                              save_folder_path,
+                                              max_results,
+                                              max_total_downloads,
+                                              issue_key_lower_bound = NULL,
+                                              issue_key_upper_bound = NULL,
+                                              verbose){
+  created_query <- ""
+  if (!is.null(issue_key_lower_bound)){
+    created_query <- paste0(created_query, "AND issueKey >= ", issue_key_lower_bound)
+  }
+  if (!is.null(issue_key_upper_bound)){
+    created_query <- paste0(created_query, " AND issueKey <= ", issue_key_upper_bound)
+  }
+  if(verbose){
+    message("Appending ", created_query, " to api request.")
+  }
+
+  download_jira_issues(domain = domain,
+                       jql_query = jql_query,
+                       fields = fields,
+                       username = username,
+                       password = password,
+                       save_folder_path = save_folder_path,
+                       max_results = max_results,
+                       max_total_downloads = max_total_downloads,
+                       search_query = created_query,
+                       verbose)
+}
+
+#' Refresh JIRA Issues and/or Comments
+#'
+#' Uses the adopted file name convention by \code{\link{download_jira_issues}} to identify
+#' the latest downloaded JIRA issue key KEY-i, and calls
+#' \code{\link{download_jira_issues_by_issue_key}} with lower bound KEY-(i+1) to download all
+#' newer issues.
+#'
+#' If the directory is empty, then all issues will be downloaded. This function can therefore
+#' be used in the specified folder to continuously refresh available issues and/or comments
+#' data.
+#'
+
+#' @param domain Custom JIRA domain URL
+#' @param username the JIRA username
+#' @param password the JIRA password/API token
+#' @param jql_query Specific query string to specify criteria for fetching
+#' @param fields List of fields that are downloaded in each issue
+#' @param save_folder_path Path that files will be saved in .json format
+#' @param max_results (optional) the [maximum number of results](https://confluence.atlassian.com/jirakb/how-to-use-the-maxresults-api-parameter-for-jira-issue-search-rest-api-1251999998.html)
+#' to download per page. Default is 50.
+#' @param max_total_downloads Maximum downloads per function call.
+#' This parameter specifies how many issues should be downloaded. Subsequent API calls will stop if they
+#' reach or surpass this value.
+#' @param verbose Set verbose=TRUE to print execution details.
+#' @export
+#' @family downloaders
+#' @family jira
+#' @seealso \code{\link{download_jira_issues_by_date}} to download JIRA issues and/or comments by date range
+#' @seealso \code{\link{download_jira_issues_by_issue_key}} to download JIRA issues and/or comments by issue key range
+#' @seealso \code{\link{download_jira_issues}} for more flexibility in specifying the JQL query
+#' @seealso \code{\link{parse_jira}} to parse jira data with or without comments
+#' @seealso \code{\link{parse_jira_latest_date}} to retrieve the file path of the latest issue key
+refresh_jira_issues <- function(domain,
+                                jql_query,
+                                fields,
+                                username = NULL,
+                                password = NULL,
+                                save_folder_path,
+                                max_results,
+                                max_total_downloads,
+                                verbose){
+
+  # List all files and subdirectories in the directory
+  existing_issues <- list.files(path = save_folder_path)
+
+  # If the folder is empty, then start by downloading all issues.
+  if(length(existing_issues) == 0) {
+    if(verbose){
+      message("The folder is empty. Downloading all issues. \n")
+    }
+    download_jira_issues(domain = domain,
+                         jql_query = jql_query,
+                         fields = fields,
+                         username = username,
+                         password = password,
+                         save_folder_path = save_folder_path,
+                         max_results = max_results,
+                         max_total_downloads = max_total_downloads,
+                         search_query = NULL,
+                         verbose = verbose)
+  } else {
+    # If folder is not empty, find the highest issue key, and resume download after it.
+    # First, get the file name with the last downloaded 'issueKey' value
+    file_name_with_greatest_issue_key <- parse_jira_latest_date(save_folder_path)
+
+    # Prepare the path and filename
+    issue_refresh <- file.path(save_folder_path, file_name_with_greatest_issue_key)
+
+    # Check if the file exists
+    if(file.exists(issue_refresh)) {
+    # Check if the file is empty by checking its size
+    } else {
+      if(verbose){
+        stop("The file does not exist.\n")
+      }
+    }
+    if(verbose){
+      message("Filename with highest date (and therefore latest issue key is inside): ", issue_refresh)
+    }
+
+    # Read the JSON file
+    json_data <- jsonlite::fromJSON(txt = issue_refresh, simplifyVector = FALSE)
+
+    # Extract the Maximum issue key value
+    # Start with a low value assuming no negative numbers
+    max_numeric_part <- -1
+    max_key <- ""
+
+    for (issue in json_data$issues) {
+      # Extract the key for the current issue
+      current_key <- issue$key
+
+      # Extract the numeric part of the key
+      # Assuming the key format is "PROJECTNAME-NUMBER"
+      numeric_part <- as.numeric(sub("^[^-]+-", "", current_key))
+
+      # Check if the numeric part is greater than the current maximum
+      if (numeric_part > max_numeric_part) {
+        # Update the maximum numeric part and the corresponding key
+        max_numeric_part <- numeric_part
+        max_key <- current_key
+      }
+    }
+
+    # Print the key with the maximum numeric part
+    if(verbose){
+      message("The greatest issue key value is ", max_key)
+    }
+
+    # Construct the search query to append to the JIRA API request
+    search_query <- paste0("AND issueKey > ", max_key)
+    if(verbose){
+      message("Appending ", search_query, " to JQL query")
+    }
+
+    # Call the downloader with appended query
+    download_jira_issues(domain = domain,
+                        jql_query = jql_query,
+                        fields = fields,
+                        username = username,
+                        password = password,
+                        save_folder_path = save_folder_path,
+                        max_results = max_results,
+                        max_total_downloads = max_total_downloads,
+                        search_query = search_query,
+                        verbose = verbose)
+  }
+}
+
+
 ############## Parsers ##############
 
 #' Parse JIRA Issues and Comments
@@ -163,13 +660,12 @@ parse_jira <- function(json_folder_path){
 #'
 #' Returns the file containing the most current issue in the specified folder.
 #'
-#' The folder assumes the following convention: "(PROJECTKEY)_issues_(uniextimestamp_lowerbound)_(unixtimestamp_upperbound).json"
-#' or ""(PROJECTKEY)_issue_comments_(uniextimestamp_lowerbound)_(unixtimestamp_upperbound).json"
-#' For example: "KAIAULU_issues_1231234_2312413.json". This nomenclature is guaranteed by \code{\link{download_jira_issues}}.
+#' The folder assumes the following convention: "(PROJECTKEY)_(uniextimestamp_lowerbound)_(unixtimestamp_upperbound).json"
+#' For example: "SAILUH_1231234_2312413.json". This nomenclature is defined by \code{\link{download_jira_issues}}.
 #'
 #' @param json_folder_path path to save folder containing JIRA issue and/or comments json files.
 #' @return The name of the jira issue file with the latest created date that was created/downloaded for
-#' use by the Jira Downloader refresher
+#' use by the Jira downloader refresher
 #' @export
 #' @family parsers
 parse_jira_latest_date <- function(json_folder_path){
