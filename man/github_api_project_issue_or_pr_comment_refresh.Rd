@@ -4,7 +4,13 @@
 \alias{github_api_project_issue_or_pr_comment_refresh}
 \title{Download Project issues or pr comments after certain date}
 \usage{
-github_api_project_issue_or_pr_comment_refresh(owner, repo, token)
+github_api_project_issue_or_pr_comment_refresh(
+  owner,
+  repo,
+  token,
+  file_save_path,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{owner}{GitHub's repository owner (e.g. sailuh)}

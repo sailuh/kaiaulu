@@ -4,7 +4,14 @@
 \alias{github_api_project_issue_refresh}
 \title{Download Project Issues after a date}
 \usage{
-github_api_project_issue_refresh(owner, repo, token)
+github_api_project_issue_refresh(
+  owner,
+  repo,
+  token,
+  save_path_issue,
+  save_path_issue_refresh,
+  verbose
+)
 }
 \arguments{
 \item{owner}{GitHub's repository owner (e.g. sailuh)}
@@ -12,13 +19,21 @@ github_api_project_issue_refresh(owner, repo, token)
 \item{repo}{GitHub's repository name (e.g. kaiaulu)}
 
 \item{token}{Your GitHub API token}
+
+\item{save_path_issue}{The folder path that the original issue downloader downloads to}
+
+\item{save_path_issue_refresh}{The folder path that the refresh downloader downloads to}
+
+\item{verbose}{A boolean value that prints operational messages when set to TRUE.
+These may include announcing successful execution of code, API queries, files saved, etc.}
 }
 \description{
 Returns issue data that has not already been downloaded
-Gets the name of the file with the most recent data along the designated save path.
-Extracts the greatest 'created_at' date from that file
-Calls search/issues endpoint to download issues created after that date
-#' If no files exist in the file, \code{link{github_api_project_issue}} is called instead.
+Gets the name of the file with the most recent data along the designated save paths for both
+issue and refresh_issue folder. Extracts the greatest 'created_at' value for both of them.
+It compares these values and calls the search endpoint to retrieve all issues created after this date.
+#' If no files exist in the issue file, \code{link{github_api_project_issue}} is called instead
+and all issues are downloaded.
 }
 \references{
 For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
