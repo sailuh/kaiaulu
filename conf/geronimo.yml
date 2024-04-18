@@ -58,8 +58,8 @@ issue_tracker:
     domain: https://issues.apache.org/jira
     project_key: GERONIMO
     # Download using `download_jira_data.Rmd`
-    issues: ../../rawdata/issue_tracker/geronimo_issues.json
-    issue_comments: ../../rawdata/issue_tracker/geronimo_issue_comments.json
+    issues: ../../rawdata/issue_tracker/geronimo/issues/
+    issue_comments: ../../rawdata/issue_tracker/geronimo/issue_comments/
   github:
     # Obtained from the project's GitHub URL
     owner: apache

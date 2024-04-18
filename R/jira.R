@@ -4,18 +4,533 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+############## Downloaders ##############
+
+#' Download JIRA Issues and/or Comments
+#'
+#' Download JIRA issues and/or comments using [rest/api/2/search](https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issue-search/#api-rest-api-2-search-post) endpoint
+#' to the specified `save_folder_path`.
+#'
+#' The folder assumes the following convention: "(PROJECTKEY)_(uniextimestamp_lowerbound)_(unixtimestamp_upperbound).json"
+#' For example: "SAILUH_1231234_2312413.json".
+#'
+#' Comments data are added when the field `comment` is included.
+#'
+#' If a project requires authentication and authentication fails, the function will end without downloading any data.
+#'
+#' If the number of results per page returned is less than the number specified, the max_results value will adjust to that value.
+#'
+#' @param domain Custom JIRA domain URL
+#' @param username the JIRA username
+#' @param password the JIRA password/API token
+#' @param jql_query Specific query string to specify criteria for fetching
+#' @param fields List of fields that are downloaded in each issue
+#' @param save_folder_path Path that files will be saved in .json format
+#' @param max_results (optional) the [maximum number of results](https://confluence.atlassian.com/jirakb/how-to-use-the-maxresults-api-parameter-for-jira-issue-search-rest-api-1251999998.html)
+#' to download per page. Default is 50.
+#' @param max_total_downloads Maximum downloads per function call.
+#' This parameter specifies how many issues should be downloaded. Subsequent API calls will stop if they
+#' reach or surpass this value.
+#' @param search_query an optional API parameter that alters the GET request.
+#' See \code{\link{download_jira_issues_by_date}} and \code{\link{download_jira_issues_by_issue_key}}
+#' source code for examples.
+#' @param verbose Set verbose=TRUE to print execution details.
+#' @export
+#' @family jira
+#' @family downloaders
+#' @seealso \code{\link{download_jira_issues_by_date}} to download JIRA issues and/or comments by date range
+#' @seealso \code{\link{download_jira_issues_by_issue_key}} to download JIRA issues and/or comments by issue key range
+#' @seealso \code{\link{parse_jira}} to parse jira data with or without comments
+#' @seealso  \code{\link{refresh_jira_issues}} to obtain more recent data from any of the downloader functions
+download_jira_issues <- function(domain,
+                                          jql_query,
+                                          fields,
+                                          username = NULL,
+                                          password = NULL,
+                                          save_folder_path,
+                                          max_results = 50,
+                                          max_total_downloads = 5000,
+                                          search_query = NULL,
+                                          verbose = FALSE) {
+
+  # Ensure the domain starts with https:// for secure communication.
+  if (!grepl("^https?://", domain)) {
+    domain <- paste0("https://", domain)
+  }
+
+  # append search_query to jql_query if present
+  if (!is.null(search_query)){
+    jql_query <- paste(jql_query, search_query)
+    if(verbose){
+      message(jql_query)
+    }
+  }
+
+  # Initialize variables for pagination
+  start_at <- 0
+  total <- max_results
+  all_issues <- list()
+  # This variable counts your download count. This is important to not exceed the max downloads per hour
+  download_count <- 0
+  time <- Sys.time()
+  if(verbose){
+    message("Starting Downloads at ", time)
+  }
+  # Loop that downloads each issue into a file
+  repeat{
+
+    # Check update our download count and see if it is approaching the limit
+    if (download_count + max_results > max_total_downloads) {
+      # error message
+      time <- Sys.time()
+      if(verbose){
+        message("Cannot download as max_total_downloads will be exceeded. Try again at a later time. Download ended at ", time)
+      }
+        break
+    } # Resume downloading
+
+    # Construct the API endpoint URL
+    url <- httr::parse_url(domain)
+
+    #Authenticate if username and password are provided
+    if(!is.null(username)&&!is.null(password)) {
+      # Use the username/password for authentication
+      auth <- httr::authenticate(as.character(username), as.character(password), "basic")
+      #message("successfully authenticated")
+    } else {
+      if(verbose){
+        message("No username or password present or are formatted incorrectly.")
+      }
+      auth <- NULL
+    }
+
+    url<-httr::modify_url(url = url,
+                          scheme = if(is.null(url$scheme)){"https"},
+                          path = c(url$path,"/rest/api/2/search"),
+                          query=list(jql = jql_query,
+                                     fields = paste(fields, collapse = ","),
+                                     startAt = start_at,
+                                     maxResults = max_results))
+
+    url <- httr::parse_url(url)
+    url_built <- httr::build_url(url)
+
+    # Make the API call
+    if(!is.null(username)&&!is.null(password)){
+      response <- httr::GET(url_built,
+                            if(verbose){httr::verbose()},
+                            auth,
+                            httr::user_agent("github.com/sailuh/kaiaulu"))
+    }else{
+        response <- httr::GET(url_built,
+                              if(verbose){httr::verbose()},
+                              httr::user_agent("github.com/sailuh/kaiaulu"))
+    }
+
+    if(verbose){
+      message("Requested: ", response$request$url)
+    }
+
+    # Stop if there's an HTTP error
+    if (httr::http_error(response)) {
+      stop("API request failed: ", httr::http_status(response)$message)
+    }
+
+    # Extract issues. for iteration of naming convention and checks
+    r_object_content <- jsonlite::fromJSON(httr::content(response, "text", encoding = "UTF-8"),
+                                           simplifyVector = FALSE)
+    # The number of issues downloaded
+    issue_count <- length(r_object_content$issues)
+    # save the raw content for a writeLines later
+    raw_content <- httr::content(response, "text", encoding = "UTF-8")
+
+    # Check to make sure that the api is downloading the correct amount of issues specified by max_results
+    # This checks for only the first page (if download_count ==0)
+    # If the total number of issues retrieved is less than max_results, then of course issue_count
+    # will be < maxResults so we check to make sure this is not true (total >= max_results)
+    if ((download_count == 0) && (max_results != issue_count)) {
+      if(verbose){
+        message(". max_results specified: ", max_results)
+        message(". Number of issues retrieved: ", issue_count)
+        message(". Something went wrong with the API request. Changing max_results to ", issue_count)
+      }
+      max_results <- issue_count
+    }
+
+    if (issue_count > 0){
+
+    # Construct JSON file name based on refresh convention
+
+
+    # The file name prefix is the JIRA project key. The from and to unix timestamps are then added.
+    file_name <- stringi::stri_extract_first_regex(str=jql_query, pattern="(?<=project=')[:alpha:]+")
+
+    # Extract 'created' dates
+    created_dates <- sapply(r_object_content$issues, function(issue) issue$fields$created)
+
+    # Convert to POSIXct date objects
+    date_objects <- as.POSIXct(created_dates, format="%Y-%m-%dT%H:%M:%S", tz="UTC")
+
+    # Find the greatest and smallest date
+    latest_date <- max(date_objects)
+    latest_date_unix <- as.numeric(latest_date)
+    oldest_date <- min(date_objects)
+    oldest_date_unix <- as.numeric(oldest_date)
+
+    # Append oldest and latest dates to the file name
+    file_name <- paste0(file_name, "_", oldest_date_unix)
+    file_name <- paste0(file_name, "_", latest_date_unix, ".json")
+
+
+
+    # Add path where file will be saved
+    file_name <- file.path(save_folder_path,file_name)
+
+    # Print the latest and oldest dates and file name
+    if (verbose){
+      message("Latest date:", latest_date_unix)
+      message("Oldest date:", oldest_date_unix)
+      message("File name: ", file_name)
+    }
+    }
+
+    # write the files if issues present
+    if (issue_count > 0){
+      writeLines(raw_content, file_name)
+    } else {
+      if(verbose){
+        message("You are all caught up!")
+      }
+    }
+
+    # update download_count and optional print statements
+    download_count <- download_count + issue_count
+    if (verbose && (issue_count > 0)){
+      message("saved file to ", file_name)
+      message("Saved ", download_count, " total issues")
+    }
+
+
+    #updates start_at for next loop
+    if (issue_count < max_results) {
+      break
+    } else {
+      start_at <- start_at + max_results
+    }
+  }
+
+  # Final verbose output
+  if (verbose) {
+    message("Success! Fetched and saved issues.")
+  }
+
+  # Returns the content so that it can be saved to a variable via function call
+  return(NULL)
+}
+
+
+#' Download JIRA Issues and/or Comments by Date Range
+#'
+#' Wraps around \code{\link{download_jira_issues}} providing JQL query parameters for specifying date ranges.
+#' Only issues created in the specified date range will be downloaded.
+#'
+#' Acceptable formats for `date_lower_bound` and `date_upper_bound` are:
+#'
+#' * "yyyy/MM/dd HH:mm"
+#' * "yyyy-MM-dd HH:mm"
+#' * "yyyy/MM/dd"
+#' * "yyyy-MM-dd"
+#'
+#' For example: `date_lower_bound=2023/11/16 21:00` (an issue ocurring at the exact specified time will also be downloaded).
+#'
+#' For further details on the `created` JQL Query see [the associated JIRA API documentation](https://support.atlassian.com/jira-software-cloud/docs/jql-fields/#Created).
+#'
+#' @param domain Custom JIRA domain URL
+#' @param username the JIRA username
+#' @param password the JIRA password/API token
+#' @param jql_query Specific query string to specify criteria for fetching
+#' @param fields List of fields that are downloaded in each issue
+#' @param save_folder_path Path that files will be saved in .json format
+#' @param max_results (optional) the [maximum number of results](https://confluence.atlassian.com/jirakb/how-to-use-the-maxresults-api-parameter-for-jira-issue-search-rest-api-1251999998.html)
+#' to download per page. Default is 50.
+#' @param max_total_downloads Maximum downloads per function call.
+#' This parameter specifies how many issues should be downloaded. Subsequent API calls will stop if they
+#' reach or surpass this value.
+#' See \code{\link{download_jira_issues_by_date}} and \code{\link{download_jira_issues_by_issue_key}}
+#' source code for examples.
+#' @param date_lower_bound Optional. Specify the lower bound date time (e.g. 2023/11/16 21:00)
+#' @param date_upper_bound Optional. Specify the upper bound date time (e.g. 2023/11/17 21:00)
+#' @param verbose Set verbose=TRUE to print execution details.
+#' @export
+#' @family jira
+#' @family downloaders
+#' @seealso \code{\link{download_jira_issues_by_issue_key}} to download JIRA issues and/or comments by issue key range
+#' @seealso \code{\link{download_jira_issues}} for more flexibility in specifying the JQL query
+#' @seealso \code{\link{parse_jira}} to parse jira data with or without comments
+#' @seealso  \code{\link{refresh_jira_issues}} to obtain more recent data from any of the downloader functions
+download_jira_issues_by_date <- function(domain,
+                                         jql_query,
+                                         fields,
+                                         username = NULL,
+                                         password = NULL,
+                                         save_folder_path,
+                                         max_results,
+                                         max_total_downloads,
+                                         date_lower_bound = NULL,
+                                         date_upper_bound = NULL,
+                                         verbose){
+  created_query <- ""
+  if (!is.null(date_lower_bound)){
+    created_query <- paste0(created_query, "AND created >= '", date_lower_bound, "' ")
+  }
+  if (!is.null(date_upper_bound)){
+    created_query <- paste0(created_query, "AND created <= '", date_upper_bound, "' ")
+  }
+  if(verbose){
+    message("Appending ", created_query, " to api request.")
+  }
+
+  download_jira_issues(domain = domain,
+                       jql_query = jql_query,
+                       fields = fields,
+                       username = username,
+                       password = password,
+                       save_folder_path = save_folder_path,
+                       max_results = max_results,
+                       max_total_downloads = max_total_downloads,
+                       search_query = created_query,
+                       verbose = verbose)
+}
+
+#' Download JIRA Issues and/or Comments by Issue Key Range
+#'
+#' #' Wraps around \code{\link{download_jira_issues}} providing jql query parameters for specifying issue key ranges.
+#' Only issues created in the specified date range inclusive will be downloaded.
+#'
+#' The acceptable format for `issue_key_lower_bound` and `issue_key_upper_bound` is: <project key>-<issue number>
+#'
+#' For example: `issue_key_lower_bound=SAILUH-1` (SAILUH-1 will also be downloaded).
+#'
+#' For further details on the `issueKey` JQL Query see [the associated JIRA API documentation](https://support.atlassian.com/jira-software-cloud/docs/jql-fields/#Issue-key)
+#'
+#'
+#' @param domain Custom JIRA domain URL
+#' @param username the JIRA username
+#' @param password the JIRA password/API token
+#' @param jql_query Specific query string to specify criteria for fetching
+#' @param fields List of fields that are downloaded in each issue
+#' @param save_folder_path Path that files will be saved in .json format
+#' @param max_results (optional) the [maximum number of results](https://confluence.atlassian.com/jirakb/how-to-use-the-maxresults-api-parameter-for-jira-issue-search-rest-api-1251999998.html)
+#' to download per page. Default is 50.
+#' @param max_total_downloads Maximum downloads per function call.
+#' This parameter specifies how many issues should be downloaded. Subsequent API calls will stop if they
+#' reach or surpass this value.
+#' See \code{\link{download_jira_issues_by_date}} and \code{\link{download_jira_issues_by_issue_key}}
+#' source code for examples.
+#' @param issue_key_lower_bound Optional. Specify the lower bound issue key (e.g. SAILUH-1)
+#' @param issue_key_upper_bound Optional. Specify the upper bound issue key (e.g. SAILUH-3)
+#' @param verbose Set verbose=TRUE to print execution details.
+#' @export
+#' @family jira
+#' @family downloaders
+#' @seealso \code{\link{download_jira_issues_by_date}} to download JIRA issues and/or comments by date range
+#' @seealso \code{\link{download_jira_issues}} for more flexibility in specifying the JQL query
+#' @seealso \code{\link{parse_jira}} to parse jira data with or without comments
+#' @seealso  \code{\link{refresh_jira_issues}} to obtain more recent data from any of the downloader functions
+download_jira_issues_by_issue_key <- function(domain,
+                                              jql_query,
+                                              fields,
+                                              username = NULL,
+                                              password = NULL,
+                                              save_folder_path,
+                                              max_results,
+                                              max_total_downloads,
+                                              issue_key_lower_bound = NULL,
+                                              issue_key_upper_bound = NULL,
+                                              verbose){
+  created_query <- ""
+  if (!is.null(issue_key_lower_bound)){
+    created_query <- paste0(created_query, "AND issueKey >= ", issue_key_lower_bound)
+  }
+  if (!is.null(issue_key_upper_bound)){
+    created_query <- paste0(created_query, " AND issueKey <= ", issue_key_upper_bound)
+  }
+  if(verbose){
+    message("Appending ", created_query, " to api request.")
+  }
+
+  download_jira_issues(domain = domain,
+                       jql_query = jql_query,
+                       fields = fields,
+                       username = username,
+                       password = password,
+                       save_folder_path = save_folder_path,
+                       max_results = max_results,
+                       max_total_downloads = max_total_downloads,
+                       search_query = created_query,
+                       verbose)
+}
+
+#' Refresh JIRA Issues and/or Comments
+#'
+#' Uses the adopted file name convention by \code{\link{download_jira_issues}} to identify
+#' the latest downloaded JIRA issue key KEY-i, and calls
+#' \code{\link{download_jira_issues_by_issue_key}} with lower bound KEY-(i+1) to download all
+#' newer issues.
+#'
+#' If the directory is empty, then all issues will be downloaded. This function can therefore
+#' be used in the specified folder to continuously refresh available issues and/or comments
+#' data.
+#'
+
+#' @param domain Custom JIRA domain URL
+#' @param username the JIRA username
+#' @param password the JIRA password/API token
+#' @param jql_query Specific query string to specify criteria for fetching
+#' @param fields List of fields that are downloaded in each issue
+#' @param save_folder_path Path that files will be saved in .json format
+#' @param max_results (optional) the [maximum number of results](https://confluence.atlassian.com/jirakb/how-to-use-the-maxresults-api-parameter-for-jira-issue-search-rest-api-1251999998.html)
+#' to download per page. Default is 50.
+#' @param max_total_downloads Maximum downloads per function call.
+#' This parameter specifies how many issues should be downloaded. Subsequent API calls will stop if they
+#' reach or surpass this value.
+#' @param verbose Set verbose=TRUE to print execution details.
+#' @export
+#' @family downloaders
+#' @family jira
+#' @seealso \code{\link{download_jira_issues_by_date}} to download JIRA issues and/or comments by date range
+#' @seealso \code{\link{download_jira_issues_by_issue_key}} to download JIRA issues and/or comments by issue key range
+#' @seealso \code{\link{download_jira_issues}} for more flexibility in specifying the JQL query
+#' @seealso \code{\link{parse_jira}} to parse jira data with or without comments
+#' @seealso \code{\link{parse_jira_latest_date}} to retrieve the file path of the latest issue key
+refresh_jira_issues <- function(domain,
+                                jql_query,
+                                fields,
+                                username = NULL,
+                                password = NULL,
+                                save_folder_path,
+                                max_results,
+                                max_total_downloads,
+                                verbose){
+
+  # List all files and subdirectories in the directory
+  existing_issues <- list.files(path = save_folder_path)
+
+  # If the folder is empty, then start by downloading all issues.
+  if(length(existing_issues) == 0) {
+    if(verbose){
+      message("The folder is empty. Downloading all issues. \n")
+    }
+    download_jira_issues(domain = domain,
+                         jql_query = jql_query,
+                         fields = fields,
+                         username = username,
+                         password = password,
+                         save_folder_path = save_folder_path,
+                         max_results = max_results,
+                         max_total_downloads = max_total_downloads,
+                         search_query = NULL,
+                         verbose = verbose)
+  } else {
+    # If folder is not empty, find the highest issue key, and resume download after it.
+    # First, get the file name with the last downloaded 'issueKey' value
+    file_name_with_greatest_issue_key <- parse_jira_latest_date(save_folder_path)
+
+    # Prepare the path and filename
+    issue_refresh <- file.path(save_folder_path, file_name_with_greatest_issue_key)
+
+    # Check if the file exists
+    if(file.exists(issue_refresh)) {
+    # Check if the file is empty by checking its size
+    } else {
+      if(verbose){
+        stop("The file does not exist.\n")
+      }
+    }
+    if(verbose){
+      message("Filename with highest date (and therefore latest issue key is inside): ", issue_refresh)
+    }
+
+    # Read the JSON file
+    json_data <- jsonlite::fromJSON(txt = issue_refresh, simplifyVector = FALSE)
+
+    # Extract the Maximum issue key value
+    # Start with a low value assuming no negative numbers
+    max_numeric_part <- -1
+    max_key <- ""
+
+    for (issue in json_data$issues) {
+      # Extract the key for the current issue
+      current_key <- issue$key
+
+      # Extract the numeric part of the key
+      # Assuming the key format is "PROJECTNAME-NUMBER"
+      numeric_part <- as.numeric(sub("^[^-]+-", "", current_key))
+
+      # Check if the numeric part is greater than the current maximum
+      if (numeric_part > max_numeric_part) {
+        # Update the maximum numeric part and the corresponding key
+        max_numeric_part <- numeric_part
+        max_key <- current_key
+      }
+    }
+
+    # Print the key with the maximum numeric part
+    if(verbose){
+      message("The greatest issue key value is ", max_key)
+    }
+
+    # Construct the search query to append to the JIRA API request
+    search_query <- paste0("AND issueKey > ", max_key)
+    if(verbose){
+      message("Appending ", search_query, " to JQL query")
+    }
+
+    # Call the downloader with appended query
+    download_jira_issues(domain = domain,
+                        jql_query = jql_query,
+                        fields = fields,
+                        username = username,
+                        password = password,
+                        save_folder_path = save_folder_path,
+                        max_results = max_results,
+                        max_total_downloads = max_total_downloads,
+                        search_query = search_query,
+                        verbose = verbose)
+  }
+}
+
+
 ############## Parsers ##############
 
-#' Parse Jira issue and comments
+#' Parse JIRA Issues and Comments
 #'
-#' @param json_path path to jira json (issues or issues with comments) obtained using `download_jira_data.Rmd`.
+#' Parses JIRA issues without or with comments contained in a folder following a standardized file nomenclature.
+#' as obtained from \code{\link{download_jira_issues}}. A named list with two elements (issues, comments) is returned
+#' containing the issue table and optionally comments table.
+#'
+#' The following fields are expected on the raw data:
+#'
+#' issuekey, issuetype, components, creator, created, description, reporter, status, resolution
+#' resolutiondate, assignee, updated, comment, priority, votes, watches, versions, fixVersions, labels
+#'
+#' which are the default parameters of \code{\link{download_jira_issues}}. If the `comment` field is
+#' specified, then the comments table is included.
+#'
+#' If a field is not present in an issue, then its value will be NA.
+#'
+#'
+#' @param json_folder_path is a folder path containing a set of jira_issues as json files.
 #' @return A named list of two named elements ("issues", and "comments"), each containing a data.table.
-#' Note the comments element will be empty if the downloaded json only contain issues.
 #' @export
 #' @family parsers
-parse_jira <- function(json_path){
+parse_jira <- function(json_folder_path){
 
-  json_issue_comments <- jsonlite::read_json(json_path)
+  file_list <- list.files(json_folder_path)
+
+  if (identical(file_list, character(0))){
+    stop(stringi::stri_c("cannot open the connection"))
+  }
 
   # Comments list parser. Comments may occur on any json issue.
   jira_parse_comment <- function(comment){
@@ -38,78 +553,141 @@ parse_jira <- function(json_path){
     return(parsed_comment)
   }
 
-  # names(json_issue_comments) => "base_info","ext_info"
-  # length([["base_info]]) == length([["ext_info]]) == n_issues.
-  # Choose either and store the total number of issues
-  n_issues <- length(json_issue_comments[["ext_info"]])
+  # Issues parser
+  jira_parse_issues <- function(jira_file){
 
-  # Prepare two lists which will contain data.tables for all issues and all comments
-  # Both tables can share the issue_key, so they can be joined if desired.
-  all_issues <- list()
-  all_issues_comments <- list()
+    json_issue_comments <- jsonlite::read_json(jira_file)
 
-  for(i in 1:n_issues){
+    n_issues <- length(json_issue_comments[["issues"]])
 
-    # The only use of "base_info" is to obtain the issue_key
-    issue_key <- json_issue_comments[["base_info"]][[i]][["key"]]
+    # Prepare two lists which will contain data.tables for all issues and all comments
+    # Both tables can share the issue_key, so they can be joined if desired.
+    all_issues <- list()
+    all_issues_comments <- list()
 
-    # All other information is contained in "ext_info"
-    issue_comment <- json_issue_comments[["ext_info"]][[i]]
+    for(i in 1:n_issues){
 
-    # Parse all relevant *issue* fields
-    all_issues[[i]] <- data.table(
-      issue_key = issue_key,
+      # This is the issue key
+      issue_key <- json_issue_comments[["issues"]][[i]][["key"]][[1]]
 
-      issue_summary = issue_comment[["summary"]][[1]],
-      issue_type = issue_comment[["issuetype"]][["name"]][[1]],
-      issue_status = issue_comment[["status"]][["name"]][[1]],
-      issue_resolution = issue_comment[["resolution"]][["name"]][[1]],
-      issue_components = stringi::stri_c(unlist(sapply(issue_comment[["components"]],"[[","name")),collapse = ";"),
-      issue_description = issue_comment[["description"]],
+      # All other information is contained in "fields"
+      issue_comment <- json_issue_comments[["issues"]][[i]][["fields"]]
 
-      issue_created_datetimetz = issue_comment[["created"]][[1]],
-      issue_updated_datetimetz = issue_comment[["updated"]][[1]],
-      issue_resolution_datetimetz = issue_comment[["resolutiondate"]],
+      # Parse all relevant *issue* fields
+      all_issues[[i]] <- data.table(
+        issue_key = issue_key,
 
-      issue_creator_id = issue_comment[["creator"]][["name"]][[1]],
-      issue_creator_name = issue_comment[["creator"]][["displayName"]][[1]],
-      issue_creator_timezone = issue_comment[["creator"]][["timeZone"]][[1]],
+        issue_summary = issue_comment[["summary"]][[1]],
+        issue_parent = issue_comment[["parent"]][["name"]][[1]],
+        issue_type = issue_comment[["issuetype"]][["name"]][[1]],
+        issue_status = issue_comment[["status"]][["statusCategory"]][["name"]][[1]],
+        issue_resolution = issue_comment[["resolution"]][["name"]][[1]],
+        issue_components = stringi::stri_c(unlist(sapply(issue_comment[["components"]],"[[","name")),collapse = ";"),
+        issue_description = issue_comment[["description"]][[1]],
+        issue_priority = issue_comment[["priority"]][["name"]][[1]],
+        issue_affects_versions = stringi::stri_c(unlist(sapply(issue_comment[["versions"]],"[[","name")),collapse = ";"),
+        issue_fix_versions = stringi::stri_c(unlist(sapply(issue_comment[["fixVersions"]],"[[","name")),collapse = ";"),
+        issue_labels = stringi::stri_c(unlist(sapply(issue_comment[["labels"]],"[[",1)),collapse = ";"),
+        issue_votes = issue_comment[["votes"]][["votes"]][[1]],
+        issue_watchers = issue_comment[["watches"]][["watchCount"]][[1]],
 
-      issue_assignee_id = issue_comment[["assignee"]][["name"]][[1]],
-      issue_assignee_name = issue_comment[["assignee"]][["displayName"]][[1]],
-      issue_assignee_timezone = issue_comment[["assignee"]][["timeZone"]][[1]],
+        issue_created_datetimetz = issue_comment[["created"]][[1]],
+        issue_updated_datetimetz = issue_comment[["updated"]][[1]],
+        issue_resolution_datetimetz = issue_comment[["resolutiondate"]][[1]],
 
-      issue_reporter_id = issue_comment[["reporter"]][["name"]][[1]],
-      issue_reporter_name = issue_comment[["reporter"]][["displayName"]][[1]],
-      issue_reporter_timezone = issue_comment[["reporter"]][["timeZone"]][[1]]
-    )
+        issue_creator_id = issue_comment[["creator"]][["name"]][[1]],
+        issue_creator_name = issue_comment[["creator"]][["displayName"]][[1]],
+        issue_creator_timezone = issue_comment[["creator"]][["timeZone"]][[1]],
 
-    # Comments
-    # For each issue, comment/comments contain 1 or more comments. Parse them
-    # in a separate table.
-    root_of_comments_list <- json_issue_comments[["ext_info"]][[i]][["comment"]]
-    # If root_of_comments_list does not exist, then this is an issue only json, skip parsing
-    if(length(root_of_comments_list) > 0){
-      comments_list <- json_issue_comments[["ext_info"]][[i]][["comment"]][["comments"]]
-      # Even on a json with comments, some issues may not have comments, check if comments exist:
-      if(length(comments_list) > 0){
-        # Parse all comments into issue_comments
-        issue_comments <- rbindlist(lapply(comments_list,
-                                           jira_parse_comment))
-        # Add issue_key column to the start of the table
-        issue_comments <- cbind(data.table(issue_key=issue_key),issue_comments)
-        all_issues_comments[[i]] <- issue_comments
+        issue_assignee_id = issue_comment[["assignee"]][["name"]][[1]],
+        issue_assignee_name = issue_comment[["assignee"]][["displayName"]][[1]],
+        issue_assignee_timezone = issue_comment[["assignee"]][["timeZone"]][[1]],
+
+        issue_reporter_id = issue_comment[["reporter"]][["name"]][[1]],
+        issue_reporter_name = issue_comment[["reporter"]][["displayName"]][[1]],
+        issue_reporter_timezone = issue_comment[["reporter"]][["timeZone"]][[1]]
+      )
+      # Comments
+      # For each issue, comment/comments contain 1 or more comments. Parse them
+      # in a separate table.
+      root_of_comments_list <- json_issue_comments[["issues"]][[i]][["fields"]][["comment"]]
+      # If root_of_comments_list does not exist, then this is an issue only json, skip parsing
+      if(length(root_of_comments_list) > 0){
+        comments_list <- json_issue_comments[["issues"]][[i]][["fields"]][["comment"]][["comments"]]
+        # Even on a json with comments, some issues may not have comments, check if comments exist:
+        if(length(comments_list) > 0){
+          # Parse all comments into issue_comments
+          issue_comments <- rbindlist(lapply(comments_list,
+                                             jira_parse_comment))
+          # Add issue_key column to the start of the table
+          issue_comments <- cbind(data.table(issue_key=issue_key),issue_comments)
+          all_issues_comments[[i]] <- issue_comments
+        }
       }
     }
+
+
+    all_issues <- rbindlist(all_issues,fill=TRUE)
+    all_issues_comments <- rbindlist(all_issues_comments,fill=TRUE)
+
+    parsed_issues_comments <- list()
+    parsed_issues_comments[["issues"]] <- all_issues
+    parsed_issues_comments[["comments"]] <- all_issues_comments
+
+    return(parsed_issues_comments)
   }
-  all_issues <- rbindlist(all_issues,fill=TRUE)
-  all_issues_comments <- rbindlist(all_issues_comments,fill=TRUE)
 
-  parsed_issues_comments <- list()
-  parsed_issues_comments[["issues"]] <- all_issues
-  parsed_issues_comments[["comments"]] <- all_issues_comments
+  issues_holder <- list()
+  comments_holder <- list()
 
-  return(parsed_issues_comments)
+  for(filename in file_list){
+    current_json <- paste0(json_folder_path, "/", filename)
+    parsed_data <- jira_parse_issues(current_json)
+    issues_holder <- append(issues_holder, list(parsed_data[["issues"]]))
+    comments_holder <- append(comments_holder, list(parsed_data[["comments"]]))
+  }
+
+  issues_holder <- rbindlist(issues_holder, fill=TRUE)
+  comments_holder <- rbindlist(comments_holder, fill=TRUE)
+
+  return_info <- list()
+  return_info[["issues"]] <- issues_holder
+  return_info[["comments"]] <- comments_holder
+
+  return(return_info)
+}
+#' Parse JIRA current issue
+#'
+#' Returns the file containing the most current issue in the specified folder.
+#'
+#' The folder assumes the following convention: "(PROJECTKEY)_(uniextimestamp_lowerbound)_(unixtimestamp_upperbound).json"
+#' For example: "SAILUH_1231234_2312413.json". This nomenclature is defined by \code{\link{download_jira_issues}}.
+#'
+#' @param json_folder_path path to save folder containing JIRA issue and/or comments json files.
+#' @return The name of the jira issue file with the latest created date that was created/downloaded for
+#' use by the Jira downloader refresher
+#' @export
+#' @family parsers
+parse_jira_latest_date <- function(json_folder_path){
+  file_list <- list.files(json_folder_path)
+  time_list <- list()
+
+  # Checking if the save folder is empty
+  if (identical(file_list, character(0))){
+    stop(stringi::stri_c("cannot open the connection"))
+  }
+
+  for (j in file_list){
+    j <- sub(".*_(\\w+)\\.[^.]+$", "\\1", j)
+    j <- as.numeric(j)
+    time_list <- append(time_list, j)
+  }
+
+  overall_latest_date <- as.character(max(unlist(time_list)))
+
+  latest_issue_file <- grep(overall_latest_date, file_list, value = TRUE)
+
+  return(latest_issue_file)
 }
 #' Format Parsed Jira to Replies
 #'
@@ -196,57 +774,82 @@ parse_jira_rss_xml <- function(jira_issues_folderpath){
 
 ############## Fake Generator ##############
 
-#' Create JirAgileR Issue
+#' Create JIRA Issue
 #'
 #' Creates a single JIRA Issue as a list, which can be saved as a JSON with or without comments.
-#' Note the JSON follows the format used by JirAgileR package when downloading
-#' JSONs, instead of the format specified by JIRA.
 #'
 #' @param jira_domain_url URL of JIRA domain (e.g. "https://project.org/jira")
-#' @param issue_key issue key of JIRA issue (e.g. "PROJECT-68" or "GERONIMO-6723)
-#' @param issue_type type of JIRA issue (e.g. "New Feature", "Task", "Bug")
-#' @param status status of issue for development (e.g. "In Progress")
-#' @param resolution name of resolution for issue (e.g. "Fixed")
-#' @param title summary of the issue (e.g. "Site Keeps Crashing")
+#' @param issue_key issue key of JIRA issue (e.g. "PROJECT-68" or "GERONIMO-6723")
+#' @param project_key key of the project that contains the JIRA issue (e.g. "SPARK" or "GERONIMO")
+#' @param summary summary of the issue (e.g. "Site Keeps Crashing")
 #' @param description more detailed description of issue (e.g. "The program keeps crashing because this reason")
-#' @param components components of issue separate by ; (e.g. "x-core;x-spring")
+#' @param issue_type type of JIRA issue (e.g. "New Feature", "Task", "Bug")
+#' @param resolution name of resolution for issue (e.g. "Fixed")
+#' @param priority the name of the priority of the issue (e.g. "Major", "Minor", "Trivial")
+#' @param status status of issue for development (e.g. "In Progress")
+#' @param labels the labels of the project (e.g. "message", "mail", "jira")
+#' @param components list of components of issue (e.g. c("PS", "Tests"))
+#' @param affects_versions list of affected versions (e.g. c("3.1.6", "4.1.0"))
+#' @param fix_versions list of fixed versions (e.g. c("3.1.5", "4.0.0"))
+#' @param assignee_name name of person the issue is being assigned to (e.g. "Joe Schmo")
 #' @param creator_name name of creator of issue (e.g. "John Doe")
 #' @param reporter_name name of reporter of issue (e.g. "Jane Doe")
-#' @param assignee_name name of person the issue is being assigned to (e.g. "Joe Schmo")
-#' @param comments character vector where each element is a comment string (e.g. c("This is first comment", "This is second comment"))
-#' @return A list which represents the JirAgileR JSON in memory
+#' @param comments character list where each element is a comment string (e.g. c("This is first comment", "This is second comment"))
+#' @return A list which represents the JIRA JSON in memory
 #' @export
 #' @family {unittest}
-make_jira_issue <- function(jira_domain_url, issue_key, issue_type, status, resolution, title, description, components, creator_name, reporter_name, assignee_name, comments = NULL) {
+make_jira_issue <- function(jira_domain_url, issue_key, project_key, summary, description, issue_type,
+                            resolution, priority, status, labels, components, affects_versions, fix_versions,
+                            assignee_name, creator_name, reporter_name, comments = NULL) {
 
-  # An issue in the JirAgileR format contains an `base_info_cell`
-  # and an `ext_info_cell`. This function calls the appropriate
-  # internal functions to define both blocks, and add
-  issues <- list()
+  # Create an issue with the given parameters as a list. If comments are specified, then add comments to the list
+  fields <- list(
+    parent = create_parent(jira_domain_url, issue_key, status, priority, issue_type),
+    fixVersions = create_fix_versions(jira_domain_url, fix_versions),
+    resolution = create_resolution(name = resolution),
+    priority = create_priority(jira_domain_url, priority),
+    labels = labels,
+    versions = create_versions(jira_domain_url, affects_versions),
+    assignee = create_assignee(jira_domain_url, assignee_name),
+    status = create_status(jira_domain_url, status),
+    components = create_components(jira_domain_url, components),
+    creator = create_creator(jira_domain_url, creator_name),
+    reporter = create_reporter(jira_domain_url, reporter_name),
+    votes = create_votes(jira_domain_url, issue_key),
+    issuetype = create_issue_type(jira_domain_url, issue_type),
+    project = create_project(jira_domain_url, project_key),
+    resolutiondate = "2007-08-13T19:12:33.000+0000",
+    watches = create_watches(jira_domain_url, issue_key),
+    created = "2007-07-08T06:07:06.000+0000",
+    updated = "2008-05-12T08:01:39.000+0000",
+    description = description,
+    summary = summary
+  )
 
-  # Create `base_info_cell`
-  base_info_cell <- create_base_info(jira_domain_url, issue_key)
-  issues[["base_info"]][[1]] <- base_info_cell
-
-  # Create `ext_info_cell`
-  ext_info_cell <- create_ext_info(jira_domain_url, issue_type, status, resolution, title, description, components, creator_name, reporter_name, assignee_name)
-
-  # Create `comment` if specified
   if (!is.null(comments) && length(comments) > 0) {
 
-    ext_info_cell[["comment"]][["comments"]] <- create_issue_comments(comments)
-    ext_info_cell[["comment"]][["maxResults"]] <- length(ext_info_cell[["comment"]][[1]])
-    ext_info_cell[["comment"]][["total"]] <- length(ext_info_cell[["comment"]][[1]])
-    ext_info_cell[["comment"]][["startAt"]] <- 0
+    fields[["comment"]][["comments"]] <- create_issue_comments(comments)
+    fields[["comment"]][["maxResults"]] <- length(fields[["comment"]][[1]])
+    fields[["comment"]][["total"]] <- length(fields[["comment"]][[1]])
+    fields[["comment"]][["startAt"]] <- 0
   }
 
-  issues[["ext_info"]][[1]] <- ext_info_cell
+  # generate a random id number
+  id <- sample(10000000: 99999999, 1)
 
-  #folder_path <- "/tmp"
-  #jira_json_path <- file.path(folder_path,"fake_issues.json")
-  #jsonlite::write_json(issues,file.path(folder_path,"fake_issues.json"))
+  # append the id to the Jira doman URL
+  self_url <- paste0(jira_domain_url, "/rest/api/2/issue", id)
 
-  return(issues)
+  # fill in the keys for the issue and append the 'fields' list
+  issue <- list(
+    expand = "schema, names",
+    id = as.character(id),
+    self = self_url,
+    key = issue_key,
+    fields = fields
+  )
+
+  return(issue)
 
 }
 
@@ -260,244 +863,23 @@ make_jira_issue <- function(jira_domain_url, issue_key, issue_type, status, reso
 #' file name and extension.
 #' @return The `save_filepath` specified.
 #' @export
-make_jira_issue_tracker <- function(issues,save_filepath) {
+make_jira_issue_tracker <- function(issues, save_filepath) {
 
   # validate input
   if (!is.list(issues)) {
     stop("The issues parameter should be a list of issues.")
   }
 
-  issue_tracker <- list()
-  issue_tracker_base_list <- list()
-  issue_tracker_ext_list <- list()
+  export_issues <- list(
+    expand = "schema,names",
+    startAt = 0,
+    maxResults = 50,
+    total = length(issues),
+    issues = issues
+  )
 
-  # Flatten function to format base_info properly for tracker format
-  flatten_base_info <- function(base_info) {
-    flattened_base_info <- list(
-      id = as.character(base_info[[1]][[1]]),
-      self = base_info[[1]][[2]],
-      key = base_info[[1]][[3]],
-      JirAgileR_id = as.numeric(base_info[[1]][[4]])
-    )
-
-    # return final flattened base_info list
-    return(flattened_base_info)
-  }
-
-  # Flatten functions to format ext_info properly for tracker format
-  flatten_ext_info <- function(ext_info) {
-    flattened_ext_info <- list()
-
-    # title
-    flattened_ext_info$title <- ext_info[[1]][[1]][[1]]
-
-    # issue_type
-    flatten_issuetype <- function(issuetype) {
-      flattened_issuetype <- list()
-
-      flattened_issuetype$self <- issuetype[[1]][[1]][[1]]
-      flattened_issuetype$id <- as.character(issuetype[[2]][[1]][[1]])
-      flattened_issuetype$description <- issuetype[[3]][[1]][[1]]
-      flattened_issuetype$iconUrl <- issuetype[[4]][[1]]
-      flattened_issuetype$name <- issuetype[[5]][[1]]
-      flattened_issuetype$subtask <- issuetype[[6]][[1]]
-      flattened_issuetype$avatarId <- issuetype[[7]][[1]]
-
-      return(flattened_issuetype)
-    }
-
-    flattened_ext_info$issuetype <- flatten_issuetype(ext_info[[1]][[2]])
-
-    # components
-    flatten_components <- function(components) {
-      flattened_components <- list()
-
-      for(i in seq_along(components)) {
-        component <- components[[i]]
-        flattened_component <- list()
-        flattened_component$self <- component[[1]][[1]]
-        flattened_component$id <- component[[2]][[1]]
-        flattened_component$name <- component[[3]][[1]]
-        flattened_components[[i]] <- flattened_component
-      }
-
-      return(flattened_components)
-    }
-
-    flattened_ext_info$components <- flatten_components(ext_info[[1]][[3]])
-
-    # creator
-    flattened_ext_info$creator <- ext_info[[1]][[4]]
-
-    # created
-    flattened_ext_info$created <- ext_info[[1]][[5]][[1]]
-
-    # description
-    flattened_ext_info$description <- ext_info[[1]][[6]]
-
-    # reporter
-    flatten_reporter <- function(reporter) {
-      flattened_reporter <- list()
-      flattened_reporter$self <- reporter[[1]][[1]]
-      flattened_reporter$name <- reporter[[2]][[1]]
-      flattened_reporter$key <- reporter[[3]][[1]]
-      flattened_reporter$avatarUrls <- reporter[[4]]
-      flattened_reporter$displayName <- reporter[[5]][[1]]
-      flattened_reporter$active <- reporter[[6]][[1]]
-      flattened_reporter$timeZone <- reporter[[7]][[1]]
-
-      return(flattened_reporter)
-    }
-
-    flattened_ext_info$reporter <- flatten_reporter(ext_info[[1]][[7]])
-
-    # resolution
-    flatten_resolution <- function(resolution) {
-      flattened_resolution <- list()
-      flattened_resolution$self <- resolution[[1]][[1]]
-      flattened_resolution$id <- resolution[[2]][[1]]
-      flattened_resolution$description <- resolution[[3]][[1]]
-      flattened_resolution$name <- resolution[[4]][[1]]
-
-      return(flattened_resolution)
-    }
-
-    flattened_ext_info$resolution <- flatten_resolution(ext_info[[1]][[8]])
-
-    #resolutiondate
-    flattened_ext_info$resolutiondate <- ext_info[[1]][[9]]
-
-    # comments
-    if (length(ext_info[[1]]) >= 13) {
-      flattened_ext_info$comment <- ext_info[[1]][[13]]
-    }
-
-    # assignee
-    flatten_assignee <- function(assignee) {
-      flattened_assignee <- list()
-      flattened_assignee$self <- assignee[[1]][[1]]
-      flattened_assignee$name <- assignee[[2]][[1]]
-      flattened_assignee$key <- assignee[[3]][[1]]
-      flattened_assignee$avatarUrls <- assignee[[4]]
-      flattened_assignee$displayName <- assignee[[5]][[1]]
-      flattened_assignee$active <- assignee[[6]][[1]]
-      flattened_assignee$timeZone <- assignee[[7]][[1]]
-
-      return(flattened_assignee)
-    }
-
-    flattened_ext_info$assignee <- flatten_reporter(ext_info[[1]][[10]])
-
-    # updated
-    flattened_ext_info$updated <- ext_info[[1]][[11]][[1]]
-
-    # status
-    flatten_status <- function(status) {
-      flattened_status <- list()
-      flattened_status$self <-status[[1]][[1]]
-      flattened_status$description <- status[[2]][[1]]
-      flattened_status$iconUrl <- status[[3]][[1]]
-      flattened_status$name <- status[[4]]
-      flattened_status$id <- status[[5]][[1]]
-
-      statusCategory <- list()
-      statusCategory$self <- status[[6]][[1]][[1]]
-      statusCategory$id <- status[[6]][[2]][[1]]
-      statusCategory$key <- status[[6]][[3]][[1]]
-      statusCategory$colorName <- status[[6]][[4]][[1]]
-      statusCategory$name <- status[[6]][[5]][[1]]
-
-      flattened_status$statusCategory <- statusCategory
-
-      return(flattened_status)
-    }
-
-    flattened_ext_info$status <- flatten_status(ext_info[[1]][[12]])
-
-    # return final flattened ext_info list
-    return(flattened_ext_info)
-  }
-
-  # loop through each issue
-  for(issue in issues) {
-    # get base & ext info for each issue
-    base_info <- flatten_base_info(issue[["base_info"]])
-    ext_info <- flatten_ext_info(issue[["ext_info"]])
-
-    # combine each new base & ext list to respective list
-    issue_tracker_base_list <- c(issue_tracker_base_list, list(base_info))
-    issue_tracker_ext_list <- c(issue_tracker_ext_list, list(ext_info))
-  }
-
-  # combine both lists to create final tracker
-  issue_tracker[["base_info"]] <- issue_tracker_base_list
-  issue_tracker[["ext_info"]] <- issue_tracker_ext_list
-
-  jsonlite::write_json(issue_tracker,save_filepath)
-
+  jsonlite::write_json(export_issues, save_filepath, auto_unbox=TRUE)
   return(save_filepath)
-}
-
-
-#' Create base_info_cell
-#'
-#' Creates and formats base_info_cell list for \code{\link{make_jira_issue}}.
-#'
-#' @param jira_domain_url URL of JIRA domain
-#' @param issue_key key for JIRA issue
-#' @return A list named 'base_info_cell' containing all information for base cell in json file
-#' @keywords internal
-create_base_info <- function(jira_domain_url, issue_key) {
-  id <- sample(1:10, 1)
-  JirAgileR_id <- sample(1:10, 1)
-
-  # Construct the issue API URL from the domain URL and issue key
-  issue_api_url <- paste0(jira_domain_url, "/rest/api/latest/issue/", id)
-
-  base_info_cell <- list(
-    id = id,
-    self = issue_api_url,
-    key = issue_key,
-    JirAgileR_id = JirAgileR_id
-  )
-
-  return(base_info_cell)
-}
-
-#' Create ext_info_cel
-#'
-#' Creates and formats ext_info_cell list \code{\link{make_jira_issue}}.
-#'
-#' @param jira_domain_url URL of JIRA domain
-#' @param issue_type description of issue_type
-#' @param status status of issue for development
-#' @param resolution name of resolution for issue
-#' @param title summary of the issue
-#' @param description description of issue
-#' @param components components of issue, a list with component names separated by ; (ex. "x-core;x-spring" is two components)
-#' @param creator_name name of creator of issue
-#' @param reporter_name name of reporter reporting the issue
-#' @param assignee_name name of person the issue is being assigned to
-#' @return A list named 'ext_info_cell' which contains all the parameters and its generated fake data formats
-#' @keywords internal
-create_ext_info <- function(jira_domain_url, issue_type, status, resolution, title, description, components, creator_name, reporter_name, assignee_name) {
-
-  ext_info_cell <- list(
-    title = list(title),
-    issuetype = create_issue_type(jira_domain_url, issue_type),
-    components = create_components(jira_domain_url, components),
-    creator = create_creator(jira_domain_url, creator_name),
-    created = list("2007-07-08T06:07:06.000+0000"),
-    description = description,
-    reporter = create_reporter(jira_domain_url, reporter_name),
-    resolution = create_resolution(name = resolution),
-    resolutiondate = "2007-08-13T19:12:33.000+0000",
-    assignee = create_assignee(jira_domain_url, assignee_name),
-    updated = list("2008-05-12T08:01:39.000+0000"),
-    status = create_status(jira_domain_url, status)
-  )
-
-  return(ext_info_cell)
 }
 
 #' Create Issue Comments
@@ -506,10 +888,11 @@ create_ext_info <- function(jira_domain_url, issue_type, status, resolution, tit
 #' Other parameters associated to the comments, such as the author
 #' and update author are currently hardcoded.
 #'
-#' @param comments A character vector containing the comment body.
+#' @param comments A character list containing the comment body.
+#' @return A list named 'comments_list' that has a list of comments
 #' @keywords internal
 create_issue_comments <- function(comments) {
-  comments_vector <- list()
+  comments_list <- list()
 
   # go through and make comment for each body in comment_bodies
   # only comment bodies changes for comments, the rest of comments information is hard coded below
@@ -549,15 +932,16 @@ create_issue_comments <- function(comments) {
       created = "2021-01-01T10:00:00.000+0000",
       updated = "2021-01-01T12:00:00.000+0000"
     )
-    comments_vector[[length(comments_vector) + 1]] <- comment
+    comments_list[[length(comments_list) + 1]] <- comment
   }
 
-  return(comments_vector)
+  return(comments_list)
 }
 
 #' Create Issue Type
 #'
-#' Create issue type cell for \code{\link{make_jira_issue}}.
+#' Create issue type cell for \code{\link{make_jira_issue}}. This represents the 'Type'
+#' label in JIRA
 #'
 #' @param jira_domain_url URL of JIRA domain
 #' @param issue_type name of the issue type (e.g. New Feature)
@@ -569,13 +953,13 @@ create_issue_type <- function(jira_domain_url, issue_type) {
   self_url <- paste0(jira_domain_url, "/rest/api/", issue_id, "/issuetype/", issue_id)
 
   issue_type <- list(
-    self = list(list(self_url)),
-    id = list(list(issue_id)),
-    description = list(list("A new feature of the product, which has yet to be developed.")),
-    iconUrl = list("https://domain.org/jira/secure/viewavatar?size=xsmall&avatarId=21141&avatarType=issuetype"),
-    name = list(issue_type),
-    subtask = list(FALSE),
-    avatarId = list(21141)
+    self = self_url,
+    id = issue_id,
+    description = "A new feature of the product, which has yet to be developed.",
+    iconUrl = "https://domain.org/jira/secure/viewavatar?size=xsmall&avatarId=21141&avatarType=issuetype",
+    name = issue_type,
+    subtask = FALSE,
+    avatarId = 21141
   )
 
   return(issue_type)
@@ -586,24 +970,24 @@ create_issue_type <- function(jira_domain_url, issue_type) {
 #' Creates the component cells for \code{\link{make_jira_issue}}.
 #'
 #' @param jira_domain_url URL of JIRA domain
-#' @param components string of names of components (ex. "x-core;x-spring" is two components)
+#' @param components list of names of components
 #' @return A list named 'components' which contains each component and its details
 #' @keywords internal
 create_components <- function(jira_domain_url, components) {
-
-  # separate components names with ; (ex. "x-core;x-spring" is two components)
-  components_names <- unlist(stringi::stri_split_regex(components, pattern = ";"))
   components_list <- list()
 
   # for loop to create a component for each component name
-  for (name in components_names) {
-    id <- sample(10000000: 99999999, 1)
+  for (name in components) {
+
+    id <- sample(10000: 99999999, 1)
+
     self_url <- paste0(jira_domain_url, "/rest/api/2/component/", id)
 
     component <- list(
-      self = list(self_url),
-      id = list(as.character(id)),
-      name = list(name)
+      self = self_url,
+      id = as.character(id),
+      name = name,
+      description = "This is the description for the component"
     )
 
     # add component to list which will be returned at the end
@@ -664,13 +1048,13 @@ create_reporter <- function(jira_domain_url, reporter_name) {
   )
 
   reporter <- list(
-    self = list(self_url),
+    self = self_url,
     name = "user_id",
     key = "user_id",
     avatarUrls = avatarUrls,
-    displayName = list(reporter_name),
-    active = list(TRUE),
-    timeZone = list("Etc/UTC")
+    displayName = reporter_name,
+    active = TRUE,
+    timeZone = "Etc/UTC"
   )
 
   return(reporter)
@@ -691,10 +1075,10 @@ create_resolution <- function(self_url = "https://domain.org/jira/rest/api/2/res
                               description = "A fix for this issue is checked into the tree and tested.",
                               name = "Fixed") {
   resolution <- list(
-    self = list(self_url),
-    id = list(id),
-    description = list(description),
-    name = list(name)
+    self = self_url,
+    id = id,
+    description = description,
+    name = name
   )
 
   return(resolution)
@@ -702,7 +1086,7 @@ create_resolution <- function(self_url = "https://domain.org/jira/rest/api/2/res
 
 #' Create Assignee
 #'
-#' Creates a assignee cell for \code{\link{make_jira_issue}}.
+#' Creates an assignee cell for \code{\link{make_jira_issue}}.
 #'
 #' @param jira_domain_url URL of JIRA domain
 #' @param assignee_name name of assignee
@@ -720,13 +1104,13 @@ create_assignee <- function(jira_domain_url, assignee_name) {
   )
 
   assignee <- list(
-    self = list(self_url),
+    self = self_url,
     name = "user_id",
     key = "user_id",
     avatarUrls = avatarUrls,
-    displayName = list(assignee_name),
-    active = list(TRUE),
-    timeZone = list("Etc/UTC")
+    displayName = assignee_name,
+    active = TRUE,
+    timeZone = "Etc/UTC"
   )
 
   return(assignee)
@@ -738,7 +1122,7 @@ create_assignee <- function(jira_domain_url, assignee_name) {
 #'
 #' @param jira_domain_url URL of JIRA domain
 #' @param status description of status
-#' @return A list named 'status' containing status's information
+#' @return A list named 'status' containing the status of the issue
 #' @keywords internal
 create_status <- function(jira_domain_url, status) {
 
@@ -749,19 +1133,217 @@ create_status <- function(jira_domain_url, status) {
   statusCategory_self_url <- paste0(jira_domain_url, "/rest/api/2/statuscategory/", status_category_id)
 
   status <- list(
-    self = list(self_url),
-    description = list("The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened."),
-    iconUrl = list("https://domain.org/jira/images/icons/statuses/closed.png"),
+    self = self_url,
+    description = "The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened.",
+    iconUrl = "https://domain.org/jira/images/icons/statuses/closed.png",
     name = status,
     id = as.character(status_id),
     statusCategory = list(
-      self = list(statusCategory_self_url),
-      id = list(status_category_id),
-      key = list("done"),
-      colorName = list("green"),
-      name = list("Done")
+      self = statusCategory_self_url,
+      id = status_category_id,
+      key = "done",
+      colorName = "green",
+      name = "Done"
     )
   )
 
   return(status)
+}
+
+#' Create Fix Version
+#'
+#' Create a fixVersions cell for \code{\link{make_jira_issue}}. This represents the
+#' 'Fixed Version/s' label in JIRA
+#'
+#' @param jira_domain_url URL of JIRA domain
+#' @param fix_versions list of fixed versions for the issue
+#' @return A list named 'fixVersions' with a list of fixed versions and version information
+#' @keywords internal
+create_fix_versions <- function(jira_domain_url, fix_versions) {
+
+  fixVersions_list <- list()
+
+  for(fix_version in fix_versions){
+    id <- sample(10000000: 99999999, 1)
+    self_url <- paste0(jira_domain_url, "/rest/api/2/version/", id)
+
+    version <- list(
+      self = self_url,
+      id = as.character(id),
+      description = "This is a description of the fixVersion",
+      name = fix_version,
+      archived = FALSE,
+      released = TRUE,
+      releaseDate = "2021-01-01T10:00:00.000+0000"
+    )
+
+    fixVersions_list[[length(fixVersions_list) + 1]] <- version
+  }
+
+  return(fixVersions_list)
+}
+
+#' Create Priority
+#'
+#' Create a priority cell for \code{\link{make_jira_issue}}.
+#'
+#' @param jira_domain_url URL of JIRA domain
+#' @param priority the name of the priority of the issue (Major, Minor, Trivial)
+#' @return A list named 'priority' containing the priority of the issue
+#' @keywords internal
+create_priority <- function(jira_domain_url, priority) {
+
+  id <- sample(1:10, 1)
+
+  self_url <- paste0(jira_domain_url, "/rest/api/2/priority/", id)
+
+  priority <- list(
+    self = self_url,
+    iconUrl = "https://issues.apache.org/jira/images/icons/priorities/major.svg",
+    name = priority,
+    id = as.character(id)
+  )
+
+  return(priority)
+}
+
+#' Create Parent
+#'
+#' Create a parent cell for \code{\link{make_jira_issue}}. Currently, the parent has the same
+#' issue_key, status, priority, and issue_type as the base issue
+#'
+#' @param jira_domain_url URL of JIRA domain
+#' @param parent_issue_key issue key of the parent issue of the current JIRA issue
+#' @param status status of issue for development
+#' @param priority the name of the priority of the issue
+#' @param issue_type type of JIRA issue
+#' @return A list named 'parent' that contains a parent issue and it's fields
+#' @keywords internal
+create_parent <- function(jira_domain_url, issue_key, status, priority, issue_type) {
+
+  id <- sample(10000000: 99999999, 1)
+
+  self_url <- paste0(jira_domain_url, "/rest/api/2/issue/", id)
+
+  fields <- list(
+    summary = "This is a summary",
+    status = create_status(jira_domain_url, status),
+    priority = create_priority(jira_domain_url, priority),
+    issuetype = create_issue_type(jira_domain_url, issue_type)
+  )
+
+  parent <- list(
+    id = as.character(id),
+    key = issue_key,
+    self = self_url,
+    fields = fields
+  )
+
+  return(parent)
+}
+
+#' Create Project
+#'
+#' Create a project cell for \code{\link{make_jira_issue}}.
+#'
+#' @param jira_domain_url URL of JIRA domain
+#' @param project_key key of the project that contains the JIRA issue (e.g. "SPARK" or "GERONIMO")
+#' @return A list named 'project' that contains the project's information
+#' @keywords internal
+create_project <- function(jira_domain_url, project_key) {
+
+  id <- sample(10000000: 99999999, 1)
+
+  self_url <- paste0(jira_domain_url, "/rest/api/2/project/", id)
+
+  avatarUrls = list(
+    "48x48" = "https://example.com/jira/secure/useravatar?size=large&ownerId=user1",
+    "24x24" = "https://example.com/jira/secure/useravatar?size=small&ownerId=user1",
+    "16x16" = "https://example.com/jira/secure/useravatar?size=xsmall&ownerId=user1",
+    "32x32" = "https://example.com/jira/secure/useravatar?size=medium&ownerId=user1"
+  )
+
+  project <- list(
+    self = self_url,
+    id = as.character(id),
+    key = project_key,
+    name = project_key,
+    projectTypeKey = "software",
+    avartarUrls = avatarUrls
+  )
+}
+
+#' Create Versions
+#'
+#' Create a versions cell for \code{\link{make_jira_issue}}. This cell represents
+#' the 'Affects Version/s' label in JIRA
+#'
+#' @param jira_domain_url URL of JIRA domain
+#' @param affects_versions list of version names for the issue
+#' @return A list named 'versions' with a list of versions
+#' @keywords internal
+create_versions <- function(jira_domain_url, affects_versions) {
+
+  versions_list <- list()
+
+  for(affects_version in affects_versions){
+    id <- sample(10000000: 99999999, 1)
+    self_url <- paste0(jira_domain_url, "/rest/api/2/version/", id)
+
+    version <- list(
+      self = self_url,
+      id = as.character(id),
+      description = "This is a description of the version",
+      name = affects_version,
+      archived = FALSE,
+      released = TRUE,
+      releaseDate = "2024-01-01T10:00:00.000+0000"
+    )
+
+    versions_list[[length(versions_list) + 1]] <- version
+  }
+
+  return(versions_list)
+}
+
+#' Create Votes
+#'
+#' Create a votes cell for \code{\link{make_jira_issue}}.
+#'
+#' @param jira_domain_url URL of JIRA domain
+#' @param issue_key issue key of JIRA issue
+#' @return A list named 'votes' that has the number of votes for the issue
+#' @keywords internal
+create_votes <- function(jira_domain_url, issue_key) {
+
+  self_url <- paste0(jira_domain_url, "/rest/api/2/issue/", issue_key, "votes")
+
+  votes <- list(
+    self = self_url,
+    votes = 10,
+    hasVoted = FALSE
+  )
+
+  return(votes)
+}
+
+#' Create Watches
+#'
+#' Create a watches cell for \code{\link{make_jira_issue}}.
+#'
+#' @param jira_domain_url URL of JIRA domain
+#' @param issue_key issue key of JIRA issue
+#' @return A list named 'watches' that has the number of watchers for the issue
+#' @keywords internal
+create_watches <- function(jira_domain_url, issue_key) {
+
+  self_url <- paste0(jira_domain_url, "/rest/api/2/issue/", issue_key, "watchers")
+
+  watches <- list(
+    self = self_url,
+    watchCount = 15,
+    isWatching = FALSE
+  )
+
+  return(watches)
 }

@@ -15,6 +15,6 @@ create_assignee(jira_domain_url, assignee_name)
 A list named 'assignee' which contains the assignee's information
 }
 \description{
-Creates a assignee cell for \code{\link{make_jira_issue}}.
+Creates an assignee cell for \code{\link{make_jira_issue}}.
 }
 \keyword{internal}

@@ -1,9 +1,14 @@
 __kaiaulu 0.0.0.9700 (in development)__
-=========================
 
 ### NEW FEATURES
  * `github_api_project_issue_refresh` and `github_api_project_issue_or_pr_comment_refresh` were added to download issue data or comments respectively that have not already been downloaded.
  * `format_created_at_from_file` was added to retrieve the greatest date from a JSON file.
+ * `refresh_jira_issues()` had been added. It is a wrapper function for the previous downloader and downloads only issues greater than the greatest key already downloaded.
+ * `download_jira_issues()`, `download_jira_issues_by_issue_key()`, and `download_jira_issues_by_date()` has been added. This allows for downloading of Jira issues without the use of JirAgileR [#275](https://github.com/sailuh/kaiaulu/issues/275) and specification of issue Id and created ranges. It also interacts with `parse_jira_latest_date` to implement a refresh capability.
+ * `make_jira_issue()` and `make_jira_issue_tracker()` no longer create fake issues following JirAgileR format, but instead the raw data obtained from JIRA API. This is compatible with the new parser function for JIRA. [#277](https://github.com/sailuh/kaiaulu/issues/277)
+ * `parse_jira()` now parses folders containing raw JIRA JSON files without depending on JirAgileR. [#276](https://github.com/sailuh/kaiaulu/issues/276)
+ * The `parse_jira_latest_date()` has been added. This function returns the file name of the downloaded JIRA JSON containing the latest date for use by `download_jira_issues()` to implement a refresh capability. [#276](https://github.com/sailuh/kaiaulu/issues/276)
+
  * Kaiaulu architecture has been refactored. Instead of using a parser, download, network module structure, Kaiaulu now uses a combination of data type and tool structure. In that manner, various parser functions of download,R, parser.R, and network.R now are separated in git.R, jira.R, git.R, etc. When only small functionality of a tool is required, functions are grouped based on the data type they are associated to, for example,  src.R. Kaiaulu API documentation has been updated accordingly. Functions signature and behavior remain the same: The only modification was the new placement of functions into files. For further rationale and changes, see the issue for more details. [#241](https://github.com/sailuh/kaiaulu/issues/241)
  * Temporal bipartite projections are now weighted. The temporal projection can be parameterized by `weight_scheme_cum_temporal()` `weight_scheme_pairwise_cum_temporal()` when all time lag edges are used, or the existing weight schemes can also be used when using a single lag. The all lag weight schemes reproduce the same behavior as Codeface's paper. See the issue for details. [#229](https://github.com/sailuh/kaiaulu/issues/229)  
  * The `make_jira_issue()` and `make_jira_issue_tracker()` have been added, alongside examples and unit tests for `parse_jira()`. [#228](https://github.com/sailuh/kaiaulu/issues/228) 
