@@ -791,3 +791,46 @@ format_created_at_from_file <- function(file_name,item_path) {
   # Return the latest 'created_at' value
   return(formatted_greatest_date)
 }
+
+#' Parse Issues JSON from refresh to Table
+#'
+#' Note not all columns available in the downloaded json are parsed. This parser
+#' is adapted from \code{link{github_parse_project_issue}} to parse data
+#' from the refresh_issue folder. This data is downloaded from the Github API
+#' search endpoint and has a different level of nesting than the original data
+#'
+#' @param api_responses API response obtained from github_api_* function.
+#' @export
+# Parse Issues from Search JSON to Table
+github_parse_search_issues_refresh <- function(api_responses) {
+  # Helper function to parse each issue
+  parse_response <- function(api_response) {
+    parsed_response <- list()
+    parsed_response[["issue_id"]] <- api_response[["id"]]
+    parsed_response[["issue_number"]] <- api_response[["number"]]
+    parsed_response[["html_url"]] <- api_response[["html_url"]]
+    parsed_response[["url"]] <- api_response[["url"]]
+    parsed_response[["created_at"]] <- api_response[["created_at"]]
+    parsed_response[["updated_at"]] <- api_response[["updated_at"]]
+    parsed_response[["state"]] <- api_response[["state"]]
+    parsed_response[["issue_user_login"]] <- api_response[["user"]][["login"]]
+    parsed_response[["author_association"]] <- api_response[["author_association"]]
+    parsed_response[["title"]] <- api_response[["title"]]
+    parsed_response[["body"]] <- api_response[["body"]]
+
+    # Parsing labels
+    parsed_response[["labels"]] <- api_response[["labels"]]
+    if(length(parsed_response[["labels"]]) > 0) {
+      parsed_response[["labels"]] <- stringi::stri_c(sapply(parsed_response[["labels"]], "[[", "name"), collapse = ",")
+    } else {
+      parsed_response[["labels"]] <- NA_character_
+    }
+
+    parsed_response <- as.data.table(parsed_response)
+    return(parsed_response)
+  }
+
+  # Assuming 'items' contains the issues
+  all_issues <- lapply(api_responses[["items"]], parse_response)
+  return(rbindlist(all_issues, fill = TRUE))
+}

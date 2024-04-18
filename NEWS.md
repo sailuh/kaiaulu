@@ -1,6 +1,7 @@
 __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
+ * `github_parse_search_issues_refresh` has been added that parses the issue data downloaded from the search endpoint in the refresh_issues folder.  
  * `github_api_project_issue_refresh` and `github_api_project_issue_or_pr_comment_refresh` were added to download issue data or comments respectively that have not already been downloaded.
  * `format_created_at_from_file` was added to retrieve the greatest date from a JSON file.
  * `refresh_jira_issues()` had been added. It is a wrapper function for the previous downloader and downloads only issues greater than the greatest key already downloaded.

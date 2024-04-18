@@ -179,21 +179,21 @@ head(all_issue)  %>%
   gt(auto_align = FALSE) 
 ```
 
-# Refresh parser
+## Refresh parser
+The Refresh parser also parses issue data but the folder 'refresh_issues'
 ```{r}
-all_issue_items <- lapply(list.files(save_path_issue_refresh, full.names = TRUE), function(file) {
-  # Read the full JSON file
-  data <- read_json(file)
-  
-  # Extract the 'items' part
-  return(data$items)
-})
-all_issue <- lapply(all_issue,
-                                   github_parse_project_issue)
-all_issue <- rbindlist(all_issue,fill=TRUE)
+# Read all JSON files from the directory
+all_issue_files <- lapply(list.files(save_path_issue_refresh, full.names = TRUE), read_json)
 
-head(all_issue)  %>%
-  gt(auto_align = FALSE) 
+# Parse each JSON file using the refresh parser
+all_issue <- lapply(all_issue_files, github_parse_search_issues_refresh)
+
+# Combine all the data tables
+all_issues_combined <- rbindlist(all_issue, fill = TRUE)
+
+# Display the head of the combined issues table
+head(all_issues_combined) %>%
+  gt(auto_align = FALSE)
 ```
 
 ## Pull Requests
