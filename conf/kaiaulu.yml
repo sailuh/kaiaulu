@@ -66,6 +66,8 @@ issue_tracker:
     repo: kaiaulu
     # Download using `download_github_comments.Rmd`
     replies: ../../rawdata/github/kaiaulu
+  bugzilla:
+    project_key: redhat
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)

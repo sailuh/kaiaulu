@@ -6,6 +6,82 @@
 
 ############## Downloader ##############
 
+#' Download Bugzilla comments using the Bugzilla REST API
+#'
+#' Downloads comments associated with each bug id returned from \code{\link{download_bugzilla_rest_issues}}.
+#' Each file saved contains a group of comments associated with a particular bug, where the filename is the corresponding bug id.
+#'
+#' @param bugzilla_site URL to specific bugzilla site
+#' @param bug_ids the ids of the bugs to extract comments for from \code{\link{download_bugzilla_rest_issues}}
+#' @param save_folder_path the full *folder* path where the bugzilla comments will be stored
+#' @seealso \code{\link{download_bugzilla_rest_issues}} a downloader function to download the bugzilla issues data
+#' @export
+download_bugzilla_rest_comments <- function(bugzilla_site, bug_ids, save_folder_path){
+  # Format link to retrieve data using Bugzilla REST API
+  bugzilla_site <- paste(bugzilla_site, "/rest", sep="")
+
+  # Make sure folder path is correctly formatted
+  if (stringi::stri_sub(save_folder_path,-1) != "/") {
+    save_folder_path <-paste0(save_folder_path, "/")
+  }
+
+  # Get the comments associated with the bug_ids and save each group of comments for a bug
+  # to a json file at the specified save_folder_path
+  for (i in 1:length(bug_ids)){
+    comments <- httr::GET(paste(bugzilla_site, "/bug/", bug_ids[i], "/comment", sep=""),
+                          httr::write_disk(file.path(paste0(save_folder_path, bug_ids[i], ".json")), overwrite = TRUE))
+  }
+}
+
+#' Download Bugzilla issues and comments using Perceval traditional backend.
+#'
+#' @param perceval_path path to perceval binary
+#' @param bugzilla_site link to specific bugzilla site
+#' @param datetime fetch bugs updated since this date (in any ISO 8601 format, e.g., 'YYYY-MM-DD HH:mm:SS+|-HH:MM'))
+#' @param save_file_path the file path, name and extension (should be .json) to save the file.
+#' @param max_bugs the maximum number of bugs requested on the same query. Note: Some sites might have restrictions on the number of bugs in one request.
+#' @seealso \code{\link{parse_bugzilla_perceval_traditional_issue_comments}} a parser function to parse bugzilla data
+#' @return path to downloaded json file.
+#' @export
+download_bugzilla_perceval_traditional_issue_comments <- function(perceval_path, bugzilla_site, datetime, save_file_path, max_bugs=500){
+  perceval_path <- path.expand(perceval_path)
+  save_file_path <- path.expand(save_file_path)
+  json_data <- system2(perceval_path,
+                       args = c('bugzilla', bugzilla_site, '--json-line', '--from-date', paste0('"',datetime,'"'),
+                                "--output",save_file_path,"--max-bugs", max_bugs),
+                       stdout = TRUE,
+                       stderr = FALSE)
+  return(save_file_path)
+}
+
+#' Download Bugzilla issues and comments using Perceval REST API backend.
+#'
+#' Note that for the Bugzilla REST API backend, Bugzilla sites may limit the number of bugs that can be retrieved at one time.
+#' Thus, the max_bugs parameter needs to be set correctly to ensure all bugs are retrieved and that
+#' the json data is not broken. If you get an error trying to parse the data downloaded with this
+#'
+#' @param perceval_path path to perceval binary
+#' @param bugzilla_site link to specific bugzilla site
+#' @param datetime fetch bugs updated since this date (in any ISO 8601 format, e.g., 'YYYY-MM-DD HH:mm:SS+|-HH:MM'))
+#' @param save_file_path the file path, name and extension (should be .json) to save the file.
+#' @param max_bugs the maximum number of bugs requested on the same query. This acts as the limit parameter
+#' in the Bugzilla REST API. Bugzilla sites may have specific limits set, so make sure to change the max_bugs
+#' parameter accordingly to correctly download the data when using the "bugzillarest" backend.
+#' @seealso \code{\link{parse_bugzilla_perceval_rest_issue_comments}} a parser function to parse bugzilla data
+#' @return json object with bugzilla data
+#' @export
+download_bugzilla_perceval_rest_issue_comments <- function(perceval_path, bugzilla_site, datetime, save_file_path, max_bugs=500){
+  perceval_path <- path.expand(perceval_path)
+  save_file_path <- path.expand(save_file_path)
+  json_data <- system2(perceval_path,
+                       args = c('bugzillarest', bugzilla_site, '--json-line',
+                                '--from-date', paste0('"',datetime,'"'),
+                                "--output",save_file_path,
+                                "--max-bugs", max_bugs),
+                       stdout = TRUE,
+                       stderr = FALSE)
+  return(save_file_path)
+}
 
 #' Download Bugzilla issues using the Bugzilla REST API
 #'
@@ -95,99 +171,31 @@ download_bugzilla_rest_issues <- function(bugzilla_site, start_timestamp, save_f
   return(bug_ids)
 }
 
-#' Download Bugzilla comments using the Bugzilla REST API
-#'
-#' Downloads comments associated with each bug id returned from \code{\link{download_bugzilla_rest_issues}}.
-#' Each file saved contains a group of comments associated with a particular bug, where the filename is the corresponding bug id.
-#'
-#' @param bugzilla_site URL to specific bugzilla site
-#' @param bug_ids the ids of the bugs to extract comments for from \code{\link{download_bugzilla_rest_issues}}
-#' @param save_folder_path the full *folder* path where the bugzilla comments will be stored
-#' @seealso \code{\link{download_bugzilla_rest_issues}} a downloader function to download the bugzilla issues data
-#' @export
-download_bugzilla_rest_comments <- function(bugzilla_site, bug_ids, save_folder_path){
-  # Format link to retrieve data using Bugzilla REST API
-  bugzilla_site <- paste(bugzilla_site, "/rest", sep="")
-
-  # Make sure folder path is correctly formatted
-  if (stringi::stri_sub(save_folder_path,-1) != "/"){
-    save_folder_path <-paste0(save_folder_path, "/")
-  }
-
-  # Get the comments associated with the bug_ids and save each group of comments for a bug
-  # to a json file at the specified save_folder_path
-  for (i in 1:length(bug_ids)){
-    comments <- httr::GET(paste(bugzilla_site, "/bug/", bug_ids[i], "/comment", sep=""),
-                          httr::write_disk(file.path(paste0(save_folder_path, bug_ids[i], ".json")), overwrite = TRUE))
-  }
-}
-
-#' Download Bugzilla issues and comments using Perceval traditional backend.
-#'
-#' @param perceval_path path to perceval binary
-#' @param bugzilla_site link to specific bugzilla site
-#' @param datetime fetch bugs updated since this date (in any ISO 8601 format, e.g., 'YYYY-MM-DD HH:mm:SS+|-HH:MM'))
-#' @param save_file_path the file path, name and extension (should be .json) to save the file.
-#' @param max_bugs the maximum number of bugs requested on the same query. Note: Some sites might have restrictions on the number of bugs in one request.
-#' @seealso \code{\link{parse_bugzilla_perceval_traditional_issue_comments}} a parser function to parse bugzilla data
-#' @return path to downloaded json file.
-#' @export
-download_bugzilla_perceval_traditional_issue_comments <- function(perceval_path, bugzilla_site, datetime, save_file_path, max_bugs=500){
-  perceval_path <- path.expand(perceval_path)
-  save_file_path <- path.expand(save_file_path)
-  json_data <- system2(perceval_path,
-                       args = c('bugzilla', bugzilla_site, '--json-line', '--from-date', paste0('"',datetime,'"'),
-                                "--output",save_file_path,"--max-bugs", max_bugs),
-                       stdout = TRUE,
-                       stderr = FALSE)
-  return(save_file_path)
-}
-
-#' Download Bugzilla issues and comments using Perceval REST API backend.
-#'
-#' Note that for the Bugzilla REST API backend, Bugzilla sites may limit the number of bugs that can be retrieved at one time.
-#' Thus, the max_bugs parameter needs to be set correctly to ensure all bugs are retrieved and that
-#' the json data is not broken. If you get an error trying to parse the data downloaded with this
-#'
-#' @param perceval_path path to perceval binary
-#' @param bugzilla_site link to specific bugzilla site
-#' @param datetime fetch bugs updated since this date (in any ISO 8601 format, e.g., 'YYYY-MM-DD HH:mm:SS+|-HH:MM'))
-#' @param save_file_path the file path, name and extension (should be .json) to save the file.
-#' @param max_bugs the maximum number of bugs requested on the same query. This acts as the limit parameter
-#' in the Bugzilla REST API. Bugzilla sites may have specific limits set, so make sure to change the max_bugs
-#' parameter accordingly to correctly download the data when using the "bugzillarest" backend.
-#' @seealso \code{\link{parse_bugzilla_perceval_rest_issue_comments}} a parser function to parse bugzilla data
-#' @return json object with bugzilla data
-#' @export
-download_bugzilla_perceval_rest_issue_comments <- function(perceval_path, bugzilla_site, datetime, save_file_path, max_bugs=500){
-  perceval_path <- path.expand(perceval_path)
-  save_file_path <- path.expand(save_file_path)
-  json_data <- system2(perceval_path,
-                       args = c('bugzillarest', bugzilla_site, '--json-line',
-                                '--from-date', paste0('"',datetime,'"'),
-                                "--output",save_file_path,
-                                "--max-bugs", max_bugs),
-                       stdout = TRUE,
-                       stderr = FALSE)
-  return(save_file_path)
-}
-
 #' Download project data (issues and comments) from bugzilla site
 #' Note: The first comment in every issue is the issue description
 #' @param bugzilla_site URL to specific bugzilla site
 #' @param start_timestamp when to start bug retrieval (ex. 2023-01-01T00:14:57Z)
 #' @param save_folder_path the full *folder* path where the bugzilla issues will be stored
+#' @param project_key the project key of the project which can be found in the respective config file
 #' @param limit_upperbound the number of issues saved in each page file. Some bugzilla sites have limits set on how many bugs
 #' can be retrieved in one GET request, in which case, the limit set by the bugzilla site will be used in place of
 #' limit_upperbound to ensure full bug retrieval.
+#' @param comments set true to download issues with comments, leave as false to download only issues (without comments)
+#' @param verbose set true to print execution details
 #' @seealso \code{\link{parse_bugzilla_rest_issues_comments}} a parser function to parse Bugzilla issues and comments data
 #' @export
-download_bugzilla_rest_issues_comments <- function(bugzilla_site, start_timestamp, save_folder_path, limit_upperbound = 500) {
+download_bugzilla_rest_issues_comments <- function(bugzilla_site,
+                                                   start_timestamp,
+                                                   save_folder_path,
+                                                   project_key,
+                                                   limit_upperbound = 500,
+                                                   comments = FALSE,
+                                                   verbose = FALSE) {
   # Format link to retrieve data using Bugzilla REST API
   bugzilla_site <- paste(bugzilla_site, "/rest", sep="")
 
   # Make sure folder path is correctly formatted
-  if (stringi::stri_sub(save_folder_path,-1) != "/"){
+  if (stringi::stri_sub(save_folder_path,-1) != "/") {
     save_folder_path <-paste0(save_folder_path, "/")
   }
 
@@ -195,59 +203,124 @@ download_bugzilla_rest_issues_comments <- function(bugzilla_site, start_timestam
   offset <- 0
   # Defines name of the file. Each page contains 500 bugs.
   page <- 0
+  # Defines the number of download issues.
+  download_count <- 0
   # Defines the limit.
   limit <- limit_upperbound
-  # Initialize to keep request or not
-  keep_request <- TRUE
 
-  while(keep_request){
+  repeat {
+
     # Get request to get the project data
-    issues <- httr::GET(paste0(bugzilla_site, "/bug", "?creation_time=", start_timestamp, "&include_fields=_default,comments", "&limit=", limit, "&offset=", offset))
+    if (comments == TRUE) {
+      issues <- httr::GET(paste0(bugzilla_site, "/bug", "?creation_time=", start_timestamp, "&include_fields=_default,comments", "&limit=", limit, "&offset=", offset))
+    } else {
+      issues <- httr::GET(paste0(bugzilla_site, "/bug", "?creation_time=", start_timestamp, "&limit=", limit, "&offset=", offset))
+    }
 
     # Check if the limit being restrict or not
-    if(as.integer(httr::content(issues)$limit) != limit){
+    if(as.integer(httr::content(issues)$limit) != limit) {
       limit <- as.integer(httr::content(issues)$limit)
+
+      if(verbose) {
+        message("Limit was not reached. It has been changed to: ", limit)
+      }
     }
 
     # Check if there is any issue created after specific date
-    if(httr::content(issues)$total_matches > 0){
-      issues_content <- httr::content(issues, "text")
-      issues_content <- jsonlite::fromJSON(issues_content)
+    if(httr::content(issues)$total_matches > 0) {
+      raw_content <- httr::content(issues, "text", encoding="UTF8")
+      issues_content_json <- jsonlite::fromJSON(raw_content, simplifyVector = FALSE)
 
-      # Set the file_name from the config file. It will be modified in the following code
-      file_name <- save_folder_path
+      # get the number of issues on the page
+      issues_count <- length(httr::content(issues)$bugs)
 
-      # Remove .json if present in file_name. It will be added again in the naming convention
-      if (grepl("\.json$", file_name)) {
-        # Remove .json if present in file_name. It will be added again in the naming convention
-        file_name <- sub("\.json$", "", file_name)
+      if (verbose) {
+        message("Number of issues on the page: ", issues_count)
       }
 
-      # Get the first bug to get the start date of the page
-      first_issue <- issues_content$bugs[[1]]
+      # file names start with the project key
+      file_name <- project_key
 
-      # Get the creation time of the first bug
-      first_issue_created <- first_issues%creation_time
+      # Extract 'created' dates
+      created_dates <- sapply(issues_content_json$bugs, function(bug) bug$creation_time)
 
-      # Convert the time string to a POSIXct obvject, specifiying the format
-      posix_time <- as.POSIXct(issue_created, format = "%Y-%m-%dT%H:%M:%OS", tz = "UTC")
+      # Convert to POSIXct date objects
+      date_objects <- as.POSIXct(created_dates, format="%Y-%m-%dT%H:%M:%S", tz="UTC")
 
-      #Convert the POSIXct object to UNIX time
-      unix_time <- as.numeric(posix_time)
+      #Find the greatest and smallest date
+      latest_date <- max(date_objects)
+      latest_date_unix <- as.numeric(latest_date)
 
-      # append to the filename
-      file_name <- paste0(file_name, "_", unix_time, ".json")
+      earliest_date <- min(date_objects)
+      earliest_date_unix <- as.numeric(earliest_date)
 
-      jsonlite::write_json(issues_content, file.path(save_folder_path, paste0(page, ".json")), auto_unbox = TRUE)
+      # append earliest and latest dates to the file name
+      file_name <- paste0(file_name, "_", earliest_date_unix)
+      file_name <- paste0(file_name, "_", latest_date_unix, ".json")
+
+      if (verbose) {
+        message("Max date: ", latest_date)
+        message("Min date: ", earliest_date)
+        message("File name: ", file_name)
+      }
+
+      # make a file path with the file name and save file path
+      file_path <- file.path(save_folder_path, file_name)
+
+      writeLines(raw_content, file_path)
+
+      if (verbose) {
+        message("Saved file to ", file_path, "\n")
+      }
+
+      # increment complete
       page <- page + 1
       offset <- offset + limit
-    } else{
-      keep_request <- FALSE
+      download_count <- download_count + issues_count
+    } else {
+      if (verbose) {
+        message("All issues have been downloaded")
+        message("Number of issues downloaded: ", download_count)
+        message("Number of pages: ", page)
+      }
+      break
     }
   }
 }
 
-# iterate through the downloaded issues to find the latest created date for the page name
+# Refresh function
+refresh_bugzilla_issue_comments <-function(bugzilla_site,
+                                           save_folder_path,
+                                           project_key,
+                                           comments = FALSE,
+                                           verbose = FALSE) {
+
+  # default values
+  start_timestamp <- "1700-01-01T00:00:00Z"
+  limit_upperbound <- 500
+
+  # If the folder is empty, then start by downloading all issues
+  if (file.exists(save_folder_path)) {
+    if(list.files(path = save_folder_path) != 0) {
+
+      if (verbose) {
+        message("There are exiting files ")
+      }
+      file_name_with_newest_date <- parse_jira_latest_date(save_file_path)
+    }
+  }
+
+  # I want to include a comments parameter in this list
+  download_bugzilla_rest_issues_comments(bugzilla_site = bugzilla_site,
+                                         start_timestamp = start_timestamp,
+                                         save_folder_path = save_folder_path,
+                                         project_key = project_key,
+                                         limit_upperbound = limit_upperbound,
+                                         comments = comments,
+                                         verbose = verbose)
+
+}
+
 # find the value that stores the date created
 # look at api and see if I can get issues after the created date
 

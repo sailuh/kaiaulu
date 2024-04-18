@@ -46,6 +46,9 @@ The parameters necessary for analysis are kept in a project configuration file t
 
 ```{r}
 tools_path <- "../tools.yml"
+conf <- yaml::read_yaml("../conf/kaiaulu.yml")
+
+key <- conf[["issue_tracker"]][["bugzilla"]][["project_key"]]
 tool <- yaml::read_yaml(tools_path)
 perceval_path <- tool[["perceval"]]
 ```
@@ -218,12 +221,14 @@ bugzillarestapi_comments_table <- parse_bugzilla_rest_comments(save_comments_pat
 We can also use 'download_bugzilla_rest_issues_comments' function to download both issues and comments from the Bugzilla site together.
 
 ```{r}
+bugzilla_site <- "https://bugzilla.redhat.com/"
+start_timestamp <- "2024-04-17T23:00:00Z"
 save_issues_comments_path <- "../../rawdata/bugzilla/redhat/issues_comments"
 ```
 
 
 ```{r eval = FALSE}
-download_bugzilla_rest_issues_comments(bugzilla_site, start_timestamp, save_issues_comments_path, limit_upperbound=20)
+download_bugzilla_rest_issues_comments(bugzilla_site, start_timestamp, save_issues_comments_path, key, limit_upperbound=20, verbose=TRUE)
 ```
 
 ## REST API Issues and Comments Parser
