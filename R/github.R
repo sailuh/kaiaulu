@@ -494,18 +494,18 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
   #Get the most and least recent 'created_at' date in unixtime in this page
   while(!is.null(gh_response) & page_number < max_pages){
 
-  #  Set the file name from the config file. It will be modified in the following code
-     file_name <- save_folder_path
-     if(length(gh_response) > 0) {
-  #  Extract 'created_at' dates. Different nesting levels for refresh data or not
-       # Run this code if it's not issue_refresh. Important for different levels of nesting
-       if (is_issue_refresh==FALSE){
-         # Make list of all created_dates
-         created_dates <- sapply(gh_response, function(issue) issue$created_at)
-         # Remove NULL entries from the list. The list will be NULL if it is commit data currently
-         created_dates <- Filter(Negate(is.null), created_dates)
+    #  Set the file name from the config file. It will be modified in the following code
+    file_name <- save_folder_path
+    if(length(gh_response) > 0) {
+      #  Extract 'created_at' dates. Different nesting levels for refresh data or not
+      # Run this code if it's not issue_refresh. Important for different levels of nesting
+      if (is_issue_refresh==FALSE){
+        # Make list of all created_dates
+        created_dates <- sapply(gh_response, function(issue) issue$created_at)
+        # Remove NULL entries from the list. The list will be NULL if it is commit data currently
+        created_dates <- Filter(Negate(is.null), created_dates)
 
-         # Check if the list is NULL, signifying this is commit data
+        # Check if the list is NULL, signifying this is commit data
         if (length(created_dates)==0){
           created_dates <- sapply(gh_response, function(issue) {
             if (!is.null(issue$commit) && !is.null(issue$commit$author) && !is.null(issue$commit$author$date)) {
@@ -517,47 +517,47 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
         }
 
         # Run this code if it is for issue refresh
-       } else {
-         # Make list of all created dates
-         created_dates <- sapply(gh_response$items, function(issue) issue$created_at)
-         # End the loop if there is no usable data
-         if (length(created_dates)==0){
-           if(verbose){
-             message("Nothing left to download")
-           }
-           break
-         }
-       }
-  #
-    # Convert to POSIXct date objects
-    # date_objects <- as.POSIXct(created_dates, format="%Y-%m-%dT%H:%M:%S", tz="UTC")
-    date_objects <- as.POSIXct(created_dates, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
+      } else {
+        # Make list of all created dates
+        created_dates <- sapply(gh_response$items, function(issue) issue$created_at)
+        # End the loop if there is no usable data
+        if (length(created_dates)==0){
+          if(verbose){
+            message("Nothing left to download")
+          }
+          break
+        }
+      }
+      #
+      # Convert to POSIXct date objects
+      # date_objects <- as.POSIXct(created_dates, format="%Y-%m-%dT%H:%M:%S", tz="UTC")
+      date_objects <- as.POSIXct(created_dates, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
 
-    # Find the greatest and smallest date
-    latest_date <- max(date_objects)
-    latest_date_unix <- as.numeric(latest_date)
-    oldest_date <- min(date_objects)
-    oldest_date_unix <- as.numeric(oldest_date)
+      # Find the greatest and smallest date
+      latest_date <- max(date_objects)
+      latest_date_unix <- as.numeric(latest_date)
+      oldest_date <- min(date_objects)
+      oldest_date_unix <- as.numeric(oldest_date)
 
-    # Append oldest and latest dates to the file name
-    file_name <- paste0(file_name, "_", oldest_date_unix)
-    file_name <- paste0(file_name, "_", latest_date_unix, ".json")
+      # Append oldest and latest dates to the file name
+      file_name <- paste0(file_name, "_", oldest_date_unix)
+      file_name <- paste0(file_name, "_", latest_date_unix, ".json")
 
-    # Print the latest and oldest dates and file name
-    if (verbose){
-      message("Latest date:", latest_date_unix)
-      message("Oldest date:", oldest_date_unix)
-      message("File name: ", file_name)
-      message("extracted dates for page ", page_number)
+      # Print the latest and oldest dates and file name
+      if (verbose){
+        message("Latest date:", latest_date_unix)
+        message("Oldest date:", oldest_date_unix)
+        message("File name: ", file_name)
+        message("extracted dates for page ", page_number)
+      }
+    } else {
+      data_exists = FALSE
+      if(verbose){
+        message("Nothing to download")
+      }
     }
-     } else {
-       data_exists = FALSE
-       if(verbose){
-          message("Nothing to download")
-       }
-     }
 
-  # Save the pages to file
+    # Save the pages to file
     if (data_exists == TRUE){
       # construct the file name
       file_name <- paste0(save_folder_path,
@@ -567,11 +567,11 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
                           ".json")
       # Write to file
       write_json(gh_response,file_name,
-               pretty=TRUE,auto_unbox=TRUE)
+                 pretty=TRUE,auto_unbox=TRUE)
       if (verbose){
         message("Written to file: ", file_name)
       }
-  }
+    }
     # increment the page number
     page_number <- page_number + 1
     res <- try(
@@ -585,14 +585,16 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
 }
 
 
-#' Download Project Issues after a date
+#' Download Project Issues Refresh
 #'
-#' Returns issue data that has not already been downloaded
-#' Gets the name of the file with the most recent data along the designated save paths for both
-#' issue and refresh_issue folder. Extracts the greatest 'created_at' value for both of them.
-#' It compares these values and calls the search endpoint to retrieve all issues created after this date.
-#' If no files exist in the issue file, \code{link{github_api_project_issue}} is called instead
-#' and all issues are downloaded.
+#' Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
+#' the latest downloaded Github created_at date among directories 'issue' and 'issue_refresh'.
+#' It returns the first page of the github query for issues created after this date.
+#'
+#' If the issue directory is empty, then the created query will not be appended to the api call
+#' and the first page of a query retrieving all issues will be returned. This function can therefore
+#' be used in the specified folder to continuously refresh available issues and/or comments
+#' data.
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
@@ -629,65 +631,65 @@ github_api_project_issue_refresh <- function(owner,
                              verbose=verbose)
   } else {
 
-  # Get the name of the file with the most recent date from the issue file
-  latest_date_issue <- paste0(save_path_issue, parse_jira_latest_date(save_path_issue))
-  # Get the name of the file with the most recent date from the refresh_issue file if not empty
+    # Get the name of the file with the most recent date from the issue file
+    latest_date_issue <- paste0(save_path_issue, parse_jira_latest_date(save_path_issue))
+    # Get the name of the file with the most recent date from the refresh_issue file if not empty
     if (length(contents_refresh) != 0){
       latest_date_issue_refresh <- paste0(save_path_issue_refresh, parse_jira_latest_date(save_path_issue_refresh))
     }
 
     # get the greatest created_at value among issues in the issues file
-  created <- format_created_at_from_file(latest_date_issue, item="")
-  if (verbose){
-    message("Greatest created value from issue folder: ", created)
-  }
+    created <- format_created_at_from_file(latest_date_issue, item="")
+    if (verbose){
+      message("Greatest created value from issue folder: ", created)
+    }
 
-  if (length(contents_refresh) != 0){
-     # get the greatest created_at value among issues in the refresh_issues file
-    created_refresh <- format_created_at_from_file(latest_date_issue_refresh, item="items")
-  }
-  if(verbose){
-    message("Greatest created value from issue folder: ", created)
     if (length(contents_refresh) != 0){
+      # get the greatest created_at value among issues in the refresh_issues file
+      created_refresh <- format_created_at_from_file(latest_date_issue_refresh, item="items")
+    }
+    if(verbose){
+      message("Greatest created value from issue folder: ", created)
+      if (length(contents_refresh) != 0){
         message("Greatest created value from refresh_issue folder: ", created_refresh)
+      }
     }
-  }
 
-  # Get the greatest value of the created_at from either folder
-  if (length(contents_refresh) != 0){
-    if(created>created_refresh){
-      greatest_created <- created
+    # Get the greatest value of the created_at from either folder
+    if (length(contents_refresh) != 0){
+      if(created>created_refresh){
+        greatest_created <- created
+      } else {
+        greatest_created <- created_refresh
+      }
     } else {
-      greatest_created <- created_refresh
+      greatest_created <- created
     }
-  } else {
-    greatest_created <- created
-  }
 
-  # API Call
-  query <- sprintf("repo:%s/%s is:issue created:>%s", owner, repo, greatest_created)
-  # query <- sprintf("repo:%s/%s is:issue", owner, repo)
-  if (verbose){
-    message("Github API query: ",query)
-  }
-  # Use the Search API endpoint to search for issues
-  gh_response <- gh::gh("/search/issues",
-                   q = query,
-                   state = 'all',
-                   page = 1,
-                   per_page = 100,
-                   .token = token)
-                    # Adjust .limit as needed, though GitHub API has its own paging mechanisms
-  return(gh_response)
+    # API Call
+    query <- sprintf("repo:%s/%s is:issue created:>%s", owner, repo, greatest_created)
+    # query <- sprintf("repo:%s/%s is:issue", owner, repo)
+    if (verbose){
+      message("Github API query: ",query)
+    }
+    # Use the Search API endpoint to search for issues
+    gh_response <- gh::gh("/search/issues",
+                          q = query,
+                          state = 'all',
+                          page = 1,
+                          per_page = 100,
+                          .token = token)
+    # Adjust .limit as needed, though GitHub API has its own paging mechanisms
+    return(gh_response)
   }
 }
 
 #' Download Project issues or pr comments after certain date
 #'
-#' Returns issue and pull request comments that have not already been downloaded.
-#' Gets the name of the file with the most recent date along the designated save path.
-#' Extracts the greatest 'created_at' date from that file and adds a second to that date.
-#' Calls issues/comments endpoint to download comments updated at or after that date
+#'#' Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
+#' the latest downloaded Github created_at date among the directory(intended to be the comment folder).
+#' It returns the first page of the github API query for comments updated after this date.
+#'
 #' If no files exist in the file_save_path, \code{link{github_api_project_issue_or_pr_comments}}
 #' is called instead and all comments are downloaded.
 #'
@@ -704,45 +706,45 @@ github_api_project_issue_refresh <- function(owner,
 #' a .json file and returns the greatest 'created_at' value
 #' @seealso  \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
 github_api_project_issue_or_pr_comment_refresh <- function(owner,repo,token,file_save_path,verbose=TRUE){
-    # Check if the file is empty by checking its size
-    # List all files and subdirectories in the directory
-    contents <- list.files(path = save_path_issue_or_pr_comments)
+  # Check if the file is empty by checking its size
+  # List all files and subdirectories in the directory
+  contents <- list.files(path = save_path_issue_or_pr_comments)
 
-    # If the file is empty, download all issues
-    if(length(contents) == 0) {
-     # Run regular downloader
-      issues <- github_api_project_issue_or_pr_comments(owner,repo,token)
-      return (issues)
-    } else {
-  # Get the name of the file with the most recent date
-  latest_date_issue_or_pr_comment <- paste0(file_save_path, parse_jira_latest_date(save_path_issue_or_pr_comments))
-  latest_date_issue_or_pr_comment <- (head(latest_date_issue_or_pr_comment,1))
-  # get the created_at value
-  message("got file", latest_date_issue_or_pr_comment)
-  created <- format_created_at_from_file(latest_date_issue_or_pr_comment, item="")
+  # If the file is empty, download all issues
+  if(length(contents) == 0) {
+    # Run regular downloader
+    issues <- github_api_project_issue_or_pr_comments(owner,repo,token)
+    return (issues)
+  } else {
+    # Get the name of the file with the most recent date
+    latest_date_issue_or_pr_comment <- paste0(file_save_path, parse_jira_latest_date(save_path_issue_or_pr_comments))
+    latest_date_issue_or_pr_comment <- (head(latest_date_issue_or_pr_comment,1))
+    # get the created_at value
+    message("got file", latest_date_issue_or_pr_comment)
+    created <- format_created_at_from_file(latest_date_issue_or_pr_comment, item="")
 
-  # Convert the string to a POSIXct object
-  time_value <- as.POSIXct(created, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
+    # Convert the string to a POSIXct object
+    time_value <- as.POSIXct(created, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
 
-  # Add one second
-  new_time_value <- time_value + 1
+    # Add one second
+    new_time_value <- time_value + 1
 
-  # Format the new time value back into the original string format
-  formatted_new_time_value <- format(new_time_value, "%Y-%m-%dT%H:%M:%SZ")
+    # Format the new time value back into the original string format
+    formatted_new_time_value <- format(new_time_value, "%Y-%m-%dT%H:%M:%SZ")
 
-  if(verbose){
-    message("file name with greatest date: ",latest_date_issue_or_pr_comment)
-    message("Latest date: ",formatted_new_time_value)
-  }
-  # Github API Call
-  gh::gh("GET /repos/{owner}/{repo}/issues/comments",
-         owner=owner,
-         repo=repo,
-         since=formatted_new_time_value,  # Pass the `since` parameter in the API request
-         page=1,
-         per_page=100,
-         .token=token)
-    } #end if/else
+    if(verbose){
+      message("file name with greatest date: ",latest_date_issue_or_pr_comment)
+      message("Latest date: ",formatted_new_time_value)
+    }
+    # Github API Call
+    gh::gh("GET /repos/{owner}/{repo}/issues/comments",
+           owner=owner,
+           repo=repo,
+           since=formatted_new_time_value,  # Pass the `since` parameter in the API request
+           page=1,
+           per_page=100,
+           .token=token)
+  } #end if/else
 }
 
 #' Retrieve greatest 'created_at' value from file
@@ -801,7 +803,7 @@ format_created_at_from_file <- function(file_name,item_path) {
 #'
 #' @param api_responses API response obtained from github_api_* function.
 #' @export
-# Parse Issues from Search JSON to Table
+#' @seealso  \code{link{github_api_project_issue_refresh}} to refresh issue data
 github_parse_search_issues_refresh <- function(api_responses) {
   # Helper function to parse each issue
   parse_response <- function(api_response) {
@@ -834,3 +836,125 @@ github_parse_search_issues_refresh <- function(api_responses) {
   all_issues <- lapply(api_responses[["items"]], parse_response)
   return(rbindlist(all_issues, fill = TRUE))
 }
+
+
+#' Download Github comment Data by Date
+#'
+#' Appends a 'since' query to the issue/comments api request and returns the first page of the result.
+#'
+#' #' Acceptable formats for `since` are:
+#'
+#' * "YYYY-MM-DD"
+#' * "YYYY-MM-DDTHH:MM"
+#' * "YYYY-MM-DDTHH:MM:SS"
+#' * "YYYY-MM-DDTHH:MM:SSZ"
+#' * "YYYY-MM-DDTHH:MM:SS+00:00"
+#' * NULL
+#'
+#'#' For example: `since="2020-07-04"` (a comment ocurring at the exact specified time will also be downloaded).
+#'
+#' For further details on the `since` Query see [the associated Github API documentation](https://docs.github.com/en/rest/issues/comments?apiVersion=2022-11-28#:~:text=asc%2C%20desc-,since,-string).
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @param since The lower bound. Comments created and/or updated after this date will be retrieved.
+#' @param verbose boolean value. When set to true, it prints operational messages including
+#' greatest dates and the file name that contains the greatest date.
+#' @export
+#' @seealso  \code{link{github_api_project_issue_or_pr_comment_refresh}} to refresh comment data
+#' @seealso  \code{link{github_api_project_issue_refresh}} to refresh issue data
+github_api_project_issue_or_pr_comments_by_date <- function(owner,
+                                                            repo,
+                                                            token,
+                                                            since,
+                                                            verbose = FALSE) {
+  if (is.null(since)) {
+    stop("The lower bound parameter is empty or improperly formatted")
+  }
+  if(verbose){
+    message("Downloading comments updated/created after: ", since)
+  }
+  gh::gh("GET /repos/{owner}/{repo}/issues/comments",
+         owner=owner,
+         repo=repo,
+         since=since,  # Pass the `since` parameter in the API request
+         page=1,
+         per_page=100,
+         .token=token)
+  return(gh_response)
+}
+
+#' Download Github Issue Data by Date
+#'
+#' Appends a 'created' field to a search github JQL query and returns the first page of the response.
+#'
+#' Acceptable formats for `date_lower_bound` and `date_upper_bound` are:
+#'
+#' * "YYYY-MM-DD"
+#' * "YYYY-MM-DDTHH:MM"
+#' * "YYYY-MM-DDTHH:MM:SS"
+#' * "YYYY-MM-DDTHH:MM:SSZ"
+#' * "YYYY-MM-DDTHH:MM:SS+00:00"
+#' * NULL
+#'
+#' For example: `date_lower_bound="2020-07-04"` (an issue ocurring at the exact specified time will also be downloaded).
+#'
+#' For further details on the `created` Query see [the associated Github API documentation](https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated).
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @param date_lower_bound Optional. Specify the lower bound date time (e.g. 2023/11/16 21:00)
+#' @param date_upper_bound Optional. Specify the upper bound date time (e.g. 2023/11/16 21:00)
+#' @param verbose boolean value. When set to true, it prints operational messages including
+#' greatest dates and the file name that contains the greatest date.
+#' @export
+#' @seealso  \code{link{github_api_project_issue_or_pr_comment_refresh}} to refresh comment data
+#' @seealso  \code{link{github_api_project_issue_or_pr_comments}} to refresh issue data
+github_api_project_issue_by_date <- function(owner,
+                                             repo,
+                                             token,
+                                             date_lower_bound = NULL,
+                                             date_upper_bound = NULL,
+                                             verbose = FALSE) {
+  # Base query to include repository and issue filter
+  query <- sprintf("repo:%s/%s is:issue", owner, repo)
+
+  # Add date filters to the query if provided
+  if (!is.null(date_lower_bound) && !is.null(date_upper_bound)) {
+    query <- sprintf("%s created:%s..%s", query, date_lower_bound, date_upper_bound)
+    if(verbose){
+      message("Downloading issue data created between ", date_lower_bound, " and ", date_upper_bound, ".")
+    }
+  } else if (!is.null(date_lower_bound)) {
+    query <- sprintf("%s created:>=%s", query, date_lower_bound)
+  } else if (!is.null(date_upper_bound)) {
+    query <- sprintf("%s created:<=%s", query, date_upper_bound)
+  }
+
+  # Only proceed if at least one date bound is provided
+  if (is.null(date_lower_bound) && is.null(date_upper_bound)) {
+    stop("At least one of 'date_lower_bound' or 'date_upper_bound' must be provided.
+         If you have provided at least one, it may be improperly formatted.")
+  }
+
+  # Print the constructed query if verbose mode is enabled
+  if (verbose) {
+    message("GitHub API query: ", query)
+  }
+
+  # Perform the API call using the constructed query
+  gh_response <- gh::gh("/search/issues",
+                        q = query,
+                        state = 'all',
+                        page = 1,
+                        per_page = 100,
+                        .token = token)
+
+  return(gh_response)
+}
+
+
+
+

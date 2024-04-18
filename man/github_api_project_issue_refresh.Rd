@@ -2,7 +2,7 @@
 % Please edit documentation in R/github.R
 \name{github_api_project_issue_refresh}
 \alias{github_api_project_issue_refresh}
-\title{Download Project Issues after a date}
+\title{Download Project Issues Refresh}
 \usage{
 github_api_project_issue_refresh(
   owner,
@@ -28,12 +28,15 @@ github_api_project_issue_refresh(
 These may include announcing successful execution of code, API queries, files saved, etc.}
 }
 \description{
-Returns issue data that has not already been downloaded
-Gets the name of the file with the most recent data along the designated save paths for both
-issue and refresh_issue folder. Extracts the greatest 'created_at' value for both of them.
-It compares these values and calls the search endpoint to retrieve all issues created after this date.
-If no files exist in the issue file, \code{link{github_api_project_issue}} is called instead
-and all issues are downloaded.
+Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
+the latest downloaded Github created_at date among directories 'issue' and 'issue_refresh'.
+It returns the first page of the github query for issues created after this date.
+}
+\details{
+If the issue directory is empty, then the created query will not be appended to the api call
+and the first page of a query retrieving all issues will be returned. This function can therefore
+be used in the specified folder to continuously refresh available issues and/or comments
+data.
 }
 \references{
 For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.

@@ -15,3 +15,6 @@ is adapted from \code{link{github_parse_project_issue}} to parse data
 from the refresh_issue folder. This data is downloaded from the Github API
 search endpoint and has a different level of nesting than the original data
 }
+\seealso{
+\code{link{github_api_project_issue_refresh}} to refresh issue data
+}

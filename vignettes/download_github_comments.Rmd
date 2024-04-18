@@ -62,11 +62,6 @@ token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 
 In this section we obtain the raw data (.json) containing all information the GitHub API endpoint provides. We parse the information of interest in the subsequent section.  
 
-
-```{r eval = FALSE}
-dir.create(paste0(save_path))
-```
-
 ## Issues
 
 First we will obtain all the issues (i.e. "first comments"). 
@@ -81,7 +76,47 @@ github_api_iterate_pages(token,gh_response,
                          prefix="issue",
                          verbose=TRUE)
 ```
+## Download Issues by search date
 
+Kaiaulu offers the ability to download issue data by date range. Using the `github_api_project_issue_by_date()`, you can download issues based on their ['created'](https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated) dates. Th acceptable formats are:
+
+* YYYY-MM-DD
+Example: 2023-04-15 (15th April 2023)
+
+* YYYY-MM-DDTHH:MM
+Example: 2023-04-15T13:45 (15th April 2023 at 13:45 UTC)
+
+* YYYY-MM-DDTHH:MM:SS
+Example: 2023-04-15T13:45:30 (15th April 2023 at 13:45:30 UTC)
+
+* YYYY-MM-DDTHH:MM:SSZ or YYYY-MM-DDTHH:MM:SS+00:00
+Example: 2023-04-15T13:45:30Z or 2023-04-15T13:45:30+00:00 (15th April 2023 at 13:45:30 UTC)
+
+If both date range parameters are set to `NULL`, then all issues will be retrieved. Alternatively, if for example `date_lower_bound_issue` is set to "2000-01-01" and `date_upper_bound` is set to "2005-01-01", then only issues created between these two dates will be retrieved.
+
+If you would like to retrieve issues only **after** a certain date, set `date_upper_bound_issue=NULL` and `date_lower_bound` to the date. 
+
+If you would like to retrieve only issues **before** a certain date, set `date_lower_bound_issue=NULL` and date_upper_bound to the date. 
+
+Note in the subsequent code block we specified the fields from the issue we are interested in downloading. Again, you may specify [any fields](https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated) of interest for the downloader, including custom fields of your Github instance, but the parser currently only support those listed here. 
+
+```{r Collect issues by date, eval = FALSE}
+date_upper_bound_issue=NULL
+date_lower_bound_issue="2024-02-07"
+# make initial API CALL
+gh_response <- github_api_project_issue_by_date(owner,
+                                                repo,
+                                                token,
+                                                date_lower_bound_issue,
+                                                date_upper_bound_issue,
+                                                verbose=TRUE)
+dir.create(save_path_issue)
+# Make subsequent API calls and write to JSON file along save path
+github_api_iterate_pages(token,gh_response,
+                         save_path_issue_refresh,
+                         prefix="issue",
+                         verbose=TRUE)
+```
 # REFRESH Issues
 
 The above function call downloads all the available issues less than the specified limit (default to API limit). The following chunk allows the downloading of issues that have been created only after the most recently created issue already downloaded. This allows the user to 'refresh' their data or continue downloading if a rate limit was previously reached. 
@@ -122,6 +157,24 @@ dir.create(save_path_issue_or_pr_comments)
 github_api_iterate_pages(token,gh_response,
                          save_path_issue_or_pr_comments,
                          prefix="issue_or_pr_comment",
+                         verbose=TRUE)
+```
+
+## Collect issue comments by lower bound date
+
+```{r Collect issues by date, eval = FALSE}
+date_lower_bound_comment="2024-02-07"
+# make initial API CALL
+gh_response <- github_api_project_issue_or_pr_comments_by_date(owner,
+                                                repo,
+                                                token,
+                                                date_lower_bound_comment,
+                                                verbose=TRUE)
+dir.create(save_path_issue_or_pr_comments)
+# Make subsequent API calls and write to JSON file along save path
+github_api_iterate_pages(token,gh_response,
+                         save_path_issue_or_pr_comments,
+                         prefix="issue",
                          verbose=TRUE)
 ```
 #REFRESH ISSUE OR PR COMMENT

@@ -25,10 +25,11 @@ github_api_project_issue_or_pr_comment_refresh(
 greatest dates and the file name that contains the greatest date.}
 }
 \description{
-Returns issue and pull request comments that have not already been downloaded.
-Gets the name of the file with the most recent date along the designated save path.
-Extracts the greatest 'created_at' date from that file and adds a second to that date.
-Calls issues/comments endpoint to download comments updated at or after that date
+#' Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
+the latest downloaded Github created_at date among the directory(intended to be the comment folder).
+It returns the first page of the github API query for comments updated after this date.
+}
+\details{
 If no files exist in the file_save_path, \code{link{github_api_project_issue_or_pr_comments}}
 is called instead and all comments are downloaded.
 }
