@@ -453,6 +453,9 @@ github_api_page_last <- function(gh_response){
 #' project's data available from the endpoint (up to a user-defined maximum or the remaining
 #' available requests in the used user's token). This function can differentiate between
 #' data downloaded from search endpoint or not, in which the issues are differently nested.
+#' It also differentiates these endpoints from commit data, which also uses a different level
+#' of nesting. This is important in order to extract the minimum and maximum value of time created
+#' for each page for the naming convention, which is owner_repo_(min time)_(max time).json.
 #'
 #' @param token Your GitHub API token
 #' @param gh_response A response returned by any GitHub endpoint which is paginated (e.g. \code{\link{github_api_project_commits}}).
@@ -588,7 +591,7 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
 #' Gets the name of the file with the most recent data along the designated save paths for both
 #' issue and refresh_issue folder. Extracts the greatest 'created_at' value for both of them.
 #' It compares these values and calls the search endpoint to retrieve all issues created after this date.
-#' #' If no files exist in the issue file, \code{link{github_api_project_issue}} is called instead
+#' If no files exist in the issue file, \code{link{github_api_project_issue}} is called instead
 #' and all issues are downloaded.
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
@@ -623,7 +626,7 @@ github_api_project_issue_refresh <- function(owner,
     github_api_iterate_pages(token,gh_response,
                              save_path_issue,
                              prefix="issue",
-                             verbose=TRUE)
+                             verbose=verbose)
   } else {
 
   # Get the name of the file with the most recent date from the issue file
@@ -635,7 +638,9 @@ github_api_project_issue_refresh <- function(owner,
 
     # get the greatest created_at value among issues in the issues file
   created <- format_created_at_from_file(latest_date_issue, item="")
-  message("Greatest created value from issue folder: ", created)
+  if (verbose){
+    message("Greatest created value from issue folder: ", created)
+  }
 
   if (length(contents_refresh) != 0){
      # get the greatest created_at value among issues in the refresh_issues file
@@ -663,7 +668,7 @@ github_api_project_issue_refresh <- function(owner,
   query <- sprintf("repo:%s/%s is:issue created:>%s", owner, repo, greatest_created)
   # query <- sprintf("repo:%s/%s is:issue", owner, repo)
   if (verbose){
-    message(query)
+    message("Github API query: ",query)
   }
   # Use the Search API endpoint to search for issues
   gh_response <- gh::gh("/search/issues",
@@ -679,15 +684,19 @@ github_api_project_issue_refresh <- function(owner,
 
 #' Download Project issues or pr comments after certain date
 #'
-#' Returns issue and pull request comements that has not already been downloaded
+#' Returns issue and pull request comments that have not already been downloaded.
 #' Gets the name of the file with the most recent date along the designated save path.
-#' Extracts the greatest 'created_at' date from that file
-#' Calls issues/comments endpoint to download comments created after that date
-#' If no files exist in the file, \code{link{github_api_project_issue_or_pr_comments}} is called instead.
+#' Extracts the greatest 'created_at' date from that file and adds a second to that date.
+#' Calls issues/comments endpoint to download comments updated at or after that date
+#' If no files exist in the file_save_path, \code{link{github_api_project_issue_or_pr_comments}}
+#' is called instead and all comments are downloaded.
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
+#' @param file_save_path the save path for the issue comments folder
+#' @param verbose boolean value. When set to true, it prints operational messages including
+#' greatest dates and the file name that contains the greatest date.
 #' @export
 #' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
 #' @seealso  \code{link{github_api_project_issue_or_pr_comments}} to download all comment data
@@ -707,18 +716,29 @@ github_api_project_issue_or_pr_comment_refresh <- function(owner,repo,token,file
     } else {
   # Get the name of the file with the most recent date
   latest_date_issue_or_pr_comment <- paste0(file_save_path, parse_jira_latest_date(save_path_issue_or_pr_comments))
+  latest_date_issue_or_pr_comment <- (head(latest_date_issue_or_pr_comment,1))
   # get the created_at value
   message("got file", latest_date_issue_or_pr_comment)
   created <- format_created_at_from_file(latest_date_issue_or_pr_comment, item="")
+
+  # Convert the string to a POSIXct object
+  time_value <- as.POSIXct(created, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
+
+  # Add one second
+  new_time_value <- time_value + 1
+
+  # Format the new time value back into the original string format
+  formatted_new_time_value <- format(new_time_value, "%Y-%m-%dT%H:%M:%SZ")
+
   if(verbose){
     message("file name with greatest date: ",latest_date_issue_or_pr_comment)
-    message("Latest date: ",created)
+    message("Latest date: ",formatted_new_time_value)
   }
   # Github API Call
   gh::gh("GET /repos/{owner}/{repo}/issues/comments",
          owner=owner,
          repo=repo,
-         since=created,  # Pass the `since` parameter in the API request
+         since=formatted_new_time_value,  # Pass the `since` parameter in the API request
          page=1,
          per_page=100,
          .token=token)

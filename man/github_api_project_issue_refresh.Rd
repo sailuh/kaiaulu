@@ -32,7 +32,7 @@ Returns issue data that has not already been downloaded
 Gets the name of the file with the most recent data along the designated save paths for both
 issue and refresh_issue folder. Extracts the greatest 'created_at' value for both of them.
 It compares these values and calls the search endpoint to retrieve all issues created after this date.
-#' If no files exist in the issue file, \code{link{github_api_project_issue}} is called instead
+If no files exist in the issue file, \code{link{github_api_project_issue}} is called instead
 and all issues are downloaded.
 }
 \references{

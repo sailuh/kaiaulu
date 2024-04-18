@@ -46,7 +46,7 @@ To use the pipeline, you must specify the organization and project of interest, 
 ```{r}
 conf <- yaml::read_yaml("../conf/kaiaulu.yml")
 save_path <- path.expand(conf[["issue_tracker"]][["github"]][["replies"]]) 
-save_path_issue_refresh <- path.expand(conf[["issue_tracker"]][["github"]][["refresh"]])
+save_path_issue_refresh <- paste0(save_path,"/refresh/")
 save_path_issue <- paste0(save_path,"/issue/")
 save_path_pull_request <- paste0(save_path,"/pull_request/")
 save_path_issue_or_pr_comments <- paste0(save_path,"/issue_or_pr_comment/")

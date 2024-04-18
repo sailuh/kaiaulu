@@ -18,13 +18,19 @@ github_api_project_issue_or_pr_comment_refresh(
 \item{repo}{GitHub's repository name (e.g. kaiaulu)}
 
 \item{token}{Your GitHub API token}
+
+\item{file_save_path}{the save path for the issue comments folder}
+
+\item{verbose}{boolean value. When set to true, it prints operational messages including
+greatest dates and the file name that contains the greatest date.}
 }
 \description{
-Returns issue and pull request comements that has not already been downloaded
+Returns issue and pull request comments that have not already been downloaded.
 Gets the name of the file with the most recent date along the designated save path.
-Extracts the greatest 'created_at' date from that file
-Calls issues/comments endpoint to download comments created after that date
-If no files exist in the file, \code{link{github_api_project_issue_or_pr_comments}} is called instead.
+Extracts the greatest 'created_at' date from that file and adds a second to that date.
+Calls issues/comments endpoint to download comments updated at or after that date
+If no files exist in the file_save_path, \code{link{github_api_project_issue_or_pr_comments}}
+is called instead and all comments are downloaded.
 }
 \references{
 For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
