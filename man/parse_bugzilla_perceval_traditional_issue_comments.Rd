@@ -35,6 +35,7 @@ Other parsers:
 \code{\link{parse_jira_latest_date}()},
 \code{\link{parse_jira_rss_xml}()},
 \code{\link{parse_jira}()},
+\code{\link{parse_mbox_latest_date}()},
 \code{\link{parse_mbox}()},
 \code{\link{parse_nvdfeed}()}
 }

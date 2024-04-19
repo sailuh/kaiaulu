@@ -5,8 +5,9 @@
 \title{Compose mod_mbox archives (.mbox) into a single mbox file for use with \code{\link{parse_mbox}}}
 \usage{
 download_mod_mbox_per_month(
-  base_url,
+  archive_url,
   mailing_list,
+  archive_type,
   from_year,
   to_year,
   save_folder_path,
@@ -14,9 +15,11 @@ download_mod_mbox_per_month(
 )
 }
 \arguments{
-\item{base_url}{An url pointing to the mod_mbox directory (e.g. "http://mail-archives.apache.org/mod_mbox") without trailing slashes}
+\item{archive_url}{A url pointing to the mod_mbox mailing list directory (e.g. "http://mail-archives.apache.org/mod_mbox/apr-dev") without trailing slashes}
 
 \item{mailing_list}{Name of the project mailing list (e.g. apr-dev) in the mod_mbox directory}
+
+\item{archive_type}{Name of the archive that the project mailing list is archived in (e.g. apache)}
 
 \item{from_year}{First year in the range to be downloaded}
 

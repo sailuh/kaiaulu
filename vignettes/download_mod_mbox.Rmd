@@ -34,19 +34,30 @@ As usual, the first step is to load the project configuration file.
 
 ```{r}
 conf <- yaml::read_yaml("../conf/helix.yml")
-save_path_mbox <- conf[["mailing_list"]][["mbox"]]
-mod_mbox_url <- conf[["mailing_list"]][["domain"]]
-mailing_list <- conf[["mailing_list"]][["list_key"]]
+save_path_mbox <- conf[["mailing_list"]][["mod_mbox"]][["mail_key_1"]][["mbox"]]
+mod_mbox_url <- conf[["mailing_list"]][["mod_mbox"]][["mail_key_1"]][["archive_url"]]
+mailing_list <- conf[["mailing_list"]][["mod_mbox"]][["mail_key_1"]][["mailing_list"]]
+archive_type <- conf[["mailing_list"]][["mod_mbox"]][["mail_key_1"]][["archive_type"]]
 start_year <- 2017
 end_year <- 2018
 ```
 
 ```{r eval = FALSE}
-mbox <- download_mod_mbox_per_month(base_url = mod_mbox_url, 
+mbox <- download_mod_mbox_per_month(archive_url = mod_mbox_url, 
                           mailing_list = mailing_list,
+                          archive_type = archive_type,
                           from_year=start_year,
                           to_year=end_year,
                           save_folder_path = save_path_mbox,
                           verbose = TRUE)
 ```
 
+```{r eval = FALSE}
+mbox_latest <- parse_mbox_latest_date(save_path_mbox)
+refresh_mbox(archive_url = mod_mbox_url, 
+             mailing_list = mailing_list, 
+             archive_type = archive_type, 
+             from_year = start_year,
+             save_folder_path = save_path_mbox, 
+             verbose = TRUE)
+```
