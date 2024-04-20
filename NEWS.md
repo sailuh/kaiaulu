@@ -1,6 +1,7 @@
 __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
+ * `github_api_project_issue_search` has been added that makes the search/issues endpoint API calls
  * `github_api_project_issue_or_pr_comments_by_date` and `github_api_project_issue_by_date` have been added to download issue data and comments by date ranges.
  * `github_parse_search_issues_refresh` has been added that parses the issue data downloaded from the search endpoint in the refresh_issues folder.  
  * `github_api_project_issue_refresh` and `github_api_project_issue_or_pr_comment_refresh` were added to download issue data or comments respectively that have not already been downloaded.

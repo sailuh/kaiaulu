@@ -25,13 +25,13 @@ github_api_project_issue_or_pr_comment_refresh(
 greatest dates and the file name that contains the greatest date.}
 }
 \description{
-#' Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
+Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
 the latest downloaded Github created_at date among the directory(intended to be the comment folder).
-It returns the first page of the github API query for comments updated after this date.
+It uses this date to construct a query and calls \code{\link{github_api_project_issue_or_pr_comments}}
 }
 \details{
-If no files exist in the file_save_path, \code{link{github_api_project_issue_or_pr_comments}}
-is called instead and all comments are downloaded.
+If no files exist in the file_save_path,\code{link{github_api_project_issue_or_pr_comments}}
+is called with no additional query and all comments are downloaded.
 }
 \references{
 For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
@@ -43,4 +43,6 @@ For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repo
 a .json file and returns the greatest 'created_at' value
 
 \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
+
+\code{link{github_api_project_issue_or_pr_comments}} to call issue/comments endpoint
 }

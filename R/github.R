@@ -297,22 +297,37 @@ github_parse_project_pull_request <- function(api_responses){
 #' Download Project Issue's or Pull Request's Comments
 #'
 #' Download Issues' or Pull Request's Comments from "GET /repos/{owner}/{repo}/issues/comments" endpoint.
+#' Optional parameter since is used to download comments updated after the specified date.
+#' If the value of since is NULL, it is not passed to the API call and all comments are downloaded.
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
+#' @param since Optional parameter to specify pulling only comments updated after this date
 #' @export
 #' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-issue-comments-for-a-repository} and
 #' \url{https://docs.github.com/en/rest/guides/working-with-comments#pull-request-comments}.
 #' @export
-github_api_project_issue_or_pr_comments <- function(owner,repo,token){
+github_api_project_issue_or_pr_comments <- function(owner,repo,token,since=NULL){
+  if (!is.null(since)){
+    gh::gh("GET /repos/{owner}/{repo}/issues/comments",
+           owner=owner,
+           repo=repo,
+           page=1,
+           per_page=100,
+           .token=token,
+           since=since)
+  } else {
   gh::gh("GET /repos/{owner}/{repo}/issues/comments",
-         owner=owner,
-         repo=repo,
-         page=1,
-         per_page=100,
-         .token=token)
+           owner=owner,
+           repo=repo,
+           page=1,
+           per_page=100,
+           .token=token)
+  }
 }
+
+
 #' Parse Issues' or Pull Requests' Comments JSON to Table
 #'
 #' Note not all columns available in the downloaded json are parsed.
@@ -632,21 +647,22 @@ github_api_project_issue_refresh <- function(owner,
   } else {
 
     # Get the name of the file with the most recent date from the issue file
-    latest_date_issue <- paste0(save_path_issue, parse_jira_latest_date(save_path_issue))
+    latest_created_issue <- paste0(save_path_issue, parse_jira_latest_date(save_path_issue))
+    latest_created_issue <- (head(latest_created_issue,1))
     # Get the name of the file with the most recent date from the refresh_issue file if not empty
     if (length(contents_refresh) != 0){
-      latest_date_issue_refresh <- paste0(save_path_issue_refresh, parse_jira_latest_date(save_path_issue_refresh))
+      latest_created_issue_refresh <- paste0(save_path_issue_refresh, parse_jira_latest_date(save_path_issue_refresh))
     }
 
     # get the greatest created_at value among issues in the issues file
-    created <- format_created_at_from_file(latest_date_issue, item="")
+    created <- format_created_at_from_file(latest_created_issue, item="")
     if (verbose){
       message("Greatest created value from issue folder: ", created)
     }
 
     if (length(contents_refresh) != 0){
       # get the greatest created_at value among issues in the refresh_issues file
-      created_refresh <- format_created_at_from_file(latest_date_issue_refresh, item="items")
+      created_refresh <- format_created_at_from_file(latest_created_issue_refresh, item="items")
     }
     if(verbose){
       message("Greatest created value from issue folder: ", created)
@@ -666,32 +682,26 @@ github_api_project_issue_refresh <- function(owner,
       greatest_created <- created
     }
 
-    # API Call
+    # construct the query
     query <- sprintf("repo:%s/%s is:issue created:>%s", owner, repo, greatest_created)
-    # query <- sprintf("repo:%s/%s is:issue", owner, repo)
+
     if (verbose){
       message("Github API query: ",query)
     }
-    # Use the Search API endpoint to search for issues
-    gh_response <- gh::gh("/search/issues",
-                          q = query,
-                          state = 'all',
-                          page = 1,
-                          per_page = 100,
-                          .token = token)
-    # Adjust .limit as needed, though GitHub API has its own paging mechanisms
+    # Call the API function
+    gh_response <- github_api_project_issue_search(owner, repo, token, query, verbose=TRUE)
     return(gh_response)
   }
 }
 
 #' Download Project issues or pr comments after certain date
 #'
-#'#' Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
+#' Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
 #' the latest downloaded Github created_at date among the directory(intended to be the comment folder).
-#' It returns the first page of the github API query for comments updated after this date.
+#' It uses this date to construct a query and calls \code{\link{github_api_project_issue_or_pr_comments}}
 #'
-#' If no files exist in the file_save_path, \code{link{github_api_project_issue_or_pr_comments}}
-#' is called instead and all comments are downloaded.
+#' If no files exist in the file_save_path,\code{link{github_api_project_issue_or_pr_comments}}
+#' is called with no additional query and all comments are downloaded.
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
@@ -705,6 +715,7 @@ github_api_project_issue_refresh <- function(owner,
 #' @seealso  \code{link{format_created_at_from_file}} for function that iterates through
 #' a .json file and returns the greatest 'created_at' value
 #' @seealso  \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
+#' @seealso  \code{link{github_api_project_issue_or_pr_comments}} to call issue/comments endpoint
 github_api_project_issue_or_pr_comment_refresh <- function(owner,repo,token,file_save_path,verbose=TRUE){
   # Check if the file is empty by checking its size
   # List all files and subdirectories in the directory
@@ -717,11 +728,11 @@ github_api_project_issue_or_pr_comment_refresh <- function(owner,repo,token,file
     return (issues)
   } else {
     # Get the name of the file with the most recent date
-    latest_date_issue_or_pr_comment <- paste0(file_save_path, parse_jira_latest_date(save_path_issue_or_pr_comments))
-    latest_date_issue_or_pr_comment <- (head(latest_date_issue_or_pr_comment,1))
+    latest_updated_issue_or_pr_comment <- paste0(file_save_path, parse_jira_latest_date(save_path_issue_or_pr_comments))
+    latest_updated_issue_or_pr_comment <- (head(latest_updated_issue_or_pr_comment,1))
     # get the created_at value
-    message("got file", latest_date_issue_or_pr_comment)
-    created <- format_created_at_from_file(latest_date_issue_or_pr_comment, item="")
+    message("got file", latest_updated_issue_or_pr_comment)
+    created <- format_created_at_from_file(latest_updated_issue_or_pr_comment, item="")
 
     # Convert the string to a POSIXct object
     time_value <- as.POSIXct(created, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
@@ -733,17 +744,11 @@ github_api_project_issue_or_pr_comment_refresh <- function(owner,repo,token,file
     formatted_new_time_value <- format(new_time_value, "%Y-%m-%dT%H:%M:%SZ")
 
     if(verbose){
-      message("file name with greatest date: ",latest_date_issue_or_pr_comment)
+      message("file name with greatest date: ",latest_updated_issue_or_pr_comment)
       message("Latest date: ",formatted_new_time_value)
     }
-    # Github API Call
-    gh::gh("GET /repos/{owner}/{repo}/issues/comments",
-           owner=owner,
-           repo=repo,
-           since=formatted_new_time_value,  # Pass the `since` parameter in the API request
-           page=1,
-           per_page=100,
-           .token=token)
+    # Make the API call
+    gh_response <- github_api_project_issue_or_pr_comments(owner,repo,token,formatted_new_time_value)
   } #end if/else
 }
 
@@ -864,6 +869,7 @@ github_parse_search_issues_refresh <- function(api_responses) {
 #' @export
 #' @seealso  \code{link{github_api_project_issue_or_pr_comment_refresh}} to refresh comment data
 #' @seealso  \code{link{github_api_project_issue_refresh}} to refresh issue data
+#' @seealso  \code{link{github_api_project_issue_or_pr_comments}} to call issue/comments endpoint
 github_api_project_issue_or_pr_comments_by_date <- function(owner,
                                                             repo,
                                                             token,
@@ -875,13 +881,8 @@ github_api_project_issue_or_pr_comments_by_date <- function(owner,
   if(verbose){
     message("Downloading comments updated/created after: ", since)
   }
-  gh::gh("GET /repos/{owner}/{repo}/issues/comments",
-         owner=owner,
-         repo=repo,
-         since=since,  # Pass the `since` parameter in the API request
-         page=1,
-         per_page=100,
-         .token=token)
+  # Make the API call
+  gh_response <- github_api_project_issue_or_pr_comments(owner,repo,token,since)
   return(gh_response)
 }
 
@@ -939,22 +940,47 @@ github_api_project_issue_by_date <- function(owner,
          If you have provided at least one, it may be improperly formatted.")
   }
 
-  # Print the constructed query if verbose mode is enabled
-  if (verbose) {
-    message("GitHub API query: ", query)
-  }
-
   # Perform the API call using the constructed query
-  gh_response <- gh::gh("/search/issues",
-                        q = query,
-                        state = 'all',
-                        page = 1,
-                        per_page = 100,
-                        .token = token)
+  gh_response <- github_api_project_issue_search(owner, repo, token, query, verbose=TRUE)
 
   return(gh_response)
 }
 
+#' Download Project Issues via Search
+#'
+#' Download Commits from "GET /repos/{owner}/{repo}/search/issues" endpoint.
+#' This search endpoint allows for optional query parameter. Potential queries are found
+#' [here](https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28). The query parameter
+#' assumes that owner/repo is already prepended to the query. If no query is passed to the function,
+#' it will prepend only owner/repo to the query.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @param query Optional query to append to search api
+#' @references For details, see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}.
+#' @export
+github_api_project_issue_search <- function(owner, repo, token, query = NULL, verbose=TRUE) {
+  # Construct the search query
 
+#Check if there is a query
+    if (!is.null(query)){
+      search_query <- query
+    } else {
+      search_query <- "repo:"
+      search_query <- sprintf(search_query,"%s/%s is:issue", owner, repo)
+}
 
+  if(verbose){
+    message("Search query: ", search_query)
+  }
 
+  # Perform the GitHub API call
+  gh_response <- gh::gh("/search/issues",
+                        q = search_query,
+                        state = 'all',
+                        page = 1,
+                        per_page = 100,
+                        .token = token)
+  return(gh_response)
+}

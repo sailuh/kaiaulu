@@ -45,4 +45,6 @@ For further details on the `since` Query see [the associated Github API document
 \code{link{github_api_project_issue_or_pr_comment_refresh}} to refresh comment data
 
 \code{link{github_api_project_issue_refresh}} to refresh issue data
+
+\code{link{github_api_project_issue_or_pr_comments}} to call issue/comments endpoint
 }

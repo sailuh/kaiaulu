@@ -98,17 +98,16 @@ If you would like to retrieve issues only **after** a certain date, set `date_up
 
 If you would like to retrieve only issues **before** a certain date, set `date_lower_bound_issue=NULL` and date_upper_bound to the date. 
 
-Note in the subsequent code block we specified the fields from the issue we are interested in downloading. Again, you may specify [any fields](https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated) of interest for the downloader, including custom fields of your Github instance, but the parser currently only support those listed here. 
 
 ```{r Collect issues by date, eval = FALSE}
-date_upper_bound_issue=NULL
-date_lower_bound_issue="2024-02-07"
+created_upper_bound_issue=NULL
+created_lower_bound_issue="2024-02-07"
 # make initial API CALL
 gh_response <- github_api_project_issue_by_date(owner,
                                                 repo,
                                                 token,
-                                                date_lower_bound_issue,
-                                                date_upper_bound_issue,
+                                                created_lower_bound_issue,
+                                                created_upper_bound_issue,
                                                 verbose=TRUE)
 dir.create(save_path_issue)
 # Make subsequent API calls and write to JSON file along save path
@@ -117,9 +116,17 @@ github_api_iterate_pages(token,gh_response,
                          prefix="issue",
                          verbose=TRUE)
 ```
-# REFRESH Issues
+## REFRESH Issues
 
 The above function call downloads all the available issues less than the specified limit (default to API limit). The following chunk allows the downloading of issues that have been created only after the most recently created issue already downloaded. This allows the user to 'refresh' their data or continue downloading if a rate limit was previously reached. 
+
+There are a few instances in which downloading the issue data with comments does not capture all the issues: 
+
+ 1. The Github rest API rate limit (currently 5000/hour) is reached. 
+ 2. Function ends before completing. 
+ 3. More issues were since posted after downloading. 
+
+This function relies on the naming convention the downloaders utilize on the file to perform this operation. For details, see the function documentation.
 ```{r Collect all issues, eval = FALSE}
 #gh call but with date
 dir.create(save_path_issue_refresh)
@@ -162,13 +169,27 @@ github_api_iterate_pages(token,gh_response,
 
 ## Collect issue comments by lower bound date
 
+Sometimes it is helpful to retrieve issue comments after a particular date. Issue comments have the drawback in the Github API of only being able to specify a lower bound and downloading all comments created or updated after this date inclusive. If there are multiple revisions of a comment, the most recent version of the comment is downloaded. The acceptable date formats are:
+
+* YYYY-MM-DD
+Example: 2023-04-15 (15th April 2023)
+
+* YYYY-MM-DDTHH:MM
+Example: 2023-04-15T13:45 (15th April 2023 at 13:45 UTC)
+
+* YYYY-MM-DDTHH:MM:SS
+Example: 2023-04-15T13:45:30 (15th April 2023 at 13:45:30 UTC)
+
+* YYYY-MM-DDTHH:MM:SSZ or YYYY-MM-DDTHH:MM:SS+00:00
+Example: 2023-04-15T13:45:30Z or 2023-04-15T13:45:30+00:00 (15th April 2023 at 13:45:30 UTC)
+
 ```{r Collect issues by date, eval = FALSE}
-date_lower_bound_comment="2024-02-07"
+updated_lower_bound_comment="2024-04-17"
 # make initial API CALL
 gh_response <- github_api_project_issue_or_pr_comments_by_date(owner,
                                                 repo,
                                                 token,
-                                                date_lower_bound_comment,
+                                                updated_lower_bound_comment,
                                                 verbose=TRUE)
 dir.create(save_path_issue_or_pr_comments)
 # Make subsequent API calls and write to JSON file along save path
@@ -177,9 +198,12 @@ github_api_iterate_pages(token,gh_response,
                          prefix="issue",
                          verbose=TRUE)
 ```
-#REFRESH ISSUE OR PR COMMENT
+## REFRESH ISSUE OR PR COMMENT
 
-Similar to the refresh of the issues, this chunk allows for the downloading of comments that have been created since the most recently created date among data already downloaded. This allows us to 'refresh' the comments, downloading comments made since that date or continue downloading if a rate limit was reached. 
+Similar to the refresh of the issues, this chunk allows for the downloading of comments that have been created and/or updated since the most recently created date among data already downloaded. This allows us to 'refresh' the comments, downloading comments made or updated since that date or continue downloading if a rate limit was reached. 
+
+This function relies on the naming convention the downloaders utilize on the file to perform this operation. For details, see the function documentation.
+
 ```{r Collect all issues, eval = FALSE}
 #gh call but with date
 # get the data
@@ -233,7 +257,9 @@ head(all_issue)  %>%
 ```
 
 ## Refresh parser
-The Refresh parser also parses issue data but the folder 'refresh_issues'
+
+The Refresh parser also parses issue data but the folder 'refresh_issues', parsing data retrieved from the search endpoint. In this notebook, that is data from the REFRESH issues portion saved to issue_search directory. 
+
 ```{r}
 # Read all JSON files from the directory
 all_issue_files <- lapply(list.files(save_path_issue_refresh, full.names = TRUE), read_json)
