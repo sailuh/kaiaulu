@@ -958,6 +958,7 @@ github_api_project_issue_by_date <- function(owner,
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
 #' @param query Optional query to append to search api
+#' @param verbose Prints operational messages when se to true such as stating the search query.
 #' @references For details, see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}.
 #' @export
 github_api_project_issue_search <- function(owner, repo, token, query = NULL, verbose=TRUE) {

@@ -20,6 +20,8 @@ github_api_project_issue_search(
 \item{token}{Your GitHub API token}
 
 \item{query}{Optional query to append to search api}
+
+\item{verbose}{Prints operational messages when se to true such as stating the search query.}
 }
 \description{
 Download Commits from "GET /repos/{owner}/{repo}/search/issues" endpoint.
