@@ -10,7 +10,7 @@ github_api_iterate_pages(
   save_folder_path,
   prefix = NA,
   max_pages = NA,
-  verbose
+  verbose = TRUE
 )
 }
 \arguments{

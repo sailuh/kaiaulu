@@ -26,7 +26,7 @@ greatest dates and the file name that contains the greatest date.}
 }
 \description{
 Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
-the latest downloaded Github created_at date among the directory(intended to be the comment folder).
+the latest downloaded Github created_at date among the directory(intended to be the  folder).
 It uses this date to construct a query and calls \code{\link{github_api_project_issue_or_pr_comments}}
 }
 \details{

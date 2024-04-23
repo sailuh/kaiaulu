@@ -8,7 +8,6 @@ github_api_project_issue_refresh(
   owner,
   repo,
   token,
-  save_path_issue,
   save_path_issue_refresh,
   verbose
 )
@@ -20,8 +19,6 @@ github_api_project_issue_refresh(
 
 \item{token}{Your GitHub API token}
 
-\item{save_path_issue}{The folder path that the original issue downloader downloads to}
-
 \item{save_path_issue_refresh}{The folder path that the refresh downloader downloads to}
 
 \item{verbose}{A boolean value that prints operational messages when set to TRUE.
@@ -29,13 +26,14 @@ These may include announcing successful execution of code, API queries, files sa
 }
 \description{
 Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
-the latest downloaded Github created_at date among directories 'issue' and 'issue_refresh'.
-It returns the first page of the github query for issues created after this date.
+the latest downloaded Github created_at date among directory "issue_search".
+It returns the first page of the github query for issues created after this date by calling
+\code{\link{github_api_project_issue_search}}
 }
 \details{
 If the issue directory is empty, then the created query will not be appended to the api call
 and the first page of a query retrieving all issues will be returned. This function can therefore
-be used in the specified folder to continuously refresh available issues and/or comments
+be used in the specified folder to continuously refresh available issues
 data.
 }
 \references{

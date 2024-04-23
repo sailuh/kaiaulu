@@ -318,7 +318,7 @@ github_api_project_issue_or_pr_comments <- function(owner,repo,token,since=NULL)
            .token=token,
            since=since)
   } else {
-  gh::gh("GET /repos/{owner}/{repo}/issues/comments",
+    gh::gh("GET /repos/{owner}/{repo}/issues/comments",
            owner=owner,
            repo=repo,
            page=1,
@@ -483,7 +483,7 @@ github_api_page_last <- function(gh_response){
 #' @references For details see \url{https://docs.github.com/en/free-pro-team@latest/rest/guides/traversing-with-pagination}.
 #' @export
 #' @keywords internal
-github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=NA,max_pages=NA,verbose){
+github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=NA,max_pages=NA,verbose=TRUE){
   page_number <- 1
 
   data_exists = TRUE
@@ -603,18 +603,18 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
 #' Download Project Issues Refresh
 #'
 #' Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
-#' the latest downloaded Github created_at date among directories 'issue' and 'issue_refresh'.
-#' It returns the first page of the github query for issues created after this date.
+#' the latest downloaded Github created_at date among directory "issue_search".
+#' It returns the first page of the github query for issues created after this date by calling
+#' \code{\link{github_api_project_issue_search}}
 #'
 #' If the issue directory is empty, then the created query will not be appended to the api call
 #' and the first page of a query retrieving all issues will be returned. This function can therefore
-#' be used in the specified folder to continuously refresh available issues and/or comments
+#' be used in the specified folder to continuously refresh available issues
 #' data.
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
-#' @param save_path_issue The folder path that the original issue downloader downloads to
 #' @param save_path_issue_refresh The folder path that the refresh downloader downloads to
 #' @param verbose A boolean value that prints operational messages when set to TRUE.
 #' These may include announcing successful execution of code, API queries, files saved, etc.
@@ -627,63 +627,34 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
 github_api_project_issue_refresh <- function(owner,
                                              repo,
                                              token,
-                                             save_path_issue,
                                              save_path_issue_refresh,
                                              verbose){
 
-  # Check if issue folder is empty
-  contents <- list.files(path = save_path_issue)
+
   # Check if refresh folder is empty
   contents_refresh <- list.files(path = save_path_issue_refresh)
 
   # If the file is empty, download all issues
-  if(length(contents) == 0) {
-    # Run regular downloader
-    gh_response <- github_api_project_issue(owner,repo,token)
-    github_api_iterate_pages(token,gh_response,
-                             save_path_issue,
-                             prefix="issue",
-                             verbose=verbose)
-  } else {
-
-    # Get the name of the file with the most recent date from the issue file
-    latest_created_issue <- paste0(save_path_issue, parse_jira_latest_date(save_path_issue))
-    latest_created_issue <- (head(latest_created_issue,1))
-    # Get the name of the file with the most recent date from the refresh_issue file if not empty
-    if (length(contents_refresh) != 0){
-      latest_created_issue_refresh <- paste0(save_path_issue_refresh, parse_jira_latest_date(save_path_issue_refresh))
-    }
-
-    # get the greatest created_at value among issues in the issues file
-    created <- format_created_at_from_file(latest_created_issue, item="")
-    if (verbose){
-      message("Greatest created value from issue folder: ", created)
-    }
-
-    if (length(contents_refresh) != 0){
-      # get the greatest created_at value among issues in the refresh_issues file
-      created_refresh <- format_created_at_from_file(latest_created_issue_refresh, item="items")
-    }
+  if(length(contents_refresh) == 0) {
     if(verbose){
-      message("Greatest created value from issue folder: ", created)
-      if (length(contents_refresh) != 0){
-        message("Greatest created value from refresh_issue folder: ", created_refresh)
-      }
+      message("No files exist in directory. Downloading all files")
     }
-
-    # Get the greatest value of the created_at from either folder
-    if (length(contents_refresh) != 0){
-      if(created>created_refresh){
-        greatest_created <- created
-      } else {
-        greatest_created <- created_refresh
-      }
-    } else {
-      greatest_created <- created
+    query <- NULL
+    gh_response <- github_api_project_issue_search(owner, repo, token, query, verbose=TRUE)
+    return(gh_response)
+  } else {
+    # Get the name of the file with the most recent date from the refresh_issue file if not empty
+    latest_created_issue_refresh <- paste0(save_path_issue_refresh, parse_jira_latest_date(save_path_issue_refresh))
+    latest_created_issue_refresh <- head(latest_created_issue_refresh,1)
+    # get the greatest created_at value among issues in the refresh_issues file
+    created_refresh <- format_created_at_from_file(latest_created_issue_refresh, item="items")
+    # }
+    if(verbose){
+      message("Greatest created value from refresh_issue folder: ", created_refresh)
     }
 
     # construct the query
-    query <- sprintf("repo:%s/%s is:issue created:>%s", owner, repo, greatest_created)
+    query <- sprintf("repo:%s/%s is:issue created:>%s", owner, repo, created_refresh)
 
     if (verbose){
       message("Github API query: ",query)
@@ -697,7 +668,7 @@ github_api_project_issue_refresh <- function(owner,
 #' Download Project issues or pr comments after certain date
 #'
 #' Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
-#' the latest downloaded Github created_at date among the directory(intended to be the comment folder).
+#' the latest downloaded Github created_at date among the directory(intended to be the  folder).
 #' It uses this date to construct a query and calls \code{\link{github_api_project_issue_or_pr_comments}}
 #'
 #' If no files exist in the file_save_path,\code{link{github_api_project_issue_or_pr_comments}}
@@ -963,14 +934,13 @@ github_api_project_issue_by_date <- function(owner,
 #' @export
 github_api_project_issue_search <- function(owner, repo, token, query = NULL, verbose=TRUE) {
   # Construct the search query
-
-#Check if there is a query
-    if (!is.null(query)){
-      search_query <- query
-    } else {
-      search_query <- "repo:"
-      search_query <- sprintf(search_query,"%s/%s is:issue", owner, repo)
-}
+  #Check if there is a query
+  if (!is.null(query)){
+    search_query <- query
+  } else {
+    search_query <- "repo:"
+    search_query <- paste0(search_query,owner,"/",repo," is:issue")
+  }
 
   if(verbose){
     message("Search query: ", search_query)
