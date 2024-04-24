@@ -55,11 +55,11 @@ mailing_list:
 issue_tracker:
   jira:
     # Obtained from the project's JIRA URL
-    #domain: https://issues.apache.org/jira
-    #project_key: GERONIMO
+    domain: https://sailuh.atlassian.net
+    project_key: SAILUH
     # Download using `download_jira_data.Rmd`
-    #issues: ../../rawdata/issue_tracker/geronimo_issues.json
-    #issue_comments: ../../rawdata/issue_tracker/geronimo_issue_comments.json
+    issues: ../../rawdata/issue_tracker/kaiaulu/issues/
+    issue_comments: ../../rawdata/issue_tracker/kaiaulu/issue_comments/
   github:
     # Obtained from the project's GitHub URL
     owner: sailuh

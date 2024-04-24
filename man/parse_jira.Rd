@@ -2,19 +2,31 @@
 % Please edit documentation in R/jira.R
 \name{parse_jira}
 \alias{parse_jira}
-\title{Parse Jira issue and comments}
+\title{Parse JIRA Issues and Comments}
 \usage{
-parse_jira(json_path)
+parse_jira(json_folder_path)
 }
 \arguments{
-\item{json_path}{path to jira json (issues or issues with comments) obtained using `download_jira_data.Rmd`.}
+\item{json_folder_path}{is a folder path containing a set of jira_issues as json files.}
 }
 \value{
 A named list of two named elements ("issues", and "comments"), each containing a data.table.
-Note the comments element will be empty if the downloaded json only contain issues.
 }
 \description{
-Parse Jira issue and comments
+Parses JIRA issues without or with comments contained in a folder following a standardized file nomenclature.
+as obtained from \code{\link{download_jira_issues}}. A named list with two elements (issues, comments) is returned
+containing the issue table and optionally comments table.
+}
+\details{
+The following fields are expected on the raw data:
+
+issuekey, issuetype, components, creator, created, description, reporter, status, resolution
+resolutiondate, assignee, updated, comment, priority, votes, watches, versions, fixVersions, labels
+
+which are the default parameters of \code{\link{download_jira_issues}}. If the `comment` field is
+specified, then the comments table is included.
+
+If a field is not present in an issue, then its value will be NA.
 }
 \seealso{
 Other parsers: 
@@ -27,6 +39,7 @@ Other parsers:
 \code{\link{parse_dependencies}()},
 \code{\link{parse_dv8_clusters}()},
 \code{\link{parse_gitlog}()},
+\code{\link{parse_jira_latest_date}()},
 \code{\link{parse_jira_rss_xml}()},
 \code{\link{parse_mbox}()},
 \code{\link{parse_nvdfeed}()}
