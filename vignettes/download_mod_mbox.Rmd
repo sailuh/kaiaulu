@@ -40,6 +40,14 @@ mailing_list <- conf[["mailing_list"]][["mod_mbox"]][["mail_key_1"]][["mailing_l
 archive_type <- conf[["mailing_list"]][["mod_mbox"]][["mail_key_1"]][["archive_type"]]
 start_year <- 2017
 end_year <- 2018
+
+conf2 <- yaml::read_yaml("../conf/openssl.yml")
+save_path_pipermail <- conf2[["mailing_list"]][["pipermail"]][["mail_key_1"]][["pipermail"]]
+pipermail_url <- conf2[["mailing_list"]][["pipermail"]][["mail_key_1"]][["archive_url"]]
+mailing_list2 <- conf2[["mailing_list"]][["pipermail"]][["mail_key_1"]][["mailing_list"]]
+archive_type2 <- conf2[["mailing_list"]][["pipermail"]][["mail_key_1"]][["archive_type"]]
+
+perceval_path <- yaml::read_yaml("../tools.yml")[["perceval"]]
 ```
 
 ```{r eval = FALSE}
@@ -60,4 +68,24 @@ refresh_mbox(archive_url = mod_mbox_url,
              from_year = start_year,
              save_folder_path = save_path_mbox, 
              verbose = TRUE)
+```
+
+```{r eval = FALSE}
+download_pipermail(archive_url = pipermail_url, 
+                   mailing_list = mailing_list2, 
+                   archive_type = archive_type2,
+                   save_folder_path = save_path_pipermail)
+```
+
+```{r eval = FALSE}
+mbox_latest <- parse_mbox_latest_date(save_path_pipermail)
+refresh_pipermail(archive_url = pipermail_url,
+                  mailing_list=mailing_list2,
+                  archive_type=archive_type2,
+                  save_folder_path=save_path_pipermail,
+                  verbose=TRUE)
+```
+
+```{r eval = FALSE}
+parse_mbox(perceval_path, save_path_pipermail)
 ```
