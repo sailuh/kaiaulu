@@ -83,121 +83,86 @@ download_bugzilla_perceval_rest_issue_comments <- function(perceval_path, bugzil
   return(save_file_path)
 }
 
-#' Download Bugzilla issues using the Bugzilla REST API
-#'
-#' Downloads bugzilla issues into a folder, where each file is a json containing a page of issues.
-#' Returns a list of bugzilla bug ids for use with \code{\link{download_bugzilla_rest_comments}}.
-#'
-#' Note that some bugzilla sites limit the bugs that can retrieved in a single GET request.
-#' The limit_upperbound you set to retrieve a number of bugs for each page/file may be greater
-#' than the limit set for bug retrieval by the bugzilla site, in which case, this function
-#' will adjust the limit accordingly to ensure all bugs are retrieved.
-#'
-#' @param bugzilla_site URL to specific bugzilla site
-#' @param start_timestamp when to start bug retrieval (ex. 2023-01-01T00:14:57Z)
-#' @param save_folder_path the full *folder* path where the bugzilla issues will be stored
-#' @param limit_upperbound the number of issues saved in each page file. Some bugzilla sites have limits set on how many bugs
-#' can be retrieved in one GET request, in which case, the limit set by the bugzilla site will be used in place of
-#' limit_upperbound to ensure full bug retrieval.
-#' @seealso \code{\link{download_bugzilla_rest_comments}} a downloader function to download the issue comments
-#' @return a vector of bug ids
-#' @export
-download_bugzilla_rest_issues <- function(bugzilla_site, start_timestamp, save_folder_path, limit_upperbound=500){
-  # Format link to retrieve data using Bugzilla REST API
-  bugzilla_site <- paste(bugzilla_site, "/rest", sep="")
-
-  # Make sure folder path is correctly formatted
-  if (stringi::stri_sub(save_folder_path,-1) != "/"){
-    save_folder_path <-paste0(save_folder_path, "/")
-  }
-
-  # Holds the bug ids
-  bug_ids <- c()
-  # Defines what bug to start from in bugs retrieved.
-  offset <- 0
-  # Defines name of the file. Each page contains 500 bugs.
-  page <- 0
-  # Defines the limit.
-  limit <- limit_upperbound
-
-  # Get the issues starting from the specified date
-  issues <- httr::GET(paste0(bugzilla_site, "/bug", "?creation_time=", start_timestamp, "&limit=", limit, "&offset=", offset))
-
-  # Save the issues and the bug ids if there are issues.
-  if (length(httr::content(issues)$bugs) > 0){
-    jsonlite::write_json(jsonlite::fromJSON(httr::content(issues, "text")),
-                         paste0(save_folder_path, page, ".json"), auto_unbox=TRUE)
-    json_issues <- rawToChar(httr::content(issues, as = "raw"))
-
-    # Get the ids of the bugs to download comments associated with these bugs in
-    # download_bugzilla_comments_from_rest_api
-    current_bug_ids <- jsonlite::fromJSON(json_issues)[["bugs"]][["id"]]
-    bug_ids <- c(bug_ids, current_bug_ids)
-    page <- page + 1
-
-    # Get the table for the first page of bugs to check the number of rows
-    # and determine the actual value of the limit parameter.
-    page1_bug_table <- parse_bugzilla_rest_issues(save_folder_path)
-    # Get the limit we should use.
-    limit <- nrow(page1_bug_table)
-    # Add to the offset based on the limit.
-    offset <- offset + limit
-
-  }
-
-  # Keep retrieving bugs until we get all the pages.
-  while(length(httr::content(issues)$bugs) > 0){
-    issues <- httr::GET(paste0(bugzilla_site, "/bug", "?creation_time=", start_timestamp,
-                               "&limit=", limit, "&offset=", offset))
-
-    # There are no more bugs, so we break.
-    if (length(httr::content(issues)$bugs) == 0){
-      break
-    }
-
-    # Write the bugs to a file
-    jsonlite::write_json(jsonlite::fromJSON(httr::content(issues, "text")),
-                         paste0(save_folder_path, page, ".json"), auto_unbox=TRUE)
-    json_issues <- rawToChar(httr::content(issues, as = "raw"))
-
-    # Get the ids of the bugs to download comments associated with these bugs in
-    # download_bugzilla_comments_from_rest_api
-    current_bug_ids <- jsonlite::fromJSON(json_issues)[["bugs"]][["id"]]
-    bug_ids <- c(bug_ids, current_bug_ids)
-    offset <- offset + limit
-    page <- page + 1
-  }
-
-  return(bug_ids)
-}
-
-#' Download project data (issues and comments) from bugzilla site
-#' Note: The first comment in every issue is the issue description
-#' @param bugzilla_site URL to specific bugzilla site
-#' @param start_timestamp when to start bug retrieval (ex. 2023-01-01T00:14:57Z)
-#' @param save_folder_path the full *folder* path where the bugzilla issues will be stored
-#' @param project_key the project key of the project which can be found in the respective config file
-#' @param limit_upperbound the number of issues saved in each page file. Some bugzilla sites have limits set on how many bugs
-#' can be retrieved in one GET request, in which case, the limit set by the bugzilla site will be used in place of
-#' limit_upperbound to ensure full bug retrieval.
-#' @param comments set true to download issues with comments, leave as false to download only issues (without comments)
-#' @param verbose set true to print execution details
-#' @seealso \code{\link{parse_bugzilla_rest_issues_comments}} a parser function to parse Bugzilla issues and comments data
-#' @export
 download_bugzilla_rest_issues_comments <- function(bugzilla_site,
-                                                   start_timestamp,
+                                                   query,
                                                    save_folder_path,
                                                    project_key,
-                                                   limit_upperbound = 500,
+                                                   limit_upperbound = 20,
                                                    comments = FALSE,
                                                    verbose = FALSE) {
-  # Format link to retrieve data using Bugzilla REST API
-  bugzilla_site <- paste(bugzilla_site, "/rest", sep="")
 
-  # Make sure folder path is correctly formatted
-  if (stringi::stri_sub(save_folder_path,-1) != "/") {
-    save_folder_path <-paste0(save_folder_path, "/")
+  # make the api call with the bugzilla site and the query
+  api_call <- paste0(bugzilla_site, query)
+
+  if(verbose) {
+    message("Making API call: ", api_call)
   }
+
+  # get the data from the api call and store it in issues
+  issues <- httr::GET(api_call)
+
+  # Check if there are issues in the API request
+  if(httr::content(issues)$total_matches > 0) {
+
+    # convert the issues to raw content
+    raw_content <- httr::content(issues, "text", encoding="UTF8")
+
+    # convert the raw content to JSON to extract the min and max dates
+    issues_content_json <- jsonlite::fromJSON(raw_content, simplifyVector = FALSE)
+
+    # file names start with the project key
+    file_name <- project_key
+
+    # Extract 'created' dates
+    created_dates <- sapply(issues_content_json$bugs, function(bug) bug$creation_time)
+
+    # Convert to POSIXct date objects
+    date_objects <- as.POSIXct(created_dates, format="%Y-%m-%dT%H:%M:%S", tz="UTC")
+
+    #Find the greatest and smallest date
+    latest_date <- max(date_objects)
+    latest_date_unix <- as.numeric(latest_date)
+
+    earliest_date <- min(date_objects)
+    earliest_date_unix <- as.numeric(earliest_date)
+
+    # append earliest and latest dates to the file name
+    file_name <- paste0(file_name, "_", earliest_date_unix)
+    file_name <- paste0(file_name, "_", latest_date_unix, ".json")
+
+    if (verbose) {
+      message("Max date: ", latest_date)
+      message("Min date: ", earliest_date)
+      message("File name: ", file_name)
+    }
+
+    # make a file path with the file name and save file path
+    file_path <- file.path(save_folder_path, file_name)
+
+    writeLines(raw_content, file_path)
+
+    if (verbose) {
+      message("Saved file to ", file_path, "\n")
+    }
+
+    return(issues)
+
+  } else {
+    if (verbose) {
+      message("No issues were returned from this API call.")
+    }
+
+    return(issues)
+  }
+}
+
+download_bugzilla_rest_issues_comments_by_date <- function(bugzilla_site,
+                                                           start_timestamp,
+                                                           save_folder_path,
+                                                           project_key,
+                                                           limit_upperbound = 20,
+                                                           comments = FALSE,
+                                                           verbose = FALSE) {
 
   # Defines what bug to start from in bugs retrieved.
   offset <- 0
@@ -208,69 +173,41 @@ download_bugzilla_rest_issues_comments <- function(bugzilla_site,
   # Defines the limit.
   limit <- limit_upperbound
 
+  # Format link to retrieve data using Bugzilla REST API
+  bugzilla_site <- paste(bugzilla_site, "/rest", sep="")
+
   repeat {
 
     # Get request to get the project data
     if (comments == TRUE) {
-      issues <- httr::GET(paste0(bugzilla_site, "/bug", "?creation_time=", start_timestamp, "&include_fields=_default,comments", "&limit=", limit, "&offset=", offset))
+      query <- paste0("/bug", "?creation_time=", start_timestamp, "&include_fields=_default,comments", "&limit=", limit, "&offset=", offset)
     } else {
-      issues <- httr::GET(paste0(bugzilla_site, "/bug", "?creation_time=", start_timestamp, "&limit=", limit, "&offset=", offset))
+      query <- paste0("/bug", "?creation_time=", start_timestamp, "&limit=", limit, "&offset=", offset)
     }
 
-    # Check if the limit being restrict or not
-    if(as.integer(httr::content(issues)$limit) != limit) {
-      limit <- as.integer(httr::content(issues)$limit)
-
-      if(verbose) {
-        message("Limit was not reached. It has been changed to: ", limit)
-      }
+    if(verbose) {
+      message("Appending ", query, " to API request.")
     }
 
-    # Check if there is any issue created after specific date
+    issues <- download_bugzilla_rest_issues_comments(bugzilla_site = bugzilla_site,
+                                                     query = query,
+                                                     save_folder_path = save_folder_path,
+                                                     project_key = project_key,
+                                                     limit_upperbound = limit_upperbound,
+                                                     comments = comments,
+                                                     verbose = verbose)
+
     if(httr::content(issues)$total_matches > 0) {
-      raw_content <- httr::content(issues, "text", encoding="UTF8")
-      issues_content_json <- jsonlite::fromJSON(raw_content, simplifyVector = FALSE)
 
-      # get the number of issues on the page
+      # get the number of issues downloaded
       issues_count <- length(httr::content(issues)$bugs)
 
-      if (verbose) {
-        message("Number of issues on the page: ", issues_count)
-      }
-
-      # file names start with the project key
-      file_name <- project_key
-
-      # Extract 'created' dates
-      created_dates <- sapply(issues_content_json$bugs, function(bug) bug$creation_time)
-
-      # Convert to POSIXct date objects
-      date_objects <- as.POSIXct(created_dates, format="%Y-%m-%dT%H:%M:%S", tz="UTC")
-
-      #Find the greatest and smallest date
-      latest_date <- max(date_objects)
-      latest_date_unix <- as.numeric(latest_date)
-
-      earliest_date <- min(date_objects)
-      earliest_date_unix <- as.numeric(earliest_date)
-
-      # append earliest and latest dates to the file name
-      file_name <- paste0(file_name, "_", earliest_date_unix)
-      file_name <- paste0(file_name, "_", latest_date_unix, ".json")
-
-      if (verbose) {
-        message("Max date: ", latest_date)
-        message("Min date: ", earliest_date)
-        message("File name: ", file_name)
-      }
-
-      # make a file path with the file name and save file path
-      file_path <- file.path(save_folder_path, file_name)
-
-      writeLines(raw_content, file_path)
-
-      if (verbose) {
-        message("Saved file to ", file_path, "\n")
+      # Check if the limit being restrict or not
+      if(as.integer(httr::content(issues)$limit) != limit) {
+        limit <- as.integer(httr::content(issues)$limit)
+        if(verbose) {
+          message("Limit was not reached. It has been changed to: ", limit)
+        }
       }
 
       # increment complete
@@ -279,7 +216,7 @@ download_bugzilla_rest_issues_comments <- function(bugzilla_site,
       download_count <- download_count + issues_count
     } else {
       if (verbose) {
-        message("All issues have been downloaded")
+        message("\nAll issues have been downloaded.")
         message("Number of issues downloaded: ", download_count)
         message("Number of pages: ", page)
       }
@@ -288,43 +225,101 @@ download_bugzilla_rest_issues_comments <- function(bugzilla_site,
   }
 }
 
+
 # Refresh function
-refresh_bugzilla_issue_comments <-function(bugzilla_site,
+refresh_bugzilla_issues_comments <-function(bugzilla_site,
+                                           start_timestamp = "1700-01-01T00:00:00Z",
                                            save_folder_path,
                                            project_key,
+                                           limit_upperbound = 20,
                                            comments = FALSE,
                                            verbose = FALSE) {
 
-  # default values
-  start_timestamp <- "1700-01-01T00:00:00Z"
-  limit_upperbound <- 500
-
   # If the folder is empty, then start by downloading all issues
   if (file.exists(save_folder_path)) {
-    if(list.files(path = save_folder_path) != 0) {
+    if(length(list.files(save_folder_path)) > 0) {
 
       if (verbose) {
-        message("There are exiting files ")
+        message("There are existing files ")
       }
-      file_name_with_newest_date <- parse_jira_latest_date(save_file_path)
+
+      # get the file name with the latest date
+      file_name_with_newest_date <- parse_bugzilla_latest_date(save_folder_path)
+
+      # make a file path with the folder path and the file name
+      file_path <- file.path(save_folder_path, file_name_with_newest_date)
+
+      # get the json data from the file
+      json_data <- jsonlite::fromJSON(txt = file_path, simplifyVector=FALSE)
+
+      # Extract 'created' dates
+      created_dates <- sapply(json_data$bugs, function(bug) bug$creation_time)
+
+      # Convert to POSIXct date objects
+      date_objects <- as.POSIXct(created_dates, format="%Y-%m-%dT%H:%M:%S", tz="UTC")
+
+      #Find the greatest
+      latest_date <- max(date_objects)
+
+      # add one second
+      new_latest_date <- latest_date + 1
+
+      # format the new time value back into the original string format
+      formatted_new_latest_date <- format(new_latest_date, "%Y-%m-%dT%H:%M:%SZ")
+
+      start_timestamp <- formatted_new_latest_date
+
+      message(formatted_new_latest_date)
     }
   }
 
-  # I want to include a comments parameter in this list
-  download_bugzilla_rest_issues_comments(bugzilla_site = bugzilla_site,
-                                         start_timestamp = start_timestamp,
-                                         save_folder_path = save_folder_path,
-                                         project_key = project_key,
-                                         limit_upperbound = limit_upperbound,
-                                         comments = comments,
-                                         verbose = verbose)
-
+  download_bugzilla_rest_issues_comments_by_date(bugzilla_site = bugzilla_site,
+                                                 start_timestamp = start_timestamp,
+                                                 save_folder_path = save_folder_path,
+                                                 project_key = project_key,
+                                                 limit_upperbound = limit_upperbound,
+                                                 comments = comments,
+                                                 verbose = verbose)
 }
 
 # find the value that stores the date created
 # look at api and see if I can get issues after the created date
 
 ############## Parsers ##############
+
+#' Parse Bugzilla current issue
+#'
+#' Returns the file containing the most current issue in the specified folder.
+#'
+#' The folder assumes the following convention: "(PROJECTKEY)_(uniextimestamp_lowerbound)_(unixtimestamp_upperbound).json"
+#' For example: "SAILUH_1231234_2312413.json". This nomenclature is defined by \code{\link{download_jira_issues}}.
+#'
+#' @param json_folder_path path to save folder containing JIRA issue and/or comments json files.
+#' @return The name of the Bugzilla issue file with the latest created date that was created/downloaded for
+#' use by the bugzilla downloader refresher
+#' @export
+#' @family parsers
+parse_bugzilla_latest_date <- function(json_folder_path){
+  file_list <- list.files(json_folder_path)
+  time_list <- list()
+
+  # Checking if the save folder is empty
+  if (identical(file_list, character(0))){
+    stop(stringi::stri_c("cannot open the connection"))
+  }
+
+  for (j in file_list){
+    j <- sub(".*_(\\w+)\\.[^.]+$", "\\1", j)
+    j <- as.numeric(j)
+    time_list <- append(time_list, j)
+  }
+
+  overall_latest_date <- as.character(max(unlist(time_list)))
+
+  latest_issue_file <- grep(overall_latest_date, file_list, value = TRUE)
+
+  return(latest_issue_file)
+}
 
 #' Parse Bugzilla data obtained from Perceval traditional Bugzilla backend
 #'
