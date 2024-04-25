@@ -267,7 +267,7 @@ download_mod_mbox_per_month <- function(archive_url, mailing_list, archive_type,
 #' @param save_folder_path the full *folder* path where the monthly downloaded mbox will be stored.
 #' @param verbose Prints progress during execution
 #' @export
-refresh_mbox <- function(archive_url, mailing_list, archive_type, from_year, save_folder_path,verbose=FALSE) {
+refresh_mod_mbox <- function(archive_url, mailing_list, archive_type, from_year, save_folder_path,verbose=FALSE) {
   # Get a list of mbox files currently downloaded in save path folder
   existing_mbox_files <- list.files(save_folder_path)
 

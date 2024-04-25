@@ -62,7 +62,7 @@ mbox <- download_mod_mbox_per_month(archive_url = mod_mbox_url,
 
 ```{r eval = FALSE}
 mbox_latest <- parse_mbox_latest_date(save_path_mbox)
-refresh_mbox(archive_url = mod_mbox_url, 
+refresh_mod_mbox(archive_url = mod_mbox_url, 
              mailing_list = mailing_list, 
              archive_type = archive_type, 
              from_year = start_year,
