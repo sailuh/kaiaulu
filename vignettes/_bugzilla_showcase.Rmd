@@ -218,7 +218,7 @@ bugzillarestapi_comments_table <- parse_bugzilla_rest_comments(save_comments_pat
 
 ## REST API Issues and Comments Downloader
 
-We can also use 'download_bugzilla_rest_issues_comments' function to download both issues and issues with comments from the Bugzilla site together.
+We can use 'download_bugzilla_rest_issues_comments' function to download both issues and issues with comments from the Bugzilla site.
 
 ```{r}
 bugzilla_site <- "https://bugzilla.redhat.com/"
@@ -226,20 +226,20 @@ start_timestamp <- "2024-04-23T23:00:00Z"
 save_issues_comments_path <- "../../rawdata/bugzilla/redhat/issues"
 ```
 
-
 ```{r eval = FALSE}
 download_bugzilla_rest_issues_comments_by_date(bugzilla_site, start_timestamp, save_issues_comments_path, key, limit_upperbound=20, comments=FALSE, verbose=TRUE)
 ```
+
 ```{r}
-save_issues_path <- "../../rawdata/bugzilla/redhat/issues_comments"
+save_issues_comments_path <- "../../rawdata/bugzilla/redhat/issues_comments"
 ```
 
 ```{r eval = FALSE}
-download_bugzilla_rest_issues_comments_by_date(bugzilla_site, start_timestamp, save_issues_path, key, limit_upperbound=20, comments=TRUE, verbose=TRUE)
+download_bugzilla_rest_issues_comments_by_date(bugzilla_site, start_timestamp, save_issues_comments_path, key, limit_upperbound=20, comments=TRUE, verbose=TRUE)
 ```
 
 ```{r eval = FALSE}
-refresh_bugzilla_issues_comments(bugzilla_site,save_folder_path = save_issues_path, project_key = key, limit_upperbound=20, comments = TRUE, verbose = TRUE)
+refresh_bugzilla_issues_comments(bugzilla_site, save_folder_path = save_issues_comments_path, project_key = key, limit_upperbound=20, comments = TRUE, verbose = TRUE)
 ```
 
 
@@ -249,5 +249,5 @@ We can use the 'parse_bugzilla_rest_issues_comments' function below to parse the
 
 ```{r}
 bugzillarest_issues_comments_table <- parse_bugzilla_rest_issues_comments(save_issues_comments_path)
-# kable(bugzillarest_issues_comments_table[7])
+bugzillarest_issues_comments_table
 ```

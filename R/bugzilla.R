@@ -83,6 +83,25 @@ download_bugzilla_perceval_rest_issue_comments <- function(perceval_path, bugzil
   return(save_file_path)
 }
 
+#' Download Bugzilla Issues and Issues Comments Using REST API
+#'
+#' Downloads Bugzilla issues or issues with comments into a folder, where each file is a
+#' json containing a page of issues. Returns the content from the API call.
+#'
+#' Download project data (issues or issues and comments) from bugzilla site
+#' Note: The first comment in every issue is the issue description
+#'
+#' @param bugzilla_site URL to specific bugzilla site
+#' @param query an API parameter that modifies the GET request
+#' @param save_folder_path the full folder path where the bugzilla issues will be stored
+#' @param project_key the project key of the project which can be found in the respective config file
+#' @param limit_upperbound the number of issues saved in each page file. Some bugzilla sites have limits set on how many bugs
+#' can be retrieved in one GET request, in which case, the limit set by the bugzilla site will be used in place of
+#' limit_upperbound to ensure full bug retrieval.
+#' @param comments set true to download issues with comments, leave as false to download only issues (without comments)
+#' @param verbose set true to print execution details
+#' @seealso \code{\link{parse_bugzilla_rest_issues_comments}} a parser function to parse Bugzilla issues and comments data
+#' @export
 download_bugzilla_rest_issues_comments <- function(bugzilla_site,
                                                    query,
                                                    save_folder_path,
@@ -156,6 +175,24 @@ download_bugzilla_rest_issues_comments <- function(bugzilla_site,
   }
 }
 
+#' Download Bugzilla Issues and Issues Comments By Date Using REST API
+#'
+#' Downloads Bugzilla issues or issues with comments into a folder, where each file is a
+#' json containing a page of issues. The files downloaded start from the "start_timestamp" parameter
+#' until the current time.
+#'
+#'
+#' @param bugzilla_site URL to specific bugzilla site
+#' @param start_timestamp when to start bug retrieval (ex. 2023-01-01T00:14:57Z)
+#' @param save_folder_path the full folder path where the bugzilla issues will be stored
+#' @param project_key the project key of the project which can be found in the respective config file
+#' @param limit_upperbound the number of issues saved in each page file. Some bugzilla sites have limits set on how many bugs
+#' can be retrieved in one GET request, in which case, the limit set by the bugzilla site will be used in place of
+#' limit_upperbound to ensure full bug retrieval.
+#' @param comments set true to download issues with comments, leave as false to download only issues (without comments)
+#' @param verbose set true to print execution details
+#' @seealso \code{\link{parse_bugzilla_rest_issues_comments}} a parser function to parse Bugzilla issues and comments data
+#' @export
 download_bugzilla_rest_issues_comments_by_date <- function(bugzilla_site,
                                                            start_timestamp,
                                                            save_folder_path,
@@ -225,8 +262,22 @@ download_bugzilla_rest_issues_comments_by_date <- function(bugzilla_site,
   }
 }
 
-
-# Refresh function
+#' Refresh Bugzilla Issues or Issues Comments
+#'
+#' Downloads Bugzilla issues or issues with comments starting from the most recent file in the folder.
+#' If the directory is empty, then all issues will be downloaded for the Bugzilla project.
+#'
+#' @param bugzilla_site URL to specific bugzilla site
+#' @param start_timestamp when to start bug retrieval (ex. 2023-01-01T00:14:57Z)
+#' @param save_folder_path the full folder path where the bugzilla issues will be stored
+#' @param project_key the project key of the project which can be found in the respective config file
+#' @param limit_upperbound the number of issues saved in each page file. Some bugzilla sites have limits set on how many bugs
+#' can be retrieved in one GET request, in which case, the limit set by the bugzilla site will be used in place of
+#' limit_upperbound to ensure full bug retrieval.
+#' @param comments set true to download issues with comments, leave as false to download only issues (without comments)
+#' @param verbose set true to print execution details
+#' @seealso \code{\link{parse_bugzilla_rest_issues_comments}} a parser function to parse Bugzilla issues and comments data
+#' @export
 refresh_bugzilla_issues_comments <-function(bugzilla_site,
                                            start_timestamp = "1700-01-01T00:00:00Z",
                                            save_folder_path,
@@ -439,8 +490,8 @@ parse_bugzilla_perceval_traditional_issue_comments <- function(bugzilla_json_pat
   }
 
   # Convert list of issues & list of comments into tables
-  all_issues <- rbindlist(all_issues,fill=TRUE)
-  all_comments <- rbindlist(all_comments,fill=TRUE)
+  all_issues <- data.table::rbindlist(all_issues,fill=TRUE)
+  all_comments <- data.table::rbindlist(all_comments,fill=TRUE)
 
   # Rename column names for the issues (remove the .__text__)
   colnames(all_issues) <- gsub(".__text__", "", colnames(all_issues), fixed = TRUE)
@@ -582,8 +633,8 @@ parse_bugzilla_perceval_rest_issue_comments <- function(bugzilla_json_path, comm
   }
 
   # Convert list of issues & list of comments into tables
-  all_issues <- rbindlist(all_issues,fill=TRUE)
-  all_comments <- rbindlist(all_comments,fill=TRUE)
+  all_issues <- data.table::rbindlist(all_issues,fill=TRUE)
+  all_comments <- data.table::rbindlist(all_comments,fill=TRUE)
 
   # Return output
   if (comments==TRUE) {
@@ -673,7 +724,7 @@ parse_bugzilla_rest_issues <- function(issues_folder_path){
         # Add issue type
         faults[, issue_type := "faults"]
         # Add the faults to the result data.table
-        result <- rbindlist(list(result, faults), fill = TRUE)[, ..expected_columns]
+        result <- data.table::rbindlist(list(result, faults), fill = TRUE)[, ..expected_columns]
       }
 
       if(length(json_object$bugs) > 0){
@@ -682,13 +733,13 @@ parse_bugzilla_rest_issues <- function(issues_folder_path){
         # Add issue type
         bugs[, issue_type := "bugs"]
         # Add the bugs to the result data.table
-        result <- rbindlist(list(result, bugs), fill = TRUE)[, ..expected_columns]
+        result <- data.table::rbindlist(list(result, bugs), fill = TRUE)[, ..expected_columns]
       }
     }
   }
 
   # Rename the columns of data.table
-  setnames(result, expected_columns_names)
+  data.table::setnames(result, expected_columns_names)
 
   return(result)
 }
@@ -744,7 +795,7 @@ parse_bugzilla_rest_comments <- function(comments_folder_path){
   }
 
   # Rename the columns of data.table
-  setnames(result, expected_columns_names)
+  data.table::setnames(result, expected_columns_names)
 
   return(result)
 }
@@ -795,12 +846,12 @@ parse_bugzilla_rest_issues_comments <- function(bugzilla_folder_path){
         for(comment in comments){
           # Get all the bugs from json file
           comment <- data.table::data.table(comment)
-          bugzilla_comments <- rbindlist(list(bugzilla_comments, comment), fill = TRUE)[, ..expected_comments_columns]
+          bugzilla_comments <- data.table::rbindlist(list(bugzilla_comments, comment), fill = TRUE)[, ..expected_comments_columns]
         }
       }
     }
   }
-  setnames(bugzilla_comments, expected_comments_columns_names)
+  data.table::setnames(bugzilla_comments, expected_comments_columns_names)
 
   # Merge data table by issue key
   result <- data.table::merge.data.table(bugzilla_issues, bugzilla_comments, by="issue_key", all=TRUE)
