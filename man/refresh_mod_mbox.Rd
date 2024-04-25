@@ -20,7 +20,7 @@ refresh_mod_mbox(
 
 \item{archive_type}{Name of the archive that the project mailing list is archived in (e.g. apache)}
 
-\item{from_year}{First year in the range to be downloaded in case there are no mod_mbox files already downloaded}
+\item{from_year}{First year in the range to be downloaded in case there are no mod_mbox files already downloaded (e.g. 201401)}
 
 \item{save_folder_path}{the full *folder* path where the monthly downloaded mbox will be stored.}
 
