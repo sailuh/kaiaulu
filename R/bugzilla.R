@@ -120,8 +120,11 @@ download_bugzilla_rest_issues_comments <- function(bugzilla_site,
   # get the data from the api call and store it in issues
   issues <- httr::GET(api_call)
 
+  # get the number of issues
+  issues_count <- length(httr::content(issues)$bugs)
+
   # Check if there are issues in the API request
-  if(httr::content(issues)$total_matches > 0) {
+  if(issues_count > 0) {
 
     # convert the issues to raw content
     raw_content <- httr::content(issues, "text", encoding="UTF8")
@@ -234,14 +237,15 @@ download_bugzilla_rest_issues_comments_by_date <- function(bugzilla_site,
                                                      comments = comments,
                                                      verbose = verbose)
 
-    if(httr::content(issues)$total_matches > 0) {
+    # get the number of issues
+    issues_count <- length(httr::content(issues)$bugs)
 
-      # get the number of issues downloaded
-      issues_count <- length(httr::content(issues)$bugs)
+    # if there are issues on the page
+    if(issues_count > 0) {
 
       # Check if the limit being restrict or not
-      if(as.integer(httr::content(issues)$limit) != limit) {
-        limit <- as.integer(httr::content(issues)$limit)
+      if(issues_count > limit) {
+        limit <- issues_count
         if(verbose) {
           message("Limit was not reached. It has been changed to: ", limit)
         }
@@ -268,7 +272,8 @@ download_bugzilla_rest_issues_comments_by_date <- function(bugzilla_site,
 #' If the directory is empty, then all issues will be downloaded for the Bugzilla project.
 #'
 #' @param bugzilla_site URL to specific bugzilla site
-#' @param start_timestamp when to start bug retrieval (ex. 2023-01-01T00:14:57Z)
+#' @param start_timestamp When to start bug retrieval (ex. 2023-01-01T00:14:57Z). When not specified, the start timestamp
+#' will begin from the first issue of the issue tracker closest to 1970.
 #' @param save_folder_path the full folder path where the bugzilla issues will be stored
 #' @param project_key the project key of the project which can be found in the respective config file
 #' @param limit_upperbound the number of issues saved in each page file. Some bugzilla sites have limits set on how many bugs
@@ -279,7 +284,7 @@ download_bugzilla_rest_issues_comments_by_date <- function(bugzilla_site,
 #' @seealso \code{\link{parse_bugzilla_rest_issues_comments}} a parser function to parse Bugzilla issues and comments data
 #' @export
 refresh_bugzilla_issues_comments <-function(bugzilla_site,
-                                           start_timestamp = "1700-01-01T00:00:00Z",
+                                           start_timestamp = "1970-01-01T:00:00:00Z",
                                            save_folder_path,
                                            project_key,
                                            limit_upperbound = 20,
@@ -291,7 +296,7 @@ refresh_bugzilla_issues_comments <-function(bugzilla_site,
     if(length(list.files(save_folder_path)) > 0) {
 
       if (verbose) {
-        message("There are existing files ")
+        message("There are existing files in the folder.")
       }
 
       # get the file name with the latest date
@@ -312,6 +317,10 @@ refresh_bugzilla_issues_comments <-function(bugzilla_site,
       #Find the greatest
       latest_date <- max(date_objects)
 
+      if (verbose) {
+        message("The download will start from ", latest_date, "\n")
+      }
+
       # add one second
       new_latest_date <- latest_date + 1
 
@@ -319,8 +328,6 @@ refresh_bugzilla_issues_comments <-function(bugzilla_site,
       formatted_new_latest_date <- format(new_latest_date, "%Y-%m-%dT%H:%M:%SZ")
 
       start_timestamp <- formatted_new_latest_date
-
-      message(formatted_new_latest_date)
     }
   }
 
@@ -332,9 +339,6 @@ refresh_bugzilla_issues_comments <-function(bugzilla_site,
                                                  comments = comments,
                                                  verbose = verbose)
 }
-
-# find the value that stores the date created
-# look at api and see if I can get issues after the created date
 
 ############## Parsers ##############
 
@@ -399,7 +403,7 @@ parse_bugzilla_perceval_traditional_issue_comments <- function(bugzilla_json_pat
     parsed_comment[["comment_author_name"]] <- comment[["who"]][[2]][[1]]
     parsed_comment[["comment_body"]] <- comment[["thetext"]][[2]][[1]]
     parsed_comment[["comment_created_datetimetz"]] <- comment[["bug_when"]][[2]][[1]]
-    parsed_comment[["comment_count"]] <- comment[["comment_count"]][[2]][[1]]
+    parsed_comment[["comment_count"]] <- comment[["comment_count"]][[2]][[1]] # comment position
     parsed_comment[["comment_is_private"]] <- comment[["isprivate"]][[2]][[1]]
 
     parsed_comments <- list()
@@ -802,6 +806,11 @@ parse_bugzilla_rest_comments <- function(comments_folder_path){
 
 #' Parse Bugzilla issues and comments data table
 #'
+#' When comments data is present, every row in the returned table
+#' is uniquely identified by the `issue_key` and `comment_id` column.
+#' When comment data is not present, every row is uniquely identified by the
+#' `issue_key` colummn.
+#'
 #' @param bugzilla_folder_path path to the folder that contains json file with Bugzilla data inside
 #' @seealso \code{\link{parse_bugzilla_rest_issues}} a parser function to parse Bugzilla issues data
 #' @seealso \code{\link{download_bugzilla_rest_issues_comments}} a downloader function to parse Bugzilla issues and comments data
@@ -829,7 +838,7 @@ parse_bugzilla_rest_issues_comments <- function(bugzilla_folder_path){
                                        "comment_author_name",
                                        "comment_author_id",
                                        "comment_body",
-                                       "comment_count",
+                                       "comment_count", # comment position
                                        "comment_is_private")
 
   # Check if files exist in given folder or not

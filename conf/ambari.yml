@@ -51,28 +51,44 @@ version_control:
     - branch-2.5
 
 mailing_list:
-  # Where is the mbox located locally?
-  mbox: ../../rawdata/mbox/ambari-dev.mbox
-  # What is the domain of the chosen mailing list archive?
-  domain: http://mail-archives.apache.org/mod_mbox
-  # Which lists of the domain will be used?
-  list_key:
-    - ambari-dev
+  mod_mbox:
+    mail_key_1:
+      archive_url: http://mail-archives.apache.org/mod_mbox/ambari-dev
+      mbox: ../../rawdata/ambari/mod_mbox/ambari-dev/
+      mailing_list: ambari-dev
+      archive_type: apache
+    mail_key_2:
+      archive_url: http://mail-archives.apache.org/mod_mbox/ambari-user
+      mbox: ../../rawdata/geronimo/mod_mbox/ambari-user/
+      mailing_list: ambari-user
+      archive_type: apache
+  pipermail:
+    mail_key_1:
+      archive_url: http://some/pipermail/url
+      mbox: ../../rawdata/geronimo/pipermail/geronimo-dev/
 
 issue_tracker:
   jira:
-    # Obtained from the project's JIRA URL
-    domain: https://issues.apache.org/jira
-    project_key: AMBARI
-    # Download using `download_jira_data.Rmd`
-    #issues: ../../rawdata/issue_tracker/ambari_issues.json
-    #issue_comments: ../../rawdata/issue_tracker/ambari_issue_comments.json
+    project_key_1:
+      # Obtained from the project's JIRA URL
+      domain: https://issues.apache.org/jira
+      project_key: AMBARI
+      # Download using `download_jira_data.Rmd`
+      # issues: ../../rawdata/ambari/jira/issues/ambari/
+      # issue_comments: ../../rawdata/ambari/jira/issue_comments/ambari/
   github:
-    # Obtained from the project's GitHub URL
-    owner: apache
-    repo: ambari
-    # Download using `download_github_comments.Rmd`
-    #replies: ../../rawdata/github/ambari/
+    project_key_1:
+      # Obtained from the project's GitHub URL
+      owner: apache
+      repo: ambari
+      # Download using `download_github_comments.Rmd`
+      issue_or_pr_comment: ../../rawdata/ambari/github/issue_or_pr_comment/apache_ambari/
+      issue: ../../rawdata/ambari/github/issue/apache_ambari/
+      issue_search: ../..rawdata/ambari/github/issue_search/apache_ambari/
+      pull_request: ../../rawdata/ambari/github/pull_request/apache_ambari/
+      commit: ../../rawdata/ambari/github/commit/apache_ambari/
+  # bugzilla:
+    # project_key: ambari
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
