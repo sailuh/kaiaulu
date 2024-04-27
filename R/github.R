@@ -674,6 +674,14 @@ github_api_project_issue_refresh <- function(owner,
 #' If no files exist in the file_save_path,\code{link{github_api_project_issue_or_pr_comments}}
 #' is called with no additional query and all comments are downloaded.
 #'
+#' Because the endpoint this function relies on is based on the updated timestamp, running the refresher
+#' will download the most recent version of the comment changes. Only the most recent version of the comment will
+#' be downloaded, not all copies. However, if the same comment was modified before the next refresh call,
+#' then if the refresher function was executed again, then this would result in two comments with the same
+#' comment id being present in the table. This can be addressed by performing a group by over the comment\_id
+#' in the generated parsed table, and selecting to return the max(updated_at) comment, resulting in a table
+#' that only the most recent comment verson as of the latest time the refresher was executed.
+#'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
