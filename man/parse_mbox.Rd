@@ -20,6 +20,7 @@ consistently renamed for clarity.
 }
 \seealso{
 Other parsers: 
+\code{\link{parse_bugzilla_latest_date}()},
 \code{\link{parse_bugzilla_perceval_rest_issue_comments}()},
 \code{\link{parse_bugzilla_perceval_traditional_issue_comments}()},
 \code{\link{parse_bugzilla_rest_comments}()},
