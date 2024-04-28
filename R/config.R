@@ -767,7 +767,7 @@ get_bugzilla_project_key <- function(project_name) {
   conf_path <- paste0("conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
-  key <- conf[["issue_tracker"]][["bugzilla"]][["project_key_index"project_key]]
+  key <- conf[["issue_tracker"]][["bugzilla"]][["project_key_index"]][["project_key"]]
 
   if(is.null(key)) {
     stop("This field does not exist in the configuration file.")
