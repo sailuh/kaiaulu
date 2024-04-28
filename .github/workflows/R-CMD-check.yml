@@ -67,7 +67,7 @@ jobs:
         run: |
           brew tap homebrew/core
           brew install --HEAD universal-ctags
-          utags_head=$(ls /opt/homebrew/Cellar/universal-ctags | tail -n 1)
+          utags_head=$(ls /usr/local/Cellar/universal-ctags | tail -n 1)
           sed -i -e "s|utags: \/usr\/local\/Cellar\/universal-ctags\/HEAD-62f0144\/bin\/ctags|utags: \/usr\/local\/Cellar\/universal-ctags\/${utags_head}\/bin\/ctags|g" tools.yml
           sed -i -e "s|utags: \/usr\/local\/Cellar\/universal-ctags\/HEAD-62f0144\/bin\/ctags|utags: \/usr\/local\/Cellar\/universal-ctags\/${utags_head}\/bin\/ctags|g" tests/testthat/testdata/tools.yml
         shell: bash
