@@ -421,6 +421,7 @@ refresh_pipermail <- function(archive_url, mailing_list, archive_type, save_fold
         # Remove file if error
         # Can only be done post-write, see https://github.com/r-lib/httr/issues/553
         if (httr::http_error(x) && file.exists(full_tmp_save_path)) {
+          warning(paste0("Unable to download: ",destination[[counter]]))
           file.remove(full_tmp_save_path)
         }
 
@@ -455,6 +456,7 @@ refresh_pipermail <- function(archive_url, mailing_list, archive_type, save_fold
         # Remove file if error
         # Can only be done post-write, see https://github.com/r-lib/httr/issues/553
         if (httr::http_error(x) && file.exists(full_tmp_save_path)) {
+          warning(paste0("Unable to download: ",destination[[counter]]))
           file.remove(full_tmp_save_path)
         }
 
@@ -490,6 +492,7 @@ refresh_pipermail <- function(archive_url, mailing_list, archive_type, save_fold
           # Remove file if error
           # Can only be done post-write, see https://github.com/r-lib/httr/issues/553
           if (httr::http_error(x) && file.exists(full_tmp_save_path)) {
+            warning(paste0("Unable to download: ",destination[[counter]]))
             file.remove(full_tmp_save_path)
           }
 
@@ -527,6 +530,7 @@ refresh_pipermail <- function(archive_url, mailing_list, archive_type, save_fold
           # Remove file if error
           # Can only be done post-write, see https://github.com/r-lib/httr/issues/553
           if (httr::http_error(x) && file.exists(full_tmp_save_path)) {
+            warning(paste0("Unable to download: ",destination[[counter]]))
             file.remove(full_tmp_save_path)
           }
 
