@@ -52,8 +52,8 @@ save_path_pull_request <- conf[["issue_tracker"]][["github"]][["project_key_1"]]
 save_path_issue_or_pr_comments <- conf[["issue_tracker"]][["github"]][["project_key_1"]][["issue_or_pr_comment"]]
 save_path_commit <- conf[["issue_tracker"]][["github"]][["project_key_1"]][["commit"]]
 # Path you wish to save all raw data. A folder with the repo name and sub-folders will be created.
-owner <- conf[["issue_tracker"]][["github"]][["owner"]] # Has to match github organization (e.g. github.com/sailuh)
-repo <- conf[["issue_tracker"]][["github"]][["repo"]] # Has to match github repository (e.g. github.com/sailuh/perceive)
+owner <- conf[["issue_tracker"]][["github"]][["project_key_1"]][["owner"]] # Has to match github organization (e.g. github.com/sailuh)
+repo <- conf[["issue_tracker"]][["github"]][["project_key_1"]][["repo"]] # Has to match github repository (e.g. github.com/sailuh/perceive)
 # your file github_token (a text file) contains the GitHub token API
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 ```
@@ -84,7 +84,7 @@ If you would like to retrieve only issues **before** a certain date, set `date_l
 
 
 ```{r Collect issues by date x, eval = FALSE}
-created_lower_bound_issue <- "2020-01-01"
+created_lower_bound_issue <- "1990-01-01"
 created_upper_bound_issue <- "2021-01-01"
 # make initial API CALL
 gh_response <- github_api_project_issue_by_date(owner,
@@ -209,6 +209,8 @@ github_api_iterate_pages(token,gh_response,
                          prefix="issue",
                          verbose=TRUE)
 ```
+
+
 ```{r}
 all_issue_or_pr_comments <- lapply(list.files(save_path_issue_or_pr_comments,
                                      full.names = TRUE),read_json)
@@ -219,6 +221,8 @@ all_issue_or_pr_comments <- rbindlist(all_issue_or_pr_comments,fill=TRUE)
 head(all_issue_or_pr_comments,2)  %>%
   gt(auto_align = FALSE) 
 ```
+
+
 ## Refresh Issue or PR Comment
 
 Similar to the refresh of the issues, this chunk allows for the downloading of comments that have been created and/or updated since the most recently created date among data already downloaded. This allows us to 'refresh' the comments, downloading comments made or updated since that date or continue downloading if a rate limit was reached. 
@@ -232,7 +236,9 @@ Because the endpoint this function relies on is based on the updated timestamp, 
 # get the data
 gh_response_issue_or_pr_comment <- github_api_project_issue_or_pr_comment_refresh(owner,
                                                                                   repo,
-                                                                                  token, save_path_issue_or_pr_comments, verbose=TRUE)
+                                                                                  token,
+                                                                                  save_path_issue_or_pr_comments, 
+                                                                                  verbose=TRUE)
 
 # create directory and iterate over data
 #dir.create(save_path_issue_or_pr_comments)
@@ -275,11 +281,9 @@ github_api_iterate_pages(token,gh_response,
 
 ```
 
-## Issues Endpoint
+## Issue or PR Endpoint
 
-```{r eval= FALSE}
-save_path_issue <- paste0(save_path,"/issue/")
-```
+The refresh search endpoint does **not** include pull requests. If the intent is to download both issues and pull requests, then the `/issue/` endpoint should be used instead:
 
 
 ```{r Collect all issues from issue endpoint, eval = FALSE}
@@ -289,6 +293,18 @@ github_api_iterate_pages(token,gh_response,
                          save_path_issue,
                          prefix="issue")
 ```
+
+```{r}
+all_issue_or_pr <- lapply(list.files(save_path_issue,
+                                     full.names = TRUE),read_json)
+all_issue_or_pr <- lapply(all_issue_or_pr,
+                                   github_parse_project_issue_or_pr_comments)
+all_issue_or_pr <- rbindlist(all_issue_or_pr,fill=TRUE)
+
+head(all_issue_or_pr,2)  %>%
+  gt(auto_align = FALSE) 
+```
+
 
 ## Pull Requests Endpoint
 

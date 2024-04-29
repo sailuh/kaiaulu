@@ -36,7 +36,7 @@ version_control:
   # Where is the git log located locally?
   # This is the path to the .git of the project repository you are analyzing.
   # The .git is hidden, so you can see it using `ls -a`
-  log: ../../rawdata/git_repo/kaiaulu/.git
+  log: ../../rawdata/kaiaulu/git/kaiaulu_clone/.git
   # From where the git log was downloaded?
   log_url: https://github.com/sailuh/kaiaulu
   # List of branches used for analysis
@@ -69,7 +69,7 @@ issue_tracker:
       # Download using `download_github_comments.Rmd`
       issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/sailuh_kaiaulu/
       issue: ../../rawdata/kaiaulu/github/issue/sailuh_kaiaulu/
-      issue_search: ../..rawdata/kaiaulu/github/issue_search/sailuh_kaiaulu/
+      issue_search: ../../rawdata/kaiaulu/github/issue_search/sailuh_kaiaulu/
       pull_request: ../../kaiaulu/github/pull_request/sailuh_kaiaulu/
       commit: ../../rawdata/kaiaulu/github/commit/sailuh_kaiaulu/
     # project_key_2:
