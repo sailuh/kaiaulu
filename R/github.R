@@ -484,9 +484,10 @@ github_api_page_last <- function(gh_response){
 #' @export
 #' @keywords internal
 github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=NA,max_pages=NA,verbose=TRUE){
-  page_number <- 1
 
-  data_exists = TRUE
+  page_number <- 1
+  data_exists <- TRUE
+
   # Set the max_pages to your api limit unless specified
   if(is.na(max_pages)){
     max_pages <- github_api_rate_limit(token)$remaining

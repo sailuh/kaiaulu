@@ -45,12 +45,12 @@ To use the pipeline, you must specify the organization and project of interest, 
 
 ```{r}
 conf <- yaml::read_yaml("../conf/kaiaulu.yml")
-save_path <- path.expand(conf[["issue_tracker"]][["github"]][["replies"]]) 
-save_path_issue_refresh <- paste0(save_path,"/issue_search/")
-save_path_issue <- paste0(save_path,"/issue/")
-save_path_pull_request <- paste0(save_path,"/pull_request/")
-save_path_issue_or_pr_comments <- paste0(save_path,"/issue_or_pr_comment/")
-save_path_commit <- paste0(save_path,"/commit/")
+
+save_path_issue_refresh <- conf[["issue_tracker"]][["github"]][["project_key_1"]][["issue_search"]]
+save_path_issue <- conf[["issue_tracker"]][["github"]][["project_key_1"]][["issue"]]
+save_path_pull_request <- conf[["issue_tracker"]][["github"]][["project_key_1"]][["pull_request"]]
+save_path_issue_or_pr_comments <- conf[["issue_tracker"]][["github"]][["project_key_1"]][["issue_or_pr_comment"]]
+save_path_commit <- conf[["issue_tracker"]][["github"]][["project_key_1"]][["commit"]]
 # Path you wish to save all raw data. A folder with the repo name and sub-folders will be created.
 owner <- conf[["issue_tracker"]][["github"]][["owner"]] # Has to match github organization (e.g. github.com/sailuh)
 repo <- conf[["issue_tracker"]][["github"]][["repo"]] # Has to match github repository (e.g. github.com/sailuh/perceive)
