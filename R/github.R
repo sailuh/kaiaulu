@@ -897,6 +897,8 @@ github_api_project_issue_or_pr_comments_by_date <- function(owner,
 #' @param issue_or_pr This specifies whether issues or pull requests are being searched for.
 #' Acceptable inputs are "is:issue" or "is:pull-request".
 #' greatest dates and the file name that contains the greatest date.
+#' @param verbose boolean value. When set to true, it prints operational messages including
+#' greatest dates and the file name that contains the greatest date.
 #' @export
 #' @references For details on is:issue or is:pull-request see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}
 #' @seealso  \code{link{github_api_project_issue_or_pr_comment_refresh}} to refresh comment data
@@ -978,31 +980,3 @@ github_api_project_issue_search <- function(owner, repo, token, query = NULL, is
   return(gh_response)
 }
 
-#' parse latest date
-#'
-#' Takes a filepath and returns a filename of the .json file that contains the
-#' most recent 'created_at' value
-#'
-#' @param json_path the path with folders to read
-#' @export
-parse_jira_latest_date <- function(json_path){
-  file_list <- list.files(json_path)
-  time_list <- list()
-
-  # Checking if the save folder is empty
-  if (identical(file_list, character(0))){
-    stop(stringi::stri_c("cannot open the connection"))
-  }
-
-  for (j in file_list){
-    j <- sub(".*_(\\w+)\\.[^.]+$", "\\1", j)
-    j <- as.numeric(j)
-    time_list <- append(time_list, j)
-  }
-
-  overall_latest_date <- as.character(max(unlist(time_list)))
-
-  latest_issue_file <- grep(overall_latest_date, file_list, value = TRUE)
-
-  return(latest_issue_file)
-}
