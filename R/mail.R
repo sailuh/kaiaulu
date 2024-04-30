@@ -34,12 +34,17 @@ download_pipermail <- function(archive_url, mailing_list, archive_type, save_fol
   #Compose download urls for both gunzipped and plain text files
   for (i in hrefs ){
     if (endsWith(i, ".txt.gz")){
+      # Converts month from text form into a number for the naming convention
       f_month <- match(sub("[^_]*-","", sub(".txt.gz","",i)), month.name)
+      # Retrieves year number for the naming convention
       f_year <- sub("-[^_]*", "", i)
+      # txt files are actually mbox files, so this renames the extension
       file_names <- c(file_names, sprintf("%s%02d.mbox", f_year, f_month))
+      # Saves regular name so that function can access correct url
       i <- stringi::stri_c(archive_url, i, sep = "/")
       files <- c(files, i)
     } else if (endsWith(i, ".txt")) {
+      # Same logic, but with txt
       f_month <- match(sub("[^_]*-","", sub(".txt","",i)), month.name)
       f_year <- sub("-[^_]*", "", i)
       file_names <- c(file_names, sprintf("%s%02d.mbox", f_year, f_month))
@@ -50,10 +55,6 @@ download_pipermail <- function(archive_url, mailing_list, archive_type, save_fol
   amount <- length(files)
   # File downloading loop
   for (i in 1:amount){
-
-    #split filename from url and create download destination out of it
-    #splits <- stringi::stri_split_fixed(i, "/")
-    #destination[[i]] <- paste0(splits[[1]][[length(splits[[1]])]])
 
     #download file and place it at the destination
     save_file_name <- stringi::stri_c(mailing_list, archive_type, file_names[[i]], sep = "_")
@@ -392,6 +393,7 @@ refresh_pipermail <- function(archive_url, mailing_list, archive_type, save_fold
     latest_downloaded_year <- as.numeric(substr(extracted_year_month, 1, 4))
     latest_downloaded_month <- as.numeric(substr(extracted_year_month, 5, 6))
     this_file <- paste(save_folder_path, latest_file_name, sep = "/")
+    # Overwrite file because new email may have been added at this point in this month
     file.remove(this_file)
 
     # Download txt files starting from deleted file month to end of that year, save as mbox
