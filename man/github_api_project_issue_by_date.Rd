@@ -51,6 +51,8 @@ For further details on the `created` Query see [the associated Github API docume
 }
 \references{
 For details on is:issue or is:pull-request see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}
+
+For details on timestampes, se \url{https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated}
 }
 \seealso{
 \code{link{github_api_project_issue_or_pr_comment_refresh}} to refresh comment data

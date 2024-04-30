@@ -37,5 +37,5 @@ it will prepend only owner/repo to the query.
 \references{
 For details, see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}.
 
-For details on is:issue or is:pull-request see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}
+For details on timestampes, se \url{https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated}
 }

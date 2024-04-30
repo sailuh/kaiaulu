@@ -625,7 +625,7 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
 #' These may include announcing successful execution of code, API queries, files saved, etc.
 #' @export
 #' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
-#' @references For details on is:issue or is:pull-request see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}
+#' @references For details on timestampes, se \url{https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated}
 #' @seealso  \code{link{github_api_project_issue}} to download all issue data
 #' @seealso  \code{link{format_created_at_from_file}} for function that iterates through
 #' a .json file and returns the greatest 'created_at' value
@@ -901,6 +901,7 @@ github_api_project_issue_or_pr_comments_by_date <- function(owner,
 #' greatest dates and the file name that contains the greatest date.
 #' @export
 #' @references For details on is:issue or is:pull-request see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}
+#' @references For details on timestampes, se \url{https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated}
 #' @seealso  \code{link{github_api_project_issue_or_pr_comment_refresh}} to refresh comment data
 #' @seealso  \code{link{github_api_project_issue_or_pr_comments}} to refresh issue data
 github_api_project_issue_by_date <- function(owner,
@@ -954,7 +955,7 @@ github_api_project_issue_by_date <- function(owner,
 #' Acceptable inputs are "is:issue" or "is:pull-request".
 #' @param verbose Prints operational messages when se to true such as stating the search query.
 #' @references For details, see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}.
-#' @references For details on is:issue or is:pull-request see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}
+#' @references For details on timestampes, se \url{https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated}
 #' @export
 github_api_project_issue_search <- function(owner, repo, token, query = NULL, issue_or_pr, verbose=TRUE) {
   # Construct the search query
