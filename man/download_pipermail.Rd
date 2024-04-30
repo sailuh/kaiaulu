@@ -2,16 +2,22 @@
 % Please edit documentation in R/mail.R
 \name{download_pipermail}
 \alias{download_pipermail}
-\title{Download all pipermail files in an archive}
+\title{Download all pipermail files in an archive as mbox files}
 \usage{
-download_pipermail(url)
+download_pipermail(archive_url, mailing_list, archive_type, save_folder_path)
 }
 \arguments{
-\item{url}{An url pointing to a pipermail archive}
+\item{archive_url}{An url pointing to a pipermail archive}
+
+\item{mailing_list}{The name of the mailing list being downloaded}
+
+\item{archive_type}{The name of the type of archive that the mailing list is stored in}
+
+\item{save_folder_path}{The folder path in which all the downloaded pipermail files will be stored}
 }
 \value{
 Returns `destination`, a vector of the downloaded files in the current working directory
 }
 \description{
-Download all pipermail files in an archive
+Download all pipermail files in an archive as mbox files
 }
