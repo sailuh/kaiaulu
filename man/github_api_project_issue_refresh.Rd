@@ -22,6 +22,9 @@ github_api_project_issue_refresh(
 
 \item{save_path_issue_refresh}{The folder path that the refresh downloader downloads to}
 
+\item{issue_or_pr}{This specifies whether issues or pull requests are being searched for.
+Acceptable inputs are "is:issue" or "is:pull-request".}
+
 \item{verbose}{A boolean value that prints operational messages when set to TRUE.
 These may include announcing successful execution of code, API queries, files saved, etc.}
 }
@@ -39,6 +42,8 @@ data.
 }
 \references{
 For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
+
+For details on is:issue or is:pull-request see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}
 }
 \seealso{
 \code{link{github_api_project_issue}} to download all issue data

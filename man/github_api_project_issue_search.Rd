@@ -22,6 +22,9 @@ github_api_project_issue_search(
 
 \item{query}{Optional query to append to search api}
 
+\item{issue_or_pr}{This specifies whether issues or pull requests are being searched for.
+Acceptable inputs are "is:issue" or "is:pull-request".}
+
 \item{verbose}{Prints operational messages when se to true such as stating the search query.}
 }
 \description{
@@ -33,4 +36,6 @@ it will prepend only owner/repo to the query.
 }
 \references{
 For details, see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}.
+
+For details on is:issue or is:pull-request see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}
 }

@@ -620,11 +620,12 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
 #' @param token Your GitHub API token
 #' @param save_path_issue_refresh The folder path that the refresh downloader downloads to
 #' @param issue_or_pr This specifies whether issues or pull requests are being searched for.
-#' Acceptable inputs are "is:issue" or "is:pull-request". see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28#:~:text=Note%3A%20For,pull%20requests.%22}
+#' Acceptable inputs are "is:issue" or "is:pull-request".
 #' @param verbose A boolean value that prints operational messages when set to TRUE.
 #' These may include announcing successful execution of code, API queries, files saved, etc.
 #' @export
 #' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
+#' @references For details on is:issue or is:pull-request see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}
 #' @seealso  \code{link{github_api_project_issue}} to download all issue data
 #' @seealso  \code{link{format_created_at_from_file}} for function that iterates through
 #' a .json file and returns the greatest 'created_at' value
@@ -894,10 +895,10 @@ github_api_project_issue_or_pr_comments_by_date <- function(owner,
 #' @param date_lower_bound Optional. Specify the lower bound date time (e.g. 2023/11/16 21:00)
 #' @param date_upper_bound Optional. Specify the upper bound date time (e.g. 2023/11/16 21:00)
 #' @param issue_or_pr This specifies whether issues or pull requests are being searched for.
-#' Acceptable inputs are "is:issue" or "is:pull-request". see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28#:~:text=Note%3A%20For,pull%20requests.%22}
-#' @param verbose boolean value. When set to true, it prints operational messages including
+#' Acceptable inputs are "is:issue" or "is:pull-request".
 #' greatest dates and the file name that contains the greatest date.
 #' @export
+#' @references For details on is:issue or is:pull-request see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}
 #' @seealso  \code{link{github_api_project_issue_or_pr_comment_refresh}} to refresh comment data
 #' @seealso  \code{link{github_api_project_issue_or_pr_comments}} to refresh issue data
 github_api_project_issue_by_date <- function(owner,
@@ -948,9 +949,10 @@ github_api_project_issue_by_date <- function(owner,
 #' @param token Your GitHub API token
 #' @param query Optional query to append to search api
 #' @param issue_or_pr This specifies whether issues or pull requests are being searched for.
-#' Acceptable inputs are "is:issue" or "is:pull-request". see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28#:~:text=Note%3A%20For,pull%20requests.%22}
+#' Acceptable inputs are "is:issue" or "is:pull-request".
 #' @param verbose Prints operational messages when se to true such as stating the search query.
 #' @references For details, see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}.
+#' @references For details on is:issue or is:pull-request see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}
 #' @export
 github_api_project_issue_search <- function(owner, repo, token, query = NULL, issue_or_pr, verbose=TRUE) {
   # Construct the search query

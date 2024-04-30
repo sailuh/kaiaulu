@@ -25,7 +25,8 @@ github_api_project_issue_by_date(
 
 \item{date_upper_bound}{Optional. Specify the upper bound date time (e.g. 2023/11/16 21:00)}
 
-\item{verbose}{boolean value. When set to true, it prints operational messages including
+\item{issue_or_pr}{This specifies whether issues or pull requests are being searched for.
+Acceptable inputs are "is:issue" or "is:pull-request".
 greatest dates and the file name that contains the greatest date.}
 }
 \description{
@@ -44,6 +45,9 @@ Acceptable formats for `date_lower_bound` and `date_upper_bound` are:
 For example: `date_lower_bound="2020-07-04"` (an issue ocurring at the exact specified time will also be downloaded).
 
 For further details on the `created` Query see [the associated Github API documentation](https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated).
+}
+\references{
+For details on is:issue or is:pull-request see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}
 }
 \seealso{
 \code{link{github_api_project_issue_or_pr_comment_refresh}} to refresh comment data
