@@ -87,16 +87,31 @@ If you would like to retrieve only issues **before** a certain date, set `date_l
 created_lower_bound_issue <- "1990-01-01"
 created_upper_bound_issue <- "2021-01-01"
 # make initial API CALL
+# Acceptable formats for issue_or_pr
+# "is:issue"
+# "is:pull-request
+# issue_or_pr <- "is:issue"
+issue_or_pr <- "is:pull-request"
+if (issue_or_pr == "is:issue"){
+  issue_date_save_path <- save_path_issue_refresh
+} else {
+  issue_date_save_path <- save_path_pull_request
+}
+message(issue_date_save_path)
+dir.create(issue_date_save_path)
 gh_response <- github_api_project_issue_by_date(owner,
                                                 repo,
                                                 token,
                                                 created_lower_bound_issue,
                                                 created_upper_bound_issue,
+                                                issue_or_pr,
                                                 verbose=TRUE)
 #dir.create(save_path_issue)
+
 # Make subsequent API calls and write to JSON file along save path
+dir.create(save_path_issue_refresh)
 github_api_iterate_pages(token,gh_response,
-                         save_path_issue_refresh,
+                         issue_date_save_path,
                          prefix="issue",
                          verbose=TRUE)
 ```
@@ -146,15 +161,26 @@ There are a few instances in which downloading the issue data with comments does
 This function relies on the naming convention the downloaders utilize on the file to perform this operation. For details, see the function documentation.
 
 ```{r Collect all issues x, eval = FALSE}
+# Acceptable formats for issue_or_pr
+# "is:issue"
+# "is:pull-request
+issue_or_pr <- "is:issue"
+# issue_or_pr <- "is:pull-request"
 # gh call but with date
 # dir.create(save_path_issue_refresh)
+if (issue_or_pr == "is:issue"){
+  issue_date_save_path <- save_path_issue_refresh
+} else {
+  issue_date_save_path <- save_path_pull_request
+}
 gh_response <- github_api_project_issue_refresh(owner,
                                                 repo,
                                                 token,
-                                                save_path_issue_refresh, 
+                                                issue_date_save_path,
+                                                issue_or_pr,
                                                 verbose=TRUE)
 github_api_iterate_pages(token,gh_response,
-                         save_path_issue_refresh,
+                         issue_date_save_path,
                          prefix="issue",
                          verbose=TRUE)
 ```

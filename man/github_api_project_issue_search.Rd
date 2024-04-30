@@ -9,6 +9,7 @@ github_api_project_issue_search(
   repo,
   token,
   query = NULL,
+  issue_or_pr,
   verbose = TRUE
 )
 }

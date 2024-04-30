@@ -484,10 +484,9 @@ github_api_page_last <- function(gh_response){
 #' @export
 #' @keywords internal
 github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=NA,max_pages=NA,verbose=TRUE){
-
   page_number <- 1
-  data_exists <- TRUE
 
+  data_exists = TRUE
   # Set the max_pages to your api limit unless specified
   if(is.na(max_pages)){
     max_pages <- github_api_rate_limit(token)$remaining
@@ -504,6 +503,7 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
   } else {
     is_issue_refresh <- FALSE
   }
+  # message(is_issue_refresh)
 
   # Check if it is
 
@@ -537,6 +537,8 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
         # Make list of all created dates
         created_dates <- sapply(gh_response$items, function(issue) issue$created_at)
         # End the loop if there is no usable data
+        # message(gh_response)
+        # message(created_dates)
         if (length(created_dates)==0){
           if(verbose){
             message("Nothing left to download")
@@ -617,6 +619,8 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
 #' @param save_path_issue_refresh The folder path that the refresh downloader downloads to
+#' @param issue_or_pr This specifies whether issues or pull requests are being searched for.
+#' Acceptable inputs are "is:issue" or "is:pull-request". see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28#:~:text=Note%3A%20For,pull%20requests.%22}
 #' @param verbose A boolean value that prints operational messages when set to TRUE.
 #' These may include announcing successful execution of code, API queries, files saved, etc.
 #' @export
@@ -629,6 +633,7 @@ github_api_project_issue_refresh <- function(owner,
                                              repo,
                                              token,
                                              save_path_issue_refresh,
+                                             issue_or_pr,
                                              verbose){
 
 
@@ -641,7 +646,7 @@ github_api_project_issue_refresh <- function(owner,
       message("No files exist in directory. Downloading all files")
     }
     query <- NULL
-    gh_response <- github_api_project_issue_search(owner, repo, token, query, verbose=TRUE)
+    gh_response <- github_api_project_issue_search(owner, repo, token, query, issue_or_pr, verbose=TRUE)
     return(gh_response)
   } else {
     # Get the name of the file with the most recent date from the refresh_issue file if not empty
@@ -651,11 +656,11 @@ github_api_project_issue_refresh <- function(owner,
     created_refresh <- format_created_at_from_file(latest_created_issue_refresh, item="items")
     # }
     if(verbose){
-      message("Greatest created value from refresh_issue folder: ", created_refresh)
+      message("Greatest created value from issue_search folder: ", created_refresh)
     }
 
     # construct the query
-    query <- sprintf("repo:%s/%s is:issue created:>%s", owner, repo, created_refresh)
+    query <- paste0("repo:",owner,"/",repo," ", issue_or_pr," created:>",created_refresh)
 
     if (verbose){
       message("Github API query: ",query)
@@ -888,6 +893,8 @@ github_api_project_issue_or_pr_comments_by_date <- function(owner,
 #' @param token Your GitHub API token
 #' @param date_lower_bound Optional. Specify the lower bound date time (e.g. 2023/11/16 21:00)
 #' @param date_upper_bound Optional. Specify the upper bound date time (e.g. 2023/11/16 21:00)
+#' @param issue_or_pr This specifies whether issues or pull requests are being searched for.
+#' Acceptable inputs are "is:issue" or "is:pull-request". see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28#:~:text=Note%3A%20For,pull%20requests.%22}
 #' @param verbose boolean value. When set to true, it prints operational messages including
 #' greatest dates and the file name that contains the greatest date.
 #' @export
@@ -898,9 +905,11 @@ github_api_project_issue_by_date <- function(owner,
                                              token,
                                              date_lower_bound = NULL,
                                              date_upper_bound = NULL,
+                                             issue_or_pr,
                                              verbose = FALSE) {
   # Base query to include repository and issue filter
-  query <- sprintf("repo:%s/%s is:issue", owner, repo)
+  query <- paste0("repo:",owner, "/", repo, " ", issue_or_pr)
+  message(query)
 
   # Add date filters to the query if provided
   if (!is.null(date_lower_bound) && !is.null(date_upper_bound)) {
@@ -921,7 +930,7 @@ github_api_project_issue_by_date <- function(owner,
   }
 
   # Perform the API call using the constructed query
-  gh_response <- github_api_project_issue_search(owner, repo, token, query, verbose=TRUE)
+  gh_response <- github_api_project_issue_search(owner, repo, token, query, issue_or_pr,verbose=TRUE)
 
   return(gh_response)
 }
@@ -938,17 +947,19 @@ github_api_project_issue_by_date <- function(owner,
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
 #' @param query Optional query to append to search api
+#' @param issue_or_pr This specifies whether issues or pull requests are being searched for.
+#' Acceptable inputs are "is:issue" or "is:pull-request". see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28#:~:text=Note%3A%20For,pull%20requests.%22}
 #' @param verbose Prints operational messages when se to true such as stating the search query.
 #' @references For details, see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}.
 #' @export
-github_api_project_issue_search <- function(owner, repo, token, query = NULL, verbose=TRUE) {
+github_api_project_issue_search <- function(owner, repo, token, query = NULL, issue_or_pr, verbose=TRUE) {
   # Construct the search query
   #Check if there is a query
   if (!is.null(query)){
     search_query <- query
   } else {
     search_query <- "repo:"
-    search_query <- paste0(search_query,owner,"/",repo," is:issue")
+    search_query <- paste0(search_query,owner,"/",repo," ", issue_or_pr)
   }
 
   if(verbose){
@@ -963,4 +974,33 @@ github_api_project_issue_search <- function(owner, repo, token, query = NULL, ve
                         per_page = 100,
                         .token = token)
   return(gh_response)
+}
+
+#' parse latest date
+#'
+#' Takes a filepath and returns a filename of the .json file that contains the
+#' most recent 'created_at' value
+#'
+#' @param json_path the path with folders to read
+#' @export
+parse_jira_latest_date <- function(json_path){
+  file_list <- list.files(json_path)
+  time_list <- list()
+
+  # Checking if the save folder is empty
+  if (identical(file_list, character(0))){
+    stop(stringi::stri_c("cannot open the connection"))
+  }
+
+  for (j in file_list){
+    j <- sub(".*_(\\w+)\\.[^.]+$", "\\1", j)
+    j <- as.numeric(j)
+    time_list <- append(time_list, j)
+  }
+
+  overall_latest_date <- as.character(max(unlist(time_list)))
+
+  latest_issue_file <- grep(overall_latest_date, file_list, value = TRUE)
+
+  return(latest_issue_file)
 }

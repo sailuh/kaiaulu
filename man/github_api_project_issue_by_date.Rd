@@ -10,6 +10,7 @@ github_api_project_issue_by_date(
   token,
   date_lower_bound = NULL,
   date_upper_bound = NULL,
+  issue_or_pr,
   verbose = FALSE
 )
 }

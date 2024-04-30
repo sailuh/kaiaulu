@@ -70,7 +70,7 @@ issue_tracker:
       issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/sailuh_kaiaulu/
       issue: ../../rawdata/kaiaulu/github/issue/sailuh_kaiaulu/
       issue_search: ../../rawdata/kaiaulu/github/issue_search/sailuh_kaiaulu/
-      pull_request: ../../kaiaulu/github/pull_request/sailuh_kaiaulu/
+      pull_request: ../../rawdata/kaiaulu/github/pull_request/sailuh_kaiaulu/
       commit: ../../rawdata/kaiaulu/github/commit/sailuh_kaiaulu/
     # project_key_2:
       # # Obtained from the project's GitHub URL
