@@ -159,7 +159,7 @@ project_collaboration_network <- transform_gitlog_to_bipartite_network(project_g
 
 And then we plot it! Try moving the mouse cursor over the image, and then zooming in or dragging by hold the left mouse button. When zoomed in sufficiently, the labels will be displayed on the nodes.
 
-```{r}
+```{r , out.width="800px" , out.height="800px"}
 plot_project_collaboration_network <- igraph::graph_from_data_frame(d=project_collaboration_network[["edgelist"]], 
                       directed = TRUE, 
                       vertices = project_collaboration_network[["nodes"]])

@@ -108,7 +108,7 @@ id_project_git <- project_log[["project_git"]]
 
 Author-Entity Network
 
-```{r}
+```{r , out.width="800px" , out.height="800px"}
 project_collaboration_network <- transform_gitlog_to_entity_bipartite_network(last(id_project_git,
                                                                                    1000),
                                                                               mode = "author-entity")
