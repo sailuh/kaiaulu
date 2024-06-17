@@ -62,13 +62,14 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
 
   file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
   substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+  filter_commit_size <- conf[["filter"]][["remove_filepaths_on_commit_size_greather_than"]]
 
   project_git <- parse_gitlog(perceval_path,git_repo_path)
 
   # Filter files
-  project_git <- project_git  %>%
-    filter_by_file_extension(file_extensions,"file_pathname")  %>%
-    filter_by_filepath_substring(substring_filepath,"file_pathname")
+  if (length(file_extensions) > 0) project_git <- project_git  %>% filter_by_file_extension(file_extensions,"file_pathname")
+  if (length(substring_filepath) > 0) project_git <- project_git  %>%  filter_by_filepath_substring(substring_filepath,"file_pathname")
+  if (length(filter_commit_size) > 0) project_git <- project_git %>% filter_by_commit_size(commit_size = filter_commit_size)
 
   # Identity match
   project_log <- list(project_git=project_git)
@@ -108,6 +109,7 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   # File Filters
   file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
   substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+  filter_commit_size <- conf[["filter"]][["remove_filepaths_on_commit_size_greather_than"]]
 
   # Ctags Line Types
   kinds <- conf[["tool"]][["uctags"]][["keep_lines_type"]]
@@ -120,9 +122,9 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   project_git <- data.table::fread(gitlog_path)
 
   # Filter files
-  project_git <- project_git  %>%
-    filter_by_file_extension(file_extensions,"file_pathname")  %>%
-    filter_by_filepath_substring(substring_filepath,"file_pathname")
+  if (length(file_extensions) > 0) project_git <- project_git  %>% filter_by_file_extension(file_extensions,"file_pathname")
+  if (length(substring_filepath) > 0) project_git <- project_git  %>%  filter_by_filepath_substring(substring_filepath,"file_pathname")
+  if (length(filter_commit_size) > 0) project_git <- project_git %>% filter_by_commit_size(commit_size = filter_commit_size)
 
   project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
                                               format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
@@ -264,6 +266,7 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   # File Filters
   file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
   substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+  filter_commit_size <- conf[["filter"]][["remove_filepaths_on_commit_size_greather_than"]]
 
   # Ctags Line Types
   kinds <- conf[["tool"]][["uctags"]][["keep_lines_type"]]
@@ -272,9 +275,9 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   project_git <- data.table::fread(gitlog_path)
 
   # Filter files
-  project_git <- project_git  %>%
-    filter_by_file_extension(file_extensions,"file_pathname")  %>%
-    filter_by_filepath_substring(substring_filepath,"file_pathname")
+  if (length(file_extensions) > 0) project_git <- project_git  %>% filter_by_file_extension(file_extensions,"file_pathname")
+  if (length(substring_filepath) > 0) project_git <- project_git  %>%  filter_by_filepath_substring(substring_filepath,"file_pathname")
+  if (length(filter_commit_size) > 0) project_git <- project_git %>% filter_by_commit_size(commit_size = filter_commit_size)
 
   project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
                                               format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
