@@ -434,12 +434,12 @@ temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,t
     # use the weight_scheme_cum_temporal().
 
     combinations <- merge(combinations,edgelist,all.x=TRUE,by.x = "from_edgeid", by.y="edgeid",
-                          sorted = FALSE)
+                          sort = FALSE)
     setnames(combinations,
              old=c("from","weight","datetimetz"),
              new=c("from_projection","from_weight","from_datetimetz"))
     combinations <- merge(combinations,edgelist,all.x=TRUE,by.x = "to_edgeid", by.y="edgeid",
-                          sorted = FALSE)
+                          sort = FALSE)
     setnames(combinations,
              old=c("from","weight","datetimetz"),
              new=c("to_projection","to_weight","to_datetimetz"))
