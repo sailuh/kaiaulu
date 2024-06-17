@@ -26,6 +26,16 @@
 # If you have questions, please open a discussion:
 # https://github.com/sailuh/kaiaulu/discussions
 
+
+# Options for the git CLI.
+git:
+  identity:
+    # Should identities be matched when parsing the gitlog?
+    match: TRUE
+    # Should identities be matched based on names or e-mail-addresses?
+    names_only: FALSE
+
+# Options for the graph CLI.
 graph:
   bipartite:
     # When creating bipartite networks, you can choose between different

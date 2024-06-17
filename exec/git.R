@@ -23,11 +23,11 @@ require(doSNOW,quietly=TRUE)
 doc <- "
 USAGE:
   git.R tabulate help
-  git.R tabulate <tools.yml> <project_conf.yml> <save_file_name_path>
+  git.R tabulate <tools.yml> <project_conf.yml> <cli_conf.yml> <save_file_name_path>
   git.R entity help
-  git.R entity <tools.yml> <project_conf.yml> <gitlog_file_name_path> <save_file_name_path>
+  git.R entity <tools.yml> <project_conf.yml> <cli_conf.yml> <gitlog_file_name_path> <save_file_name_path>
   git.R entity parallel help
-  git.R entity parallel <tools.yml> <project_conf.yml> <gitlog_file_name_path> <save_folder_name_path>
+  git.R entity parallel <tools.yml> <project_conf.yml> <cli_conf.yml> <gitlog_file_name_path> <save_folder_name_path>
   git.R (-h | --help)
   git.R --version
 
@@ -46,16 +46,21 @@ OPTIONS:
 
 arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9600')
 if(arguments[["tabulate"]] & arguments[["help"]]){
-  cli_alert_info("Tabulates a git log using parse_gitlog() and matches
-                 developer identities using identity_match().")
+  cli_alert_info("Tabulates a git log using parse_gitlog(). Optionally filters
+                 files and matches identities according to the configuration.")
 }else if(arguments[["tabulate"]]){
 
   tools_path <- arguments[["<tools.yml>"]]
   conf_path <- arguments[["<project_conf.yml>"]]
+  cli_path <- arguments[["<cli_conf.yml>"]]
   save_path <- arguments[["<save_file_name_path>"]]
 
   tool <- yaml::read_yaml(tools_path)
   conf <- yaml::read_yaml(conf_path)
+  cli <- yaml::read_yaml(cli_path)
+
+  id_match <- cli[["git"]][["identity"]][["match"]]
+  id_names_only <- cli[["git"]][["identity"]][["names_only"]]
 
   perceval_path <- path.expand(tool[["perceval"]])
   git_repo_path <- path.expand(conf[["version_control"]][["log"]])
@@ -72,33 +77,40 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   if (length(filter_commit_size) > 0) project_git <- project_git %>% filter_by_commit_size(commit_size = filter_commit_size)
 
   # Identity match
-  project_log <- list(project_git=project_git)
-  project_log <- identity_match(project_log,
-                                name_column = c("author_name_email"),
-                                assign_exact_identity,
-                                use_name_only=TRUE,
-                                label = "raw_name"
-  )
-  project_git <- project_log[["project_git"]]
+  if (id_match){
+    project_log <- list(project_git=project_git)
+    project_log <- identity_match(project_log,
+                                  name_column = c("author_name_email"),
+                                  assign_exact_identity,
+                                  use_name_only=id_names_only,
+                                  label = "raw_name")
+    project_git <- project_log[["project_git"]]
+  }
 
   data.table::fwrite(project_git,save_path)
   cli_alert_success(paste0("Tabulated git log was saved at: ",save_path))
 }else if(arguments[["entity"]] & arguments[["parallel"]] & arguments[["help"]]){
   cli_alert_info("Parses changed entities using parse_gitlog_entity() in
                  parallel when analysing multiple time windows. Time
-                 windows are preferentially determined based on ranges
+                 windows are preferentially determined by ranges
                  specified in the configuration file. If no ranges are
                  specified, time windows are generated based on the
                  window size in days starting at the first commit's date.
-                 Also matches developer identities using identity_match().")
+                 Optionally filters files and matches identities according to
+                 the configuration.")
 }else if(arguments[["entity"]] & arguments[["parallel"]]){
   tools_path <- arguments[["<tools.yml>"]]
   conf_path <- arguments[["<project_conf.yml>"]]
+  cli_path <- arguments[["<cli_conf.yml>"]]
   gitlog_path <- arguments[["<gitlog_file_name_path>"]]
   save_path <- arguments[["<save_folder_name_path>"]]
 
   tool <- yaml::read_yaml(tools_path)
   conf <- yaml::read_yaml(conf_path)
+  cli <- yaml::read_yaml(cli_path)
+
+  id_match <- cli[["git"]][["identity"]][["match"]]
+  id_names_only <- cli[["git"]][["identity"]][["names_only"]]
 
   # 3rd Party Tools
   utags_path <- tool[["utags"]]
@@ -225,17 +237,18 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
                                                        origin="1970-01-01",tz = "UTC"),
                                             changed_entities$entity_definition_name,
                                             changed_entities$n_lines_changed
-                            )]
+                                            )]
 
         # Identity match
-        project_log <- list(project_git=changed_entities)
-        project_log <- identity_match(project_log,
-                                      name_column = c("author_name_email"),
-                                      assign_exact_identity,
-                                      use_name_only=TRUE,
-                                      label = "raw_name"
-        )
-        changed_entities <- project_log[["project_git"]]
+        if (id_match){
+          project_log <- list(project_git=changed_entities)
+          project_log <- identity_match(project_log,
+                                        name_column = c("author_name_email"),
+                                        assign_exact_identity,
+                                        use_name_only=id_names_only,
+                                        label = "raw_name")
+          changed_entities <- project_log[["project_git"]]
+        }
       }
     }
     data.table::fwrite(changed_entities,entity_save_path)
@@ -246,16 +259,22 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
 
   cli_alert_success(paste0("Changed entities were saved at: ", save_path))
 }else if(arguments[["entity"]] & arguments[["help"]]){
-  cli_alert_info("Parses changed entities using parse_gitlog_entity() and
-                 matches developer identities using identity_match().")
+  cli_alert_info("Parses changed entities using parse_gitlog_entity().
+                 Optionally filters files and matches identities according to
+                 the configuration.")
 }else if(arguments[["entity"]]){
   tools_path <- arguments[["<tools.yml>"]]
   conf_path <- arguments[["<project_conf.yml>"]]
+  cli_path <- arguments[["<cli_conf.yml>"]]
   gitlog_path <- arguments[["<gitlog_file_name_path>"]]
   save_path <- arguments[["<save_file_name_path>"]]
 
   tool <- yaml::read_yaml(tools_path)
   conf <- yaml::read_yaml(conf_path)
+  cli <- yaml::read_yaml(cli_path)
+
+  id_match <- cli[["git"]][["identity"]][["match"]]
+  id_names_only <- cli[["git"]][["identity"]][["names_only"]]
 
   # 3rd Party Tools
   utags_path <- tool[["utags"]]
@@ -285,17 +304,17 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
                                               format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
 
   changed_entities <- parse_gitlog_entity(git_repo_path,utags_path,project_git,kinds,progress_bar=TRUE)
-  data.table::fwrite(changed_entities,save_path)
 
   # Identity match
-  project_log <- list(project_git=changed_entities)
-  project_log <- identity_match(project_log,
-                                name_column = c("author_name_email"),
-                                assign_exact_identity,
-                                use_name_only=TRUE,
-                                label = "raw_name"
-  )
-  changed_entities <- project_log[["project_git"]]
+  if (id_match){
+    project_log <- list(project_git=changed_entities)
+    project_log <- identity_match(project_log,
+                                  name_column = c("author_name_email"),
+                                  assign_exact_identity,
+                                  use_name_only=id_names_only,
+                                  label = "raw_name")
+    changed_entities <- project_log[["project_git"]]
+  }
 
   data.table::fwrite(changed_entities,save_path)
   cli_alert_success(paste0("Changed entities were saved at: ", save_path))
