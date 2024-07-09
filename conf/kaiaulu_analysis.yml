@@ -84,7 +84,6 @@ filter:
   remove_filepaths_containing:
     - test
 
-
 # Third Party Tools Configuration #
 #
 # See Kaiaulu's README.md for details on how to setup these tools.

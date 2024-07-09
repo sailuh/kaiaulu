@@ -65,16 +65,7 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   perceval_path <- path.expand(tool[["perceval"]])
   git_repo_path <- path.expand(conf[["version_control"]][["log"]])
 
-  file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
-  substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
-  filter_commit_size <- conf[["filter"]][["remove_filepaths_on_commit_size_greather_than"]]
-
   project_git <- parse_gitlog(perceval_path,git_repo_path)
-
-  # Filter files
-  if (length(file_extensions) > 0) project_git <- project_git  %>% filter_by_file_extension(file_extensions,"file_pathname")
-  if (length(substring_filepath) > 0) project_git <- project_git  %>%  filter_by_filepath_substring(substring_filepath,"file_pathname")
-  if (length(filter_commit_size) > 0) project_git <- project_git %>% filter_by_commit_size(commit_size = filter_commit_size)
 
   # Identity match
   if (id_match){
@@ -109,6 +100,7 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   conf <- yaml::read_yaml(conf_path)
   cli <- yaml::read_yaml(cli_path)
 
+  time <- cli[["git"]][["time"]]
   id_match <- cli[["git"]][["identity"]][["match"]]
   id_names_only <- cli[["git"]][["identity"]][["names_only"]]
 
@@ -144,8 +136,8 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
                                               format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
 
   # The start and end dates correspond to the date of the earliest and latest commit, respectively.
-  start_date <- min(project_git$author_datetimetz,na.rm=TRUE)
-  end_date <- max(project_git$author_datetimetz,na.rm=TRUE)
+  start_date <- min(project_git[[time]],na.rm=TRUE)
+  end_date <- max(project_git[[time]],na.rm=TRUE)
 
   # Create time windows
   if (length(ranges) > 0) {
@@ -204,8 +196,8 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
     entity_save_path = file.path(entity_save_dir, save_file_name)
 
     # Obtain all commits from the gitlog which are within a particular window_size
-    project_git_slice <- project_git[(project_git$author_datetimetz >= start_day) &
-                                       (project_git$author_datetimetz <= end_day), ]
+    project_git_slice <- project_git[(project_git[[time]] >= start_day) &
+                                       (project_git[[time]] <= end_day), ]
 
     # Perform entity analysis
     changed_entities <- setNames(data.table(matrix(nrow = 0, ncol = 7)),

@@ -29,6 +29,9 @@
 
 # Options for the git CLI.
 git:
+  # You can choose to split the git log by either author or committer
+  # time.
+  time: committer_datetimetz
   identity:
     # Should identities be matched when parsing the gitlog?
     match: TRUE
