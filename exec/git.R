@@ -140,7 +140,7 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
 
   project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
                                               format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
-  project_git$author_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
+  project_git$committer_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
                                               format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
 
   # The start and end dates correspond to the date of the earliest and latest commit, respectively.
@@ -205,7 +205,7 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
 
     # Obtain all commits from the gitlog which are within a particular window_size
     project_git_slice <- project_git[(project_git$author_datetimetz >= start_day) &
-                                       (project_git$author_datetimetz < end_day), ]
+                                       (project_git$author_datetimetz <= end_day), ]
 
     # Perform entity analysis
     changed_entities <- setNames(data.table(matrix(nrow = 0, ncol = 7)),
@@ -300,7 +300,7 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
 
   project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
                                               format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
-  project_git$author_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
+  project_git$committer_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
                                               format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
 
   changed_entities <- parse_gitlog_entity(git_repo_path,utags_path,project_git,kinds,progress_bar=TRUE)
