@@ -71,7 +71,8 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   if (id_match){
     project_log <- list(project_git=project_git)
     project_log <- identity_match(project_log,
-                                  name_column = c("author_name_email"),
+                                  name_column = c("author_name_email",
+                                                  "committer_name_email"),
                                   assign_exact_identity,
                                   use_name_only=id_names_only,
                                   label = "raw_name")
@@ -235,7 +236,8 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
         if (id_match){
           project_log <- list(project_git=changed_entities)
           project_log <- identity_match(project_log,
-                                        name_column = c("author_name_email"),
+                                        name_column = c("author_name_email",
+                                                        "committer_name_email"),
                                         assign_exact_identity,
                                         use_name_only=id_names_only,
                                         label = "raw_name")
@@ -301,7 +303,8 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   if (id_match){
     project_log <- list(project_git=changed_entities)
     project_log <- identity_match(project_log,
-                                  name_column = c("author_name_email"),
+                                  name_column = c("author_name_email",
+                                                  "committer_name_email"),
                                   assign_exact_identity,
                                   use_name_only=id_names_only,
                                   label = "raw_name")
