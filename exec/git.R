@@ -201,14 +201,31 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
                                        (project_git[[time]] <= end_day), ]
 
     # Perform entity analysis
-    changed_entities <- setNames(data.table(matrix(nrow = 0, ncol = 7)),
-                                 c("author_name_email",
+    changed_entities <- setNames(data.table(matrix(nrow = 0, ncol = 24)),
+                                 c("identity_id",
+                                   "author_name_email",
+                                   "row_id",
+                                   "commit_hash",
+                                   "entity_definition_name",
+                                   "entity_type",
+                                   "entity_definition_line_start",
+                                   "entity_definition_line_end",
+                                   "author_name",
+                                   "author_email",
+                                   "author_timestamp",
+                                   "author_tz",
+                                   "committer_name",
+                                   "committer_email",
+                                   "committer_timestamp",
+                                   "commiter_tz",
+                                   "committer_summary",
+                                   "n_lines_changed",
                                    "author_datetimetz",
                                    "committer_name_email",
-                                   "commit_hash",
                                    "committer_datetimetz",
                                    "entity",
-                                   "weight"))
+                                   "weight",
+                                   "raw_name"))
 
     if (nrow(project_git_slice) > 0) {
       changed_entities <- parse_gitlog_entity(git_repo_path,utags_path,project_git_slice,kinds,progress_bar=TRUE)
