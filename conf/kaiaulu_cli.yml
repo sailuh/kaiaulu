@@ -32,9 +32,18 @@ git:
   # You can choose to split the git log by either author or committer
   # time.
   time: committer_datetimetz
+  # You can specify whether to include or exclude the time window
+  # boundaries.
+  window:
+    start_include: TRUE
+    end_include: TRUE
   identity:
     # Should identities be matched when parsing the gitlog?
     match: TRUE
+    # Columns in which identities should be matched.
+    columns:
+      - author_name_email
+      - committer_name_email
     # Should identities be matched based on names or e-mail-addresses?
     names_only: FALSE
 

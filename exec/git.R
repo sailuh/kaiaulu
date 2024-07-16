@@ -60,6 +60,7 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   cli <- yaml::read_yaml(cli_path)
 
   id_match <- cli[["git"]][["identity"]][["match"]]
+  id_columns <- cli[["git"]][["identity"]][["columns"]]
   id_names_only <- cli[["git"]][["identity"]][["names_only"]]
 
   perceval_path <- path.expand(tool[["perceval"]])
@@ -71,8 +72,7 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   if (id_match){
     project_log <- list(project_git=project_git)
     project_log <- identity_match(project_log,
-                                  name_column = c("author_name_email",
-                                                  "committer_name_email"),
+                                  name_column=id_columns,
                                   assign_exact_identity,
                                   use_name_only=id_names_only,
                                   label = "raw_name")
@@ -102,7 +102,10 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   cli <- yaml::read_yaml(cli_path)
 
   time <- cli[["git"]][["time"]]
+  start_include <- cli[["git"]][["window"]][["start_include"]]
+  end_include <- cli[["git"]][["window"]][["end_include"]]
   id_match <- cli[["git"]][["identity"]][["match"]]
+  id_columns <- cli[["git"]][["identity"]][["columns"]]
   id_names_only <- cli[["git"]][["identity"]][["names_only"]]
 
   # 3rd Party Tools
@@ -197,8 +200,19 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
     entity_save_path = file.path(entity_save_dir, save_file_name)
 
     # Obtain all commits from the gitlog which are within a particular window_size
-    project_git_slice <- project_git[(project_git[[time]] >= start_day) &
-                                       (project_git[[time]] <= end_day), ]
+    if (start_include && end_include) {
+      project_git_slice <- project_git[(project_git[[time]] >= start_day) &
+                                         (project_git[[time]] <= end_day), ]
+    } else if (start_include && !end_include) {
+      project_git_slice <- project_git[(project_git[[time]] >= start_day) &
+                                         (project_git[[time]] < end_day), ]
+    } else if (!start_include && end_include)  {
+      project_git_slice <- project_git[(project_git[[time]] > start_day) &
+                                         (project_git[[time]] <= end_day), ]
+    } else {
+      project_git_slice <- project_git[(project_git[[time]] > start_day) &
+                                         (project_git[[time]] < end_day), ]
+    }
 
     # Perform entity analysis
     changed_entities <- setNames(data.table(matrix(nrow = 0, ncol = 24)),
@@ -253,8 +267,7 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
         if (id_match){
           project_log <- list(project_git=changed_entities)
           project_log <- identity_match(project_log,
-                                        name_column = c("author_name_email",
-                                                        "committer_name_email"),
+                                        name_column=id_columns,
                                         assign_exact_identity,
                                         use_name_only=id_names_only,
                                         label = "raw_name")
@@ -285,6 +298,7 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   cli <- yaml::read_yaml(cli_path)
 
   id_match <- cli[["git"]][["identity"]][["match"]]
+  id_columns <- cli[["git"]][["identity"]][["columns"]]
   id_names_only <- cli[["git"]][["identity"]][["names_only"]]
 
   # 3rd Party Tools
@@ -320,8 +334,7 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   if (id_match){
     project_log <- list(project_git=changed_entities)
     project_log <- identity_match(project_log,
-                                  name_column = c("author_name_email",
-                                                  "committer_name_email"),
+                                  name_column=id_columns,
                                   assign_exact_identity,
                                   use_name_only=id_names_only,
                                   label = "raw_name")
