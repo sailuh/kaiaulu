@@ -59,14 +59,27 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   conf <- yaml::read_yaml(conf_path)
   cli <- yaml::read_yaml(cli_path)
 
-  id_match <- cli[["git"]][["identity"]][["match"]]
-  id_columns <- cli[["git"]][["identity"]][["columns"]]
-  id_names_only <- cli[["git"]][["identity"]][["names_only"]]
+  id_match <- cli[["git"]][["file"]][["identity"]][["match"]]
+  id_columns <- cli[["git"]][["file"]][["identity"]][["columns"]]
+  id_names_only <- cli[["git"]][["file"]][["identity"]][["names_only"]]
 
   perceval_path <- path.expand(tool[["perceval"]])
   git_repo_path <- path.expand(conf[["version_control"]][["log"]])
 
+  # File Filters
+  filter <- cli[["git"]][["file"]][["filter"]]
+  file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
+  substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+  filter_commit_size <- conf[["filter"]][["remove_filepaths_on_commit_size_greather_than"]]
+
   project_git <- parse_gitlog(perceval_path,git_repo_path)
+
+  # Filter files
+  if (filter) {
+    if (length(file_extensions) > 0) project_git <- project_git  %>% filter_by_file_extension(file_extensions,"file_pathname")
+    if (length(substring_filepath) > 0) project_git <- project_git  %>%  filter_by_filepath_substring(substring_filepath,"file_pathname")
+    if (length(filter_commit_size) > 0) project_git <- project_git %>% filter_by_commit_size(commit_size = filter_commit_size)
+  }
 
   # Identity match
   if (id_match){
@@ -91,6 +104,7 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
                  Optionally filters files and matches identities according to
                  the configuration.")
 }else if(arguments[["entity"]] & arguments[["parallel"]]){
+
   tools_path <- arguments[["<tools.yml>"]]
   conf_path <- arguments[["<project_conf.yml>"]]
   cli_path <- arguments[["<cli_conf.yml>"]]
@@ -101,12 +115,12 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   conf <- yaml::read_yaml(conf_path)
   cli <- yaml::read_yaml(cli_path)
 
-  time <- cli[["git"]][["time"]]
-  start_include <- cli[["git"]][["window"]][["start_include"]]
-  end_include <- cli[["git"]][["window"]][["end_include"]]
-  id_match <- cli[["git"]][["identity"]][["match"]]
-  id_columns <- cli[["git"]][["identity"]][["columns"]]
-  id_names_only <- cli[["git"]][["identity"]][["names_only"]]
+  time <- cli[["git"]][["entity"]][["window"]][["time"]]
+  start_include <- cli[["git"]][["entity"]][["window"]][["start_include"]]
+  end_include <- cli[["git"]][["entity"]][["window"]][["end_include"]]
+  id_match <- cli[["git"]][["entity"]][["identity"]][["match"]]
+  id_columns <- cli[["git"]][["entity"]][["identity"]][["columns"]]
+  id_names_only <- cli[["git"]][["entity"]][["identity"]][["names_only"]]
 
   # 3rd Party Tools
   utags_path <- tool[["utags"]]
@@ -115,6 +129,7 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   git_repo_path <- conf[["version_control"]][["log"]]
 
   # File Filters
+  filter <- cli[["git"]][["entity"]][["filter"]]
   file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
   substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
   filter_commit_size <- conf[["filter"]][["remove_filepaths_on_commit_size_greather_than"]]
@@ -130,9 +145,11 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   project_git <- data.table::fread(gitlog_path)
 
   # Filter files
-  if (length(file_extensions) > 0) project_git <- project_git  %>% filter_by_file_extension(file_extensions,"file_pathname")
-  if (length(substring_filepath) > 0) project_git <- project_git  %>%  filter_by_filepath_substring(substring_filepath,"file_pathname")
-  if (length(filter_commit_size) > 0) project_git <- project_git %>% filter_by_commit_size(commit_size = filter_commit_size)
+  if (filter) {
+    if (length(file_extensions) > 0) project_git <- project_git  %>% filter_by_file_extension(file_extensions,"file_pathname")
+    if (length(substring_filepath) > 0) project_git <- project_git  %>%  filter_by_filepath_substring(substring_filepath,"file_pathname")
+    if (length(filter_commit_size) > 0) project_git <- project_git %>% filter_by_commit_size(commit_size = filter_commit_size)
+  }
 
   project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
                                               format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
@@ -287,6 +304,7 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
                  Optionally filters files and matches identities according to
                  the configuration.")
 }else if(arguments[["entity"]]){
+
   tools_path <- arguments[["<tools.yml>"]]
   conf_path <- arguments[["<project_conf.yml>"]]
   cli_path <- arguments[["<cli_conf.yml>"]]
@@ -297,9 +315,9 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   conf <- yaml::read_yaml(conf_path)
   cli <- yaml::read_yaml(cli_path)
 
-  id_match <- cli[["git"]][["identity"]][["match"]]
-  id_columns <- cli[["git"]][["identity"]][["columns"]]
-  id_names_only <- cli[["git"]][["identity"]][["names_only"]]
+  id_match <- cli[["git"]][["entity"]][["identity"]][["match"]]
+  id_columns <- cli[["git"]][["entity"]][["identity"]][["columns"]]
+  id_names_only <- cli[["git"]][["entity"]][["identity"]][["names_only"]]
 
   # 3rd Party Tools
   utags_path <- tool[["utags"]]
@@ -308,6 +326,7 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   git_repo_path <- conf[["version_control"]][["log"]]
 
   # File Filters
+  filter <- cli[["git"]][["entity"]][["filter"]]
   file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
   substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
   filter_commit_size <- conf[["filter"]][["remove_filepaths_on_commit_size_greather_than"]]
@@ -319,9 +338,11 @@ if(arguments[["tabulate"]] & arguments[["help"]]){
   project_git <- data.table::fread(gitlog_path)
 
   # Filter files
-  if (length(file_extensions) > 0) project_git <- project_git  %>% filter_by_file_extension(file_extensions,"file_pathname")
-  if (length(substring_filepath) > 0) project_git <- project_git  %>%  filter_by_filepath_substring(substring_filepath,"file_pathname")
-  if (length(filter_commit_size) > 0) project_git <- project_git %>% filter_by_commit_size(commit_size = filter_commit_size)
+  if (filter) {
+    if (length(file_extensions) > 0) project_git <- project_git  %>% filter_by_file_extension(file_extensions,"file_pathname")
+    if (length(substring_filepath) > 0) project_git <- project_git  %>%  filter_by_filepath_substring(substring_filepath,"file_pathname")
+    if (length(filter_commit_size) > 0) project_git <- project_git %>% filter_by_commit_size(commit_size = filter_commit_size)
+  }
 
   project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
                                               format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")

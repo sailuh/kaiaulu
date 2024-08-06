@@ -1,4 +1,4 @@
-# -*- yaml -*-
+# # -*- yaml -*-
 # https://github.com/sailuh/kaiaulu
 #
 # Copying and distribution of this file, with or without modification,
@@ -29,23 +29,46 @@
 
 # Options for the git CLI.
 git:
-  # You can choose to split the git log by either author or committer
-  # time.
-  time: committer_datetimetz
-  # You can specify whether to include or exclude the time window
-  # boundaries.
-  window:
-    start_include: TRUE
-    end_include: TRUE
-  identity:
-    # Should identities be matched when parsing the gitlog?
-    match: TRUE
-    # Columns in which identities should be matched.
-    columns:
-      - author_name_email
-      - committer_name_email
-    # Should identities be matched based on names or e-mail-addresses?
-    names_only: FALSE
+  # File-based analysis mode.
+  file:
+    # Identity matching.
+    identity:
+      # Should identities be matched when parsing the gitlog?
+      match: TRUE
+      # Columns in which identities should be matched.
+      columns:
+        - author_name_email
+        - committer_name_email
+      # Should identities be matched based on names only or also based
+      # on e-mail-addresses?
+      names_only: FALSE
+    # Apply file filters from the project configuration file.
+    filter: TRUE
+  # Entity-based analysis mode.
+  entity:
+    # Identity matching.
+    identity:
+      # Should identities be matched when parsing the gitlog?
+      match: TRUE
+      # Columns in which identities should be matched.
+      columns:
+        - author_name_email
+        - committer_name_email
+      # Should identities be matched based on names only or also based
+      # on e-mail-addresses?
+      names_only: FALSE
+    # Apply file filters from the project configuration file.
+    filter: TRUE
+    # When splitting the time windows, should the interval boundaries
+    # be included or excluded?
+    window:
+      # Parameters for evolutionary analyses spanning multiple time windows
+      # You can choose to split the git log by either author or committer
+      # time.
+      time: committer_datetimetz
+      start_include: TRUE
+      end_include: FALSE
+
 
 # Options for the graph CLI.
 graph:
