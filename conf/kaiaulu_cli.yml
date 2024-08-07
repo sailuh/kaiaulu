@@ -72,38 +72,72 @@ git:
 
 # Options for the graph CLI.
 graph:
+  # Bipartite networks.
   bipartite:
-    # When creating bipartite networks, you can choose between different
-    # combinations of authors, committers, files and entities to connect.
-    # Make sure to prepare and pass a suitable parsed git log to the CLI.
-    # File network options: author-file, commit-file
-    # Entity network options: author-entity, committer-entity,
-    # commit-entity, author-committer
-    network_type: author-entity
-    # When creating a bipartite projection, you can choose whether to
-    # apply it to the first or second node.
-    mode: TRUE # TRUE: first node
-    # Networks can be directed or undirected.
-    directed: TRUE
-    # The weight scheme will determine how the edge weights between nodes
-    # are calculated.
-    # Options: weight_scheme_count_deleted_nodes, weight_scheme_sum_edges,
-    # weight_scheme_cum_temporal, weight_scheme_pairwise_cum_temporal
-    weight_scheme: weight_scheme_sum_edges
+    # File-based analysis mode.
+    file:
+      # When creating bipartite networks, you can choose between different
+      # combinations of authors, commits and files to connect.
+      # Make sure to prepare and pass a suitable parsed git log to the CLI.
+      # Bipartite file network options: author-file, commit-file
+      network_type: author-file
+      # When creating a bipartite projection, you can choose whether to
+      # apply it to the first or second node.
+      mode: TRUE # TRUE: first node
+      # Networks can be directed or undirected.
+      directed: TRUE
+      # The weight scheme will determine how the edge weights between nodes
+      # are calculated.
+      # Options: weight_scheme_count_deleted_nodes, weight_scheme_sum_edges,
+      # weight_scheme_cum_temporal, weight_scheme_pairwise_cum_temporal
+      weight_scheme: weight_scheme_sum_edges
+    # Entity-based analysis mode.
+    entity:
+      # When creating bipartite networks, you can choose between different
+      # combinations of authors, committers, commits and entities to connect.
+      # Make sure to prepare and pass a suitable parsed git log to the CLI.
+      # Entity network options: author-entity, committer-entity,
+      # commit-entity, author-committer
+      network_type: author-entity
+      # When creating a bipartite projection, you can choose whether to
+      # apply it to the first or second node.
+      mode: TRUE # TRUE: first node
+      # Networks can be directed or undirected.
+      directed: TRUE
+      # The weight scheme will determine how the edge weights between nodes
+      # are calculated.
+      # Options: weight_scheme_count_deleted_nodes, weight_scheme_sum_edges,
+      # weight_scheme_cum_temporal, weight_scheme_pairwise_cum_temporal
+      weight_scheme: weight_scheme_sum_edges
+  # Temporal networks.
   temporal:
-    # When calculating the temporal collaboration network, you can
-    # choose whether to calculate collaborations based on files or entities.
-    network_type: entity
-    # You can choose between author or committer collaboration.
-    mode: author
-    # Networks can be directed or undirected.
-    directed: TRUE
-    # You may consider only the last or all preceding developers to
-    # calculate the temporal network's edge weights.
-    # Options: one_lag, all_lag
-    lag: all_lag
-    # The weight scheme will determine how the edge weights between
-    # nodes are calculated.
-    # Options: weight_scheme_count_deleted_nodes, weight_scheme_sum_edges,
-    # weight_scheme_cum_temporal, weight_scheme_pairwise_cum_temporal
-    weight_scheme: weight_scheme_pairwise_cum_temporal
+    # File-based analysis mode.
+    file:
+      # You can choose between author or committer collaboration.
+      mode: author
+      # Networks can be directed or undirected.
+      directed: TRUE
+      # You may consider only the last or all preceding developers to
+      # calculate the temporal network's edge weights.
+      # Options: one_lag, all_lag
+      lag: all_lag
+      # The weight scheme will determine how the edge weights between
+      # nodes are calculated.
+      # Options: weight_scheme_count_deleted_nodes, weight_scheme_sum_edges,
+      # weight_scheme_cum_temporal, weight_scheme_pairwise_cum_temporal
+      weight_scheme: weight_scheme_cum_temporal
+    # Entity-based analysis mode.
+    entity:
+      # You can choose between author or committer collaboration.
+      mode: author
+      # Networks can be directed or undirected.
+      directed: TRUE
+      # You may consider only the last or all preceding developers to
+      # calculate the temporal network's edge weights.
+      # Options: one_lag, all_lag
+      lag: all_lag
+      # The weight scheme will determine how the edge weights between
+      # nodes are calculated.
+      # Options: weight_scheme_count_deleted_nodes, weight_scheme_sum_edges,
+      # weight_scheme_cum_temporal, weight_scheme_pairwise_cum_temporal
+      weight_scheme: weight_scheme_cum_temporal
