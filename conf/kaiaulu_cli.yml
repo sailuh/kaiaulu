@@ -1,0 +1,143 @@
+# # -*- yaml -*-
+# https://github.com/sailuh/kaiaulu
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
+# CLI Configuration File #
+#
+# To perform analysis with kaiaulu's CLI, you need to specify several
+# configuration options which are otherwise passed in function calls
+# directly. This file serves to keep track of these parameters and make
+# their choice available to others.
+#
+# Note that this configuration file is an extension to the standard
+# project configuration file <project>.yml.
+# Please check https://github.com/sailuh/kaiaulu/tree/master/conf to
+# see if a project configuration file already exists. Otherwise, we
+# would appreciate if you share your curated file with us by sending a
+# Pull Request: https://github.com/sailuh/kaiaulu/pulls
+#
+# Not all of these parameters might be relevant for your analysis.
+#
+# Please comment unused parameters instead of deleting them for clarity.
+# If you have questions, please open a discussion:
+# https://github.com/sailuh/kaiaulu/discussions
+
+
+# Options for the git CLI.
+git:
+  # File-based analysis mode.
+  file:
+    # Identity matching.
+    identity:
+      # Should identities be matched when parsing the gitlog?
+      match: TRUE
+      # Columns in which identities should be matched.
+      columns:
+        - author_name_email
+        - committer_name_email
+      # Should identities be matched based on names only or also based
+      # on e-mail-addresses?
+      names_only: FALSE
+    # Apply file filters from the project configuration file.
+    filter: TRUE
+  # Entity-based analysis mode.
+  entity:
+    # Identity matching.
+    identity:
+      # Should identities be matched when parsing the gitlog?
+      match: TRUE
+      # Columns in which identities should be matched.
+      columns:
+        - author_name_email
+        - committer_name_email
+      # Should identities be matched based on names only or also based
+      # on e-mail-addresses?
+      names_only: FALSE
+    # Apply file filters from the project configuration file.
+    filter: TRUE
+    # When splitting the time windows, should the interval boundaries
+    # be included or excluded?
+    window:
+      # Parameters for evolutionary analyses spanning multiple time windows
+      # You can choose to split the git log by either author or committer
+      # time.
+      time: committer_datetimetz
+      start_include: TRUE
+      end_include: FALSE
+
+
+# Options for the graph CLI.
+graph:
+  # Bipartite networks.
+  bipartite:
+    # File-based analysis mode.
+    file:
+      # When creating bipartite networks, you can choose between different
+      # combinations of authors, commits and files to connect.
+      # Make sure to prepare and pass a suitable parsed git log to the CLI.
+      # Bipartite file network options: author-file, commit-file
+      network_type: author-file
+      # When creating a bipartite projection, you can choose whether to
+      # apply it to the first or second node.
+      mode: TRUE # TRUE: first node
+      # Networks can be directed or undirected.
+      directed: TRUE
+      # The weight scheme will determine how the edge weights between nodes
+      # are calculated.
+      # Options: weight_scheme_count_deleted_nodes, weight_scheme_sum_edges,
+      # weight_scheme_cum_temporal, weight_scheme_pairwise_cum_temporal
+      weight_scheme: weight_scheme_sum_edges
+    # Entity-based analysis mode.
+    entity:
+      # When creating bipartite networks, you can choose between different
+      # combinations of authors, committers, commits and entities to connect.
+      # Make sure to prepare and pass a suitable parsed git log to the CLI.
+      # Entity network options: author-entity, committer-entity,
+      # commit-entity, author-committer
+      network_type: author-entity
+      # When creating a bipartite projection, you can choose whether to
+      # apply it to the first or second node.
+      mode: TRUE # TRUE: first node
+      # Networks can be directed or undirected.
+      directed: TRUE
+      # The weight scheme will determine how the edge weights between nodes
+      # are calculated.
+      # Options: weight_scheme_count_deleted_nodes, weight_scheme_sum_edges,
+      # weight_scheme_cum_temporal, weight_scheme_pairwise_cum_temporal
+      weight_scheme: weight_scheme_sum_edges
+  # Temporal networks.
+  temporal:
+    # File-based analysis mode.
+    file:
+      # You can choose between author or committer collaboration.
+      mode: author
+      # Networks can be directed or undirected.
+      directed: TRUE
+      # You may consider only the last or all preceding developers to
+      # calculate the temporal network's edge weights.
+      # Options: one_lag, all_lag
+      lag: all_lag
+      # The weight scheme will determine how the edge weights between
+      # nodes are calculated.
+      # Options: weight_scheme_count_deleted_nodes, weight_scheme_sum_edges,
+      # weight_scheme_cum_temporal, weight_scheme_pairwise_cum_temporal
+      weight_scheme: weight_scheme_cum_temporal
+    # Entity-based analysis mode.
+    entity:
+      # You can choose between author or committer collaboration.
+      mode: author
+      # Networks can be directed or undirected.
+      directed: TRUE
+      # You may consider only the last or all preceding developers to
+      # calculate the temporal network's edge weights.
+      # Options: one_lag, all_lag
+      lag: all_lag
+      # The weight scheme will determine how the edge weights between
+      # nodes are calculated.
+      # Options: weight_scheme_count_deleted_nodes, weight_scheme_sum_edges,
+      # weight_scheme_cum_temporal, weight_scheme_pairwise_cum_temporal
+      weight_scheme: weight_scheme_cum_temporal
