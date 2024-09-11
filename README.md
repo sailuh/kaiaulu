@@ -33,7 +33,7 @@ I also recommend you download the repo to have some example project configuratio
  4. Build the documentation `devtools::document(roclets = c('rd', 'collate', 'namespace'))`.
  5. Build Kaiaulu (Top right pane in RStudio -> Build tab -> Install and Restart)
  6. Run `vignettes/kaiaulu_architecture.Rmd` 
- 7. See the Wiki's [Third Party Tools Setup](https://github.com/sailuh/kaiaulu/wiki/Third-Party-Tools-Setup) if you are using a Notebook that relies on them. These require very minimal overhead by downloading a binary file, and specifying their path on `tools.yml` (see example on the repository). 
+ 7. See the Wiki's [Third Party Tools Setup](https://github.com/sailuh/kaiaulu/wiki/Third-Party-Tools-Setup) if you are using a Notebook that relies on them. These require very minimal overhead by downloading a binary file and specifying their path on `tools.yml` (see example on the repository). 
  
 ### Getting started
 
