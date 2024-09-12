@@ -12,7 +12,6 @@ For detailed functionality, see Kaiaulu's [API](http://itm0.shidler.hawaii.edu/k
 
 Please [ask questions on Discussions](https://github.com/sailuh/kaiaulu/discussions) or open an issue on the [issue tracker](https://github.com/sailuh/kaiaulu/issues) if you found a bug, or your answer can't be found in the documentation. A more comprehensive and ever growing list of features is available on the [Project Wiki](https://github.com/sailuh/kaiaulu/wiki). 
 
-
 ## Installation 
 
 Kaiaulu has been tested on OS X and Ubuntu. For Windows and other OS users, try [Virtualbox](https://www.virtualbox.org/),
@@ -41,12 +40,9 @@ To get started, browse through [the docs](http://itm0.shidler.hawaii.edu/kaiaulu
 
 ### Cheatsheets
 
-
 | Social Smells | Architectural Flaws |
 | ------------- | ------------- |
 | <a href="https://github.com/sailuh/kaiaulu_cheatsheet/blob/main/cheatsheets/social-smells-cheatsheet.pdf"><img src="https://github.com/sailuh/kaiaulu_cheatsheet/blob/main/cheatsheets/social_smells_cheatsheet.png" width="272" height="210"/></a> |  <a href="https://github.com/sailuh/kaiaulu_cheatsheet/blob/main/cheatsheets/dv8-cheatsheet.pdf"><img src="https://github.com/sailuh/kaiaulu_cheatsheet/blob/main/cheatsheets/dv8_cheatsheet.png" width="272" height="210"/></a>   |
-
-
 
 ## Stay up-to-date
 
