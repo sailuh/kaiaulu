@@ -7,63 +7,99 @@
 ############## Downloader ##############
 
 #' Download all pipermail files in an archive as mbox files
-#' @param archive_url An url pointing to a pipermail archive
 #' @param mailing_list The name of the mailing list being downloaded
-#' @param archive_type The name of the type of archive that the mailing list is stored in
+#' @param start_year_month The year and month of the first file to be downloaded
+#' @param end_year_month The year and month of the last file to be downloaded
 #' @param save_folder_path The folder path in which all the downloaded pipermail files will be stored
-#' @return Returns `destination`, a vector of the downloaded files in the current working directory
+#' @return Returns `downloaded_files`, a vector of the downloaded files in the current working directory
 #' @export
-download_pipermail <- function(archive_url, mailing_list, archive_type, save_folder_path) {
+download_pipermail <- function(mailing_list, start_year_month, end_year_month, save_folder_path) {
 
-  #Get page
-  pagedata <- httr::GET(archive_url)
+  # Create directory if it does not exist
+  if (!dir.exists(save_folder_path)) {
+    dir.create(save_folder_path, recursive = TRUE)
+  }
 
-  #Parse html file into object
-  tbls_xml <- XML::htmlParse(pagedata)
+  # Get mailing list contents
+  response <- GET(mailing_list)
 
-  #Extract href tablenodes from html table
-  tableNodes <- XML::getNodeSet(tbls_xml, "//td/a[@href]")
+  # Parse the response
+  parsed_response <- content(response, "text")
+  doc_obj <- htmlParse(parsed_response, asText = TRUE)
 
-  #Extract filenames from tablenode content with xmlGetAtrr
-  hrefs <- sapply(tableNodes, XML::xmlGetAttr, 'href')
+  # Table rows
+  rows <- getNodeSet(doc_obj, "//tr")
 
-  #Create Vector
-  files <- vector()
-  file_names <- vector()
+  # Skip header row
+  data_rows <- rows[-1]
 
-  #Compose download urls for both gunzipped and plain text files
-  for (i in hrefs ){
-    if (endsWith(i, ".txt.gz")){
-      # Converts month from text form into a number for the naming convention
-      f_month <- match(sub("[^_]*-","", sub(".txt.gz","",i)), month.name)
-      # Retrieves year number for the naming convention
-      f_year <- sub("-[^_]*", "", i)
-      # txt files are actually mbox files, so this renames the extension
-      file_names <- c(file_names, sprintf("%s%02d.mbox", f_year, f_month))
-      # Saves regular name so that function can access correct url
-      i <- stringi::stri_c(archive_url, i, sep = "/")
-      files <- c(files, i)
-    } else if (endsWith(i, ".txt")) {
-      # Same logic, but with txt
-      f_month <- match(sub("[^_]*-","", sub(".txt","",i)), month.name)
-      f_year <- sub("-[^_]*", "", i)
-      file_names <- c(file_names, sprintf("%s%02d.mbox", f_year, f_month))
-      i <- stringi::stri_c(archive_url, i, sep = "/")
-      files <- c(files, i)
+  # Vector for link storage
+  links = c()
+
+  # Extract the date and link from each row
+  for (row in data_rows) {
+    # Date in YYYYMM format
+    date_extracted <- xpathSApply(row, ".//td[1]", xmlValue)
+    date_cleaned <- stri_replace_last_regex(date_extracted, pattern = ":$", replacement = "")
+    date_cleaned <- stri_trim_both(date_cleaned)
+    # Parse the date
+    # Add 01 as dummy to make it a valid date
+    date_parsed <- as.Date(paste0("01 ", date_cleaned), format = "%d %B %Y")
+    year_month <- format(date_parsed, "%Y%m")
+
+    # Check if date is within range
+    if (year_month >= start_year_month & year_month <= end_year_month) {
+      # get href from column 3
+      link_nodes <- xpathSApply(row, ".//td[3]/a", xmlGetAttr, 'href')
+      # Store the link in links
+      link <- link_nodes[1]
+      links <- c(links, link)
     }
   }
-  amount <- length(files)
-  # File downloading loop
-  for (i in 1:amount){
+  # Vector for downloaded files
+  downloaded_files <- c()
+  for (i in seq_along(links)) {
+    link <- links[i]
 
-    #download file and place it at the destination
-    save_file_name <- stringi::stri_c(mailing_list, archive_type, file_names[[i]], sep = "_")
-    save_file_path <- stringi::stri_c(save_folder_path, save_file_name, sep = "/")
-    httr::GET(files[[i]], httr::write_disk(save_file_path, overwrite=TRUE))
+    # Extract the name without the .txt.gz extension
+    base_name <- gsub("\\.txt\\.gz$", "", link)
+
+    # Parse the date from the base name
+    date_parsed <- as.Date(paste0("01-", base_name), format = "%d-%Y-%B")
+    year_month_clean <- format(date_parsed, "%Y%m")
+
+    # Download URL
+    download_url <- paste0(mailing_list, link)
+
+    # Define the destination file
+    # Rename (also converts to mbox by changing extension to .mbox)
+    dest_gz <- file.path(save_folder_path, paste0('kaiaulu_', year_month_clean, '.mbox.gz'))
+    dest <- file.path(save_folder_path, paste0('kaiaulu_', year_month_clean, '.mbox'))
+
+    # Download the gz mbox file
+    cat("Downloading:", download_url, "\n")
+    GET(download_url, write_disk(dest_gz, overwrite = TRUE))
+
+    # Unzip the file
+    gz_con <- gzfile(dest_gz, open = "rb")
+    out_con <- file(dest, open = "wb")
+    while (TRUE) {
+      bytes <- readBin(gz_con, what = raw(), n = 1024 * 1024)
+      if (length(bytes) == 0) break
+      writeBin(bytes, out_con)
+    }
+    close(gz_con)
+    close(out_con)
+
+    # Remove the gz file
+    file.remove(dest_gz)
+
+    # Add the downloaded file to the list
+    downloaded_files <- c(downloaded_files, dest)
   }
 
-  #Return filenames
-  return(save_folder_path)
+  # Return downloaded files
+  return(downloaded_files)
 
 }
 

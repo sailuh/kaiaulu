@@ -59,6 +59,14 @@ mailing_list:
       mbox: ../../rawdata/helix/mod_mbox/helix-user/
       mailing_list: helix-user
       archive_type: apache
+    # Using for testing R/mail.R/pipermail_downloader()
+    pipermail_key:
+      archive_url: https://mta.openssl.org/mailman/listinfo/
+      mailing_list: https://mta.openssl.org/pipermail/openssl-users/
+      # archive_type
+      start_year_month: 202310
+      end_year_month: 202405
+      save_folder_path: "save_folder_mail"
 
 issue_tracker:
   jira:
