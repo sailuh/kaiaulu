@@ -4,19 +4,24 @@
 \alias{download_pipermail}
 \title{Download all pipermail files in an archive as mbox files}
 \usage{
-download_pipermail(archive_url, mailing_list, archive_type, save_folder_path)
+download_pipermail(
+  mailing_list,
+  start_year_month,
+  end_year_month,
+  save_folder_path
+)
 }
 \arguments{
-\item{archive_url}{An url pointing to a pipermail archive}
-
 \item{mailing_list}{The name of the mailing list being downloaded}
 
-\item{archive_type}{The name of the type of archive that the mailing list is stored in}
+\item{start_year_month}{The year and month of the first file to be downloaded}
+
+\item{end_year_month}{The year and month of the last file to be downloaded}
 
 \item{save_folder_path}{The folder path in which all the downloaded pipermail files will be stored}
 }
 \value{
-Returns `destination`, a vector of the downloaded files in the current working directory
+Returns `downloaded_files`, a vector of the downloaded files in the current working directory
 }
 \description{
 Download all pipermail files in an archive as mbox files

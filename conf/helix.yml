@@ -69,8 +69,8 @@ mailing_list:
     project_key_2:
       # archive_url: https://mta.openssl.org/mailman/listinfo/
       mailing_list: https://mta.openssl.org/pipermail/openssl-project/
-      start_year_month: 201903
-      end_year_month: 202103
+      start_year_month: 202203
+      end_year_month: 202303
       save_folder_path: "../save_folder_mail_2"
 
 issue_tracker:

@@ -26,7 +26,10 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
   }
 
   # Get mailing list contents
-  response <- httr::GET(mailing_list)
+  response <- httr::GET(mailing_list, httr::timeout(60))
+  if (httr::status_code(response) != 200) {
+    stop("Failed to access the mailing list page.")
+  }
 
   # Parse the response
   parsed_response <- httr::content(response, "text")
@@ -48,7 +51,6 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
     date_cleaned <- stringi::stri_replace_last_regex(date_extracted, pattern = ":$", replacement = "")
     date_cleaned <- stringi::stri_trim_both(date_cleaned)
     # Parse the date
-    # Add 01 as dummy to make it a valid date
     date_parsed <- as.Date(paste0("01 ", date_cleaned), format = "%d %B %Y")
     if (is.na(date_parsed)) {
       warning("Date could not be parsed: ", date_cleaned)
@@ -87,30 +89,53 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
     year_month_clean <- format(date_parsed, "%Y%m")
 
     # Download URL
-    download_url <- paste0(mailing_list, link)
+    txt_url <- paste0(mailing_list, gsub("\\.gz$", "", link))
+    gz_url <- paste0(mailing_list, link)
+
+    # Attempt to download the .txt file first
+    download_url <- txt_url
+    response <- httr::GET(download_url, httr::timeout(60))
+
+    if (httr::status_code(response) != 200) {
+      # Fallback to .gz file if .txt is unavailable
+      download_url <- gz_url
+      response <- httr::GET(download_url, httr::timeout(60))
+      if (httr::status_code(response) != 200) {
+        cat("Both .txt and .gz downloads failed for link: ", link, "\n")
+        next
+      }
+    }
 
     # Define the destination file
-    # Rename (also converts to mbox by changing extension to .mbox)
-    dest_gz <- file.path(save_folder_path, paste0('kaiaulu_', year_month_clean, '.mbox.gz'))
     dest <- file.path(save_folder_path, paste0('kaiaulu_', year_month_clean, '.mbox'))
 
-    # Download the gz mbox file
-    cat("Downloading:", download_url, "\n")
-    httr::GET(download_url, httr::write_disk(dest_gz, overwrite = TRUE))
+    # Print diagnostic info
+    cat("Downloading: ", download_url, "\n")
+    cat("Saving to: ", dest, "\n")
 
-    # Unzip the file
-    gz_con <- gzfile(dest_gz, open = "rb")
-    out_con <- file(dest, open = "wb")
-    while (TRUE) {
-      bytes <- readBin(gz_con, what = raw(), n = 1024 * 1024)
-      if (length(bytes) == 0) break
-      writeBin(bytes, out_con)
+    # Write file to disk
+    if (grepl("\\.gz$", download_url)) {
+      # Download the .gz file
+      gz_file_path <- file.path(save_folder_path, paste0('kaiaulu_', year_month_clean, '.mbox.gz'))
+      httr::GET(download_url, httr::write_disk(gz_file_path, overwrite = TRUE), httr::timeout(60))
+
+      # Unzip the file
+      gz_con <- gzfile(gz_file_path, open = "rb")
+      out_con <- file(dest, open = "wb")
+      while (TRUE) {
+        bytes <- readBin(gz_con, what = raw(), n = 1024 * 1024)
+        if (length(bytes) == 0) break
+        writeBin(bytes, out_con)
+      }
+      close(gz_con)
+      close(out_con)
+
+      # Remove the gz file after unzipping
+      file.remove(gz_file_path)
+    } else {
+      # Download the .txt file directly
+      httr::GET(download_url, httr::write_disk(dest, overwrite = TRUE), httr::timeout(60))
     }
-    close(gz_con)
-    close(out_con)
-
-    # Remove the gz file
-    file.remove(dest_gz)
 
     # Add the downloaded file to the list
     downloaded_files <- c(downloaded_files, dest)
@@ -121,60 +146,108 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
 }
 
 
-
-#' Convert pipermail archive files (.txt and .txt.gz) into an mbox format for use with \code{\link{parse_mbox}}
-#' @param filelist A vector of pipermail archive files from \code{\link{download_pipermail}}
-#' @return Returns `output`, the name of the resulting .mbox file in the current working directory
+#' Refresh mbox files downloaded via pipermail
+#' Uses the adopted file name convention by \code{\link{download_pipermail}} to identify
+#' the latest downloaded mbox. It deletes this file, then redownloads it along with all future months
+#' up to the current real-life month.
+#' If the directory is empty, then it downloads all pipermail files (as mbox files) via \code{\link{download_pipermail}}
+#' @param mailing_list The name of the mailing list being downloaded
+#' @param start_year_month The year and month of the first file to be downloaded
+#' @param save_folder_path The folder path in which all the downloaded pipermail files will be stored
+#' @return Returns `downloaded_files`, a vector of the downloaded files in the current working directory
 #' @export
-convert_pipermail_to_mbox <- function(filelist) {
+refresh_pipermail <- function(mailing_list, start_year_month, save_folder_path) {
 
-  #at to @ replace function
-  pipermail_atreplacer <- function(string) {
-
-    rstring <- sub(" at ", "@", string)
-
-    return(rstring)
-
+  # Create directory if it does not exist
+  if (!dir.exists(save_folder_path)) {
+    dir.create(save_folder_path, recursive = TRUE)
   }
 
-  output <- "output.mbox"
+  # Check if the folder is empty
+  files_in_folder <- list.files(save_folder_path, pattern = "kaiaulu_\\d{6}\\.mbox$")
+  if (length(files_in_folder) == 0) {
+    # If empty, download from start_year_month to the current month
+    end_year_month <- format(Sys.Date(), "%Y%m")
+    cat("Folder is empty. Downloading from", start_year_month, "to", end_year_month, "\n")
+    download_pipermail(mailing_list, start_year_month, end_year_month, save_folder_path)
+    return(NULL)
+  }
+  # If folder is not empty, find the most recent month
+  year_months <- gsub("kaiaulu_(\\d{6})\\.mbox$", "\\1", files_in_folder)
+  recent_month <- max(year_months)
 
-  #Create mbox file and file connection
-  file.create(output)
-  fileConn <- file(output, "w+")
+  # Delete the most recent file
+  recent_file <- file.path(save_folder_path, paste0("kaiaulu_", recent_month, ".mbox"))
+  if (file.exists(recent_file)) {
+    file.remove(recent_file)
+    cat("Deleted the most recent file:", recent_file, "\n")
+  }
+
+  # Redownload from the most recent month to the current real-life month
+  end_year_month <- format(Sys.Date(), "%Y%m")
+  cat("Redownloading from", recent_month, "to", end_year_month, "\n")
+  download_pipermail(mailing_list, recent_month, end_year_month, save_folder_path)
+}
 
 
-  #Read lines from downloaded files and write them to mbox file
-  for (filename in filelist[]){
+#' Process .gz files in a folder, unzip and convert them to .mbox
+#' Checks a folder for any .gz files, unzips them, and renames them
+#' to .mbox format. The original .gz files are deleted after unzipping. If a .mbox
+#' file with the same name already exists, it will be overwritten.
+#'
+#' @param folder_path The path to the folder containing both .gz and .mbox files.
+#' @return A list of the .mbox files that were created or updated.
+#' @export
+process_gz_to_mbox_in_folder <- function(folder_path) {
 
-    #Open read connection
-    readCon <- file(filename, "r")
+  # Get the list of files in the folder
+  files <- list.files(folder_path, full.names = TRUE)
 
-    data <- readLines(filename)
+  # Find .gz files
+  gz_files <- files[grepl("\\.gz$", files)]
 
-    #Find email headers to send to 'at' to @ replacer
-    for (i in 1:length(data)) {
+  # Check if there are no .gz files
+  if (length(gz_files) == 0) {
+    cat("This folder does not contain any .gz files.\n")
+    return(NULL)
+  }
 
-      data[i] <- sub("From:? \\S+ at \\S+", pipermail_atreplacer(data[i]), data[i])
+  # Vector to store names of converted .mbox files
+  converted_mbox_files <- c()
 
+  # Process .gz files
+  for (gz_file in gz_files) {
+    # Define the corresponding .mbox file path (remove .gz and replace with .mbox)
+    mbox_file <- gsub("\\.gz$", ".mbox", gz_file)
+
+    cat("Processing:", gz_file, " -> ", mbox_file, "\n")
+
+    # Open .gz file and unzip its contents to .mbox
+    gz_con <- gzfile(gz_file, open = "rb")
+    out_con <- file(mbox_file, open = "wb")
+
+    # Read and write the contents
+    while (TRUE) {
+      bytes <- readBin(gz_con, what = raw(), n = 1024 * 1024)
+      if (length(bytes) == 0) break
+      writeBin(bytes, out_con)
     }
 
-    #Write files to output
-    writeLines(data, fileConn)
+    # Close connections
+    close(gz_con)
+    close(out_con)
 
-    #Close read connection
-    close(readCon)
+    # Remove the .gz file
+    file.remove(gz_file)
 
-    #Delete the file
-    unlink(filename, force = TRUE)
+    # Add the converted file to the list
+    converted_mbox_files <- c(converted_mbox_files, mbox_file)
   }
 
-  #Close connection to mbox file
-  close(fileConn)
-
-  #return output location
-  return(output)
+  # Return the list of converted .mbox files
+  return(converted_mbox_files)
 }
+
 
 #' Compose mod_mbox archives (.mbox) into a single mbox file for use with \code{\link{parse_mbox}}
 #' @param base_url An url pointing to the mod_mbox directory (e.g. "http://mail-archives.apache.org/mod_mbox") without trailing slashes
@@ -311,326 +384,6 @@ download_mod_mbox_per_month <- function(archive_url, mailing_list, archive_type,
   return(output)
 }
 
-#' Refresh mbox files
-#'
-#' Uses the adopted file name convention by \code{\link{download_mod_mbox_per_month}} to identify
-#' the latest downloaded mbox year i and month j. It deletes the mbox file of year i and month j,
-#' then redownloads it along with the remaining months past j up to 12. Then, it calls
-#' \code{\link{download_mod_mbox_per_month}} with from_year being year i+1 and to_year being
-#' the current real-life year so that all newer mbox files are downloaded.
-#'
-#' If the directory is empty, then it downloads all mbox files starting from a definable starting year to
-#' the current real-life year.
-#'
-#' @param archive_url A url pointing to the mod_mbox mailing list directory (e.g. "http://mail-archives.apache.org/mod_mbox/apr-dev") without trailing slashes
-#' @param mailing_list Name of the project mailing list (e.g. apr-dev) in the mod_mbox directory
-#' @param archive_type Name of the archive that the project mailing list is archived in (e.g. apache)
-#' @param from_year First year in the range to be downloaded in case there are no mod_mbox files already downloaded (e.g. 201401)
-#' @param save_folder_path the full *folder* path where the monthly downloaded mbox will be stored.
-#' @param verbose Prints progress during execution
-#' @export
-refresh_mod_mbox <- function(archive_url, mailing_list, archive_type, from_year, save_folder_path,verbose=FALSE) {
-  # Get a list of mbox files currently downloaded in save path folder
-  existing_mbox_files <- list.files(save_folder_path)
-  output <- save_folder_path
-
-  # Get the current year
-  current_date <- Sys.Date()
-  current_year <- as.numeric(substr(current_date, 1, 4))
-  current_month <- as.numeric(substr(current_date, 6, 7))
-
-  # If there are no mbox files downloaded, then download mbox files as normal using download_mod_mbox_per_month
-  if (length(existing_mbox_files) == 0) {
-    if (verbose) {
-      message("The folder is empty. Downloading mbox files from ", from_year, " to ", current_year, ". \n")
-    }
-    download_mod_mbox_per_month(archive_url = archive_url,
-                                mailing_list = mailing_list,
-                                archive_type = archive_type,
-                                from_year = from_year,
-                                to_year = current_year,
-                                save_folder_path = save_folder_path,
-                                verbose = verbose)
-  } else {
-    counter <- 0
-    destination <- list()
-    latest_file_name <- parse_mbox_latest_date(save_folder_path)
-    extracted_year_month <- sub("[^_]*_[^_]*_", "", sub(".mbox", "", latest_file_name))
-    output <- path.expand(save_folder_path)
-
-    latest_downloaded_year <- as.numeric(substr(extracted_year_month, 1, 4))
-    latest_downloaded_month <- as.numeric(substr(extracted_year_month, 6, 7))
-    this_file <- paste(save_folder_path, latest_file_name, sep = "/")
-    file.remove(this_file)
-    # Download files starting from deleted file month to end of that year
-    for (month in (latest_downloaded_month:12)) {
-      # Checks to see if iterator goes beyond current month, stops function if it does
-      if (latest_downloaded_year == current_year && month > current_month) {
-        return(output)
-      }
-      counter <- counter + 1
-
-      #Generate file destinations for the monthly files in /tmp/
-      destination[[counter]] <- sprintf("%d%02d.mbox", latest_downloaded_year, month)
-      mbox_file_name <- stringi::stri_c(mailing_list, archive_type, destination[[counter]], sep = "_")
-
-      if(verbose){
-        print(stringi::stri_c("Downloading:",mbox_file_name,sep = " "))
-      }
-
-      #Try file download and save result
-      full_month_url <- stringi::stri_c(archive_url, destination[[counter]], sep = "/")
-      full_tmp_save_path <- file.path(output,mbox_file_name)
-      x <- httr::GET(full_month_url,
-                     httr::write_disk(full_tmp_save_path,overwrite=TRUE))
-
-      # Remove file if error
-      # Can only be done post-write, see https://github.com/r-lib/httr/issues/553
-      if (httr::http_error(x) && file.exists(full_tmp_save_path)) {
-        warning(paste0("Unable to download: ",mbox_file_name))
-        file.remove(full_tmp_save_path)
-      }
-
-    }
-
-    # Call the per-month-downloader to download the new mail missing from the user's machine
-    download_mod_mbox_per_month(archive_url = archive_url,
-                                mailing_list = mailing_list,
-                                archive_type = archive_type,
-                                from_year = (latest_downloaded_year+1),
-                                to_year = current_year,
-                                save_folder_path = save_folder_path,
-                                verbose = verbose)
-  }
-  # End of if-else
-}
-
-#' Refresh mbox files downloaded via pipermail
-#'
-#' Uses the adopted file name convention by \code{\link{download_pipermail}} to identify
-#' the latest downloaded mbox year i and month j. It deletes the mbox file of year i and month j,
-#' then redownloads it along with the remaining months past j up to 12. Then, it calls
-#' \code{\link{download_mod_mbox_per_month}} with from_year being year i+1 and to_year being
-#' the current real-life year so that all newer mbox files are downloaded.
-#'
-#' If the directory is empty, then it downloads all pipermail files (as mbox files) via \code{\link{download_pipermail}}
-#'
-#' @param archive_url A url pointing to the mod_mbox mailing list directory (e.g. "http://mail-archives.apache.org/mod_mbox/apr-dev") without trailing slashes
-#' @param mailing_list Name of the project mailing list (e.g. apr-dev) in the mod_mbox directory
-#' @param archive_type Name of the archive that the project mailing list is archived in (e.g. apache)
-#' @param save_folder_path the full *folder* path where the monthly downloaded mbox will be stored.
-#' @param verbose prints progress during execution
-#' @export
-refresh_pipermail <- function(archive_url, mailing_list, archive_type, save_folder_path,verbose=FALSE) {
-  # Get a list of mbox files currently downloaded in save path folder
-  existing_mbox_files <- list.files(save_folder_path)
-
-  # Get the current year
-  current_date <- Sys.Date()
-  current_year <- as.numeric(substr(current_date, 1, 4))
-  current_month <- as.numeric(substr(current_date, 6, 7))
-
-  # If there are no mbox files downloaded, then download mbox files as normal using download_pipermail
-  if (length(existing_mbox_files) == 0) {
-    if (verbose) {
-      message("The folder is empty. Downloading all pipermail files. \n")
-    }
-    download_pipermail(mailing_list = mailing_list,
-                       start_year_month = start_year_month,
-                       end_year_month = end_year_month,
-                       save_folder_path = save_folder_path)
-  } else {
-    latest_file_name <- parse_mbox_latest_date(save_folder_path)
-    extracted_year_month <- sub("[^_]*_[^_]*_", "", sub(".mbox", "", latest_file_name))
-    output <- path.expand(save_folder_path)
-
-    latest_downloaded_year <- as.numeric(substr(extracted_year_month, 1, 4))
-    latest_downloaded_month <- as.numeric(substr(extracted_year_month, 5, 6))
-    this_file <- paste(save_folder_path, latest_file_name, sep = "/")
-    # Overwrite file because new email may have been added at this point in this month
-    file.remove(this_file)
-
-    # Download txt files starting from deleted file month to end of that year, save as mbox
-    download_txt_files_latest_downloaded_year <- function(archive_url, mailing_list, archive_type, latest_downloaded_year, latest_downloaded_month,  current_year, current_month, save_folder_path) {
-      counter <- 0
-      destination <- list()
-      mbox_correct_name_format <- list()
-      output <- save_folder_path
-
-      for (month in (latest_downloaded_month:12)) {
-        if (latest_downloaded_year == current_year && month > current_month) {
-          return(output)
-        }
-        counter <- counter + 1
-
-        #Generate file destinations for the monthly files in /tmp/
-        destination[[counter]] <- sprintf("%d-%s.txt", latest_downloaded_year, month.name[month])
-        mbox_correct_name_format[[counter]] <- sprintf("%d%02d.mbox", latest_downloaded_year, month)
-        mbox_file_name <- stringi::stri_c(mailing_list, archive_type, mbox_correct_name_format[[counter]], sep = "_")
-
-        #Try file download and save result
-        full_month_url <- stringi::stri_c(archive_url, destination[[counter]], sep = "/")
-        full_tmp_save_path <- file.path(output,mbox_file_name)
-        x <- httr::GET(full_month_url,
-                       httr::write_disk(full_tmp_save_path,overwrite=TRUE))
-
-        # Remove file if error
-        # Can only be done post-write, see https://github.com/r-lib/httr/issues/553
-        if (httr::http_error(x) && file.exists(full_tmp_save_path)) {
-          warning(paste0("Unable to download: ",destination[[counter]]))
-          file.remove(full_tmp_save_path)
-        }
-
-      }
-    }
-
-    # Download txt.gz files starting from deleted file month to the end of that year, save as mbox
-    download_txt_gz_files_latest_downloaded_year <- function(archive_url, mailing_list, archive_type, latest_downloaded_year, latest_downloaded_month, current_year, current_month, save_folder_path) {
-
-      counter <- 0
-      destination <- list()
-      mbox_correct_name_format <- list()
-      output <- save_folder_path
-
-      for (month in (latest_downloaded_month:12)) {
-        if (latest_downloaded_year == current_year && month > current_month) {
-          return(output)
-        }
-        counter <- counter + 1
-
-        #Generate file destinations for the monthly files in /tmp/
-        destination[[counter]] <- sprintf("%d-%s.txt.gz", latest_downloaded_year, month.name[month])
-        mbox_correct_name_format[[counter]] <- sprintf("%d%02d.mbox", latest_downloaded_year, month)
-        mbox_file_name <- stringi::stri_c(mailing_list, archive_type, mbox_correct_name_format[[counter]], sep = "_")
-
-        #Try file download and save result
-        full_month_url <- stringi::stri_c(archive_url, destination[[counter]], sep = "/")
-        full_tmp_save_path <- file.path(output,mbox_file_name)
-        x <- httr::GET(full_month_url,
-                       httr::write_disk(full_tmp_save_path,overwrite=TRUE))
-
-        # Remove file if error
-        # Can only be done post-write, see https://github.com/r-lib/httr/issues/553
-        if (httr::http_error(x) && file.exists(full_tmp_save_path)) {
-          warning(paste0("Unable to download: ",destination[[counter]]))
-          file.remove(full_tmp_save_path)
-        }
-
-      }
-    }
-
-    # Download txt files from the year after the latest downloaded year to the current real life year
-    download_txt_files_current_year <- function(archive_url, mailing_list, archive_type, latest_downloaded_year, current_year, current_month, save_folder_path) {
-
-      counter <- 0
-      destination <- list()
-      mbox_correct_name_format <- list()
-      output <- save_folder_path
-
-      for (year in (latest_downloaded_year+1):current_year) {
-        for (month in (1:12)) {
-          if (year == current_year && month > current_month) {
-            return(output)
-          }
-          counter <- counter + 1
-
-          #Generate file destinations for the monthly files in /tmp/
-          destination[[counter]] <- sprintf("%d-%s.txt", year, month.name[month])
-          mbox_correct_name_format[[counter]] <- sprintf("%d%02d.mbox", year, month)
-          mbox_file_name <- stringi::stri_c(mailing_list, archive_type, mbox_correct_name_format[[counter]], sep = "_")
-
-          #Try file download and save result
-          full_month_url <- stringi::stri_c(archive_url, destination[[counter]], sep = "/")
-          full_tmp_save_path <- file.path(output,mbox_file_name)
-          x <- httr::GET(full_month_url,
-                         httr::write_disk(full_tmp_save_path,overwrite=TRUE))
-
-          # Remove file if error
-          # Can only be done post-write, see https://github.com/r-lib/httr/issues/553
-          if (httr::http_error(x) && file.exists(full_tmp_save_path)) {
-            warning(paste0("Unable to download: ",destination[[counter]]))
-            file.remove(full_tmp_save_path)
-          }
-
-        }
-      }
-
-    }
-
-    # Download txt.gz files from the year after the latest downloaded year to the current real life year
-    download_txt_gz_files_current_year <- function(archive_url, mailing_list, archive_type, latest_downloaded_year, current_year, current_month, save_folder_path) {
-
-      counter <- 0
-      destination <- list()
-      mbox_correct_name_format <- list()
-      output <- save_folder_path
-
-      for (year in (latest_downloaded_year+1):current_year) {
-        for (month in (1:12)) {
-          if (year == current_year && month > current_month) {
-            return(output)
-          }
-          counter <- counter + 1
-
-          #Generate file destinations for the monthly files in /tmp/
-          destination[[counter]] <- sprintf("%d-%s.txt.gz", year, month.name[month])
-          mbox_correct_name_format[[counter]] <- sprintf("%d%02d.mbox", year, month)
-          mbox_file_name <- stringi::stri_c(mailing_list, archive_type, mbox_correct_name_format[[counter]], sep = "_")
-
-          #Try file download and save result
-          full_month_url <- stringi::stri_c(archive_url, destination[[counter]], sep = "/")
-          full_tmp_save_path <- file.path(output,mbox_file_name)
-          x <- httr::GET(full_month_url,
-                         httr::write_disk(full_tmp_save_path,overwrite=TRUE))
-
-          # Remove file if error
-          # Can only be done post-write, see https://github.com/r-lib/httr/issues/553
-          if (httr::http_error(x) && file.exists(full_tmp_save_path)) {
-            warning(paste0("Unable to download: ",destination[[counter]]))
-            file.remove(full_tmp_save_path)
-          }
-
-        }
-      }
-
-    }
-
-    download_txt_files_latest_downloaded_year(archive_url=archive_url,
-                                              mailing_list=mailing_list,
-                                              archive_type=archive_type,
-                                              latest_downloaded_year=latest_downloaded_year,
-                                              latest_downloaded_month=latest_downloaded_month,
-                                              current_year = current_year,
-                                              current_month = current_month,
-                                              save_folder_path=save_folder_path)
-
-    download_txt_gz_files_latest_downloaded_year(archive_url=archive_url,
-                                                mailing_list=mailing_list,
-                                                archive_type=archive_type,
-                                                latest_downloaded_year=latest_downloaded_year,
-                                                latest_downloaded_month=latest_downloaded_month,
-                                                current_year = current_year,
-                                                current_month = current_month,
-                                                save_folder_path=save_folder_path)
-
-    download_txt_files_current_year(archive_url=archive_url,
-                                    mailing_list=mailing_list,
-                                    archive_type=archive_type,
-                                    latest_downloaded_year=latest_downloaded_year,
-                                    current_year=current_year,
-                                    current_month = current_month,
-                                    save_folder_path=save_folder_path)
-
-    download_txt_gz_files_current_year(archive_url=archive_url,
-                                    mailing_list=mailing_list,
-                                    archive_type=archive_type,
-                                    latest_downloaded_year=latest_downloaded_year,
-                                    current_year = current_year,
-                                    current_month = current_month,
-                                    save_folder_path=save_folder_path)
-  }
-  # End of if-else
-}
 
 ############## Parsers ##############
 

@@ -2,34 +2,28 @@
 % Please edit documentation in R/mail.R
 \name{refresh_pipermail}
 \alias{refresh_pipermail}
-\title{Refresh mbox files downloaded via pipermail}
+\title{Refresh mbox files downloaded via pipermail
+Uses the adopted file name convention by \code{\link{download_pipermail}} to identify
+the latest downloaded mbox. It deletes this file, then redownloads it along with all future months
+up to the current real-life month.
+If the directory is empty, then it downloads all pipermail files (as mbox files) via \code{\link{download_pipermail}}}
 \usage{
-refresh_pipermail(
-  archive_url,
-  mailing_list,
-  archive_type,
-  save_folder_path,
-  verbose = FALSE
-)
+refresh_pipermail(mailing_list, start_year_month, save_folder_path)
 }
 \arguments{
-\item{archive_url}{A url pointing to the mod_mbox mailing list directory (e.g. "http://mail-archives.apache.org/mod_mbox/apr-dev") without trailing slashes}
+\item{mailing_list}{The name of the mailing list being downloaded}
 
-\item{mailing_list}{Name of the project mailing list (e.g. apr-dev) in the mod_mbox directory}
+\item{start_year_month}{The year and month of the first file to be downloaded}
 
-\item{archive_type}{Name of the archive that the project mailing list is archived in (e.g. apache)}
-
-\item{save_folder_path}{the full *folder* path where the monthly downloaded mbox will be stored.}
-
-\item{verbose}{prints progress during execution}
+\item{save_folder_path}{The folder path in which all the downloaded pipermail files will be stored}
+}
+\value{
+Returns `downloaded_files`, a vector of the downloaded files in the current working directory
 }
 \description{
+Refresh mbox files downloaded via pipermail
 Uses the adopted file name convention by \code{\link{download_pipermail}} to identify
-the latest downloaded mbox year i and month j. It deletes the mbox file of year i and month j,
-then redownloads it along with the remaining months past j up to 12. Then, it calls
-\code{\link{download_mod_mbox_per_month}} with from_year being year i+1 and to_year being
-the current real-life year so that all newer mbox files are downloaded.
-}
-\details{
+the latest downloaded mbox. It deletes this file, then redownloads it along with all future months
+up to the current real-life month.
 If the directory is empty, then it downloads all pipermail files (as mbox files) via \code{\link{download_pipermail}}
 }

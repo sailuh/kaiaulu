@@ -64,9 +64,8 @@ save_folder_path <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["s
 - end_year_month: The ending date for downloading archives (in YYYYMM format).
 - save_folder_path: The local directory where the downloaded archives will be saved.
 
-
 # Pipermail Downloader
-
+You can download the archives using the download_pipermail() function, which downloads and saves .mbox files to the specified directory. The .mbox files are named with the format kaiaulu_YYYYMM.mbox, where YYYYMM refers to the year and month of the archive.
 ```{r}
 # Download archives
 download_pipermail(
@@ -79,3 +78,20 @@ download_pipermail(
 ```
 After running this function, the .mbox files will be saved in the specified directory with filenames like kaiaulu_202310.mbox, kaiaulu_202311.mbox, etc.
 
+# Pipermail Refresher
+In some cases, you may want to refresh the archive to ensure the most recent months are up-to-date or to handle updates to the mailing list. The refresh_pipermail() function helps automate this process.
+
+How refresh_pipermail Works
+1. Checks if the folder is empty: If the folder is empty, it downloads archives starting from start_year_month to the current month using download_pipermail().
+2. Finds the most recent file: If the folder is not empty, the function checks for the most recent month’s file (based on the filename) and deletes it.
+3. Redownloads from the most recent month: The function then redownloads the archive from the most recent month up to the current month.
+```{r}
+# Refresh archives
+refresh_pipermail(
+  mailing_list = mailing_list,
+  start_year_month = start_year_month,
+  save_folder_path = save_folder_path
+)
+
+```
+This function will ensure that the most recent archives are always up-to-date by redownloading the current month's archive if necessary and adding any new months that have been added to the mailing list.
