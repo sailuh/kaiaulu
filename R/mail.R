@@ -20,42 +20,56 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
     dir.create(save_folder_path, recursive = TRUE)
   }
 
+  # Ensure mailing_list URL ends with a slash
+  if (!stringi::stri_endswith_fixed(mailing_list, "/")) {
+    mailing_list <- paste0(mailing_list, "/")
+  }
+
   # Get mailing list contents
-  response <- GET(mailing_list)
+  response <- httr::GET(mailing_list)
 
   # Parse the response
-  parsed_response <- content(response, "text")
-  doc_obj <- htmlParse(parsed_response, asText = TRUE)
+  parsed_response <- httr::content(response, "text")
+  doc_obj <- XML::htmlParse(parsed_response, asText = TRUE)
 
   # Table rows
-  rows <- getNodeSet(doc_obj, "//tr")
+  rows <- XML::getNodeSet(doc_obj, "//tr")
 
   # Skip header row
   data_rows <- rows[-1]
 
   # Vector for link storage
-  links = c()
+  links <- c()
 
   # Extract the date and link from each row
   for (row in data_rows) {
     # Date in YYYYMM format
-    date_extracted <- xpathSApply(row, ".//td[1]", xmlValue)
-    date_cleaned <- stri_replace_last_regex(date_extracted, pattern = ":$", replacement = "")
-    date_cleaned <- stri_trim_both(date_cleaned)
+    date_extracted <- XML::xpathSApply(row, ".//td[1]", XML::xmlValue)
+    date_cleaned <- stringi::stri_replace_last_regex(date_extracted, pattern = ":$", replacement = "")
+    date_cleaned <- stringi::stri_trim_both(date_cleaned)
     # Parse the date
     # Add 01 as dummy to make it a valid date
     date_parsed <- as.Date(paste0("01 ", date_cleaned), format = "%d %B %Y")
+    if (is.na(date_parsed)) {
+      warning("Date could not be parsed: ", date_cleaned)
+      next
+    }
     year_month <- format(date_parsed, "%Y%m")
 
     # Check if date is within range
     if (year_month >= start_year_month & year_month <= end_year_month) {
-      # get href from column 3
-      link_nodes <- xpathSApply(row, ".//td[3]/a", xmlGetAttr, 'href')
+      # Get href from column 3
+      link_nodes <- XML::xpathSApply(row, ".//td[3]/a", XML::xmlGetAttr, 'href')
+      if (length(link_nodes) == 0) {
+        warning("No link found in row for date: ", date_cleaned)
+        next
+      }
       # Store the link in links
       link <- link_nodes[1]
       links <- c(links, link)
     }
   }
+
   # Vector for downloaded files
   downloaded_files <- c()
   for (i in seq_along(links)) {
@@ -66,6 +80,10 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
 
     # Parse the date from the base name
     date_parsed <- as.Date(paste0("01-", base_name), format = "%d-%Y-%B")
+    if (is.na(date_parsed)) {
+      warning("Could not parse date from link: ", link)
+      next
+    }
     year_month_clean <- format(date_parsed, "%Y%m")
 
     # Download URL
@@ -78,7 +96,7 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
 
     # Download the gz mbox file
     cat("Downloading:", download_url, "\n")
-    GET(download_url, write_disk(dest_gz, overwrite = TRUE))
+    httr::GET(download_url, httr::write_disk(dest_gz, overwrite = TRUE))
 
     # Unzip the file
     gz_con <- gzfile(dest_gz, open = "rb")
@@ -100,8 +118,8 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
 
   # Return downloaded files
   return(downloaded_files)
-
 }
+
 
 
 #' Convert pipermail archive files (.txt and .txt.gz) into an mbox format for use with \code{\link{parse_mbox}}
@@ -417,10 +435,10 @@ refresh_pipermail <- function(archive_url, mailing_list, archive_type, save_fold
     if (verbose) {
       message("The folder is empty. Downloading all pipermail files. \n")
     }
-    download_pipermail(archive_url = archive_url,
-                                mailing_list = mailing_list,
-                                archive_type = archive_type,
-                                save_folder_path = save_folder_path)
+    download_pipermail(mailing_list = mailing_list,
+                       start_year_month = start_year_month,
+                       end_year_month = end_year_month,
+                       save_folder_path = save_folder_path)
   } else {
     latest_file_name <- parse_mbox_latest_date(save_folder_path)
     extracted_year_month <- sub("[^_]*_[^_]*_", "", sub(".mbox", "", latest_file_name))

@@ -1,0 +1,81 @@
+---
+title: "Download Mod Mbox and Pipermail Mailing List Archives"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Download Mod Mbox Mailing List Archives}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+
+# Load libraries
+  library(kaiaulu)
+  library(data.table)
+  library(yaml)
+  library(stringi)
+  library(XML)
+  library(httr)
+```
+
+
+# Introduction
+
+Mailing list data is stored in a variety of archives. See:
+- Mod Mbox: [Apache Geronimo](https://geronimo.apache.org/mailing-lists.html)).
+- Pipermail: [OpenSSL](https://mta.openssl.org/mailman/listinfo/).
+is notebook demonstrates how to download and refresh mailing list archives from Mod Mbox and Pipermail.
+
+## Mailing List Organization
+
+Mailing lists are typically organized by topic or purpose. For example, the [OpenSSL project](https://www.openssl.org/community/mailinglists.html) maintains several mailing lists, each serving a different group:
+
+- **openssl-announce**: For important announcements.
+- **openssl-commits**: For commit messages.
+- **openssl-project**: For project discussions.
+- **openssl-users**: For general user questions and discussions.
+
+Each mailing list maintains archives of past messages, often organized by month and year. These archives can be accessed and downloaded for analysis.
+
+# Project Configuration File 
+
+To start, we load the project configuration file, which contains parameters for downloading the mailing list archives.
+
+// # Project Configuration File
+
+```{r}
+conf <- yaml::read_yaml("conf/helix.yml")
+mailing_list <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["mailing_list"]]
+start_year_month <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["start_year_month"]]
+end_year_month <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["end_year_month"]]
+save_folder_path <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["save_folder_path"]]
+```
+
+### Explanation of Configuration Parameters
+- mailing_list: The URL of the mailing list archive index page (e.g., https://lists.openssl.org/pipermail/openssl-users/).
+- start_year_month: The starting date for downloading archives (in YYYYMM format).
+- end_year_month: The ending date for downloading archives (in YYYYMM format).
+- save_folder_path: The local directory where the downloaded archives will be saved.
+
+
+# Pipermail Downloader
+
+```{r}
+# Download archives
+download_pipermail(
+  mailing_list = mailing_list,
+  start_year_month = start_year_month,
+  end_year_month = end_year_month,
+  save_folder_path = save_folder_path
+)
+
+```
+After running this function, the .mbox files will be saved in the specified directory with filenames like kaiaulu_202310.mbox, kaiaulu_202311.mbox, etc.
+
