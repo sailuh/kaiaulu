@@ -2,28 +2,34 @@
 % Please edit documentation in R/mail.R
 \name{refresh_pipermail}
 \alias{refresh_pipermail}
-\title{Refresh mbox files downloaded via pipermail
-Uses the adopted file name convention by \code{\link{download_pipermail}} to identify
-the latest downloaded mbox. It deletes this file, then redownloads it along with all future months
-up to the current real-life month.
-If the directory is empty, then it downloads all pipermail files (as mbox files) via \code{\link{download_pipermail}}}
+\title{Refresh mbox files downloaded via pipermail}
 \usage{
-refresh_pipermail(mailing_list, start_year_month, save_folder_path)
+refresh_pipermail(
+  mailing_list,
+  start_year_month,
+  save_folder_path,
+  verbose = TRUE
+)
 }
 \arguments{
-\item{mailing_list}{The name of the mailing list being downloaded}
+\item{mailing_list}{The URL of the mailing list being downloaded (e.g., "https://mta.openssl.org/pipermail/openssl-announce/")}
 
-\item{start_year_month}{The year and month of the first file to be downloaded}
+\item{start_year_month}{The year and month of the first file to be downloaded (format: 'YYYYMM').}
 
-\item{save_folder_path}{The folder path in which all the downloaded pipermail files will be stored}
+\item{save_folder_path}{The folder path in which all the downloaded pipermail files will be stored.}
+
+\item{verbose}{Logical; if TRUE, prints diagnostic messages.}
 }
 \value{
-Returns `downloaded_files`, a vector of the downloaded files in the current working directory
+Returns `downloaded_files`, a vector of the newly downloaded files in the current working directory.
 }
 \description{
-Refresh mbox files downloaded via pipermail
-Uses the adopted file name convention by \code{\link{download_pipermail}} to identify
-the latest downloaded mbox. It deletes this file, then redownloads it along with all future months
-up to the current real-life month.
-If the directory is empty, then it downloads all pipermail files (as mbox files) via \code{\link{download_pipermail}}
+This function refreshes the mailing list files by checking the contents of a specified folder.
+If the folder is empty, it calls \code{download_pipermail} to download all pipermail files from start_year_month to the current month.
+If the folder contains already-downloaded mbox files, it identifies the most recent month, deletes that file, and redownloads it
+along with all future months up to the current real-life month.
+
+The naming convention of files is kaiaulu_YYYYMM.mbox, and the function uses this pattern to identify the most recent month.
+After deleting the most recent file, the function ensures that the month is redownloaded, along with all subsequent months up to the current month.
+Redownloading the most recent file makes sure that any files added in that month after the latest refresh are included.
 }
