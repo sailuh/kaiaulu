@@ -84,7 +84,6 @@ filter:
 We load the above various sections of the single .yaml project configuration file as follows:
 
 ```{r}
-source("../R/config.R")
 tool <- get_tools()
 conf <- get_conf("apr")
 
