@@ -11,7 +11,7 @@
 #' @return the tools.yml file
 #' @export
 get_tools <- function() {
-  tool <- yaml::read_yaml("tools.yml")
+  tool <- yaml::read_yaml("../tools.yml")
   return(tool)
 }
 
@@ -23,7 +23,7 @@ get_tools <- function() {
 #' @return the tool path from tools.yml
 #' @export
 get_tools_project <- function(tool_name) {
-  tool <- yaml::read_yaml("tools.yml")
+  tool <- yaml::read_yaml("../tools.yml")
   tool_path <- tool[[tool_name]]
   return(tool_path)
 }
@@ -37,7 +37,7 @@ get_tools_project <- function(tool_name) {
 #' @export
 get_conf <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   if(is.null(conf)) {
@@ -55,7 +55,7 @@ get_conf <- function(project_name) {
 #' @return the local git repo path
 #' @export
 get_git_repo_path <- function(project_name) {
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   git_repo_path <- conf[["version_control"]][["log"]]
@@ -76,7 +76,7 @@ get_git_repo_path <- function(project_name) {
 #' @export
 get_git_branches <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   git_branch <- conf[["version_control"]][["branch"]]
@@ -97,7 +97,7 @@ get_git_branches <- function(project_name) {
 #' @export
 get_file_extensions <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
@@ -118,7 +118,7 @@ get_file_extensions <- function(project_name) {
 #' @export
 get_substring_filepath <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
@@ -139,7 +139,7 @@ get_substring_filepath <- function(project_name) {
 #' @export
 get_filter_commit_size <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   filter_commit_size <- conf[["filter"]][["remove_filepaths_on_commit_size_greather_than"]]
@@ -160,7 +160,7 @@ get_filter_commit_size <- function(project_name) {
 #' @export
 get_uctags_line_types <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   kinds <- conf[["tool"]][["uctags"]][["keep_lines_type"]]
@@ -181,7 +181,7 @@ get_uctags_line_types <- function(project_name) {
 #' @export
 get_code_language <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   language <- conf[["tool"]][["depends"]][["code_language"]]
@@ -202,7 +202,7 @@ get_code_language <- function(project_name) {
 #' @export
 get_keep_dependencies_type <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   keep_dependencies_type <- conf[["tool"]][["depends"]][["keep_dependencies_type"]]
@@ -224,7 +224,7 @@ get_keep_dependencies_type <- function(project_name) {
 #' @export
 get_dv8_folder_path <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   project_path <- conf[["tool"]][["dv8"]][["folder_path"]]
@@ -245,7 +245,7 @@ get_dv8_folder_path <- function(project_name) {
 #' @export
 get_dv8_flaws_params <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   flaws_params <- conf[["tool"]][["dv8"]][["architectural_flaws"]]
@@ -266,7 +266,7 @@ get_dv8_flaws_params <- function(project_name) {
 #' @export
 get_issue_id_regex <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   issue_id_regex <- conf[["commit_message_id_regex"]][["issue_id"]]
@@ -287,7 +287,7 @@ get_issue_id_regex <- function(project_name) {
 #' @export
 get_srcml_filepath <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   srcml_filepath <- conf[["tool"]][["srcml"]][["srcml_path"]]
@@ -308,7 +308,7 @@ get_srcml_filepath <- function(project_name) {
 #' @export
 get_pattern4_folder_path <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   class_folder_path <- conf[["tool"]][["pattern4"]][["class_folder_path"]]
@@ -329,7 +329,7 @@ get_pattern4_folder_path <- function(project_name) {
 #' @export
 get_pattern4_filepath <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   pattern4_output_filepath <- conf[["tool"]][["pattern4"]][["output_filepath"]]
@@ -350,7 +350,7 @@ get_pattern4_filepath <- function(project_name) {
 #' @export
 get_topics <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   topics <- conf[["analysis"]][["topics"]]
@@ -371,7 +371,7 @@ get_topics <- function(project_name) {
 #' @export
 get_mbox_key_indexes <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   mbox_keys <- conf[["mailing_list"]][["mod_mbox"]]
@@ -393,7 +393,7 @@ get_mbox_key_indexes <- function(project_name) {
 #' @export
 get_mbox_path <- function(project_name, project_key_index) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   mbox_path <- conf[["mailing_list"]][["mod_mbox"]][[project_key_index]][["mbox"]]
@@ -415,7 +415,7 @@ get_mbox_path <- function(project_name, project_key_index) {
 #' @export
 get_mbox_domain <- function(project_name, project_key_index) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   mbox_url <- conf[["mailing_list"]][["mod_mbox"]][[project_key_index]][["archive_url"]]
@@ -437,7 +437,7 @@ get_mbox_domain <- function(project_name, project_key_index) {
 #' @export
 get_mbox_mailing_list <- function(project_name, project_key_index) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   mailing_list <- conf[["mailing_list"]][["mod_mbox"]][[project_key_index]][["mailing_list"]]
@@ -459,7 +459,7 @@ get_mbox_mailing_list <- function(project_name, project_key_index) {
 #' @export
 get_mbox_mailing_list <- function(project_name, project_key_index) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   archive_type <- conf[["mailing_list"]][["mod_mbox"]][[project_key_index]][["archive_type"]]
@@ -480,7 +480,7 @@ get_mbox_mailing_list <- function(project_name, project_key_index) {
 #' @export
 get_github_key_indexes <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   keys <- conf[["issue_tracker"]][["github"]]
@@ -502,7 +502,7 @@ get_github_key_indexes <- function(project_name) {
 #' @export
 get_github_owner <- function(project_name, project_key_index) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   owner <- conf[["issue_tracker"]][["github"]][[project_key_index]][["owner"]]
@@ -524,7 +524,7 @@ get_github_owner <- function(project_name, project_key_index) {
 #' @export
 get_github_repo <- function(project_name, project_key_index) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   repo <- conf[["issue_tracker"]][["github"]][[project_key_index]][["repo"]]
@@ -546,7 +546,7 @@ get_github_repo <- function(project_name, project_key_index) {
 #' @export
 get_github_issue_path <- function(project_name, project_key_index) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   issue_path <- conf[["issue_tracker"]][["github"]][[project_key_index]][["issue"]]
@@ -568,7 +568,7 @@ get_github_issue_path <- function(project_name, project_key_index) {
 #' @export
 get_github_issue_or_pr_comment_path <- function(project_name, project_key_index) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   issue_or_pr_comment_path <- conf[["issue_tracker"]][["github"]][[project_key_index]][["issue_or_pr_comment"]]
@@ -590,7 +590,7 @@ get_github_issue_or_pr_comment_path <- function(project_name, project_key_index)
 #' @export
 get_github_issue_search_path <- function(project_name, project_key_index) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   issue_search_path <- conf[["issue_tracker"]][["github"]][[project_key_index]][["issue_search"]]
@@ -612,7 +612,7 @@ get_github_issue_search_path <- function(project_name, project_key_index) {
 #' @export
 get_github_pull_request_path <- function(project_name, project_key_index) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   pull_request_path <- conf[["issue_tracker"]][["github"]][[project_key_index]][["pull_request"]]
@@ -634,7 +634,7 @@ get_github_pull_request_path <- function(project_name, project_key_index) {
 #' @export
 get_github_commit_path <- function(project_name, project_key_index) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   commit_path <- conf[["issue_tracker"]][["github"]][[project_key_index]][["commit"]]
@@ -655,7 +655,7 @@ get_github_commit_path <- function(project_name, project_key_index) {
 #' @export
 get_jira_key_indexes <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   keys <- conf[["issue_tracker"]][["jira"]]
@@ -677,7 +677,7 @@ get_jira_key_indexes <- function(project_name) {
 #' @export
 get_jira_domain <- function(project_name, project_key_index) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   domain <- conf[["issue_tracker"]][["jira"]][[project_key_index]][["domain"]]
@@ -699,7 +699,7 @@ get_jira_domain <- function(project_name, project_key_index) {
 #' @export
 get_jira_project_key_name <- function(project_name, project_key_index) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   name <- conf[["issue_tracker"]][["jira"]][[project_key_index]][["project_key"]]
@@ -721,7 +721,7 @@ get_jira_project_key_name <- function(project_name, project_key_index) {
 #' @export
 get_jira_issues_path <- function(project_name, project_key_index) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   jira_issues_path <- conf[["issue_tracker"]][["jira"]][[project_key_index]][["issues"]]
@@ -743,7 +743,7 @@ get_jira_issues_path <- function(project_name, project_key_index) {
 #' @export
 get_jira_issues_comments_path <- function(project_name, project_key_index) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   jira_issue_comments_path <- conf[["issue_tracker"]][["jira"]][[project_key_index]][["issue_comments"]]
@@ -764,7 +764,7 @@ get_jira_issues_comments_path <- function(project_name, project_key_index) {
 #' @export
 get_bugzilla_project_key <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   key <- conf[["issue_tracker"]][["bugzilla"]][["project_key_index"]][["project_key"]]
@@ -785,7 +785,7 @@ get_bugzilla_project_key <- function(project_name) {
 #' @export
 get_nvdfeed_folder_path <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   nvdfeed_folder_path <- conf[["vulnerabilities"]][["nvd_feed"]]
@@ -806,7 +806,7 @@ get_nvdfeed_folder_path <- function(project_name) {
 #' @export
 get_cveid_regex <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   cveid_regex <- conf[["commit_message_id_regex"]][["cve_id"]]
@@ -827,7 +827,7 @@ get_cveid_regex <- function(project_name) {
 #' @export
 get_enumeration_commits <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   commit <- conf[["analysis"]][["enumeration"]][["commit"]]
@@ -848,7 +848,7 @@ get_enumeration_commits <- function(project_name) {
 #' @export
 get_window_start_commit <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   start_commit <- conf[["analysis"]][["window"]][["start_commit"]]
@@ -869,7 +869,7 @@ get_window_start_commit <- function(project_name) {
 #' @export
 get_window_end_commit <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   end_commit <- conf[["analysis"]][["window"]][["end_commit"]]
@@ -890,7 +890,7 @@ get_window_end_commit <- function(project_name) {
 #' @export
 get_window_size <- function(project_name) {
 
-  conf_path <- paste0("conf/", project_name, ".yml")
+  conf_path <- paste0("../conf/", project_name, ".yml")
   conf <- yaml::read_yaml(conf_path)
 
   window_size <- conf[["analysis"]][["window"]][["size_days"]]
