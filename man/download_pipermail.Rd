@@ -21,7 +21,7 @@ download_pipermail(
 
 \item{save_folder_path}{The folder path in which all the downloaded pipermail files will be stored}
 
-\item{verbose}{Logical; if TRUE, prints diagnostic messages during the download process}
+\item{verbose}{if TRUE, prints diagnostic messages during the download process}
 }
 \value{
 Returns `downloaded_files`, a vector of the downloaded files in the current working directory

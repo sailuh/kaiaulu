@@ -18,7 +18,7 @@ refresh_pipermail(
 
 \item{save_folder_path}{The folder path in which all the downloaded pipermail files will be stored.}
 
-\item{verbose}{Logical; if TRUE, prints diagnostic messages.}
+\item{verbose}{if TRUE, prints diagnostic messages.}
 }
 \value{
 Returns `downloaded_files`, a vector of the newly downloaded files in the current working directory.

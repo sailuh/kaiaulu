@@ -22,7 +22,7 @@
 #' @param start_year_month The year and month of the first file to be downloaded (format: 'YYYYMM')
 #' @param end_year_month The year and month of the last file to be downloaded (format: 'YYYYMM', or use 'format(Sys.Date(), "%Y%m")' for the current month)
 #' @param save_folder_path The folder path in which all the downloaded pipermail files will be stored
-#' @param verbose Logical; if TRUE, prints diagnostic messages during the download process
+#' @param verbose if TRUE, prints diagnostic messages during the download process
 #' @return Returns `downloaded_files`, a vector of the downloaded files in the current working directory
 #' @export
 download_pipermail <- function(mailing_list, start_year_month, end_year_month, save_folder_path, verbose = TRUE) {
@@ -180,7 +180,7 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
 #' @param mailing_list The URL of the mailing list being downloaded (e.g., "https://mta.openssl.org/pipermail/openssl-announce/")
 #' @param start_year_month The year and month of the first file to be downloaded (format: 'YYYYMM').
 #' @param save_folder_path The folder path in which all the downloaded pipermail files will be stored.
-#' @param verbose Logical; if TRUE, prints diagnostic messages.
+#' @param verbose if TRUE, prints diagnostic messages.
 #' @return Returns `downloaded_files`, a vector of the newly downloaded files in the current working directory.
 #' @export
 refresh_pipermail <- function(mailing_list, start_year_month, save_folder_path, verbose = TRUE) {
@@ -297,76 +297,96 @@ process_gz_to_mbox_in_folder <- function(folder_path, verbose = TRUE) {
 }
 
 
-#' Compose mod_mbox archives (.mbox) into a single mbox file for use with \code{\link{parse_mbox}}
-#' @param base_url An url pointing to the mod_mbox directory (e.g. "http://mail-archives.apache.org/mod_mbox") without trailing slashes
-#' @param mailing_list Name of the project mailing list (e.g. apr-dev) in the mod_mbox directory
-#' @param from_year First year in the range to be downloaded
-#' @param to_year Last year in the range to be downloaded
-#' @param save_file_path the full path, including file name and extension to save the file
-#' @param is_per_month If TRUE, does not delete monthly files in tmp. (Default = TRUE)
-#' @param verbose Prints progress during execution
-#' @return Returns the path of the downloaded mbox file.
+############## Mod Mbox Downloader ##############
+
+#' Download all mod_mbox files in a mailing list as mbox files
+#'
+#' @description This function downloads mod_mbox archives from a specified Apache Pony Mail mailing list as .mbox files.
+#' It constructs the download URLs for each month based on the start and end date range and downloads the mbox files
+#' in the format "YYYY-MM". The downloaded .mbox files are saved in the specified folder, with a naming convention
+#' of kaiaulu_YYYYMM.mbox.
+#'
+#' The function loops through each month in the range specified by `start_year_month` and `end_year_month`,
+#' and constructs the appropriate URL to download each month's data. If any download fails, an error message is printed.
+#'
+#' @param mailing_list The URL of the Apache Pony Mail list from which mbox files are to be downloaded
+#' (e.g., "https://lists.apache.org/list.html?announce@apache.org").
+#' @param start_year_month The year and month of the first file to be downloaded (format: 'YYYYMM').
+#' @param end_year_month The year and month of the last file to be downloaded (format: 'YYYYMM').
+#' @param save_file_path The folder path where all the downloaded mbox files will be stored.
+#' @param verbose if TRUE, prints detailed messages during the download process.
+#' @return Returns `save_file_path`, the folder path where the mbox files are stored.
 #' @export
-download_mod_mbox <- function(base_url, mailing_list, from_year, to_year, save_file_path,is_per_month=TRUE,verbose=FALSE) {
+download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, save_file_path, verbose = FALSE) {
 
+  ########## Extract Mailing List Name ##########
+  # Extract the mailing list name from the given URL. This is because the actual list name is
+  # embedded within the URL (after the 'list.html?').
+  # We are using 'sub()' to perform a simple string replacement, extracting everything after 'list.html?'.
+  mailing_list_name <- sub(".*list.html\\?(.+)", "\\1", mailing_list)
+  if (verbose) cat("Base list extracted:", mailing_list_name, "\n")
 
-  #Initialize variables
-  counter <- 0
-  destination <- list()
+  ########## Prepare Year and Month ##########
+  # The start_year_month and end_year_month are in the format "YYYYMM".
+  # Split them into year and month for easier looping.
+  # Extract first 4 digits as start year, and last 2 digits as start month.
+  start_year <- as.numeric(substr(start_year_month, 1, 4))
+  start_month <- as.numeric(substr(start_year_month, 5, 6))
+  # Extract first 4 digits as end year, and last 2 digits as end month.
+  end_year <- as.numeric(substr(end_year_month, 1, 4))
+  end_month <- as.numeric(substr(end_year_month, 5, 6))
 
-  #Open file handle to output file
-  output <- path.expand(save_file_path)
-  fileConn <- file(output, "w+")
-
-  #Loop through time and compose the mbox file
-  for (year in (from_year:to_year)) {
-
+  ########## Download Loop ##########
+  # Iterate over the years and months from start_year/month to end_year/month.
+  # This is done by looping over the years, and for each year, looping over the 12 months.
+  for (year in start_year:end_year) {
     for (month in 1:12) {
-      counter <- counter + 1
+      # Skip months before the start_month or after the end_month for the start and end year.
+      if (year == start_year && month < start_month) next
+      if (year == end_year && month > end_month) break
 
-      #Generate file destinations for the monthly files in /tmp/
-      destination[[counter]] <- sprintf("%d%02d.mbox", year, month)
+      ######### Construct URL and Save Path ##########
+      # Construct the month string (e.g., '2023-04') and the full download URL.
+      # Make sure the month has two digits.
+      month_str <- sprintf("%02d", month)
+      # Create a string in the format "YYYY-MM"
+      year_month_str <- sprintf("%04d-%02d", year, month)
+      # This constructs the URL from which the mbox for the current year and month will be downloaded.
+      # The format for the URL is fixed by Apache's Pony Mail service.
+      download_url <- stringi::stri_c("https://lists.apache.org/api/mbox.lua?list=", mailing_list_name, "&date=", year_month_str)
 
-      if(verbose){
-        print(stringi::stri_c("Downloading:",destination[[counter]],sep = " "))
+      # Create the file name where the mbox will be saved locally, in the format ''kaiaulu_'YYYYMM.mbox'.
+      file_name <- stringi::stri_c("kaiaulu_", year, month_str, ".mbox")
+      file_path <- file.path(save_file_path, file_name)
+
+      if (verbose) {
+        cat("Constructed URL:", download_url, "\n")
+        cat("Saving to file:", file_path, "\n")
       }
 
-      #Try file download and save result
-      full_month_url <- stringi::stri_c(base_url, mailing_list, destination[[counter]], sep = "/")
-      full_tmp_save_path <- file.path('/tmp',destination[[counter]])
-      x <- httr::GET(full_month_url,
-                     httr::write_disk(full_tmp_save_path,overwrite=TRUE))
+      ########## Download Mbox File ##########
+      # Download the file using httr::GET, saving it directly to the destination file path.
+      response <- httr::GET(download_url, httr::write_disk(file_path, overwrite = TRUE))
+      # Get the status code to see if the download succeeded.
+      status_code <- httr::status_code(response)
 
-      #If download was successful, write to mbox file, if not, delete file
-      if (httr::http_error(x) == FALSE) {
-
-        #Open read connection
-        readCon <- file(full_tmp_save_path, "r")
-
-        data <- readLines(full_tmp_save_path)
-
-        #Write data to output
-        writeLines(data, fileConn)
-
-        #Close read connection
-        close(readCon)
+      # Check for successful download (status code 200).
+      if (status_code == 200) {
+        if (verbose) cat("Successfully downloaded:", download_url, "\n")
+      } else {
+        if (verbose) {
+          cat("Failed to download:", download_url, "\n")
+          cat("HTTP Status Code:", status_code, "\n")
+        }
+        # Remove failed download file.
+        unlink(file_path)
       }
-
-      #Delete the /tmp/ monthly files
-      if(!is_per_month){
-        unlink(full_tmp_save_path, force = TRUE)
-      }
-
-
     }
-
   }
 
-  #Close connection to target mbox file
-  close(fileConn)
-
-  #return output location
-  return(output)
+  ########## Return Save Path ##########
+  # Return the folder path where all mbox files were saved.
+  return(save_file_path)
 }
 
 #' Compose mod_mbox archives (.mbox) into a single mbox file for use with \code{\link{parse_mbox}}

@@ -17,12 +17,12 @@ seed <- 1
 set.seed(seed)
 
 # Load libraries
-  library(kaiaulu)
-  library(data.table)
-  library(yaml)
-  library(stringi)
-  library(XML)
-  library(httr)
+  require(kaiaulu)
+  require(data.table)
+  require(yaml)
+  require(stringi)
+  require(XML)
+  require(httr)
 ```
 
 
@@ -31,7 +31,9 @@ set.seed(seed)
 Mailing list data is stored in a variety of archives. See:
 - Mod Mbox: [Apache Geronimo](https://geronimo.apache.org/mailing-lists.html)).
 - Pipermail: [OpenSSL](https://mta.openssl.org/mailman/listinfo/).
-is notebook demonstrates how to download and refresh mailing list archives from Mod Mbox and Pipermail.
+This notebook demonstrates how to download and refresh mailing list archives from Mod Mbox and Pipermail.
+
+# Pipermail
 
 ## Mailing List Organization
 
@@ -44,11 +46,9 @@ Mailing lists are typically organized by topic or purpose. For example, the [Ope
 
 Each mailing list maintains archives of past messages, often organized by month and year. These archives can be accessed and downloaded for analysis.
 
-# Project Configuration File 
+## Project Configuration File 
 
 To start, we load the project configuration file, which contains parameters for downloading the mailing list archives.
-
-// # Project Configuration File
 
 ```{r}
 conf <- yaml::read_yaml("conf/helix.yml")
@@ -64,7 +64,7 @@ save_folder_path <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["s
 - end_year_month: The ending date for downloading archives (in YYYYMM format).
 - save_folder_path: The local directory where the downloaded archives will be saved.
 
-# Pipermail Downloader
+## Pipermail Downloader
 You can download the archives using the download_pipermail() function, which downloads and saves .mbox files to the specified directory. The .mbox files are named with the format kaiaulu_YYYYMM.mbox, where YYYYMM refers to the year and month of the archive.
 ```{r}
 # Download archives
@@ -78,7 +78,7 @@ download_pipermail(
 ```
 After running this function, the .mbox files will be saved in the specified directory with filenames like kaiaulu_202310.mbox, kaiaulu_202311.mbox, etc.
 
-# Pipermail Refresher
+## Pipermail Refresher
 In some cases, you may want to refresh the archive to ensure the most recent months are up-to-date or to handle updates to the mailing list. The refresh_pipermail() function helps automate this process.
 
 How refresh_pipermail Works
@@ -95,3 +95,41 @@ refresh_pipermail(
 
 ```
 This function will ensure that the most recent archives are always up-to-date by redownloading the current month's archive if necessary and adding any new months that have been added to the mailing list.
+
+# Mod Mbox
+
+## Mailing List Organization
+Mod Mbox archives also organize mailing lists by topic. The apache mailing list archives can be found at https://lists.apache.org/.
+
+## Project Configuration File
+Similar to Pipermail, we load the configuration for Mod Mbox from the YAML file, which includes the mailing list URL, the date range, and the save folder path.
+
+```{r}
+mod_mbox_list <- conf[["mailing_list"]][["mod_mbox"]][["mail_key_1"]][["mailing_list"]]
+mod_start_year_month <- conf[["mailing_list"]][["mod_mbox"]][["mail_key_1"]][["start_year_month"]]
+mod_end_year_month <- conf[["mailing_list"]][["mod_mbox"]][["mail_key_1"]][["end_year_month"]]
+mod_save_file_path <- conf[["mailing_list"]][["mod_mbox"]][["mail_key_1"]][["save_file_path"]]
+```
+
+### Explanation of Configuration Parameters
+- mailing_list: The URL of the Mod Mbox mailing list (e.g., https://lists.apache.org/list.html?announce@apache.org).
+- start_year_month: The first month to download (format: YYYYMM).
+- end_year_month: The last month to download (format: YYYYMM).
+- save_file_path: The directory where the downloaded .mbox files will be saved.
+
+##Mod Mbox Downloader
+The download_mod_mbox() function downloads Mod Mbox archives by constructing URLs based on the mailing list and date range, saving them as .mbox files named kaiaulu_YYYYMM.mbox.
+
+```{r}
+download_mod_mbox(
+  mailing_list = mod_mbox_list,
+  start_year_month = mod_start_year_month,
+  end_year_month = mod_end_year_month,
+  save_file_path = mod_save_file_path,
+  verbose = TRUE
+```
+
+After running the function, it constructs URLs like: https://lists.apache.org/api/mbox.lua?list=announce@apache.org&date=2024-01
+and saves the files in the specified folder.
+
+

@@ -50,15 +50,15 @@ version_control:
 mailing_list:
   mod_mbox:
     mail_key_1:
-      archive_url: http://mail-archives.apache.org/mod_mbox/helix-dev
-      mbox: ../../rawdata/helix/mod_mbox/helix-dev/
-      mailing_list: helix-dev
-      archive_type: apache
+      mailing_list: https://lists.apache.org/list.html?announce@apache.org
+      start_year_month: 202310
+      end_year_month: 202405
+      save_file_path: "../save_mbox_mail"
     mail_key_2:
-      archive_url: http://mail-archives.apache.org/mod_mbox/helix-user
-      mbox: ../../rawdata/helix/mod_mbox/helix-user/
-      mailing_list: helix-user
-      archive_type: apache
+      mailing_list: https://lists.apache.org/list.html?dev@felix.apache.org
+      start_year_month: 202201
+      end_year_month: 202401
+      save_file_path: "../save_mbox_mail"
   pipermail:
     project_key_1:
       # archive_url: https://mta.openssl.org/mailman/listinfo/
