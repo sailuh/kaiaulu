@@ -108,14 +108,14 @@ Similar to Pipermail, we load the configuration for Mod Mbox from the YAML file,
 mod_mbox_list <- conf[["mailing_list"]][["mod_mbox"]][["mail_key_1"]][["mailing_list"]]
 mod_start_year_month <- conf[["mailing_list"]][["mod_mbox"]][["mail_key_1"]][["start_year_month"]]
 mod_end_year_month <- conf[["mailing_list"]][["mod_mbox"]][["mail_key_1"]][["end_year_month"]]
-mod_save_file_path <- conf[["mailing_list"]][["mod_mbox"]][["mail_key_1"]][["save_file_path"]]
+mod_save_folder_path <- conf[["mailing_list"]][["mod_mbox"]][["mail_key_1"]][["save_folder_path"]]
 ```
 
 ### Explanation of Configuration Parameters
 - mailing_list: The URL of the Mod Mbox mailing list (e.g., https://lists.apache.org/list.html?announce@apache.org).
 - start_year_month: The first month to download (format: YYYYMM).
 - end_year_month: The last month to download (format: YYYYMM).
-- save_file_path: The directory where the downloaded .mbox files will be saved.
+- save_folder_path: The directory where the downloaded .mbox files will be saved.
 
 ##Mod Mbox Downloader
 The download_mod_mbox() function downloads Mod Mbox archives by constructing URLs based on the mailing list and date range, saving them as .mbox files named kaiaulu_YYYYMM.mbox.
@@ -125,11 +125,27 @@ download_mod_mbox(
   mailing_list = mod_mbox_list,
   start_year_month = mod_start_year_month,
   end_year_month = mod_end_year_month,
-  save_file_path = mod_save_file_path,
+  save_folder_path = mod_save_folder_path,
   verbose = TRUE
 ```
 
 After running the function, it constructs URLs like: https://lists.apache.org/api/mbox.lua?list=announce@apache.org&date=2024-01
 and saves the files in the specified folder.
 
+## Mod Mbox Refresher
+To refresh these archives to ensure that you have the latest messages, you can use the refresh_mod_mbox function. This function works similarly to the Pipermail refresher.
 
+How refresh_mod_mbox Works
+1. Checks if the folder is empty and, if so, downloads the archives starting from start_year_month to the current month by calling download_mod_mbox().
+2. If the folder contains files, it identifies the most recent one using the YYYYMM found in the filename. This file is deleted, and then redownloaded along with all future months.
+
+```{r}
+refresh_mod_mbox(
+  mailing_list = mod_mbox_list,
+  start_year_month = mod_start_year_month,
+  save_folder_path = mod_save_folder_path
+  verbose = TRUE
+)
+```
+
+This ensures your archive is up-to-date, accounting for new data that may have been added to the mailing list since the last download.

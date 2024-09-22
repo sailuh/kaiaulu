@@ -313,11 +313,11 @@ process_gz_to_mbox_in_folder <- function(folder_path, verbose = TRUE) {
 #' (e.g., "https://lists.apache.org/list.html?announce@apache.org").
 #' @param start_year_month The year and month of the first file to be downloaded (format: 'YYYYMM').
 #' @param end_year_month The year and month of the last file to be downloaded (format: 'YYYYMM').
-#' @param save_file_path The folder path where all the downloaded mbox files will be stored.
+#' @param save_folder_path The folder path where all the downloaded mbox files will be stored.
 #' @param verbose if TRUE, prints detailed messages during the download process.
-#' @return Returns `save_file_path`, the folder path where the mbox files are stored.
+#' @return Returns `save_folder_path`, the folder path where the mbox files are stored.
 #' @export
-download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, save_file_path, verbose = FALSE) {
+download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, save_folder_path, verbose = FALSE) {
 
   ########## Extract Mailing List Name ##########
   # Extract the mailing list name from the given URL. This is because the actual list name is
@@ -357,7 +357,7 @@ download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, sa
 
       # Create the file name where the mbox will be saved locally, in the format ''kaiaulu_'YYYYMM.mbox'.
       file_name <- stringi::stri_c("kaiaulu_", year, month_str, ".mbox")
-      file_path <- file.path(save_file_path, file_name)
+      file_path <- file.path(save_folder_path, file_name)
 
       if (verbose) {
         cat("Constructed URL:", download_url, "\n")
@@ -386,70 +386,71 @@ download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, sa
 
   ########## Return Save Path ##########
   # Return the folder path where all mbox files were saved.
-  return(save_file_path)
+  return(save_folder_path)
 }
 
-#' Compose mod_mbox archives (.mbox) into a single mbox file for use with \code{\link{parse_mbox}}
-#' @param archive_url A url pointing to the mod_mbox mailing list directory (e.g. "http://mail-archives.apache.org/mod_mbox/apr-dev") without trailing slashes
-#' @param mailing_list Name of the project mailing list (e.g. apr-dev) in the mod_mbox directory
-#' @param archive_type Name of the archive that the project mailing list is archived in (e.g. apache)
-#' @param from_year First year in the range to be downloaded
-#' @param to_year Last year in the range to be downloaded
-#' @param save_folder_path the full *folder* path where the monthly downloaded mbox will be stored.
-#' @param verbose Prints progress during execution
-#' @return Returns the path of the downloaded mbox file.
+
+############## Mod Mbox Refresher ##############
+
+#' Refresh mbox files downloaded via mod_mbox
+#'
+#' @description This function refreshes the mailing list files by checking the contents of a specified folder.
+#' If the folder is empty, it calls \code{download_mod_mbox} to download all mod_mbox files from start_year_month to the current month.
+#' If the folder contains already-downloaded mbox files, it identifies the most recent month, deletes that file, and redownloads it
+#' along with all future months up to the current real-life month.
+#'
+#' The naming convention of files is kaiaulu_YYYYMM.mbox, and the function uses this pattern to identify the most recent month.
+#' After deleting the most recent file, the function ensures that the month is redownloaded, along with all subsequent months up to the current month.
+#' Redownloading the most recent file ensures any files added in that month after the latest refresh are included.
+#'
+#' @param mailing_list The URL of the mailing list being downloaded (e.g., 'https://lists.apache.org/list.html?announce@apache.org')
+#' @param start_year_month The year and month of the first file to be downloaded (format: 'YYYYMM').
+#' @param save_folder_path The folder path in which all the downloaded mod_mbox files will be stored.
+#' @param verbose if TRUE, prints diagnostic messages.
+#' @return Returns `downloaded_files`, a vector of the newly downloaded files in the current working directory.
 #' @export
-download_mod_mbox_per_month <- function(archive_url, mailing_list, archive_type, from_year, to_year, save_folder_path,verbose=FALSE) {
+refresh_mod_mbox <- function(mailing_list, start_year_month, save_folder_path, verbose = TRUE) {
 
+  ########## Check if Folder is Empty ##########
+  # Check the contents of the folder to see if any .mbox files are already present.
+  # The function looks for files that match the naming pattern 'kaiaulu_YYYYMM.mbox'
+  files_in_folder <- list.files(save_folder_path, pattern = "kaiaulu_\\d{6}\\.mbox$")
 
-  #Initialize variables
-  counter <- 0
-  destination <- list()
+  if (length(files_in_folder) == 0) {
+    # If the folder is empty, download all mod_mbox files starting from start_year_month
+    # The end date is set to the current month based on the system date
+    end_year_month <- format(Sys.Date(), "%Y%m")
+    if (verbose) cat("Folder is empty. Downloading from", start_year_month, "to", end_year_month, "\n")
 
-  #Open file handle to output file
-  output <- path.expand(save_folder_path)
+    # Call the download_mod_mbox function to download files from start_year_month to end_year_month
+    download_mod_mbox(mailing_list, start_year_month, end_year_month, save_folder_path, verbose = verbose)
+  }
+  ########## Identify the Most Recent Month ##########
+  else {
+    # If the folder is not empty, identify the most recent month based on the filenames
+    # The filenames follow the pattern 'kaiaulu_YYYYMM.mbox', so we extract the YYYYMM part of the filenames
+    year_months <- gsub("kaiaulu_(\\d{6})\\.mbox$", "\\1", files_in_folder)
 
-  current_date <- Sys.Date()
-  current_year <- as.numeric(substr(current_date, 1, 4))
-  current_month <- as.numeric(substr(current_date, 6, 7))
+    # Find the most recent month by taking the maximum of the extracted YYYYMM values
+    recent_month <- max(year_months)
 
-  #Loop through time and compose the mbox file
-  for (year in (from_year:to_year)) {
-
-    for (month in 1:12) {
-      # Check to stop function when month iterates path current real life month
-      if (year == current_year && month > current_month) {
-        return(output)
-      }
-      counter <- counter + 1
-
-      #Generate file destinations for the monthly files in /tmp/
-      destination[[counter]] <- sprintf("%d%02d.mbox", year, month)
-      mbox_file_name <- stringi::stri_c(mailing_list, archive_type, destination[[counter]], sep = "_")
-
-      if(verbose){
-        print(stringi::stri_c("Downloading:",mbox_file_name,sep = " "))
-      }
-
-      #Try file download and save result
-      full_month_url <- stringi::stri_c(archive_url, destination[[counter]], sep = "/")
-      full_tmp_save_path <- file.path(output,mbox_file_name)
-      x <- httr::GET(full_month_url,
-                     httr::write_disk(full_tmp_save_path,overwrite=TRUE))
-
-      # Remove file if error
-      # Can only be done post-write, see https://github.com/r-lib/httr/issues/553
-      if (httr::http_error(x) && file.exists(full_tmp_save_path)) {
-        warning(stringi::stri_c("Unable to download: ",destination[[counter]]))
-        file.remove(full_tmp_save_path)
-      }
-
+    # Delete the most recent file before redownloading it
+    recent_file <- file.path(save_folder_path, stringi::stri_c("kaiaulu_", recent_month, ".mbox"))
+    if (file.exists(recent_file)) {
+      file.remove(recent_file)
+      if (verbose) cat("Deleted the most recent file:", recent_file, "\n")
     }
 
-  }
+    ########## Redownload from the Most Recent Month ##########
+    # Set the end_year_month to the current month (based on the system date)
+    end_year_month <- format(Sys.Date(), "%Y%m")
 
-  #return output location
-  return(output)
+    # Redownload files from the most recent month (that was just deleted) to the current month
+    if (verbose) cat("Redownloading from", recent_month, "to", end_year_month, "\n")
+
+    # Call the download_mod_mbox function to redownload the deleted month and all subsequent months up to the current month
+    download_mod_mbox(mailing_list, recent_month, end_year_month, save_folder_path, verbose = verbose)
+  }
 }
 
 

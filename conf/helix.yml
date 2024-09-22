@@ -53,12 +53,12 @@ mailing_list:
       mailing_list: https://lists.apache.org/list.html?announce@apache.org
       start_year_month: 202310
       end_year_month: 202405
-      save_file_path: "../save_mbox_mail"
+      save_folder_path: "../save_mbox_mail"
     mail_key_2:
       mailing_list: https://lists.apache.org/list.html?dev@felix.apache.org
       start_year_month: 202201
       end_year_month: 202401
-      save_file_path: "../save_mbox_mail"
+      save_folder_path: "../save_mbox_mail"
   pipermail:
     project_key_1:
       # archive_url: https://mta.openssl.org/mailman/listinfo/
