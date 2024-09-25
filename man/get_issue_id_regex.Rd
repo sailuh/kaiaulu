@@ -4,13 +4,13 @@
 \alias{get_issue_id_regex}
 \title{Get Issue Id Regex}
 \usage{
-get_issue_id_regex(project_name)
+get_issue_id_regex(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
-the issue id regex
+the issue ID regex
 }
 \description{
 Gets the issue ID regex on commit messages

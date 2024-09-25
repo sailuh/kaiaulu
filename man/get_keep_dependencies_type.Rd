@@ -4,10 +4,10 @@
 \alias{get_keep_dependencies_type}
 \title{Get Keep Dependencies Type}
 \usage{
-get_keep_dependencies_type(project_name)
+get_keep_dependencies_type(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
 the types of dependencies to keep

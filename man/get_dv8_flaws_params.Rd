@@ -4,13 +4,13 @@
 \alias{get_dv8_flaws_params}
 \title{Get Flaws Params}
 \usage{
-get_dv8_flaws_params(project_name)
+get_dv8_flaws_params(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
-the flaws params
+the architectural flaws thresholds
 }
 \description{
 Gets the architectural flaws thresholds

@@ -4,10 +4,10 @@
 \alias{get_enumeration_commits}
 \title{Get Enumeration Commits}
 \usage{
-get_enumeration_commits(project_name)
+get_enumeration_commits(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
 the commit intervals as a list

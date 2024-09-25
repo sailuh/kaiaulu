@@ -4,15 +4,15 @@
 \alias{get_jira_domain}
 \title{Get Jira Project Domain}
 \usage{
-get_jira_domain(project_name, project_key_index)
+get_jira_domain(config_file, project_key_index)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 
-\item{project_key_index}{the name of the index of the project key (e.g. "project_key_1" or "project_key_2")}
+\item{project_key_index}{The name of the index of the project key (e.g. "project_key_1" or "project_key_2")}
 }
 \value{
-the Jira domain of the project key index
+the Jira domain of the project key index for project specified by key index `project_key_index`
 }
 \description{
 Gets the Jira domain for a specific project key index

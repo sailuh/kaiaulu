@@ -4,10 +4,10 @@
 \alias{get_cveid_regex}
 \title{Get CVE ID Regex}
 \usage{
-get_cveid_regex(project_name)
+get_cveid_regex(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
 the commit message CVE

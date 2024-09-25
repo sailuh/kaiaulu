@@ -4,13 +4,13 @@
 \alias{get_srcml_filepath}
 \title{Get SrcML Filepath}
 \usage{
-get_srcml_filepath(project_name)
+get_srcml_filepath(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
-the srcml filepath
+the SrcML filepath
 }
 \description{
 Gets the SrcML filepath where the output is stored

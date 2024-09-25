@@ -4,10 +4,10 @@
 \alias{get_code_language}
 \title{Get Code Language}
 \usage{
-get_code_language(project_name)
+get_code_language(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
 the code language

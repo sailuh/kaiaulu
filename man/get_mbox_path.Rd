@@ -4,15 +4,15 @@
 \alias{get_mbox_path}
 \title{Get Mbox Save Path}
 \usage{
-get_mbox_path(project_name, project_key_index)
+get_mbox_path(config_file, project_key_index)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 
-\item{project_key_index}{the name of the index of the project key (e.g. "project_key_1" or "project_key_2")}
+\item{project_key_index}{The name of the index of the project key (e.g. "project_key_1" or "project_key_2")}
 }
 \value{
-the mbox path
+the local Mbox path for project specified by key index `project_key_index`
 }
 \description{
 Gets the local path to store Mbox data for a specific project key index

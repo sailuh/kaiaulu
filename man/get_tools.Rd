@@ -2,13 +2,16 @@
 % Please edit documentation in R/config.R
 \name{get_tools}
 \alias{get_tools}
-\title{Get tools.yml}
+\title{Get Parsed Tools File}
 \usage{
-get_tools()
+get_tools(tool_path = "tools.yml")
+}
+\arguments{
+\item{tool_path}{The path to the tools file, defaulted at tools.yml}
 }
 \value{
-the tools.yml file
+the parsed tools file
 }
 \description{
-Get tools.yml
+Get Parsed Tools File
 }

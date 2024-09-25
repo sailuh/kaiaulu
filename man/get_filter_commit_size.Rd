@@ -4,10 +4,10 @@
 \alias{get_filter_commit_size}
 \title{Get Filter Commit Size}
 \usage{
-get_filter_commit_size(project_name)
+get_filter_commit_size(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
 the commit size to filter out

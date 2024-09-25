@@ -4,10 +4,10 @@
 \alias{get_git_branches}
 \title{Get Project Git Branches}
 \usage{
-get_git_branches(project_name)
+get_git_branches(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
 the list of git branches

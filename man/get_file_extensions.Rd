@@ -4,10 +4,10 @@
 \alias{get_file_extensions}
 \title{Get File Extensions}
 \usage{
-get_file_extensions(project_name)
+get_file_extensions(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
 the file extensions

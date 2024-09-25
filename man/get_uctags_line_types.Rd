@@ -4,10 +4,10 @@
 \alias{get_uctags_line_types}
 \title{Get Uctags Line Types}
 \usage{
-get_uctags_line_types(project_name)
+get_uctags_line_types(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
 the uctags line type

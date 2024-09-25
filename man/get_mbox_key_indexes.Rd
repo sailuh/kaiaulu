@@ -4,14 +4,14 @@
 \alias{get_mbox_key_indexes}
 \title{Get Mailing List Mod Mbox Key Indexes}
 \usage{
-get_mbox_key_indexes(project_name)
+get_mbox_key_indexes(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
-the list of mod mbox mail key indexes
+the list of mod Mbox mail key indexes
 }
 \description{
-Gets the list of mod mbox mail key indexes
+Gets the list of mod Mbox mail key indexes
 }

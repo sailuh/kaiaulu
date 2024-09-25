@@ -4,13 +4,13 @@
 \alias{get_github_key_indexes}
 \title{Get GitHub Issue Tracker Project Key Indexes}
 \usage{
-get_github_key_indexes(project_name)
+get_github_key_indexes(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
-the list of issue tracker project keys
+the list of issue tracker project key indexes
 }
 \description{
 Gets the list of GitHub issue tracker project key indexes

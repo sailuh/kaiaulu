@@ -2,16 +2,18 @@
 % Please edit documentation in R/config.R
 \name{get_tools_project}
 \alias{get_tools_project}
-\title{Get Tool Path}
+\title{Get Tools Project}
 \usage{
-get_tools_project(tool_name)
+get_tools_project(tool_name, tools_file = get_tools())
 }
 \arguments{
-\item{tool_name}{the name of the tool (e.g. "perceval" or "dv8")}
+\item{tool_name}{The name of the tool (e.g. "perceval" or "dv8")}
+
+\item{tools_file}{The parsed tools file, defaulted at `get_tools()`}
 }
 \value{
-the tool path from tools.yml
+the specified `tool_name` tools project from `tools_file`
 }
 \description{
-Gets the tool path from the tools.yml file
+Gets the tools project from the parsed tools file
 }

@@ -4,14 +4,14 @@
 \alias{get_git_repo_path}
 \title{Get Project Git Repo Path}
 \usage{
-get_git_repo_path(project_name)
+get_git_repo_path(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
-the local git repo path
+the local git repository path specified in `config_file`
 }
 \description{
-Gets the local project git repo path from the config file
+Gets the local project git repository path of the project
 }

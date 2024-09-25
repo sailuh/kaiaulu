@@ -4,13 +4,13 @@
 \alias{get_window_end_commit}
 \title{Get Window End Commit}
 \usage{
-get_window_end_commit(project_name)
+get_window_end_commit(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
-the analysis window size
+the analysis window end commit
 }
 \description{
 Gets the analysis window end commit

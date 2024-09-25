@@ -4,13 +4,13 @@
 \alias{get_pattern4_filepath}
 \title{Get Pattern4 Output Filepath}
 \usage{
-get_pattern4_filepath(project_name)
+get_pattern4_filepath(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
-the output filepath
+the Pattern4 output filepath
 }
 \description{
 Gets the Pattern4 filepath where the output is stored

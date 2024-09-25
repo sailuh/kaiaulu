@@ -4,15 +4,15 @@
 \alias{get_jira_issues_path}
 \title{Get Jira Issues Path}
 \usage{
-get_jira_issues_path(project_name, project_key_index)
+get_jira_issues_path(config_file, project_key_index)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 
-\item{project_key_index}{the name of the index of the project key (e.g. "project_key_1" or "project_key_2")}
+\item{project_key_index}{The name of the index of the project key (e.g. "project_key_1" or "project_key_2")}
 }
 \value{
-the Jira issue path
+the Jira issue path for project specified by key index `project_key_index`
 }
 \description{
 Gets the local path to store Jira issues for a specific project key index

@@ -4,15 +4,15 @@
 \alias{get_github_repo}
 \title{Get GitHub Repository}
 \usage{
-get_github_repo(project_name, project_key_index)
+get_github_repo(config_file, project_key_index)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 
-\item{project_key_index}{the name of the index of the project key (e.g. "project_key_1" or "project_key_2")}
+\item{project_key_index}{The name of the index of the project key (e.g. "project_key_1" or "project_key_2")}
 }
 \value{
-the GitHub repository
+the name of the GitHub repository for project specified by key index `project_key_index`
 }
 \description{
 Gets the name of the GitHub repository for a specific project key index

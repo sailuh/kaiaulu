@@ -2,12 +2,12 @@
 % Please edit documentation in R/config.R
 \name{get_substring_filepath}
 \alias{get_substring_filepath}
-\title{Get Substring Filepath}
+\title{Get Substring Filepaths}
 \usage{
-get_substring_filepath(project_name)
+get_substring_filepath(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
 the substring filepaths

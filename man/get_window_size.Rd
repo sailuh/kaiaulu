@@ -4,10 +4,10 @@
 \alias{get_window_size}
 \title{Get Analysis Window Size}
 \usage{
-get_window_size(project_name)
+get_window_size(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
 the analysis window size

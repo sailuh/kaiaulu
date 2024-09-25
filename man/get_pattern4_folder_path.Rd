@@ -4,13 +4,13 @@
 \alias{get_pattern4_folder_path}
 \title{Get Pattern4 Class Folder Path}
 \usage{
-get_pattern4_folder_path(project_name)
+get_pattern4_folder_path(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
-the class folder path
+the Pattern4 class folder path
 }
 \description{
 Gets the Pattern4 class folder path where the output is stored

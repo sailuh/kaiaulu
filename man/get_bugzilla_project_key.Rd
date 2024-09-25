@@ -4,14 +4,14 @@
 \alias{get_bugzilla_project_key}
 \title{Get Bugzilla Project Key}
 \usage{
-get_bugzilla_project_key(project_name)
+get_bugzilla_project_key(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
-the list of Jira issues comments paths
+the project key name
 }
 \description{
-Gets the project key for the Bugzilla project
+Gets the project key name for the Bugzilla project
 }

@@ -4,10 +4,10 @@
 \alias{get_topics}
 \title{Get Topics}
 \usage{
-get_topics(project_name)
+get_topics(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
 the topics

@@ -2,16 +2,16 @@
 % Please edit documentation in R/config.R
 \name{get_conf}
 \alias{get_conf}
-\title{Get config.yml File}
+\title{Get Parsed Config File}
 \usage{
-get_conf(project_name)
+get_conf(config_path)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_path}{The path of the config file from the kaiaulu directory (e.g. "conf/kaiaulu.yml")}
 }
 \value{
-the config yml file
+the parsed config file whose path is specified by `config_path`
 }
 \description{
-Gets the configuration file for any project
+Gets the parsed configuration file for any path-specified project
 }

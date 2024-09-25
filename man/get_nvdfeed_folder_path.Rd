@@ -4,14 +4,14 @@
 \alias{get_nvdfeed_folder_path}
 \title{Get Nvd Feed Folder Path}
 \usage{
-get_nvdfeed_folder_path(project_name)
+get_nvdfeed_folder_path(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed config file}
 }
 \value{
-the folder path with nvd cve feeds
+the folder path with nvd feeds
 }
 \description{
-Gets the folder path with nvd cve feeds
+Gets the folder path with nvd feeds
 }
