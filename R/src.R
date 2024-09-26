@@ -7,6 +7,57 @@
 ############## Parsers ##############
 
 
+#' Parse dependencies from Scitool's Understand
+#'
+#' @param understand_path path to the und folder
+#' @param project_path path to the project folder to analyze
+#' @param language the language of the .git repo (accepts cpp, java, ruby, python, pom)
+#' @param output_dir path to output directory (formatted output_path/)
+#' @export
+#' @family parsers
+understand_parse_dependencies <- function(project_path,language,output_dir="/tmp/"){
+  # Use Understand to parse the code folder.
+  # Create the variables used in command lines
+  db_dir <- paste0(output_dir, "/Understand.und")
+  xml_dir <- paste0(db_dir, "/Dependencies.xml")
+
+  # Generate the XML file
+  system2("und", "create", "-db", db_dir, "languages", language)
+  system2("und", "-db", db_dir, "add", project_path)
+  system2("und", "analyze", db_dir)
+  system2("und", "export", "-dependencies", "file", "cytoscape", xml_dir, db_dir)
+
+  # Parse the XML file
+  xml_data <- xmlParse(xml_dir)
+
+  # Extract nodes
+  nodes <- xpathSApply(xml_data, "//node", xmlToList)
+
+  # Create the data table with id and label
+  node_list <- lapply(nodes, function(node) {
+    id <- xmlGetAttr(node, "id")
+    label <- xpathSApply(node, ".//att[@name='node.label']", xmlGetAttr, "value")
+    data.table(id = id, label = label)
+  })
+
+  # Extract edges
+  edges <- xpathSApply(xml_data, "//edge", xmlToList)
+
+  # Create the data table with id_from, id_to, and dependency_kind
+  edge_list <- lapply(nodes, function(edge) {
+    id_from <- xmlGetAttr(edge, "source")
+    id_to <- xmlGetAttr(edge, "target")
+    dependency_kind <- xpathSApply(edge, ".//att[@name='node.label']", xmlGetAttr, "value")
+    data.table(id_from = id_from, id_to = id_to, dependency_kind = dependency_kind)
+  })
+
+  # Combine the lists into a single data frame
+  edge_list <- rbindlist(edge_list)
+  node_list <- rbindlist(node_list)
+  graph <- list(edge_list = edge_list, node_list = node_list)
+  return(graph)
+}
+
 #' Parse dependencies from Depends
 #'
 #' @param depends_jar_path path to depends jar
