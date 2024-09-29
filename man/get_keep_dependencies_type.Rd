@@ -2,16 +2,20 @@
 % Please edit documentation in R/config.R
 \name{get_keep_dependencies_type}
 \alias{get_keep_dependencies_type}
-\title{Get Keep Dependencies Type}
+\title{Returns a list of the types of dependencies to keep for analysis.}
 \usage{
 get_keep_dependencies_type(config_file)
 }
 \arguments{
-\item{config_file}{The parsed config file}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the types of dependencies to keep
+A list of the types of dependencies to keep for analysis.
 }
 \description{
-Gets the type of dependencies to keep
+This function returns the specified types of dependencies to
+keep for analysis with the depends tool, that is specified in the input
+parameter `config_file`. The input, `config_file` must be a parsed
+configuration file. The function will inform the user if the list of the
+types of dependencies exists in the parsed configuration file, `config_file`.
 }

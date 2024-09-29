@@ -2,18 +2,22 @@
 % Please edit documentation in R/config.R
 \name{get_mbox_domain}
 \alias{get_mbox_domain}
-\title{Get Mbox Archive URL}
+\title{Returns the URL to the archives for mbox for a specific project key.}
 \usage{
 get_mbox_domain(config_file, project_key_index)
 }
 \arguments{
-\item{config_file}{The parsed config file}
+\item{config_file}{The parsed configuration file.}
 
-\item{project_key_index}{The name of the index of the project key (e.g. "project_key_1" or "project_key_2")}
+\item{project_key_index}{The name of the index of the project key (e.g. "project_key_1" or "project_key_2").}
 }
 \value{
-the domain of the mailing list archive for project specified by key index `project_key_index`
+The URL of the mailing list archive for project specified by key `project_key_index`.
 }
 \description{
-Gets the Mbox archive URL for a specific project key index
+This function returns the URL to the archives for a specific
+project key, `project_key_index`, that is specified in the input parameter
+`config_file`. The input, `config_file` must be a parsed configuration file.
+The function will inform the user if the specific URL to the archives for
+mbox exists in the parsed configuration file, `config_file`.
 }

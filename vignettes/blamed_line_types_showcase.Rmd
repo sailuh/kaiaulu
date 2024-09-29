@@ -84,12 +84,12 @@ filter:
 We load the above various sections of the single .yaml project configuration file as follows:
 
 ```{r}
-tool <- get_tools()
-conf <- get_conf("conf/apr.yml")
+tool <- get_parsed("tools.yml")
+conf <- get_parsed("conf/apr.yml")
 
 # 3rd Party Tools
-perceval_path <- get_tools_project("perceval", tool)
-utags_path <- get_tools_project("utags", tool)
+perceval_path <- get_tool_project("perceval", tool)
+utags_path <- get_tool_project("utags", tool)
 
 # Ctags Line Types
 kinds <- get_uctags_line_types(conf)

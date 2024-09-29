@@ -2,16 +2,20 @@
 % Please edit documentation in R/config.R
 \name{get_enumeration_commits}
 \alias{get_enumeration_commits}
-\title{Get Enumeration Commits}
+\title{Returns the list of enumerated commit intervals for analysis.}
 \usage{
 get_enumeration_commits(config_file)
 }
 \arguments{
-\item{config_file}{The parsed config file}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the commit intervals as a list
+The list of enumerated commit intervals.
 }
 \description{
-Gets the list of enumerated commit intervals for analysis.
+This function returns a list of enumerated commit intervals,
+that is specified in the input parameter `config_file`. The input,
+`config_file` must be a parsed configuration file. The function will inform
+the user if the list of enumerated commit intervals exists in the parsed
+configuration file, `config_file`.
 }

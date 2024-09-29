@@ -2,16 +2,20 @@
 % Please edit documentation in R/config.R
 \name{get_dv8_flaws_params}
 \alias{get_dv8_flaws_params}
-\title{Get Flaws Params}
+\title{Returns the list of architectural flaws thresholds for DV8 analysis.}
 \usage{
 get_dv8_flaws_params(config_file)
 }
 \arguments{
-\item{config_file}{The parsed config file}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the architectural flaws thresholds
+The list of DV8 architectural flaws thresholds.
 }
 \description{
-Gets the architectural flaws thresholds
+This function returns the list of architectural flaws thresholds
+for DV8 analysis, that is specified in the input parameter `config_file`.
+The input, `config_file` must be a parsed configuration file. The function
+will inform the user if the list of architectural flaws thresholds
+exists in the parsed configuration file, `config_file`.
 }

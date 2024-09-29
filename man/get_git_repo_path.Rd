@@ -2,16 +2,20 @@
 % Please edit documentation in R/config.R
 \name{get_git_repo_path}
 \alias{get_git_repo_path}
-\title{Get Project Git Repo Path}
+\title{Returns the path to the .git of the project repository that is being analyzed.}
 \usage{
 get_git_repo_path(config_file)
 }
 \arguments{
-\item{config_file}{The parsed config file}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the local git repository path specified in `config_file`
+The local git repository path specified in `config_file`.
 }
 \description{
-Gets the local project git repository path of the project
+This function returns the specific path to the .git of the
+project repository that is being analyzed specified in the input parameter
+`config_file`. The input, `config_file` must be a parsed configuration file.
+The function will inform the user if the .git path of the project repository
+exists in the parsed configuration file, `config_file`.
 }

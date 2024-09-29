@@ -2,16 +2,20 @@
 % Please edit documentation in R/config.R
 \name{get_code_language}
 \alias{get_code_language}
-\title{Get Code Language}
+\title{Returns the code language for analysis.}
 \usage{
 get_code_language(config_file)
 }
 \arguments{
-\item{config_file}{The parsed config file}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the code language
+The code language for parsing file-file static dependencies.
 }
 \description{
-Gets the code language of the project
+This function returns the specified code language that should
+be used to parse file-file static dependencies with the depends tool, that
+is specified in the input parameter `config_file`. The input, `config_file`
+must be a parsed configuration file. The function will inform the user if
+the code language exists in the parsed configuration file, `config_file`.
 }

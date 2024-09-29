@@ -2,16 +2,20 @@
 % Please edit documentation in R/config.R
 \name{get_window_start_commit}
 \alias{get_window_start_commit}
-\title{Get Window Start Commit}
+\title{Returns the starting commit for a window for analysis.}
 \usage{
 get_window_start_commit(config_file)
 }
 \arguments{
-\item{config_file}{The parsed config file}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the analysis window start commit
+The start commit for a window for analysis.
 }
 \description{
-Gets the analysis window start commit
+This function returns the starting commit for a window of time
+for analysis (the time stamp is inferred from gitlog), that is specified in
+the input parameter `config_file`. The input, `config_file` must be a parsed
+configuration file. The function will inform the user if the start commit
+exists in the parsed configuration file, `config_file`.
 }

@@ -2,18 +2,22 @@
 % Please edit documentation in R/config.R
 \name{get_jira_issues_path}
 \alias{get_jira_issues_path}
-\title{Get Jira Issues Path}
+\title{Returns the local folder path for Jira issues for a specific project key.}
 \usage{
 get_jira_issues_path(config_file, project_key_index)
 }
 \arguments{
-\item{config_file}{The parsed config file}
+\item{config_file}{The parsed configuration file.}
 
-\item{project_key_index}{The name of the index of the project key (e.g. "project_key_1" or "project_key_2")}
+\item{project_key_index}{The name of the index of the project key (e.g. "project_key_1" or "project_key_2").}
 }
 \value{
-the Jira issue path for project specified by key index `project_key_index`
+The Jira issue folder path for project specified by key `project_key_index`.
 }
 \description{
-Gets the local path to store Jira issues for a specific project key index
+This function returns the folder path for Jira issues for a
+specific project key, that is specified in the input parameter `config_file`.
+The input, `config_file` must be a parsed configuration file. The function
+will inform the user if the folder path for Jira issues exists in the parsed
+configuration file, `config_file`.
 }

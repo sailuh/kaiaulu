@@ -2,16 +2,20 @@
 % Please edit documentation in R/config.R
 \name{get_pattern4_folder_path}
 \alias{get_pattern4_folder_path}
-\title{Get Pattern4 Class Folder Path}
+\title{Returns the folder path for class pattern4 analysis.}
 \usage{
 get_pattern4_folder_path(config_file)
 }
 \arguments{
-\item{config_file}{The parsed config file}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the Pattern4 class folder path
+The Pattern4 class folder path.
 }
 \description{
-Gets the Pattern4 class folder path where the output is stored
+This function returns the folder path used to store the classes
+for the pattern4 analysis for the project, that is specified in the input
+parameter `config_file`. The input, `config_file` must be a parsed
+configuration file. The function will inform the user if the folder path
+exists in the parsed configuration file, `config_file`.
 }

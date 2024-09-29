@@ -2,16 +2,21 @@
 % Please edit documentation in R/config.R
 \name{get_dv8_folder_path}
 \alias{get_dv8_folder_path}
-\title{Get DV8 Project Folder Path}
+\title{Returns the path to the folder used to store files for DV8 analysis.}
 \usage{
 get_dv8_folder_path(config_file)
 }
 \arguments{
-\item{config_file}{The parsed config file}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the dv8 project folder path
+The DV8 project folder path.
 }
 \description{
-Gets the dv8 project folder path
+This function returns the path to the folder that will be
+used to store various intermediate files for DV8 analysis, that is specified
+in the input parameter `config_file`. The input, `config_file` must be a
+parsed configuration file. The function will inform the user if the path
+path to the folder for intermediate file storage for DV8 analysis exists in
+the parsed configuration file, `config_file`.
 }

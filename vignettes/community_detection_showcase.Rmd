@@ -48,24 +48,24 @@ The remainder of this Notebook illustrates two functions for some of Kaiaulu net
 As usual, the first step is to load the project configuration file. 
 
 ```{r}
-tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/apr.yml")
+tool <- get_parsed("tools.yml")
+conf <- get_parsed("conf/apr.yml")
 
 # 3rd Party Tools
-perceval_path <- tool[["perceval"]]
-utags_path <- tool[["utags"]]
-oslom_dir_path <- tool[["oslom_dir"]]
-oslom_undir_path <- tool[["oslom_undir"]]
+perceval_path <- get_tool_project("perceval", tool)
+utags_path <- get_tool_project("utags", tool)
+oslom_dir_path <- get_tool_project("oslom_dir", tool)
+oslom_undir_path <- get_tool_project("oslom_undir", tool)
 
 # Ctags Line Types
-kinds <- conf[["tool"]][["uctags"]][["keep_lines_type"]]
+kinds <- get_uctags_line_types(conf)
 
 # Local Git Repo Folder Path
-git_repo_path <- conf[["version_control"]][["log"]]
+git_repo_path <- get_git_repo_path(conf)
 
 # File Filters
-file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
-substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+file_extensions <- get_file_extensions(conf)
+substring_filepath <- get_substring_filepath(conf)
 ```
 
 # Parse Git Log

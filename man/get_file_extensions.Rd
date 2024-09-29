@@ -2,16 +2,20 @@
 % Please edit documentation in R/config.R
 \name{get_file_extensions}
 \alias{get_file_extensions}
-\title{Get File Extensions}
+\title{Returns the list of file extensions used for filtering files to keep.}
 \usage{
 get_file_extensions(config_file)
 }
 \arguments{
-\item{config_file}{The parsed config file}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the file extensions
+The list of file extensions to keep.
 }
 \description{
-Gets the file extensions for filtering
+This function returns the list of file extensions that will be
+used for filtering files specified in the input parameter `config_file`. The
+input, `config_file` must be a parsed configuration file. The function will
+inform the user if the list of file extensions exists in the parsed
+configuration file, `config_file`.
 }

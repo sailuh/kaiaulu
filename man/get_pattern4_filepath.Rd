@@ -2,16 +2,20 @@
 % Please edit documentation in R/config.R
 \name{get_pattern4_filepath}
 \alias{get_pattern4_filepath}
-\title{Get Pattern4 Output Filepath}
+\title{Returns the folder path for the output of the pattern4 analysis.}
 \usage{
 get_pattern4_filepath(config_file)
 }
 \arguments{
-\item{config_file}{The parsed config file}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the Pattern4 output filepath
+The Pattern4 output folder path.
 }
 \description{
-Gets the Pattern4 filepath where the output is stored
+This function returns the folder path that contains the
+output of the pattern4 analysis for the project, that is specified in the
+input parameter `config_file`. The input, `config_file` must be a parsed
+configuration file. The function will inform the user if the folder path
+exists in the parsed configuration file, `config_file`.
 }

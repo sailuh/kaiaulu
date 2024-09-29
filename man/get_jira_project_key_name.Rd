@@ -2,18 +2,22 @@
 % Please edit documentation in R/config.R
 \name{get_jira_project_key_name}
 \alias{get_jira_project_key_name}
-\title{Get Jira Project Key Name}
+\title{Returns the name of the Jira project key for a specific project key.}
 \usage{
 get_jira_project_key_name(config_file, project_key_index)
 }
 \arguments{
-\item{config_file}{The parsed config file}
+\item{config_file}{The parsed configuration file.}
 
-\item{project_key_index}{The name of the index of the project key (e.g. "project_key_1" or "project_key_2")}
+\item{project_key_index}{The name of the index of the project key (e.g. "project_key_1" or "project_key_2").}
 }
 \value{
-the Jira project key name for project specified by key index `project_key_index`
+The Jira project key name for project specified by key `project_key_index`.
 }
 \description{
-Gets the Jira project key name for a specific project key index
+This function returns the Jira project key name for a specific
+project key, that is specified in the input parameter `config_file`.
+The input, `config_file` must be a parsed configuration file. The function
+will inform the user if the project key name exists in the parsed
+configuration file, `config_file`.
 }

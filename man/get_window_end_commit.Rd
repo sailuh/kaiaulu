@@ -2,16 +2,20 @@
 % Please edit documentation in R/config.R
 \name{get_window_end_commit}
 \alias{get_window_end_commit}
-\title{Get Window End Commit}
+\title{Returns the ending commit for a window for analysis.}
 \usage{
 get_window_end_commit(config_file)
 }
 \arguments{
-\item{config_file}{The parsed config file}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the analysis window end commit
+The end commit for a window for analysis.
 }
 \description{
-Gets the analysis window end commit
+This function returns the ending commit for a window of time
+for analysis (the time stamp is inferred from gitlog), that is specified in
+the input parameter `config_file`. The input, `config_file` must be a parsed
+configuration file. The function will inform the user if the end commit
+exists in the parsed configuration file, `config_file`.
 }

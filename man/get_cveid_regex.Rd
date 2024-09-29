@@ -2,16 +2,21 @@
 % Please edit documentation in R/config.R
 \name{get_cveid_regex}
 \alias{get_cveid_regex}
-\title{Get CVE ID Regex}
+\title{Returns the cve (Common Vulnerabilities and Exposures) regular expression
+for commit messages.}
 \usage{
 get_cveid_regex(config_file)
 }
 \arguments{
-\item{config_file}{The parsed config file}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the commit message CVE
+The commit message CVE regular expression.
 }
 \description{
-Gets the commit message CVE
+This function returns the cve regular expression for commit
+messages, that is specified in the input parameter `config_file`. The input,
+`config_file` must be a parsed configuration file. The function will inform
+the user if the cve regular expression for commit messages exists in the
+parsed configuration file, `config_file`.
 }

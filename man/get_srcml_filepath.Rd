@@ -2,16 +2,20 @@
 % Please edit documentation in R/config.R
 \name{get_srcml_filepath}
 \alias{get_srcml_filepath}
-\title{Get SrcML Filepath}
+\title{Returns the file path for the output of the srcML analysis for the project.}
 \usage{
 get_srcml_filepath(config_file)
 }
 \arguments{
-\item{config_file}{The parsed config file}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the SrcML filepath
+The output file path for srcML analysis.
 }
 \description{
-Gets the SrcML filepath where the output is stored
+This function returns the file path to be used to store the
+output of the srcML analysis for the project, that is specified in the
+input parameter `config_file`. The input, `config_file` must be a parsed
+configuration file. The function will inform the user if the file path
+exists in the parsed configuration file, `config_file`.
 }

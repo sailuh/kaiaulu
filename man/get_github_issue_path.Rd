@@ -2,18 +2,22 @@
 % Please edit documentation in R/config.R
 \name{get_github_issue_path}
 \alias{get_github_issue_path}
-\title{Get GitHub Issue Save Path}
+\title{Returns the local folder path for GitHub issues for a specific project key.}
 \usage{
 get_github_issue_path(config_file, project_key_index)
 }
 \arguments{
-\item{config_file}{The parsed config file}
+\item{config_file}{The parsed configuration file.}
 
-\item{project_key_index}{The name of the index of the project key (e.g. "project_key_1" or "project_key_2")}
+\item{project_key_index}{The name of the index of the project key (e.g. "project_key_1" or "project_key_2").}
 }
 \value{
-the local save path for GitHub issues for project specified by key index `project_key_index`
+The local folder path for GitHub issues for project specified by key `project_key_index`.
 }
 \description{
-Gets the local save path for GitHub issues for a specific project key index
+This function returns the local folder path for GitHub issues
+for a specific project key, that is specified in the input parameter
+`config_file`. The input, `config_file` must be a parsed configuration file.
+The function will inform the user if the folder path for GitHub issues exists
+in the parsed configuration file, `config_file`.
 }
