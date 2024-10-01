@@ -49,16 +49,18 @@ version_control:
 
 mailing_list:
   mod_mbox:
-    mail_key_1:
+    project_key_1:
       mailing_list: https://lists.apache.org/list.html?announce@apache.org
       start_year_month: 202310
       end_year_month: 202405
       save_folder_path: "../save_mbox_mail"
-    mail_key_2:
+      save_parsed_folder_path: "../save_parsed_mail"
+    project_key_2:
       mailing_list: https://lists.apache.org/list.html?dev@felix.apache.org
       start_year_month: 202201
       end_year_month: 202401
       save_folder_path: "../save_mbox_mail"
+      save_parsed_folder_path: "../save_parsed_mail"
   pipermail:
     project_key_1:
       # archive_url: https://mta.openssl.org/mailman/listinfo/
@@ -66,12 +68,14 @@ mailing_list:
       start_year_month: 202310
       end_year_month: 202405
       save_folder_path: "../save_folder_mail"
+      save_parsed_folder_path: "../save_parsed_mail"
     project_key_2:
       # archive_url: https://mta.openssl.org/mailman/listinfo/
       mailing_list: https://mta.openssl.org/pipermail/openssl-project/
       start_year_month: 202203
       end_year_month: 202303
       save_folder_path: "../save_folder_mail_2"
+      save_parsed_folder_path: "../save_parsed_mail"
 
 issue_tracker:
   jira:

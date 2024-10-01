@@ -51,7 +51,7 @@ Each mailing list maintains archives of past messages, often organized by month 
 To start, we load the project configuration file, which contains parameters for downloading the mailing list archives.
 
 ```{r}
-conf <- yaml::read_yaml("conf/helix.yml")
+conf <- yaml::read_yaml("../conf/helix.yml")
 mailing_list <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["mailing_list"]]
 start_year_month <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["start_year_month"]]
 end_year_month <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["end_year_month"]]
@@ -72,7 +72,8 @@ download_pipermail(
   mailing_list = mailing_list,
   start_year_month = start_year_month,
   end_year_month = end_year_month,
-  save_folder_path = save_folder_path
+  save_folder_path = save_folder_path,
+  verbose = TRUE
 )
 
 ```
@@ -90,7 +91,8 @@ How refresh_pipermail Works
 refresh_pipermail(
   mailing_list = mailing_list,
   start_year_month = start_year_month,
-  save_folder_path = save_folder_path
+  save_folder_path = save_folder_path,
+  verbose = TRUE
 )
 
 ```
@@ -105,10 +107,10 @@ Mod Mbox archives also organize mailing lists by topic. The apache mailing list 
 Similar to Pipermail, we load the configuration for Mod Mbox from the YAML file, which includes the mailing list URL, the date range, and the save folder path.
 
 ```{r}
-mod_mbox_list <- conf[["mailing_list"]][["mod_mbox"]][["mail_key_1"]][["mailing_list"]]
-mod_start_year_month <- conf[["mailing_list"]][["mod_mbox"]][["mail_key_1"]][["start_year_month"]]
-mod_end_year_month <- conf[["mailing_list"]][["mod_mbox"]][["mail_key_1"]][["end_year_month"]]
-mod_save_folder_path <- conf[["mailing_list"]][["mod_mbox"]][["mail_key_1"]][["save_folder_path"]]
+mod_mbox_list <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["mailing_list"]]
+mod_start_year_month <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["start_year_month"]]
+mod_end_year_month <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["end_year_month"]]
+mod_save_folder_path <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["save_folder_path"]]
 ```
 
 ### Explanation of Configuration Parameters
@@ -117,7 +119,7 @@ mod_save_folder_path <- conf[["mailing_list"]][["mod_mbox"]][["mail_key_1"]][["s
 - end_year_month: The last month to download (format: YYYYMM).
 - save_folder_path: The directory where the downloaded .mbox files will be saved.
 
-##Mod Mbox Downloader
+## Mod Mbox Downloader
 The download_mod_mbox() function downloads Mod Mbox archives by constructing URLs based on the mailing list and date range, saving them as .mbox files named kaiaulu_YYYYMM.mbox.
 
 ```{r}
@@ -127,6 +129,7 @@ download_mod_mbox(
   end_year_month = mod_end_year_month,
   save_folder_path = mod_save_folder_path,
   verbose = TRUE
+  )
 ```
 
 After running the function, it constructs URLs like: https://lists.apache.org/api/mbox.lua?list=announce@apache.org&date=2024-01
@@ -143,9 +146,37 @@ How refresh_mod_mbox Works
 refresh_mod_mbox(
   mailing_list = mod_mbox_list,
   start_year_month = mod_start_year_month,
-  save_folder_path = mod_save_folder_path
+  save_folder_path = mod_save_folder_path,
   verbose = TRUE
 )
 ```
 
 This ensures your archive is up-to-date, accounting for new data that may have been added to the mailing list since the last download.
+
+# Parser
+
+After downloading the mailing list archives as .mbox files, the next step is to parse these files to extract meaningful information for analysis. The parse_mbox() function utilizes the Perceval library to parse .mbox files and convert them into structured data tables. This enables easier manipulation and analysis of mailing list data.
+
+## Mbox Parser
+The parse_mbox() function takes an .mbox file and parses it into a structured data.table using the Perceval library. 
+
+For the configuration, make sure you have the correct path to the Perceval library in the conf file.
+
+```{r}
+tools_config <- yaml::read_yaml("../tools.yml")
+parse_perceval_path <- tools_config[["perceval"]]
+
+conf <- yaml::read_yaml("../conf/helix.yml")
+parse_mbox_path <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["save_folder_path"]]
+```
+Run the function using this:
+```{r}
+parsed_mail <- parse_mbox(
+  perceval_path = parse_perceval_path,
+  mbox_path = parse_mbox_path
+)
+```
+This will store the parsed data into the parsed_mail variable. To view the table, use:
+```{r}
+View(parsed_mail)
+```

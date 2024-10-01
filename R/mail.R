@@ -254,7 +254,7 @@ process_gz_to_mbox_in_folder <- function(folder_path, verbose = TRUE) {
   # If there are no .gz files, print a message (if verbose is TRUE) and return NULL
   if (length(gz_files) == 0) {
     if (verbose) cat("This folder does not contain any .gz files.\n")
-    return(NULL)
+    return(invisible(NULL))
   }
 
   # Create a vector to store the names of the converted .mbox files
@@ -317,7 +317,7 @@ process_gz_to_mbox_in_folder <- function(folder_path, verbose = TRUE) {
 #' @param verbose if TRUE, prints detailed messages during the download process.
 #' @return Returns `save_folder_path`, the folder path where the mbox files are stored.
 #' @export
-download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, save_folder_path, verbose = FALSE) {
+download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, save_folder_path, verbose = TRUE) {
 
   ########## Extract Mailing List Name ##########
   # Extract the mailing list name from the given URL. This is because the actual list name is
