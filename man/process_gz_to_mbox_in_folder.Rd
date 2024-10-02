@@ -4,10 +4,10 @@
 \alias{process_gz_to_mbox_in_folder}
 \title{Process .gz files in a folder and convert them to .mbox}
 \usage{
-process_gz_to_mbox_in_folder(folder_path, verbose = TRUE)
+process_gz_to_mbox_in_folder(mbox, verbose = TRUE)
 }
 \arguments{
-\item{folder_path}{The path to the folder containing both .gz and .mbox files.}
+\item{mbox}{The path to the folder containing both .gz and .mbox files.}
 
 \item{verbose}{if TRUE, prints diagnostic messages during processing.}
 }

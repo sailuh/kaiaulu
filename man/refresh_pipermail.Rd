@@ -4,19 +4,14 @@
 \alias{refresh_pipermail}
 \title{Refresh mbox files downloaded via pipermail}
 \usage{
-refresh_pipermail(
-  mailing_list,
-  start_year_month,
-  save_folder_path,
-  verbose = TRUE
-)
+refresh_pipermail(mailing_list, start_year_month, mbox, verbose = TRUE)
 }
 \arguments{
 \item{mailing_list}{The URL of the mailing list being downloaded (e.g., "https://mta.openssl.org/pipermail/openssl-announce/")}
 
 \item{start_year_month}{The year and month of the first file to be downloaded (format: 'YYYYMM').}
 
-\item{save_folder_path}{The folder path in which all the downloaded pipermail files will be stored.}
+\item{mbox}{The folder path in which all the downloaded pipermail files will be stored.}
 
 \item{verbose}{if TRUE, prints diagnostic messages.}
 }

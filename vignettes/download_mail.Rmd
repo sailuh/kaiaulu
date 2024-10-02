@@ -55,14 +55,14 @@ conf <- yaml::read_yaml("../conf/helix.yml")
 mailing_list <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["mailing_list"]]
 start_year_month <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["start_year_month"]]
 end_year_month <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["end_year_month"]]
-save_folder_path <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["save_folder_path"]]
+mbox <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["mbox"]]
 ```
 
 ### Explanation of Configuration Parameters
 - mailing_list: The URL of the mailing list archive index page (e.g., https://lists.openssl.org/pipermail/openssl-users/).
 - start_year_month: The starting date for downloading archives (in YYYYMM format).
 - end_year_month: The ending date for downloading archives (in YYYYMM format).
-- save_folder_path: The local directory where the downloaded archives will be saved.
+- mbox: The local directory where the downloaded archives will be saved.
 
 ## Pipermail Downloader
 You can download the archives using the download_pipermail() function, which downloads and saves .mbox files to the specified directory. The .mbox files are named with the format kaiaulu_YYYYMM.mbox, where YYYYMM refers to the year and month of the archive.
@@ -72,7 +72,7 @@ download_pipermail(
   mailing_list = mailing_list,
   start_year_month = start_year_month,
   end_year_month = end_year_month,
-  save_folder_path = save_folder_path,
+  mbox = mbox,
   verbose = TRUE
 )
 
@@ -91,7 +91,7 @@ How refresh_pipermail Works
 refresh_pipermail(
   mailing_list = mailing_list,
   start_year_month = start_year_month,
-  save_folder_path = save_folder_path,
+  mbox = mbox,
   verbose = TRUE
 )
 
@@ -110,14 +110,14 @@ Similar to Pipermail, we load the configuration for Mod Mbox from the YAML file,
 mod_mbox_list <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["mailing_list"]]
 mod_start_year_month <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["start_year_month"]]
 mod_end_year_month <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["end_year_month"]]
-mod_save_folder_path <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["save_folder_path"]]
+mod_mbox <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["mbox"]]
 ```
 
 ### Explanation of Configuration Parameters
 - mailing_list: The URL of the Mod Mbox mailing list (e.g., https://lists.apache.org/list.html?announce@apache.org).
 - start_year_month: The first month to download (format: YYYYMM).
 - end_year_month: The last month to download (format: YYYYMM).
-- save_folder_path: The directory where the downloaded .mbox files will be saved.
+- mbox: The directory where the downloaded .mbox files will be saved.
 
 ## Mod Mbox Downloader
 The download_mod_mbox() function downloads Mod Mbox archives by constructing URLs based on the mailing list and date range, saving them as .mbox files named kaiaulu_YYYYMM.mbox.
@@ -127,7 +127,7 @@ download_mod_mbox(
   mailing_list = mod_mbox_list,
   start_year_month = mod_start_year_month,
   end_year_month = mod_end_year_month,
-  save_folder_path = mod_save_folder_path,
+  mbox = mod_mbox,
   verbose = TRUE
   )
 ```
@@ -146,7 +146,7 @@ How refresh_mod_mbox Works
 refresh_mod_mbox(
   mailing_list = mod_mbox_list,
   start_year_month = mod_start_year_month,
-  save_folder_path = mod_save_folder_path,
+  mbox = mod_mbox,
   verbose = TRUE
 )
 ```
@@ -167,13 +167,13 @@ tools_config <- yaml::read_yaml("../tools.yml")
 parse_perceval_path <- tools_config[["perceval"]]
 
 conf <- yaml::read_yaml("../conf/helix.yml")
-parse_mbox_path <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["save_folder_path"]]
+parse_mbox <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["mbox"]]
 ```
 Run the function using this:
 ```{r}
 parsed_mail <- parse_mbox(
   perceval_path = parse_perceval_path,
-  mbox_path = parse_mbox_path
+  mbox = parse_mbox
 )
 ```
 This will store the parsed data into the parsed_mail variable. To view the table, use:

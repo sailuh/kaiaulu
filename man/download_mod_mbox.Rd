@@ -8,7 +8,7 @@ download_mod_mbox(
   mailing_list,
   start_year_month,
   end_year_month,
-  save_folder_path,
+  mbox,
   verbose = TRUE
 )
 }
@@ -20,12 +20,12 @@ download_mod_mbox(
 
 \item{end_year_month}{The year and month of the last file to be downloaded (format: 'YYYYMM').}
 
-\item{save_folder_path}{The folder path where all the downloaded mbox files will be stored.}
+\item{mbox}{The folder path where all the downloaded mbox files will be stored.}
 
 \item{verbose}{if TRUE, prints detailed messages during the download process.}
 }
 \value{
-Returns `save_folder_path`, the folder path where the mbox files are stored.
+Returns `mbox`, the folder path where the mbox files are stored.
 }
 \description{
 This function downloads mod_mbox archives from a specified Apache Pony Mail mailing list as .mbox files.

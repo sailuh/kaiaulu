@@ -4,10 +4,10 @@
 \alias{parse_mbox_latest_date}
 \title{Parse mbox latest date}
 \usage{
-parse_mbox_latest_date(mbox_path)
+parse_mbox_latest_date(mbox)
 }
 \arguments{
-\item{mbox_path}{path to mbox archive file (ends in .mbox)}
+\item{mbox}{path to mbox archive file (ends in .mbox)}
 }
 \value{
 Returns the name of the latest mod_mbox file

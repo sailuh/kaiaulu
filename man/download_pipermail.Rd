@@ -8,7 +8,7 @@ download_pipermail(
   mailing_list,
   start_year_month,
   end_year_month,
-  save_folder_path,
+  mbox,
   verbose = TRUE
 )
 }
@@ -19,7 +19,7 @@ download_pipermail(
 
 \item{end_year_month}{The year and month of the last file to be downloaded (format: 'YYYYMM', or use 'format(Sys.Date(), "%Y%m")' for the current month)}
 
-\item{save_folder_path}{The folder path in which all the downloaded pipermail files will be stored}
+\item{mbox}{The folder path in which all the downloaded pipermail files will be stored}
 
 \item{verbose}{if TRUE, prints diagnostic messages during the download process}
 }
