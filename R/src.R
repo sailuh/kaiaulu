@@ -6,55 +6,96 @@
 
 ############## Parsers ##############
 
-
-#' Parse dependencies from Scitool's Understand
+#' Parse file dependencies from Scitool's Understand
 #'
-#' @param understand_path path to the und folder
 #' @param project_path path to the project folder to analyze
-#' @param language the language of the .git repo (accepts cpp, java, ruby, python, pom)
+#' @param language the language of the project (language must be supported by Understand)
 #' @param output_dir path to output directory (formatted output_path/)
+#' @param parse_type Type of dependencies to generate into xml (either "file" or "class")
 #' @export
 #' @family parsers
-understand_parse_dependencies <- function(project_path,language,output_dir="/tmp/"){
+understand_parse_dependencies <- function(project_path,language,output_dir="../tmp/", parse_type){
+  # Before running, check if parse_type is correct
+  validInput <- function(input) {
+    is.character(input) && length(input) == 1 && input %in% c("file", "class")
+  }
+  if (!validInput(parse_type)) {
+    stop("Error: Invalid parse_type provided. Please input either \"file\" or \"class\"")
+  }
+
   # Use Understand to parse the code folder.
   # Create the variables used in command lines
+  project_path <- paste0("\"", project_path, "\"")
   db_dir <- paste0(output_dir, "/Understand.und")
-  xml_dir <- paste0(db_dir, "/Dependencies.xml")
+  xml_dir <- paste0(db_dir, "/", parse_type, "Dependencies.xml")
+  command <- "und"
+  args <- c("create", "-db", db_dir, "-languages", language)
 
   # Generate the XML file
-  system2("und", "create", "-db", db_dir, "languages", language)
-  system2("und", "-db", db_dir, "add", project_path)
-  system2("und", "analyze", db_dir)
-  system2("und", "export", "-dependencies", "file", "cytoscape", xml_dir, db_dir)
+  system2(command, args)
+  args <- c("-db", db_dir, "add", project_path)
+  system2(command, args)
+  args <- c("analyze", db_dir)
+  system2(command, args)
+  args <- c("export", "-dependencies", "file", "cytoscape", xml_dir, db_dir)
+  system2(command, args)
 
   # Parse the XML file
   xml_data <- xmlParse(xml_dir)
+  xml_nodes <- xmlRoot(xml_data)
+  xml_nodes <- xmlChildren(xml_nodes)
 
-  # Extract nodes
-  nodes <- xpathSApply(xml_data, "//node", xmlToList)
+  # Helper function to search for an attribute
+  findAtt <- function(search_nodes, att_name) {
+    found_att <- NA
+    for (att in search_nodes) {
+      if (xmlGetAttr(att, "name") == att_name) {
+        found_att <- xmlGetAttr(att, "value")
+        break
+      }
+    }
+    return(found_att)
+  }
 
-  # Create the data table with id and label
-  node_list <- lapply(nodes, function(node) {
-    id <- xmlGetAttr(node, "id")
-    label <- xpathSApply(node, ".//att[@name='node.label']", xmlGetAttr, "value")
-    data.table(id = id, label = label)
+  # From child nodes- filter for those with name "node"
+  node_elements <- lapply(xml_nodes, function(child) {
+    if (xmlName(child) == "node") {
+      # Extract the id
+      id <- xmlGetAttr(child, "id")
+      # Find the node.label attribute
+      att_nodes <- xmlChildren(child)
+      node_label <- findAtt(att_nodes, "node.label")
+      long_name <- findAtt(att_nodes, "longName")
+      return(data.table(node_label = node_label, id = id, long_name = long_name))
+    } else {
+      return(NULL)
+    }
   })
 
-  # Extract edges
-  edges <- xpathSApply(xml_data, "//edge", xmlToList)
+  # Remove NULLs and combine the results into a data frame
+  node_list <- do.call(rbind, node_elements[!sapply(node_elements, is.null)])
 
-  # Create the data table with id_from, id_to, and dependency_kind
-  edge_list <- lapply(nodes, function(edge) {
-    id_from <- xmlGetAttr(edge, "source")
-    id_to <- xmlGetAttr(edge, "target")
-    dependency_kind <- xpathSApply(edge, ".//att[@name='node.label']", xmlGetAttr, "value")
-    data.table(id_from = id_from, id_to = id_to, dependency_kind = dependency_kind)
+  # From child nodes- filter for those with name "edge"
+  edge_elements <- lapply(xml_nodes, function(child) {
+    if (xmlName(child) == "edge") {
+      # Extract the id_from and id_to
+      id_from <- xmlGetAttr(child, "source")
+      id_to <- xmlGetAttr(child, "target")
+      # Find the dependency kind attribute
+      att_nodes <- xmlChildren(child)
+      dependency_kind <- findAtt(att_nodes, "dependency kind")
+      dependency_kind <- unlist(strsplit(dependency_kind, ",\\s*"))
+      return(data.table(id_from = id_from, id_to = id_to, dependency_kind = dependency_kind))
+    } else {
+      return(NULL)
+    }
   })
 
-  # Combine the lists into a single data frame
-  edge_list <- rbindlist(edge_list)
-  node_list <- rbindlist(node_list)
-  graph <- list(edge_list = edge_list, node_list = node_list)
+  # Remove NULLs and combine the results into a data frame
+  edge_list <- do.call(rbind, edge_elements[!sapply(edge_elements, is.null)])
+
+  # Create a list to return
+  graph <- list(node_list = node_list, edge_list = edge_list)
   return(graph)
 }
 
@@ -265,6 +306,43 @@ parse_r_dependencies <- function(folder_path){
 }
 
 ############## Network Transform ##############
+
+#' Transform parsed dependencies into a network
+#'
+#' @param depends_parsed Parsed data from understand_parse_class_dependencies.
+#' @param weight_types The weight types as defined in Depends.
+#'                     Accepts single string and vector input
+#'
+#' @export
+#' @family edgelists
+transform_und_class_dependencies_to_network <- function(parsed, weight_types) {
+
+  nodes <- parsed[["node_list"]]
+  edges <- parsed[["edge_list"]]
+
+  # Merge edges with nodes to get label_from
+  edges <- merge(edges, nodes[, .(id, node_label)], by.x = "id_from", by.y = "id", all.x = TRUE)
+  setnames(edges, "node_label", "label_from")
+
+  # Merge again to get label_to
+  edges <- merge(edges, nodes[, .(id, node_label)], by.x = "id_to", by.y = "id", all.x = TRUE)
+  setnames(edges, "node_label", "label_to")
+
+  # Reorder columns to have label_from and label_to on the left
+  edges <- edges[, .(label_from, label_to, id_from, id_to, dependency_kind)]
+
+  # Filter out by weights
+  edges <- edges[dependency_kind %in% weight_types]
+
+  # If filter removed all edges:
+  if (nrow(edges) == 0) {
+    stop("Error: No edges found under weight_types.")
+  }
+
+  # Create a list to return
+  graph <- list(node_list = nodes, edge_list = edges)
+  return(graph)
+}
 
 #' Transform parsed dependencies into a network
 #'
