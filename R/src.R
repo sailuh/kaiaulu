@@ -37,7 +37,7 @@ understand_parse_dependencies <- function(project_path,language,output_dir="../t
   system2(command, args)
   args <- c("analyze", db_dir)
   system2(command, args)
-  args <- c("export", "-dependencies", "file", "cytoscape", xml_dir, db_dir)
+  args <- c("export", "-dependencies", parse_type, "cytoscape", xml_dir, db_dir)
   system2(command, args)
 
   # Parse the XML file
