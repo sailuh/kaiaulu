@@ -30,30 +30,30 @@ require(openxlsx)
 ```
 
 ```{r}
-tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/calculator.yml")
-perceval_path <- tool[["perceval"]]
-dv8_path <- tool[["dv8"]]
+tool <- get_parsed("tools.yml")
+conf <- get_parsed("conf/calculator.yml")
+perceval_path <- get_tool_project("perceval", tool)
+dv8_path <- get_tool_project("dv8", tool)
 
 # Gitlog parameters
-git_repo_path <- conf[["version_control"]][["log"]]
+git_repo_path <- get_git_repo_path(conf)
 
 # Depends parameters
-depends_jar_path <- tool[["depends"]]
-language <- conf[["tool"]][["depends"]][["code_language"]]
-keep_dependencies_type <- conf[["tool"]][["depends"]][["keep_dependencies_type"]]
+depends_jar_path <- get_tool_project("depends", tool)
+language <- get_code_language(conf)
+keep_dependencies_type <- get_keep_dependencies_type(conf)
 
 # DV8 parameters 
-project_path <- conf[["tool"]][["dv8"]][["folder_path"]]
+project_path <- get_dv8_folder_path(conf)
 project_name <- stringi::stri_split_regex(project_path,pattern = "/")[[1]]
 project_name <- project_name[length(project_name)]
 
-flaws_params <- conf[["tool"]][["dv8"]][["architectural_flaws"]]
+flaws_params <- get_dv8_flaws_params(conf)
 
 # Filters
-file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
-substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
-filter_commit_size <- conf[["filter"]][["remove_filepaths_on_commit_size_greather_than"]]
+file_extensions <- get_file_extensions(conf)
+substring_filepath <- get_substring_filepath(conf)
+filter_commit_size <- get_filter_commit_size(conf)
 ```
 
 # Preparing Gitlog and Dependencies for DV8

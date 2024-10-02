@@ -2,18 +2,23 @@
 % Please edit documentation in R/config.R
 \name{get_mbox_path}
 \alias{get_mbox_path}
-\title{Get Mbox Save Path}
+\title{Returns the local folder path to store mbox data for a specific project key.}
 \usage{
-get_mbox_path(project_name, project_key_index)
+get_mbox_path(config_file, project_key_index)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed configuration file.}
 
-\item{project_key_index}{the name of the index of the project key (e.g. "project_key_1" or "project_key_2")}
+\item{project_key_index}{The name of the index of the project key (e.g. "project_key_1" or "project_key_2").}
 }
 \value{
-the mbox path
+The local mbox path for project specified by key `project_key_index`.
 }
 \description{
-Gets the local path to store Mbox data for a specific project key index
+This function returns the local folder path used to store
+mbox data for a specific project key, `project_key_index`, that is specified
+in the input parameter `config_file`. The input, `config_file` must be a
+parsed configuration file. The function will inform the user if the specific
+local folder path to store mbox data exists in the parsed configuration
+file, `config_file`.
 }

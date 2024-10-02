@@ -2,16 +2,21 @@
 % Please edit documentation in R/config.R
 \name{get_nvdfeed_folder_path}
 \alias{get_nvdfeed_folder_path}
-\title{Get Nvd Feed Folder Path}
+\title{Returns the local folder path that contains the nvd (National Vulnerability
+Database) feeds.}
 \usage{
-get_nvdfeed_folder_path(project_name)
+get_nvdfeed_folder_path(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the folder path with nvd cve feeds
+The folder path with nvd feeds.
 }
 \description{
-Gets the folder path with nvd cve feeds
+This function returns the local folder path for nvd feeds,
+that is specified in the input parameter `config_file`. The input,
+`config_file` must be a parsed configuration file. The function will inform
+the user if the local folder path for the nvd feeds exists in the parsed
+configuration file, `config_file`.
 }

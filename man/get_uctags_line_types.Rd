@@ -2,16 +2,20 @@
 % Please edit documentation in R/config.R
 \name{get_uctags_line_types}
 \alias{get_uctags_line_types}
-\title{Get Uctags Line Types}
+\title{Returns the types to keep to to be considered for analysis.}
 \usage{
-get_uctags_line_types(project_name)
+get_uctags_line_types(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the uctags line type
+The lines type to keep for analysis.
 }
 \description{
-Gets the Uctags keep lines type
+This function returns the types of file-file dependencies that
+should be considered, that are specified in the input parameter
+`config_file`. The input, `config_file` must be a parsed configuration file.
+The function will inform the user if the lines type to keep exists in the
+parsed configuration file, `config_file`.
 }

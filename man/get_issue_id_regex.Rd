@@ -2,16 +2,20 @@
 % Please edit documentation in R/config.R
 \name{get_issue_id_regex}
 \alias{get_issue_id_regex}
-\title{Get Issue Id Regex}
+\title{Returns the issue Id regular expression for commit messages.}
 \usage{
-get_issue_id_regex(project_name)
+get_issue_id_regex(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the issue id regex
+The commit message issue Id regular expression.
 }
 \description{
-Gets the issue ID regex on commit messages
+This function returns the issue Id regular expression for commit
+messages, that is specified in the input parameter `config_file`. The input,
+`config_file` must be a parsed configuration file. The function will inform
+the user if the issue Id regular expression for commit messages exists in the
+parsed configuration file, `config_file`.
 }

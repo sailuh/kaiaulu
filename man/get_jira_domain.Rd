@@ -2,18 +2,22 @@
 % Please edit documentation in R/config.R
 \name{get_jira_domain}
 \alias{get_jira_domain}
-\title{Get Jira Project Domain}
+\title{Returns the Jira project domain for a specific project key.}
 \usage{
-get_jira_domain(project_name, project_key_index)
+get_jira_domain(config_file, project_key_index)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed configuration file.}
 
-\item{project_key_index}{the name of the index of the project key (e.g. "project_key_1" or "project_key_2")}
+\item{project_key_index}{The name of the index of the project key (e.g. "project_key_1" or "project_key_2").}
 }
 \value{
-the Jira domain of the project key index
+The Jira domain for project specified by key `project_key_index`.
 }
 \description{
-Gets the Jira domain for a specific project key index
+This function returns the Jira project domain for a specific
+project key, that is specified in the input parameter `config_file`.
+The input, `config_file` must be a parsed configuration file. The function
+will inform the user if the domain exists in the parsed configuration file,
+`config_file`.
 }

@@ -2,16 +2,19 @@
 % Please edit documentation in R/config.R
 \name{get_window_size}
 \alias{get_window_size}
-\title{Get Analysis Window Size}
+\title{Returns the size of a window for analysis.}
 \usage{
-get_window_size(project_name)
+get_window_size(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the analysis window size
+The size of a window for analysis.
 }
 \description{
-Gets the analysis window size
+This function returns the size of a window, that is
+specified in the input parameter `config_file`. The input, `config_file`
+must be a parsed configuration file. The function will inform the user if
+the window size exists in the parsed configuration file, `config_file`.
 }

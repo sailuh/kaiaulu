@@ -2,16 +2,20 @@
 % Please edit documentation in R/config.R
 \name{get_bugzilla_project_key}
 \alias{get_bugzilla_project_key}
-\title{Get Bugzilla Project Key}
+\title{Returns the name of the Bugzilla project key.}
 \usage{
-get_bugzilla_project_key(project_name)
+get_bugzilla_project_key(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the list of Jira issues comments paths
+The Bugzilla project key name.
 }
 \description{
-Gets the project key for the Bugzilla project
+This function returns the name of the Bugzilla project key, that
+is specified in the input parameter `config_file`. The input, `config_file`
+must be a parsed configuration file. The function will inform the user if
+the name of the Bugzilla project key exists in the parsed configuration
+file, `config_file`.
 }

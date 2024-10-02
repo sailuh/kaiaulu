@@ -2,16 +2,20 @@
 % Please edit documentation in R/config.R
 \name{get_substring_filepath}
 \alias{get_substring_filepath}
-\title{Get Substring Filepath}
+\title{Returns the list of file extensions used for filtering files to remove.}
 \usage{
-get_substring_filepath(project_name)
+get_substring_filepath(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the substring filepaths
+The list of file extensions to remove.
 }
 \description{
-Gets the substring filepaths for filtering
+This function returns the list of file extensions that will be
+used for filtering files specified in the input parameter `config_file`. The
+input, `config_file` must be a parsed configuration file. The function will
+inform the user if the list of file extensions exists in the parsed
+configuration file, `config_file`.
 }

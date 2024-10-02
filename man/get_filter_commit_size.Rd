@@ -2,16 +2,20 @@
 % Please edit documentation in R/config.R
 \name{get_filter_commit_size}
 \alias{get_filter_commit_size}
-\title{Get Filter Commit Size}
+\title{Returns the commit size threshold to remove file paths.}
 \usage{
-get_filter_commit_size(project_name)
+get_filter_commit_size(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the commit size to filter out
+The commit size to filter out.
 }
 \description{
-Gets the commit size to filter out
+This function returns an integer number that represents the
+threshold for a commit size to remove file paths specified in the input
+parameter `config_file`. The input, `config_file` must be a parsed
+configuration file. The function will inform the user if the commit size
+threshold exists in the parsed configuration file, `config_file`.
 }

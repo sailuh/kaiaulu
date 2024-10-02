@@ -2,16 +2,20 @@
 % Please edit documentation in R/config.R
 \name{get_topics}
 \alias{get_topics}
-\title{Get Topics}
+\title{Returns the list of topics and keywords for analysis.}
 \usage{
-get_topics(project_name)
+get_topics(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the topics
+The list of keywords and topics for analysis.
 }
 \description{
-Gets the topics and keywords for analysis
+This function returns the list of keywords and topics for
+analysis, that is specified in the input parameter `config_file`. The
+input, `config_file` must be a parsed configuration file. The function will
+inform the user if the list of keywords and topics exists in the parsed
+configuration file, `config_file`.
 }

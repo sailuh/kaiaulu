@@ -2,24 +2,22 @@
 % Please edit documentation in R/config.R
 \name{get_mbox_mailing_list}
 \alias{get_mbox_mailing_list}
-\title{Get Mod Mbox Mailing List}
+\title{Returns the mbox mailing list for a specific project key.}
 \usage{
-get_mbox_mailing_list(project_name, project_key_index)
-
-get_mbox_mailing_list(project_name, project_key_index)
+get_mbox_mailing_list(config_file, project_key_index)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed configuration file.}
 
-\item{project_key_index}{the name of the index of the project key (e.g. "project_key_1" or "project_key_2")}
+\item{project_key_index}{The name of the index of the project key (e.g. "project_key_1" or "project_key_2").}
 }
 \value{
-the mbox mailing list
-
-the mbox mailing list
+The mbox mailing list for project specified by key `project_key_index`.
 }
 \description{
-Gets the Mbox mailing list for a specific project key index
-
-Gets the Mbox archive type for a specific project key index
+This function returns the specific mbox mailing list for a
+specific project key, `project_key_index`, that is specified in the input
+parameter `config_file`. The input, `config_file` must be a parsed
+configuration file. The function will inform the user if the mailing
+list for mbox exists in the parsed configuration file, `config_file`.
 }

@@ -84,22 +84,22 @@ filter:
 We load the above various sections of the single .yaml project configuration file as follows:
 
 ```{r}
-tool <- get_tools()
-conf <- get_conf("apr")
+tool <- get_parsed("tools.yml")
+conf <- get_parsed("conf/apr.yml")
 
 # 3rd Party Tools
-perceval_path <- get_tools_project("perceval")
-utags_path <- get_tools_project("utags")
+perceval_path <- get_tool_project("perceval", tool)
+utags_path <- get_tool_project("utags", tool)
 
 # Ctags Line Types
-kinds <- get_uctags_line_types("apr")
+kinds <- get_uctags_line_types(conf)
 
 # Local Git Repo Folder Path
-git_repo_path <- get_git_repo_path("apr")
+git_repo_path <- get_git_repo_path(conf)
 
 # File Filters
-file_extensions <- get_file_extensions("apr")
-substring_filepath <- get_substring_filepath("apr")
+file_extensions <- get_file_extensions(conf)
+substring_filepath <- get_substring_filepath(conf)
 ```
 
 

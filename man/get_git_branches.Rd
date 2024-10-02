@@ -2,16 +2,20 @@
 % Please edit documentation in R/config.R
 \name{get_git_branches}
 \alias{get_git_branches}
-\title{Get Project Git Branches}
+\title{Returns the list of git branches used for analysis in the current project.}
 \usage{
-get_git_branches(project_name)
+get_git_branches(config_file)
 }
 \arguments{
-\item{project_name}{the name of the project config file (e.g. "kaiaulu" or "geronimo")}
+\item{config_file}{The parsed configuration file.}
 }
 \value{
-the list of git branches
+The list of git branches.
 }
 \description{
-Gets the list of git branches of the project
+This function returns a list of the git branches used for
+analysis in the current project specified in the input parameter
+`config_file`. The input, `config_file` must be a parsed configuration file.
+The function will inform the user if the list of branches to be analyzed
+exists in the parsed configuration file, `config_file`.
 }
