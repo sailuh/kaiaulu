@@ -9,7 +9,7 @@ download_mod_mbox(
   start_year_month,
   end_year_month,
   save_folder_path,
-  verbose = FALSE
+  verbose = TRUE
 )
 }
 \arguments{

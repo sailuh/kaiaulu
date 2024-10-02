@@ -30,10 +30,10 @@ This notebook demonstrates how to efficiently parse .mbox files using parallel p
 ## Project Configuration File 
 
 ```{r}
-tools_config <- yaml::read_yaml("tools.yml")
+tools_config <- yaml::read_yaml("../tools.yml")
 perceval_path <- tools_config[["perceval"]]
 
-conf <- yaml::read_yaml("conf/helix.yml")
+conf <- yaml::read_yaml("../conf/helix.yml")
 save_folder_path <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["save_folder_path"]]
 ```
 
@@ -47,5 +47,5 @@ Here is how it works:
 3. The R script processes the file and saves the output as a CSV file.
 
 ```{bash}
-python3 parse_mbox.py
+python3 ../inst/python/parse_mbox.py
 ```
