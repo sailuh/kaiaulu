@@ -46,25 +46,32 @@ version_control:
 
 mailing_list:
   mod_mbox: 
-    mail_key_1:
-      archive_url: http://mail-archives.apache.org/mod_mbox/apr-dev
+    project_key_1:
+      mailing_list: http://mail-archives.apache.org/mod_mbox/apr-dev
       mbox: ../../rawdata/apr/mod_mbox/apr-dev/
-      mailing_list: apr-dev
+      mailing_list_type: apr-dev
       archive_type: apache
-  pipermail:
-    mail_key_1:
-      archive_url: http://some/pipermail/url
-      mbox: ../../rawdata/geronimo/pipermail/geronimo-dev/
+  # pipermail:
+  #   project_key_1:
+  #     mailing_list: https://mta.openssl.org/pipermail/openssl-dev/
+  #     mbox: ../../rawdata/openssl/pipermail/openssl-dev/
+  #     mailing_list_type: openssl-dev
+  #     archive_type: mta
+  #   project_key_2:
+  #     mailing_list: https://mta.openssl.org/pipermail/openssl-users/
+  #     mbox: ../../rawdata/openssl/pipermail/openssl-users/
+  #     mailing_list_type: openssl-users
+  #     archive_type: mta
 
 issue_tracker:
-  jira:
-    project_key_1:
-      # Obtained from the project's JIRA URL
-      domain: https://issues.apache.org/jira
-      #project_key: HELIX
-      # Download using `download_jira_data.Rmd`
-      # issues: ../../rawdata/apr/jira/issues/helix/
-      # issue_comments: ../../rawdata/apr/jira/issue_comments/helix/
+  # jira:
+  #   project_key_1:
+  #     # Obtained from the project's JIRA URL
+  #     domain: https://issues.apache.org/jira
+  #     project_key: HELIX
+  #     # Download using `download_jira_data.Rmd`
+  #     issues: ../../rawdata/apr/jira/issues/helix/
+  #     issue_comments: ../../rawdata/apr/jira/issue_comments/helix/
   github:
     project_key_1:
       # Obtained from the project's GitHub URL
@@ -76,6 +83,18 @@ issue_tracker:
       issue_search: ../..rawdata/apr/github/issue_search/apache_apr/
       pull_request: ../../rawdata/apr/github/pull_request/apache_apr/
       commit: ../../rawdata/apr/github/commit/apache_apr/
+    # project_key_2:
+    #   # Obtained from the project's GitHub URL
+    #   owner: ssunoo2
+    #   repo: kaiaulu
+    #   # Download using `download_github_comments.Rmd`
+    #   issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/ssunoo2_kaiaulu/
+    #   issue: ../../rawdata/kaiaulu/github/issue/ssunoo2_kaiaulu/
+    #   refresh_issues: ../..rawdata/kaiaulu/github/refresh_issues/ssunoo2_kaiaulu
+    #   pull_request: ../../kaiaulu/github/pull_request/ssunoo2_kaiaulu/
+    #   commit: ../../rawdata/kaiaulu/github/commit/ssunoo2_kaiaulu/
+#   bugzilla:
+#     project_key: kaiaulu
 
       
 

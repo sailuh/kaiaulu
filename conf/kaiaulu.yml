@@ -43,14 +43,29 @@ version_control:
   branch:
     - master
 
-mailing_list:
-  # Where is the mbox located locally?
-  #mbox: ../../rawdata/mbox/geronimo-dev.mbox
-  # What is the domain of the chosen mailing list archive?
-  #domain: http://mail-archives.apache.org/mod_mbox
-  # Which lists of the domain will be used?
-  #list_key:
-  #  - geronimo-dev
+# mailing_list:
+#   mod_mbox: 
+#     project_key_1:
+#       mailing_list: http://mail-archives.apache.org/mod_mbox/geronimo-dev
+#       mbox: ./../../../tse_motif_2021/dataset/mbox/apex-dev.mbox
+#       mailing_list_type: geronimo-dev
+#       archive_type: apache
+#     project_key_2:
+#       mailing_list: http://mail-archives.apache.org/mod_mbox/geronimo-user
+#       mbox: ../../rawdata/geronimo/mod_mbox/geronimo-user/
+#       mailing_list_type: geronimo-user
+#       archive_type: apache
+#   pipermail:
+#     project_key_1:
+#       mailing_list: https://mta.openssl.org/pipermail/openssl-dev/
+#       mbox: ../../rawdata/openssl/pipermail/openssl-dev/
+#       mailing_list_type: openssl-dev
+#       archive_type: mta
+#     project_key_2:
+#       mailing_list: https://mta.openssl.org/pipermail/openssl-users/
+#       mbox: ../../rawdata/openssl/pipermail/openssl-users/
+#       mailing_list_type: openssl-users
+#       archive_type: mta
 
 issue_tracker:
   jira:
@@ -72,18 +87,18 @@ issue_tracker:
       issue_search: ../..rawdata/kaiaulu/github/issue_search/sailuh_kaiaulu/
       pull_request: ../../kaiaulu/github/pull_request/sailuh_kaiaulu/
       commit: ../../rawdata/kaiaulu/github/commit/sailuh_kaiaulu/
-    # project_key_2:
-      # # Obtained from the project's GitHub URL
-      # owner: ssunoo2
-      # repo: kaiaulu
-      # # Download using `download_github_comments.Rmd`
-      # issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/ssunoo2_kaiaulu/
-      # issue: ../../rawdata/kaiaulu/github/issue/ssunoo2_kaiaulu/
-      # refresh_issues: ../..rawdata/kaiaulu/github/refresh_issues/ssunoo2_kaiaulu
-      # pull_request: ../../kaiaulu/github/pull_request/ssunoo2_kaiaulu/
-      # commit: ../../rawdata/kaiaulu/github/commit/ssunoo2_kaiaulu/
-  #bugzilla:
-    #project_key: kaiaulu
+  #   project_key_2:
+  #     # Obtained from the project's GitHub URL
+  #     owner: ssunoo2
+  #     repo: kaiaulu
+  #     # Download using `download_github_comments.Rmd`
+  #     issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/ssunoo2_kaiaulu/
+  #     issue: ../../rawdata/kaiaulu/github/issue/ssunoo2_kaiaulu/
+  #     refresh_issues: ../..rawdata/kaiaulu/github/refresh_issues/ssunoo2_kaiaulu
+  #     pull_request: ../../kaiaulu/github/pull_request/ssunoo2_kaiaulu/
+  #     commit: ../../rawdata/kaiaulu/github/commit/ssunoo2_kaiaulu/
+  # bugzilla:
+  #   project_key: kaiaulu
 
 
 #vulnerabilities:

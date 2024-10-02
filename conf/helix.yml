@@ -49,20 +49,27 @@ version_control:
 
 mailing_list:
   mod_mbox:
-    mail_key_1:
-      archive_url: http://mail-archives.apache.org/mod_mbox/helix-dev
+    project_key_1:
+      mailing_list: http://mail-archives.apache.org/mod_mbox/helix-dev
       mbox: ../../rawdata/helix/mod_mbox/helix-dev/
-      mailing_list: helix-dev
+      mailing_list_type: helix-dev
       archive_type: apache
-    mail_key_2:
-      archive_url: http://mail-archives.apache.org/mod_mbox/helix-user
+    project_key_2:
+      mailing_list_type: http://mail-archives.apache.org/mod_mbox/helix-user
       mbox: ../../rawdata/helix/mod_mbox/helix-user/
-      mailing_list: helix-user
+      mailing_list_type: helix-user
       archive_type: apache
-  pipermail:
-    mail_key_1:
-      archive_url: http://some/pipermail/url
-      mbox: ../../rawdata/geronimo/pipermail/geronimo-dev/
+  # pipermail:
+  #   project_key_1:
+  #     mailing_list: https://mta.openssl.org/pipermail/openssl-dev/
+  #     mbox: ../../rawdata/openssl/pipermail/openssl-dev/
+  #     mailing_list_type: openssl-dev
+  #     archive_type: mta
+  #   project_key_2:
+  #     mailing_list: https://mta.openssl.org/pipermail/openssl-users/
+  #     mbox: ../../rawdata/openssl/pipermail/openssl-users/
+  #     mailing_list_type: openssl-users
+  #     archive_type: mta
 
 issue_tracker:
   jira:
@@ -84,8 +91,8 @@ issue_tracker:
       issue_search: ../../rawdata/helix/github/issue_search/apache_helix/
       pull_request: ../../rawdata/helix/github/pull_request/apache_helix/
       commit: ../../rawdata/helix/github/commit/apache_helix/
-  #bugzilla:
-    #project_key: helix
+  # bugzilla:
+  #   project_key: helix
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)

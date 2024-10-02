@@ -43,20 +43,27 @@ version_control:
 
 mailing_list:
   mod_mbox: 
-    mail_key_1:
-      archive_url: http://mail-archives.apache.org/mod_mbox/thrift-dev
+    project_key_1:
+      mailing_list: http://mail-archives.apache.org/mod_mbox/thrift-dev
       mbox: ../../rawdata/thrift/mod_mbox/thrift-dev/
-      mailing_list: thrift-dev
+      mailing_list_type: thrift-dev
       archive_type: apache
-    mail_key_2:
-      archive_url: http://mail-archives.apache.org/mod_mbox/thrift-user
+    project_key_2:
+      mailing_list: http://mail-archives.apache.org/mod_mbox/thrift-user
       mbox: ../../rawdata/thrift/mod_mbox/thrift-user/
-      mailing_list: thrift-user
+      mailing_list_type: thrift-user
       archive_type: apache
-  pipermail:
-    mail_key_1:
-      archive_url: http://some/pipermail/url
-      mbox: ../../rawdata/geronimo/pipermail/geronimo-dev/
+  # pipermail:
+  #   project_key_1:
+  #     mailing_list: https://mta.openssl.org/pipermail/openssl-dev/
+  #     mbox: ../../rawdata/openssl/pipermail/openssl-dev/
+  #     mailing_list_type: openssl-dev
+  #     archive_type: mta
+  #   project_key_2:
+  #     mailing_list: https://mta.openssl.org/pipermail/openssl-users/
+  #     mbox: ../../rawdata/openssl/pipermail/openssl-users/
+  #     mailing_list_type: openssl-users
+  #     archive_type: mta
 
 issue_tracker:
   jira:
@@ -76,8 +83,18 @@ issue_tracker:
       issue_or_pr_comment: ../../rawdata/thrift/github/issue_or_pr_comment/apache_thrift/
       issue: ../../rawdata/thrift/github/issue/apache_thrift/
       issue_search: ../../rawdata/thrift/github/issue_search/apache_thrift/
-      pull_request: ../../rawdata/thrift/github/pull_request/apache_thrift/
-      commit: ../../rawdata/thrift/github/commit/apache_thrift/
+#     project_key_2:
+#       # Obtained from the project's GitHub URL
+#       owner: ssunoo2
+#       repo: kaiaulu
+#       # Download using `download_github_comments.Rmd`
+#       issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/ssunoo2_kaiaulu/
+#       issue: ../../rawdata/kaiaulu/github/issue/ssunoo2_kaiaulu/
+#       refresh_issues: ../..rawdata/kaiaulu/github/refresh_issues/ssunoo2_kaiaulu
+#       pull_request: ../../kaiaulu/github/pull_request/ssunoo2_kaiaulu/
+#       commit: ../../rawdata/kaiaulu/github/commit/ssunoo2_kaiaulu/
+#   bugzilla:
+#     project_key: kaiaulu
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)

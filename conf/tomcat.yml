@@ -45,41 +45,60 @@ version_control:
 
 mailing_list:
   mod_mbox: 
-    mail_key_1:
-      archive_url: http://mail-archives.apache.org/mod_mbox/tomcat-dev
+    project_key_1:
+      mailing_list: http://mail-archives.apache.org/mod_mbox/tomcat-dev
       mbox: ../../rawdata/tomcat/mod_mbox/tomcat-dev/
-      mailing_list: tomcat-dev
+      mailing_list_type: tomcat-dev
       archive_type: apache
-    mail_key_2:
-      archive_url: http://mail-archives.apache.org/mod_mbox/tomcat-users
+    project_key_2:
+      mailing_list: http://mail-archives.apache.org/mod_mbox/tomcat-users
       mbox: ../../rawdata/tomcat/mod_mbox/tomcat-users/
-      mailing_list: tomcat-users
+      mailing_list_type: tomcat-users
       archive_type: apache
-  pipermail:
-    mail_key_1:
-      archive_url: http://some/pipermail/url
-      mbox: ../../rawdata/geronimo/pipermail/geronimo-dev/
+  # pipermail:
+  #   project_key_1:
+  #     mailing_list: https://mta.openssl.org/pipermail/openssl-dev/
+  #     mbox: ../../rawdata/openssl/pipermail/openssl-dev/
+  #     mailing_list_type: openssl-dev
+  #     archive_type: mta
+  #   project_key_2:
+  #     mailing_list: https://mta.openssl.org/pipermail/openssl-users/
+  #     mbox: ../../rawdata/openssl/pipermail/openssl-users/
+  #     mailing_list_type: openssl-users
+  #     archive_type: mta
 
 # issue_tracker:
 #   jira:
 #     project_key_1:
 #       # Obtained from the project's JIRA URL
-#       domain: https://issues.apache.org/jira
-#       #project_key: HELIX
+#       domain: https://sailuh.atlassian.net
+#       project_key: SAILUH
 #       # Download using `download_jira_data.Rmd`
-#       # issues: ../../rawdata/helix/jira/issues/helix/
-#       # issue_comments: ../../rawdata/helix/jira/issue_comments/helix/
+#       issues: ../../rawdata/kaiaulu/jira/issues/sailuh/
+#       issue_comments: ../../rawdata/kaiaulu/jira/issue_comments/sailuh/
 #   github:
 #     project_key_1:
 #       # Obtained from the project's GitHub URL
-#       owner: apache
-#       repo: apr
+#       owner: sailuh
+#       repo: kaiaulu
 #       # Download using `download_github_comments.Rmd`
-#       issue_or_pr_comment: ../../rawdata/apr/github/issue_or_pr_comment/apache_apr/
-#       issue: ../../rawdata/apr/github/issue/apache_apr/
-#       issue_search: ../../rawdata/apr/github/issue_search/apache_apr/
-#       pull_request: ../../rawdata/apr/github/pull_request/apache_apr/
-#       commit: ../../rawdata/apr/github/commit/apache_apr/
+#       issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/sailuh_kaiaulu/
+#       issue: ../../rawdata/kaiaulu/github/issue/sailuh_kaiaulu/
+#       issue_search: ../..rawdata/kaiaulu/github/issue_search/sailuh_kaiaulu/
+#       pull_request: ../../kaiaulu/github/pull_request/sailuh_kaiaulu/
+#       commit: ../../rawdata/kaiaulu/github/commit/sailuh_kaiaulu/
+#     project_key_2:
+#       # Obtained from the project's GitHub URL
+#       owner: ssunoo2
+#       repo: kaiaulu
+#       # Download using `download_github_comments.Rmd`
+#       issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/ssunoo2_kaiaulu/
+#       issue: ../../rawdata/kaiaulu/github/issue/ssunoo2_kaiaulu/
+#       refresh_issues: ../..rawdata/kaiaulu/github/refresh_issues/ssunoo2_kaiaulu
+#       pull_request: ../../kaiaulu/github/pull_request/ssunoo2_kaiaulu/
+#       commit: ../../rawdata/kaiaulu/github/commit/ssunoo2_kaiaulu/
+#   bugzilla:
+#     project_key: kaiaulu
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)

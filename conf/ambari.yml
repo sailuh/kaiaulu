@@ -52,20 +52,27 @@ version_control:
 
 mailing_list:
   mod_mbox:
-    mail_key_1:
-      archive_url: http://mail-archives.apache.org/mod_mbox/ambari-dev
+    project_key_1:
+      mailing_list: http://mail-archives.apache.org/mod_mbox/ambari-dev
       mbox: ../../rawdata/ambari/mod_mbox/ambari-dev/
-      mailing_list: ambari-dev
+      mailing_list_type: ambari-dev
       archive_type: apache
-    mail_key_2:
-      archive_url: http://mail-archives.apache.org/mod_mbox/ambari-user
+    project_key_2:
+      mailing_list: http://mail-archives.apache.org/mod_mbox/ambari-user
       mbox: ../../rawdata/geronimo/mod_mbox/ambari-user/
-      mailing_list: ambari-user
+      mailing_list_type: ambari-user
       archive_type: apache
-  pipermail:
-    mail_key_1:
-      archive_url: http://some/pipermail/url
-      mbox: ../../rawdata/geronimo/pipermail/geronimo-dev/
+  # pipermail:
+  #   project_key_1:
+  #     mailing_list: https://mta.openssl.org/pipermail/openssl-dev/
+  #     mbox: ../../rawdata/openssl/pipermail/openssl-dev/
+  #     mailing_list_type: openssl-dev
+  #     archive_type: mta
+  #   project_key_2:
+  #     mailing_list: https://mta.openssl.org/pipermail/openssl-users/
+  #     mbox: ../../rawdata/openssl/pipermail/openssl-users/
+  #     mailing_list_type: openssl-users
+  #     archive_type: mta
 
 issue_tracker:
   jira:
@@ -88,7 +95,7 @@ issue_tracker:
       pull_request: ../../rawdata/ambari/github/pull_request/apache_ambari/
       commit: ../../rawdata/ambari/github/commit/apache_ambari/
   # bugzilla:
-    # project_key: ambari
+  #   project_key: ambari
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
