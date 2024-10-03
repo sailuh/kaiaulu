@@ -4,12 +4,12 @@
 \alias{parse_mbox}
 \title{Parse mbox from Perceval}
 \usage{
-parse_mbox(perceval_path, mbox)
+parse_mbox(perceval_path, mbox_path)
 }
 \arguments{
 \item{perceval_path}{path to perceval binary}
 
-\item{mbox}{path to mbox archive file (ends in .mbox)}
+\item{mbox_path}{path to mbox archive file (ends in .mbox)}
 }
 \description{
 Parses an mbox file, which consists of emails in a mailbox, using the Perceval library.

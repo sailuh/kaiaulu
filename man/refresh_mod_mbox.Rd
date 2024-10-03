@@ -4,14 +4,19 @@
 \alias{refresh_mod_mbox}
 \title{Refresh mbox files downloaded via mod_mbox}
 \usage{
-refresh_mod_mbox(mailing_list, start_year_month, mbox, verbose = TRUE)
+refresh_mod_mbox(
+  mailing_list,
+  start_year_month,
+  save_folder_path,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{mailing_list}{The URL of the mailing list being downloaded (e.g., 'https://lists.apache.org/list.html?announce@apache.org')}
 
 \item{start_year_month}{The year and month of the first file to be downloaded (format: 'YYYYMM').}
 
-\item{mbox}{The folder path in which all the downloaded mod_mbox files will be stored.}
+\item{save_folder_path}{The folder path in which all the downloaded mod_mbox files will be stored.}
 
 \item{verbose}{if TRUE, prints diagnostic messages.}
 }

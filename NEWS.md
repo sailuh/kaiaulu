@@ -3,6 +3,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ * Refactor of all R/mail.R mailing list functions for downloading and refreshing both pipermail and mod mbox archives. [#284](https://github.com/sailuh/kaiaulu/issues/284)
  * `refresh_mod_mbox()` and `refresh_pipermail()` has been added. They are both functions that downloads mbox issues that are not already downloaded up until the current year and month. [#284](https://github.com/sailuh/kaiaulu/issues/284)
  * `parse_mbox_latest_date()` has been added. This function returns the file name of the downloaded mbox file containing the latest date for use by `download_mbox_per_month()` and `download_pipermail` to implement a refresh capability. [#284](https://github.com/sailuh/kaiaulu/issues/284)
  * `refresh_jira_issues()` had been added. It is a wrapper function for the previous downloader and downloads only issues greater than the greatest key already downloaded.
@@ -30,6 +31,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### MINOR IMPROVEMENTS
 
+ * All mailing list documentation can now be found in 'download_mail.Rmd'. [#284](https://github.com/sailuh/kaiaulu/issues/284)
  * `download_pipermail()` now downloads all the txt and txt.gz files in the accessed pipermail archive as mbox files. [#284](https://github.com/sailuh/kaiaulu/issues/284)
  * The line metrics notebook now provides further guidance on adjusting the snapshot and filtering.
  * The R File and R Function parser can now properly parse R folders which contain folders within (not following R package structure). Both `.r` and `.R` files are also now captured (previously only one of the two were specified, but R accepts both). [#235](https://github.com/sailuh/kaiaulu/issues/235)
