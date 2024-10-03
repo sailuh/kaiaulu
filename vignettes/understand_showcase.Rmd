@@ -11,16 +11,28 @@ vignette: >
 ---
 
 
+# Introduction
+
+Within a project, we might want to see the dependencies between files and classes. parse_r_dependencies and parse_dependencies uses in-house or Depends software, respectively, to analyze projects. parse_dependencies only provides file dependencies, while parse_r_dependencies provides file and function dependencies for a set of R files. Having Understand installed, we can analyze projects for both file and class dependencies in multiple languages like Java, PHP, HTML, C/C++, Python, Assembly, Ada, etc.
+
+Here is more information on [Scitool's Understand](https://scitools.com)).
+
+This notebook demonstrates a sample use case of the two functions that generates tables from the dependency data Understand outputs without opening Understand.
+
+
 ```{r warning = FALSE, message = FALSE}
 rm(list = ls())
-library(kaiaulu)
-library(visNetwork)
-library(igraph)
-library(data.table)
+require(kaiaulu)
+require(visNetwork)
+require(igraph)
+require(data.table)
 ```
 
 
 # Parse a sample project folder
+
+For sample purposes, we will use the project from [Houari Zegai's Calculator](https://github.com/HouariZegai/Calculator)) saved into a folder called
+sample_project.
 
 ```{r}
 folder_path <- "../tests/sample_project"
@@ -29,6 +41,10 @@ folder_path <- "../tests/sample_project"
 
 # File Dependencies
 
+To generate a table containing the file dependencies of the project, provide the project_path, the primary project language, which in this case is Java, and the parse type we want: file. There is a fourth parameter named output_dir which allows us to redirect to an output folder so that one can see all the .xml and file data Understand generates (by default, will go to '../tmp').
+
+Note the format of the generated table after running the below code.
+
 ```{r}
 file_dependencies <- understand_parse_dependencies(project_path = folder_path, language = "java", parse_type = "file")
 head(file_dependencies)
@@ -36,6 +52,10 @@ head(file_dependencies)
 
 
 # Class Dependencies
+
+Near-identical to parsing for file dependencies, class dependencies only requires us change the parse_type to class. In the output folder, this .xml will be separate from the one generated for file dependencies: fileDependencies.xml and classDependencies.xml respectively.
+
+The generated data is in the same format, however note the different types of 
 
 ```{r}
 class_dependencies <- understand_parse_dependencies(project_path = folder_path, language = "java", parse_type = "class")

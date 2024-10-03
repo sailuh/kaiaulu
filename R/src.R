@@ -4,68 +4,69 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-############## Parsers ##############
+############## Understand Project Builder ##############
 
-#' Parse file dependencies from Scitool's Understand
+#' Build the Scitool's Understand project folder for analysis of a project
+#' This function creates the data file for Understand
 #'
 #' @param project_path path to the project folder to analyze
-#' @param language the language of the project (language must be supported by Understand)
+#' @param language the primary language of the project (language must be supported by Understand)
 #' @param output_dir path to output directory (formatted output_path/)
-#' @param parse_type Type of dependencies to generate into xml (either "file" or "class")
 #' @export
 #' @family parsers
-understand_parse_dependencies <- function(project_path,language,output_dir="../tmp/", parse_type){
-  # Before running, check if parse_type is correct
-  validInput <- function(input) {
-    is.character(input) && length(input) == 1 && input %in% c("file", "class")
-  }
-  if (!validInput(parse_type)) {
-    stop("Error: Invalid parse_type provided. Please input either \"file\" or \"class\"")
-  }
+build_understand_project <- function(project_path, language, output_dir = "../tmp/"){
 
-  # Use Understand to parse the code folder.
-  # Create the variables used in command lines
+  # Create variables for command line
+  command <- "und"
   project_path <- paste0("\"", project_path, "\"")
   db_dir <- paste0(output_dir, "/Understand.und")
-  xml_dir <- paste0(db_dir, "/", parse_type, "Dependencies.xml")
-  command <- "und"
   args <- c("create", "-db", db_dir, "-languages", language)
 
-  # Generate the XML file
+  # Build the Understand project
   system2(command, args)
   args <- c("-db", db_dir, "add", project_path)
   system2(command, args)
   args <- c("analyze", db_dir)
   system2(command, args)
+
+}
+
+############## Parsers ##############
+
+#' Parse dependencies from Scitool's Understand
+#'
+#'
+#' @param understand_dir path to the built Understand project folder (same used in build_understand_project)
+#' @param parse_type Type of dependencies to generate into xml (either "file" or "class")
+#' @export
+#' @family parsers
+parse_understand_dependencies <- function(understand_dir="../tmp/", parse_type = C("file", "class")){
+  # Before running, check if parse_type is correct
+  parse_type <- match.arg(parse_type)
+
+  # Use Understand to parse the code folder.
+  # Create the variables used in command lines
+  db_dir <- paste0(understand_dir, "/Understand.und")
+  xml_dir <- paste0(db_dir, "/", parse_type, "Dependencies.xml")
+
+  # Generate the XML file
   args <- c("export", "-dependencies", parse_type, "cytoscape", xml_dir, db_dir)
-  system2(command, args)
+  system2("und", args)
 
   # Parse the XML file
   xml_data <- xmlParse(xml_dir)
-  xml_nodes <- xmlRoot(xml_data)
-  xml_nodes <- xmlChildren(xml_nodes)
-
-  # Helper function to search for an attribute
-  findAtt <- function(search_nodes, att_name) {
-    found_att <- NA
-    for (att in search_nodes) {
-      if (xmlGetAttr(att, "name") == att_name) {
-        found_att <- xmlGetAttr(att, "value")
-        break
-      }
-    }
-    return(found_att)
-  }
+  xml_nodes <- xmlRoot(xml_data) # The head of the xml
+  xml_nodes <- xmlChildren(xml_nodes) # Retrieve all the subnodes of the head (the data)
 
   # From child nodes- filter for those with name "node"
   node_elements <- lapply(xml_nodes, function(child) {
     if (xmlName(child) == "node") {
       # Extract the id
       id <- xmlGetAttr(child, "id")
-      # Find the node.label attribute
+      # Extract the necessary attributes from the attribute list
       att_nodes <- xmlChildren(child)
-      node_label <- findAtt(att_nodes, "node.label")
-      long_name <- findAtt(att_nodes, "longName")
+      node_label <- xmlGetAttr(att_nodes[[3]], "value");
+      long_name <- xmlGetAttr(att_nodes[[4]], "value");
       return(data.table(node_label = node_label, id = id, long_name = long_name))
     } else {
       return(NULL)
@@ -73,7 +74,7 @@ understand_parse_dependencies <- function(project_path,language,output_dir="../t
   })
 
   # Remove NULLs and combine the results into a data frame
-  node_list <- do.call(rbind, node_elements[!sapply(node_elements, is.null)])
+  node_list <- rbindlist(node_elements[!sapply(edge_elements, is.null)], use.names = TRUE, fill = TRUE)
 
   # From child nodes- filter for those with name "edge"
   edge_elements <- lapply(xml_nodes, function(child) {
@@ -81,10 +82,10 @@ understand_parse_dependencies <- function(project_path,language,output_dir="../t
       # Extract the id_from and id_to
       id_from <- xmlGetAttr(child, "source")
       id_to <- xmlGetAttr(child, "target")
-      # Find the dependency kind attribute
+      # Extract the necessary attributes from the attribute list
       att_nodes <- xmlChildren(child)
-      dependency_kind <- findAtt(att_nodes, "dependency kind")
-      dependency_kind <- unlist(strsplit(dependency_kind, ",\\s*"))
+      dependency_kind <- xmlGetAttr(att_nodes[[5]], "value");
+      dependency_kind <- unlist(stri_split(dependency_kind, regex = ",\\s*"))
       return(data.table(id_from = id_from, id_to = id_to, dependency_kind = dependency_kind))
     } else {
       return(NULL)
@@ -92,7 +93,7 @@ understand_parse_dependencies <- function(project_path,language,output_dir="../t
   })
 
   # Remove NULLs and combine the results into a data frame
-  edge_list <- do.call(rbind, edge_elements[!sapply(edge_elements, is.null)])
+  edge_list <- rbindlist(edge_elements[!sapply(edge_elements, is.null)], use.names = TRUE, fill = TRUE)
 
   # Create a list to return
   graph <- list(node_list = node_list, edge_list = edge_list)
@@ -309,13 +310,13 @@ parse_r_dependencies <- function(folder_path){
 
 #' Transform parsed dependencies into a network
 #'
-#' @param depends_parsed Parsed data from understand_parse_class_dependencies.
+#' @param depends_parsed Parsed data from parse_understand_dependencies
 #' @param weight_types The weight types as defined in Depends.
 #'                     Accepts single string and vector input
 #'
 #' @export
 #' @family edgelists
-transform_und_dependencies_to_network <- function(parsed, weight_types) {
+transform_understand_dependencies_to_network <- function(parsed, weight_types) {
 
   nodes <- parsed[["node_list"]]
   edges <- parsed[["edge_list"]]
