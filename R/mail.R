@@ -18,9 +18,9 @@
 #' The downloaded .mbox files are saved in the specified folder following the naming convention kaiaulu_YYYYMM.mbox.
 #' The function only downloads files that fall between the specified start_year_month and end_year_month.
 #'
-#' @param mailing_list The name of the mailing list being downloaded (e.g. "https://mta.openssl.org/pipermail/openssl-announce/")
-#' @param start_year_month The year and month of the first file to be downloaded (format: 'YYYYMM')
-#' @param end_year_month The year and month of the last file to be downloaded (format: 'YYYYMM', or use 'format(Sys.Date(), "%Y%m")' for the current month)
+#' @param mailing_list The name of the mailing list being downloaded e.g. "https://mta.openssl.org/pipermail/openssl-announce/"
+#' @param start_year_month The year and month of the first file to be downloaded format: 'YYYYMM'
+#' @param end_year_month The year and month of the last file to be downloaded format: 'YYYYMM', or use Sys.Date
 #' @param save_folder_path The folder path in which all the downloaded pipermail files will be stored
 #' @param verbose if TRUE, prints diagnostic messages during the download process
 #' @return Returns `downloaded_files`, a vector of the downloaded files in the current working directory
@@ -501,25 +501,34 @@ parse_mbox <- function(perceval_path, mbox_path){
 
 #' Parse mbox latest date
 #'
-#' Returns the name of the latest mod_mbox file downloaded in the specified folder
+#' @description This function returns the name of the latest mod_mbox file downloaded in the specified folder
+#' based on the naming convention `kaiaulu_YYYYMM.mbox`. For example: `kaiaulu_202401.mbox`.
 #'
-#' The folder assumes the following convention: "(mailing_list)_(archive_type)_yearmonth.mbox"
-#' For example: "geronimo-dev_apache_202401.mbox". This nomenclature is defined by \code{\link{download_mod_mbox_per_month}}
-#'
-#' @param mbox path to mbox archive file (ends in .mbox)
-#' @return Returns the name of the latest mod_mbox file
+#' @param save_folder_path path to the folder containing the mbox files
+#' @return `latest_mbox_file` the name of the latest mod_mbox file
 #' @export
 #' @family parsers
-parse_mbox_latest_date <- function(mbox) {
-  file_list <- list.files(mbox)
-  date_list <- list()
-  for(i in file_list){
-    i <- sub(".mbox", "", i)
-    i <- sub("[^_]*_[^_]*_", "", i)
-    date_list <- append(date_list, i)
+parse_mbox_latest_date <- function(save_folder_path) {
+  # List all .mbox files in the folder with the expected naming pattern
+  file_list <- list.files(save_folder_path, pattern = "kaiaulu_\\d{6}\\.mbox$")
+
+  if (length(file_list) == 0) {
+    warning("No .mbox files found in the folder.")
+    return(invisible(NULL))
   }
-  latest_date <- as.character(max(unlist(date_list)))
-  latest_mbox_file <- grep(latest_date, file_list, value = TRUE)
+
+  # Extract the dates from the filenames
+  date_list <- sub("kaiaulu_(\\d{6})\\.mbox$", "\\1", file_list)
+
+  # Convert dates to numeric for comparison
+  date_numeric <- as.numeric(date_list)
+
+  # Find the latest date
+  latest_date <- max(date_numeric, na.rm = TRUE)
+
+  # Find the file corresponding to the latest date
+  latest_mbox_file <- file_list[date_numeric == latest_date]
+
   return(latest_mbox_file)
 }
 

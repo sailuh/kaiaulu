@@ -13,11 +13,11 @@ download_pipermail(
 )
 }
 \arguments{
-\item{mailing_list}{The name of the mailing list being downloaded (e.g. "https://mta.openssl.org/pipermail/openssl-announce/")}
+\item{mailing_list}{The name of the mailing list being downloaded e.g. "https://mta.openssl.org/pipermail/openssl-announce/"}
 
-\item{start_year_month}{The year and month of the first file to be downloaded (format: 'YYYYMM')}
+\item{start_year_month}{The year and month of the first file to be downloaded format: 'YYYYMM'}
 
-\item{end_year_month}{The year and month of the last file to be downloaded (format: 'YYYYMM', or use 'format(Sys.Date(), "%Y%m")' for the current month)}
+\item{end_year_month}{The year and month of the last file to be downloaded format: 'YYYYMM', or use Sys.Date}
 
 \item{save_folder_path}{The folder path in which all the downloaded pipermail files will be stored}
 

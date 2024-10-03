@@ -57,7 +57,7 @@ mailing_list:
       mailing_list: https://mta.openssl.org/pipermail/openssl-users/
       start_year_month: 202310
       end_year_month: 202405
-      save_folder_path: "../../extdata/save_folder_mail"
+      save_folder_path: "../extdata/save_folder_mail"
 
 ```
 
@@ -238,5 +238,35 @@ parsed_mail <- parse_mbox(
 ```
 This will store the parsed data into the parsed_mail variable. To view the table, use:
 ```{r}
+View(parsed_mail)
+```
+
+## Retrieve the Latest Mbox File
+We can use the parse_mbox_latest_date() function to identify the most recent .mbox file in the specified folder. This can be useful when you want to automate the parsing of the latest data without manually specifying the file name.
+
+First, make sure that the save_folder_path is correctly set to the directory where your .mbox files are stored.
+```{r}
+# Get the latest mbox file
+latest_mbox_file <- parse_mbox_latest_date(save_folder_path = save_folder_path)
+print(latest_mbox_file)
+```
+This will output the name of the latest .mbox file based on the YYYYMM pattern in the filename.
+We can use this to update mbox_path to point to the latest file, and call the parse_mbox() function to parse the latest data.
+```{r}
+# Update mbox_path to use the latest file
+mbox_path <- file.path(save_folder_path, latest_mbox_file)
+print(mbox_path)
+```
+To parse this file: 
+```{r}
+# Parse the latest mbox file
+parsed_mail <- parse_mbox(
+  perceval_path = parse_perceval_path,
+  mbox_path = mbox_path
+)
+```
+Now, parsed_mail contains the parsed data from the latest .mbox file.
+```{r}
+# View the parsed data
 View(parsed_mail)
 ```
