@@ -45,18 +45,18 @@ version_control:
     - master
 
 mailing_list:
-#   mod_mbox: 
-#     project_key_1:
-#       mailing_list: http://mail-archives.apache.org/mod_mbox/geronimo-dev
-#       mbox: ./../../../tse_motif_2021/dataset/mbox/apex-dev.mbox
-#       mailing_list_type: geronimo-dev
-#       archive_type: apache
-#     project_key_2:
-#       mailing_list: http://mail-archives.apache.org/mod_mbox/geronimo-user
-#       mbox: ../../rawdata/geronimo/mod_mbox/geronimo-user/
-#       mailing_list_type: geronimo-user
-#       archive_type: apache
-  pipermail:
+   mod_mbox:
+     project_key_1:
+       mailing_list: http://mail-archives.apache.org/mod_mbox/geronimo-dev
+       mbox: ./../../../tse_motif_2021/dataset/mbox/apex-dev.mbox
+       mailing_list_type: geronimo-dev
+       archive_type: apache
+     project_key_2:
+       mailing_list: http://mail-archives.apache.org/mod_mbox/geronimo-user
+       mbox: ../../rawdata/geronimo/mod_mbox/geronimo-user/
+       mailing_list_type: geronimo-user
+       archive_type: apache
+   pipermail:
     project_key_1:
       mailing_list: https://mta.openssl.org/pipermail/openssl-dev/
       mbox: ../../rawdata/openssl/pipermail/openssl-dev/

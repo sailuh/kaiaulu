@@ -55,7 +55,7 @@ mailing_list:
       mailing_list_type: helix-dev
       archive_type: apache
     project_key_2:
-      mailing_list_type: http://mail-archives.apache.org/mod_mbox/helix-user
+      mailing_list: http://mail-archives.apache.org/mod_mbox/helix-user
       mbox: ../../rawdata/helix/mod_mbox/helix-user/
       mailing_list_type: helix-user
       archive_type: apache

@@ -3,6 +3,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ * `config.R` now contains a set of getter functions used to centralize the gathering of configuration data and these getter functions are used to refactor configuration file information gathering. For example, loading configuration file information with variable assignment is as follows `git_repo_path <- config_file[["version_control"]][["log"]]` but the refactored with a config.R getter function becomes `git_repo_path <- get_git_repo_path(config_file)`. [#230](https://github.com/sailuh/kaiaulu/issues/230)
  * `refresh_jira_issues()` had been added. It is a wrapper function for the previous downloader and downloads only issues greater than the greatest key already downloaded.
  * `download_jira_issues()`, `download_jira_issues_by_issue_key()`, and `download_jira_issues_by_date()` has been added. This allows for downloading of Jira issues without the use of JirAgileR [#275](https://github.com/sailuh/kaiaulu/issues/275) and specification of issue Id and created ranges. It also interacts with `parse_jira_latest_date` to implement a refresh capability.
  * `make_jira_issue()` and `make_jira_issue_tracker()` no longer create fake issues following JirAgileR format, but instead the raw data obtained from JIRA API. This is compatible with the new parser function for JIRA. [#277](https://github.com/sailuh/kaiaulu/issues/277)

@@ -112,22 +112,22 @@ require(gt)
 
 
 ```{r}
-tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/junit5.yml")
-srcml_path <- tool[["srcml"]]
+tool <- get_parsed("tools.yml")
+conf <- get_parsed("conf/junit5.yml")
+srcml_path <- get_tool_project("srcml", tool)
 
-git_repo_path <- conf[["version_control"]][["log"]]
+git_repo_path <- get_git_repo_path(conf)
 folder_path <- stri_replace_last(git_repo_path,replacement="",regex=".git")
 
 # Tool Parameters 
-srcml_filepath <- conf[["tool"]][["srcml"]][["srcml_path"]]
+srcml_filepath <- get_srcml_filepath(conf)
 
 # Filters
-file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
-substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+file_extensions <- get_file_extensions(conf)
+substring_filepath <- get_substring_filepath(conf)
 
 # Analysis
-topics <- conf[["analysis"]][["topics"]]
+topics <- get_topics(conf)
 ```
 
 This is all the project configuration files are used for. If you inspect the variables above, you will see they are just strings. As a reminder, the tools.yml is where you store the filepaths to third party software in your computer. Please see Kaiaulu's README.md for details. As a rule of thumb, any R Notebooks in Kaiaulu load the project configuration file at the start, much like you would normally initialize variables at the start of your source code.

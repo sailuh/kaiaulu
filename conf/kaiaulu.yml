@@ -44,7 +44,7 @@ version_control:
     - master
 
 # mailing_list:
-#   mod_mbox: 
+#   mod_mbox:
 #     project_key_1:
 #       mailing_list: http://mail-archives.apache.org/mod_mbox/geronimo-dev
 #       mbox: ./../../../tse_motif_2021/dataset/mbox/apex-dev.mbox
@@ -84,7 +84,8 @@ issue_tracker:
       # Download using `download_github_comments.Rmd`
       issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/sailuh_kaiaulu/
       issue: ../../rawdata/kaiaulu/github/issue/sailuh_kaiaulu/
-      issue_search: ../..rawdata/kaiaulu/github/issue_search/sailuh_kaiaulu/
+      issue_search: ../../rawdata/kaiaulu/github/issue_search/sailuh_kaiaulu/
+      issue_event: ../../rawdata/kaiaulu/github/issue_event/sailuh_kaiaulu/
       pull_request: ../../kaiaulu/github/pull_request/sailuh_kaiaulu/
       commit: ../../rawdata/kaiaulu/github/commit/sailuh_kaiaulu/
   #   project_key_2:
@@ -101,10 +102,10 @@ issue_tracker:
   #   project_key: kaiaulu
 
 
-#vulnerabilities:
+vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
   # Download at: https://nvd.nist.gov/vuln/data-feeds
-  #nvd_feed: rawdata/nvdfeed
+  nvd_feed: rawdata/nvdfeed
 
 # Commit message CVE or Issue Regular Expression (regex)
 # See project's commit message for examples to create the regex

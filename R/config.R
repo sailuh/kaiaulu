@@ -410,7 +410,7 @@ get_mbox_path <- function(config_file, project_key_index) {
 #' @export
 get_mbox_domain <- function(config_file, project_key_index) {
 
-  mbox_url <- config_file[["mailing_list"]][["mod_mbox"]][[project_key_index]][["archive_url"]]
+  mbox_url <- config_file[["mailing_list"]][["mod_mbox"]][[project_key_index]][["mailing_list"]]
 
   if (is.null(mbox_url)) {
     warning("Attribute does not exist in the configuration file.")
@@ -433,7 +433,7 @@ get_mbox_domain <- function(config_file, project_key_index) {
 #' @export
 get_mbox_mailing_list <- function(config_file, project_key_index) {
 
-  mailing_list <- config_file[["mailing_list"]][["mod_mbox"]][[project_key_index]][["mailing_list"]]
+  mailing_list <- config_file[["mailing_list"]][["mod_mbox"]][[project_key_index]][["mailing_list_type"]]
 
   if (is.null(mailing_list)) {
     warning("Attribute does not exist in the configuration file.")
@@ -631,6 +631,31 @@ get_github_pull_request_path <- function(config_file, project_key_index) {
   return(pull_request_path)
 }
 
+#' Returns the local folder path for GitHub issue events for a specific project
+#' key.
+#'
+#' @description This function returns the local folder path for GitHub issue
+#' events for a specific project key, that is specified in the input
+#' parameter `config_file`. The input, `config_file` must be a parsed
+#' configuration file. The function will inform the user if the local folder
+#' path for the issue events exists in the parsed configuration file,
+#' `config_file`.
+#'
+#' @param config_file The parsed configuration file.
+#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
+#' @return The local folder path for GitHub issue events for project specified by key `project_key_index`.
+#' @export
+get_github_issue_event_path <- function(config_file, project_key_index) {
+
+  issue_event_path <- config_file[["issue_tracker"]][["github"]][[project_key_index]][["issue_event"]]
+
+  if (is.null(issue_event_path)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(issue_event_path)
+}
+
 #' Returns the local folder path for GitHub commits for a specific project key.
 #'
 #' @description This function returns the local folder path for GitHub commits
@@ -783,7 +808,7 @@ get_jira_issues_comments_path <- function(config_file, project_key_index) {
 #' @export
 get_bugzilla_project_key <- function(config_file) {
 
-  bugzilla_key <- config_file[["issue_tracker"]][["bugzilla"]][["project_key_index"]][["project_key"]]
+  bugzilla_key <- config_file[["issue_tracker"]][["bugzilla"]][["project_key"]]
 
   if (is.null(bugzilla_key)) {
     warning("Attribute does not exist in the configuration file.")

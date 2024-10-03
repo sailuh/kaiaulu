@@ -63,7 +63,7 @@ keep_dependencies_type <- get_keep_dependencies_type(conf)
 
 # Mailing List
 # Specify project_key_index in get_mbox_path() (e.g. "project_key_1")
-mbox_path <- get_mbox_path(conf, "mail_key_1")
+mbox_path <- get_mbox_path(conf, "project_key_1")
 
 # DV8 parameters 
 project_path <- get_dv8_folder_path(conf)
