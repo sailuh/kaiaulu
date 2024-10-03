@@ -1,0 +1,65 @@
+---
+title: "Understand Showcase"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Understand Showcase}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r warning = FALSE, message = FALSE}
+rm(list = ls())
+library(kaiaulu)
+library(visNetwork)
+library(igraph)
+library(data.table)
+```
+
+
+# Parse a sample project folder
+
+```{r}
+folder_path <- "../tests/sample_project"
+```
+
+
+# File Dependencies
+
+```{r}
+file_dependencies <- understand_parse_dependencies(project_path = folder_path, language = "java", parse_type = "file")
+head(file_dependencies)
+```
+
+
+# Class Dependencies
+
+```{r}
+class_dependencies <- understand_parse_dependencies(project_path = folder_path, language = "java", parse_type = "class")
+head(class_dependencies)
+```
+
+## File
+
+```{r}
+file_graph <- transform_und_dependencies_to_network(parsed = file_dependencies, weight_types = c("", ""))
+project_function_network <- igraph::graph_from_data_frame(d=function_graph[["edgelist"]], 
+                      directed = TRUE,
+                      vertices = function_graph[["nodes"]])
+visIgraph(project_function_network,randomSeed = 1)
+```
+
+
+## Class
+
+```{r}
+class_graph <- transform_und_dependencies_to_network(parsed = class_dependencies, weight_types = c("", ""))
+project_function_network <- igraph::graph_from_data_frame(d=file_graph[["edgelist"]], 
+                      directed = TRUE,
+                      vertices = file_graph[["nodes"]])
+visIgraph(project_function_network,randomSeed = 1)
+```
+

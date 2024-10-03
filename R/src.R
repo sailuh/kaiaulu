@@ -315,7 +315,7 @@ parse_r_dependencies <- function(folder_path){
 #'
 #' @export
 #' @family edgelists
-transform_und_class_dependencies_to_network <- function(parsed, weight_types) {
+transform_und_dependencies_to_network <- function(parsed, weight_types) {
 
   nodes <- parsed[["node_list"]]
   edges <- parsed[["edge_list"]]
