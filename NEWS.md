@@ -31,7 +31,8 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### MINOR IMPROVEMENTS
 
- * All mailing list documentation can now be found in 'download_mail.Rmd'. [#284](https://github.com/sailuh/kaiaulu/issues/284)
+ * `parse_mbox_latest_date()` now uses the new mbox naming convention for the latest date. [#284](https://github.com/sailuh/kaiaulu/issues/284)
+ * All mailing list documentation can now be found in `download_mail.Rmd`. [#284](https://github.com/sailuh/kaiaulu/issues/284)
  * `download_pipermail()` now downloads all the txt and txt.gz files in the accessed pipermail archive as mbox files. [#284](https://github.com/sailuh/kaiaulu/issues/284)
  * The line metrics notebook now provides further guidance on adjusting the snapshot and filtering.
  * The R File and R Function parser can now properly parse R folders which contain folders within (not following R package structure). Both `.r` and `.R` files are also now captured (previously only one of the two were specified, but R accepts both). [#235](https://github.com/sailuh/kaiaulu/issues/235)
