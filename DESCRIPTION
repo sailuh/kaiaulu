@@ -20,7 +20,7 @@ Authors@R: c(
     person('Nicole', 'Hoess', role = c('ctb')),
     person('Anthony', 'Lau', role = c('ctb')),
     person('Sean', 'Sunoo', role = c('ctb')),
-    person('Ian Jaymes', 'Iwata', role= c('ctb'))
+    person('Ian Jaymes', 'Iwata', role= c('ctb')),
     person('Raven', 'Quiddaoen', role= c('ctb'))
     )
 Maintainer: Carlos Paradis <cvas@hawaii.edu>

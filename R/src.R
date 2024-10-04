@@ -6,8 +6,7 @@
 
 ############## Understand Project Builder ##############
 
-#' Build the Scitool's Understand project folder for analysis of a project
-#' This function creates the data file for Understand
+#' @description This function builds the data files for Understand from the provided project folder, reading from files that are written in the target language into a folder
 #'
 #' @param project_path path to the project folder to analyze
 #' @param language the primary language of the project (language must be supported by Understand)
@@ -33,14 +32,13 @@ build_understand_project <- function(project_path, language, output_dir = "../tm
 
 ############## Parsers ##############
 
-#' Parse dependencies from Scitool's Understand
-#'
+#' @description This function parses the data in the Understand build folder to find the parse_type dependencies into a list of two data.tables
 #'
 #' @param understand_dir path to the built Understand project folder (same used in build_understand_project)
 #' @param parse_type Type of dependencies to generate into xml (either "file" or "class")
 #' @export
 #' @family parsers
-parse_understand_dependencies <- function(understand_dir="../tmp/", parse_type = C("file", "class")){
+parse_understand_dependencies <- function(understand_dir="../tmp/", parse_type = c("file", "class")) {
   # Before running, check if parse_type is correct
   parse_type <- match.arg(parse_type)
 
@@ -55,18 +53,18 @@ parse_understand_dependencies <- function(understand_dir="../tmp/", parse_type =
 
   # Parse the XML file
   xml_data <- xmlParse(xml_dir)
-  xml_nodes <- xmlRoot(xml_data) # The head of the xml
-  xml_nodes <- xmlChildren(xml_nodes) # Retrieve all the subnodes of the head (the data)
+  xml_nodes <- xmlRoot(xml_data)
+  xml_nodes <- xmlChildren(xml_nodes)
 
   # From child nodes- filter for those with name "node"
   node_elements <- lapply(xml_nodes, function(child) {
     if (xmlName(child) == "node") {
       # Extract the id
       id <- xmlGetAttr(child, "id")
-      # Extract the necessary attributes from the attribute list
+      # Find the node.label attribute
       att_nodes <- xmlChildren(child)
-      node_label <- xmlGetAttr(att_nodes[[3]], "value");
-      long_name <- xmlGetAttr(att_nodes[[4]], "value");
+      node_label <- xmlGetAttr(att_nodes[[3]], "value")
+      long_name <- xmlGetAttr(att_nodes[[4]], "value")
       return(data.table(node_label = node_label, id = id, long_name = long_name))
     } else {
       return(NULL)
@@ -74,7 +72,7 @@ parse_understand_dependencies <- function(understand_dir="../tmp/", parse_type =
   })
 
   # Remove NULLs and combine the results into a data frame
-  node_list <- rbindlist(node_elements[!sapply(edge_elements, is.null)], use.names = TRUE, fill = TRUE)
+  node_list <- rbindlist(node_elements[!sapply(node_elements, is.null)], use.names = TRUE, fill = TRUE)
 
   # From child nodes- filter for those with name "edge"
   edge_elements <- lapply(xml_nodes, function(child) {
@@ -82,11 +80,15 @@ parse_understand_dependencies <- function(understand_dir="../tmp/", parse_type =
       # Extract the id_from and id_to
       id_from <- xmlGetAttr(child, "source")
       id_to <- xmlGetAttr(child, "target")
-      # Extract the necessary attributes from the attribute list
+      # Find the dependency kind attribute
       att_nodes <- xmlChildren(child)
-      dependency_kind <- xmlGetAttr(att_nodes[[5]], "value");
-      dependency_kind <- unlist(stri_split(dependency_kind, regex = ",\\s*"))
-      return(data.table(id_from = id_from, id_to = id_to, dependency_kind = dependency_kind))
+      dependency_kind <- xmlGetAttr(att_nodes[[5]], "value")
+      if (!is.null(dependency_kind) && dependency_kind != "") {
+        dependency_kind <- unlist(stri_split(dependency_kind, regex = ",\\s*"))
+        return(data.table(id_from = id_from, id_to = id_to, dependency_kind = dependency_kind))
+      } else {
+        return(NULL)
+      }
     } else {
       return(NULL)
     }
@@ -308,7 +310,7 @@ parse_r_dependencies <- function(folder_path){
 
 ############## Network Transform ##############
 
-#' Transform parsed dependencies into a network
+#' @description This function transforms parsed Understand data.tables into networks by appending columns to edge_tables and filtering for weight_types.
 #'
 #' @param depends_parsed Parsed data from parse_understand_dependencies
 #' @param weight_types The weight types as defined in Depends.
@@ -332,8 +334,10 @@ transform_understand_dependencies_to_network <- function(parsed, weight_types) {
   # Reorder columns to have label_from and label_to on the left
   edges <- edges[, .(label_from, label_to, id_from, id_to, dependency_kind)]
 
-  # Filter out by weights
-  edges <- edges[dependency_kind %in% weight_types]
+  # Filter out by weights if vector provided
+  if (length(weight_types) > 0) {
+    edges <- edges[dependency_kind %in% weight_types]
+  }
 
   # If filter removed all edges:
   if (nrow(edges) == 0) {
