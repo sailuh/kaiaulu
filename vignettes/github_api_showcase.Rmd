@@ -45,7 +45,7 @@ The goal of the following steps is to obtain the data when a project started ass
 To use the pipeline, you must specify the organization and project of interest, and your token.
 
 ```{r}
-conf <- get_parsed("conf/kaiaulu.yml")
+conf <- parse_config("conf/kaiaulu.yml")
 owner <- get_github_owner(conf, "project_key_1") # Has to match github organization (e.g. github.com/sailuh)
 repo <- get_github_repo(conf, "project_key_1") # Has to match github repository (e.g. github.com/sailuh/perceive)
 save_path_issue_or_pr_comments <- path.expand(get_github_issue_or_pr_comment_path(conf, "project_key_1"))

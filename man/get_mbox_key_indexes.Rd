@@ -7,7 +7,7 @@
 get_mbox_key_indexes(config_file)
 }
 \arguments{
-\item{config_file}{The parsed configuration file.}
+\item{config_file}{The parsed configuration file obtained from \code{\link{parse_config}}.}
 }
 \value{
 The list of mod mbox mailing list keys.

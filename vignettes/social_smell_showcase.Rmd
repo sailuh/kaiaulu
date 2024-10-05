@@ -55,8 +55,8 @@ At the scope of this notebook, **only the first branch** (top) specified in the 
 We also provide the path for `tools.yml`. Kaiaulu does not implement all available functionality from scratch. Conversely, it will also not expect all dependencies to be installed. Every function defined in the API expects as parameter a filepath to the external dependency binary. Tools.yml is a convenience file that stores all the binary paths, so it can be set once during setup and reused multiple times for analysis. You can find an example of `tools.yml` on the github repo from Kaiaulu root directory.  For this notebook, you will need to install Perceval (use version 0.12.24) and OSLOM. Instructions to do so are available in the Kaiaulu README.md. Once you are finished, set the "perceval," "oslom_dir," and "oslom_undir" paths in your `tools.yml`.
 
 ```{r}
-tool <- get_parsed("tools.yml")
-conf <- get_parsed("conf/helix.yml")
+tool <- parse_config("tools.yml")
+conf <- parse_config("conf/helix.yml")
 
 scc_path <- get_tool_project("scc", tool)
 

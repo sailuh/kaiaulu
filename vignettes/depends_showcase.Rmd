@@ -29,9 +29,9 @@ require(knitr)
 ```
 
 ```{r}
-tool <- get_parsed("tools.yml")
-#conf <- get_parsed("conf/apr.yml")
-conf <- get_parsed("conf/helix.yml")
+tool <- parse_config("tools.yml")
+#conf <- parse_config("conf/apr.yml")
+conf <- parse_config("conf/helix.yml")
 git_repo_path <- get_git_repo_path(conf)
 
 # Depends parameters

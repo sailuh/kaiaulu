@@ -7,7 +7,7 @@
 get_dv8_flaws_params(config_file)
 }
 \arguments{
-\item{config_file}{The parsed configuration file.}
+\item{config_file}{The parsed configuration file obtained from \code{\link{parse_config}}.}
 }
 \value{
 The list of DV8 architectural flaws thresholds.

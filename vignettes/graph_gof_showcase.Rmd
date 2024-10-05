@@ -89,8 +89,8 @@ require(gt)
 
 
 ```{r}
-tool <- get_parsed("tools.yml")
-conf <- get_parsed("conf/junit5.yml")
+tool <- parse_config("tools.yml")
+conf <- parse_config("conf/junit5.yml")
 srcml_path <- get_tool_project("srcml", tool)
 pattern4_path <- get_tool_project("pattern4", tool)
 

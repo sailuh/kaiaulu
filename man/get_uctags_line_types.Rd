@@ -7,7 +7,7 @@
 get_uctags_line_types(config_file)
 }
 \arguments{
-\item{config_file}{The parsed configuration file.}
+\item{config_file}{The parsed configuration file obtained from \code{\link{parse_config}}.}
 }
 \value{
 The lines type to keep for analysis.

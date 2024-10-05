@@ -7,7 +7,7 @@
 get_github_owner(config_file, project_key_index)
 }
 \arguments{
-\item{config_file}{The parsed configuration file.}
+\item{config_file}{The parsed configuration file obtained from \code{\link{parse_config}}.}
 
 \item{project_key_index}{The name of the index of the project key (e.g. "project_key_1" or "project_key_2").}
 }

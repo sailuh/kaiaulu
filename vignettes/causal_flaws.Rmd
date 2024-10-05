@@ -44,9 +44,9 @@ For implementation details, please refer to the function reference documentation
 The first step is loading the project configuration file, which contains information for both the project data provenance, and the various parameters used for all the tools. Refer to [Kaiaulu's repo conf folder](https://github.com/sailuh/kaiaulu/tree/master/conf) for the configuration file of interest used in the code block below. 
 
 ```{r}
-tool <- get_parsed("tools.yml")
-#conf <- get_parsed("conf/tse_cassandra.yml")
-conf <- get_parsed("conf/camel.yml")
+tool <- parse_config("tools.yml")
+#conf <- parse_config("conf/tse_cassandra.yml")
+conf <- parse_config("conf/camel.yml")
 perceval_path <- get_tool_project("perceval", tool)
 dv8_path <- get_tool_project("dv8", tool)
 scc_path <- get_tool_project("scc", tool)

@@ -9,7 +9,7 @@ get_tool_project(tool_name, config_file)
 \arguments{
 \item{tool_name}{The name of the tool (e.g. "perceval" or "dv8").}
 
-\item{config_file}{The parsed configuration file.}
+\item{config_file}{The parsed configuration file obtained from \code{\link{parse_config}}.}
 }
 \value{
 The specified `tool_name` tool project from `config_file`.

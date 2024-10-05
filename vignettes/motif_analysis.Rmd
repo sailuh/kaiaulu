@@ -38,8 +38,8 @@ Kaiaulu re-implementation is easy to extend, and allow for any combination of mo
 We demonstrate here both the triangle and square motif as originally defined in our paper, which leverages all 3 types of the networks. The project of analysis is Kaiaulu itself, however, this can be applied to other open source projects!
 
 ```{r}
-tool <- get_parsed("tools.yml")
-conf <- get_parsed("conf/kaiaulu.yml")
+tool <- parse_config("tools.yml")
+conf <- parse_config("conf/kaiaulu.yml")
 
 scc_path <- get_tool_project("scc", tool)
 

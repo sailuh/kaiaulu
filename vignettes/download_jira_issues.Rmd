@@ -45,7 +45,7 @@ To try out this Notebook, try the geronimo configuration file, and follow along 
 First, we will load the Kaiaulu configuration file:
 
 ```{r}
-conf <- get_parsed("conf/kaiaulu.yml")
+conf <- parse_config("conf/kaiaulu.yml")
 
 # Project domain
 # Specify project_key_index in get_jira_domain() (e.g. "project_key_1")

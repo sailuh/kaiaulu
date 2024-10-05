@@ -30,8 +30,8 @@ require(openxlsx)
 ```
 
 ```{r}
-tool <- get_parsed("tools.yml")
-conf <- get_parsed("conf/calculator.yml")
+tool <- parse_config("tools.yml")
+conf <- parse_config("conf/calculator.yml")
 perceval_path <- get_tool_project("perceval", tool)
 dv8_path <- get_tool_project("dv8", tool)
 

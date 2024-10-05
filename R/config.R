@@ -19,7 +19,7 @@
 #' @param config_path The path of the config file from the kaiaulu directory (e.g. "conf/kaiaulu.yml").
 #' @return The parsed config file whose path is specified by `config_path`.
 #' @export
-get_parsed <- function(config_path) {
+parse_config <- function(config_path) {
 
   conf <- yaml::read_yaml(config_path)
 
@@ -40,7 +40,7 @@ get_parsed <- function(config_path) {
 #' `tool_name`, exists in the parsed configuration file, `config_file`.
 #'
 #' @param tool_name The name of the tool (e.g. "perceval" or "dv8").
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The specified `tool_name` tool project from `config_file`.
 #' @export
 get_tool_project <- function(tool_name, config_file) {
@@ -64,7 +64,7 @@ get_tool_project <- function(tool_name, config_file) {
 #' The function will inform the user if the .git path of the project repository
 #' exists in the parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The local git repository path specified in `config_file`.
 #' @export
 get_git_repo_path <- function(config_file) {
@@ -86,7 +86,7 @@ get_git_repo_path <- function(config_file) {
 #' The function will inform the user if the list of branches to be analyzed
 #' exists in the parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The list of git branches.
 #' @export
 get_git_branches <- function(config_file) {
@@ -110,7 +110,7 @@ get_git_branches <- function(config_file) {
 #' inform the user if the list of file extensions exists in the parsed
 #' configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The list of file extensions to keep.
 #' @export
 get_file_extensions <- function(config_file) {
@@ -132,7 +132,7 @@ get_file_extensions <- function(config_file) {
 #' inform the user if the list of file extensions exists in the parsed
 #' configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The list of file extensions to remove.
 #' @export
 get_substring_filepath <- function(config_file) {
@@ -154,7 +154,7 @@ get_substring_filepath <- function(config_file) {
 #' configuration file. The function will inform the user if the commit size
 #' threshold exists in the parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The commit size to filter out.
 #' @export
 get_filter_commit_size <- function(config_file) {
@@ -178,7 +178,7 @@ get_filter_commit_size <- function(config_file) {
 #' The function will inform the user if the lines type to keep exists in the
 #' parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The lines type to keep for analysis.
 #' @export
 get_uctags_line_types <- function(config_file) {
@@ -200,7 +200,7 @@ get_uctags_line_types <- function(config_file) {
 #' must be a parsed configuration file. The function will inform the user if
 #' the code language exists in the parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The code language for parsing file-file static dependencies.
 #' @export
 get_code_language <- function(config_file) {
@@ -222,7 +222,7 @@ get_code_language <- function(config_file) {
 #' configuration file. The function will inform the user if the list of the
 #' types of dependencies exists in the parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return A list of the types of dependencies to keep for analysis.
 #' @export
 get_keep_dependencies_type <- function(config_file) {
@@ -246,7 +246,7 @@ get_keep_dependencies_type <- function(config_file) {
 #' path to the folder for intermediate file storage for DV8 analysis exists in
 #' the parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The DV8 project folder path.
 #' @export
 get_dv8_folder_path <- function(config_file) {
@@ -268,7 +268,7 @@ get_dv8_folder_path <- function(config_file) {
 #' will inform the user if the list of architectural flaws thresholds
 #' exists in the parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The list of DV8 architectural flaws thresholds.
 #' @export
 get_dv8_flaws_params <- function(config_file) {
@@ -290,7 +290,7 @@ get_dv8_flaws_params <- function(config_file) {
 #' configuration file. The function will inform the user if the file path
 #' exists in the parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The output file path for srcML analysis.
 #' @export
 get_srcml_filepath <- function(config_file) {
@@ -312,7 +312,7 @@ get_srcml_filepath <- function(config_file) {
 #' configuration file. The function will inform the user if the folder path
 #' exists in the parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The Pattern4 class folder path.
 #' @export
 get_pattern4_folder_path <- function(config_file) {
@@ -334,7 +334,7 @@ get_pattern4_folder_path <- function(config_file) {
 #' configuration file. The function will inform the user if the folder path
 #' exists in the parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The Pattern4 output folder path.
 #' @export
 get_pattern4_filepath <- function(config_file) {
@@ -358,7 +358,7 @@ get_pattern4_filepath <- function(config_file) {
 #' the user if the project keys exist in the parsed configuration
 #' file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The list of mod mbox mailing list keys.
 #' @export
 get_mbox_key_indexes <- function(config_file) {
@@ -381,7 +381,7 @@ get_mbox_key_indexes <- function(config_file) {
 #' local folder path to store mbox data exists in the parsed configuration
 #' file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
 #' @return The local mbox path for project specified by key `project_key_index`.
 #' @export
@@ -404,7 +404,7 @@ get_mbox_path <- function(config_file, project_key_index) {
 #' The function will inform the user if the specific URL to the archives for
 #' mbox exists in the parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
 #' @return The URL of the mailing list archive for project specified by key `project_key_index`.
 #' @export
@@ -427,7 +427,7 @@ get_mbox_domain <- function(config_file, project_key_index) {
 #' configuration file. The function will inform the user if the mailing
 #' list for mbox exists in the parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
 #' @return The mbox mailing list for project specified by key `project_key_index`.
 #' @export
@@ -450,7 +450,7 @@ get_mbox_mailing_list <- function(config_file, project_key_index) {
 #' configuration file. The function will inform the user if the archive type
 #' for mbox exists in the parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
 #' @return The mbox archive type for project specified by key `project_key_index`.
 #' @export
@@ -475,7 +475,7 @@ get_mbox_archive_type <- function(config_file, project_key_index) {
 #' the user if the project keys exist in the parsed configuration
 #' file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The list of GitHub issue tracker project keys.
 #' @export
 get_github_keys <- function(config_file) {
@@ -497,7 +497,7 @@ get_github_keys <- function(config_file) {
 #' will inform the user if the owner for the GitHub repository exists in the
 #' parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
 #' @return The GitHub project owner name for project specified by key `project_key_index`.
 #' @export
@@ -520,7 +520,7 @@ get_github_owner <- function(config_file, project_key_index) {
 #' will inform the user if the name of the GitHub repository exists in the
 #' parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
 #' @return The name of the GitHub repository for project specified by key `project_key_index`.
 #' @export
@@ -543,7 +543,7 @@ get_github_repo <- function(config_file, project_key_index) {
 #' The function will inform the user if the folder path for GitHub issues exists
 #' in the parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
 #' @return The local folder path for GitHub issues for project specified by key `project_key_index`.
 #' @export
@@ -567,7 +567,7 @@ get_github_issue_path <- function(config_file, project_key_index) {
 #' configuration file. The function will inform the user if the local folder
 #' path for the comments exists in the parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
 #' @return The local folder path for GitHub Issues or PR comments for project specified by key `project_key_index`.
 #' @export
@@ -591,7 +591,7 @@ get_github_issue_or_pr_comment_path <- function(config_file, project_key_index) 
 #' The function will inform the user if the local folder path for the issue
 #' searches exists in the parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
 #' @return The local folder path for GitHub issue search for project specified by key `project_key_index`.
 #' @export
@@ -616,7 +616,7 @@ get_github_issue_search_path <- function(config_file, project_key_index) {
 #' path for the pull requests exists in the parsed configuration file,
 #' `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
 #' @return The local folder path for GitHub pull requests for project specified by key `project_key_index`.
 #' @export
@@ -641,7 +641,7 @@ get_github_pull_request_path <- function(config_file, project_key_index) {
 #' path for the issue events exists in the parsed configuration file,
 #' `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
 #' @return The local folder path for GitHub issue events for project specified by key `project_key_index`.
 #' @export
@@ -665,7 +665,7 @@ get_github_issue_event_path <- function(config_file, project_key_index) {
 #' path for the commits exists in the parsed configuration file,
 #' `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
 #' @return The local folder path for GitHub commits for project specified by key `project_key_index`.
 #' @export
@@ -688,7 +688,7 @@ get_github_commit_path <- function(config_file, project_key_index) {
 #' the user if the project keys exist in the parsed configuration
 #' file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The list of Jira issue tracker project keys.
 #' @export
 get_jira_keys <- function(config_file) {
@@ -710,7 +710,7 @@ get_jira_keys <- function(config_file) {
 #' will inform the user if the domain exists in the parsed configuration file,
 #' `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
 #' @return The Jira domain for project specified by key `project_key_index`.
 #' @export
@@ -733,7 +733,7 @@ get_jira_domain <- function(config_file, project_key_index) {
 #' will inform the user if the project key name exists in the parsed
 #' configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
 #' @return The Jira project key name for project specified by key `project_key_index`.
 #' @export
@@ -756,7 +756,7 @@ get_jira_project_key_name <- function(config_file, project_key_index) {
 #' will inform the user if the folder path for Jira issues exists in the parsed
 #' configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
 #' @return The Jira issue folder path for project specified by key `project_key_index`.
 #' @export
@@ -780,7 +780,7 @@ get_jira_issues_path <- function(config_file, project_key_index) {
 #' configuration file. The function will inform the user if the local folder
 #' path for the comments exists in the parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
 #' @return The folder path for Jira issue comments for project specified by key `project_key_index`.
 #' @export
@@ -803,7 +803,7 @@ get_jira_issues_comments_path <- function(config_file, project_key_index) {
 #' the name of the Bugzilla project key exists in the parsed configuration
 #' file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The Bugzilla project key name.
 #' @export
 get_bugzilla_project_key <- function(config_file) {
@@ -828,7 +828,7 @@ get_bugzilla_project_key <- function(config_file) {
 #' the user if the local folder path for the nvd feeds exists in the parsed
 #' configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The folder path with nvd feeds.
 #' @export
 get_nvdfeed_folder_path <- function(config_file) {
@@ -853,7 +853,7 @@ get_nvdfeed_folder_path <- function(config_file) {
 #' the user if the cve regular expression for commit messages exists in the
 #' parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The commit message CVE regular expression.
 #' @export
 get_cveid_regex <- function(config_file) {
@@ -875,7 +875,7 @@ get_cveid_regex <- function(config_file) {
 #' the user if the issue Id regular expression for commit messages exists in the
 #' parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The commit message issue Id regular expression.
 #' @export
 get_issue_id_regex <- function(config_file) {
@@ -899,7 +899,7 @@ get_issue_id_regex <- function(config_file) {
 #' the user if the list of enumerated commit intervals exists in the parsed
 #' configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The list of enumerated commit intervals.
 #' @export
 get_enumeration_commits <- function(config_file) {
@@ -921,7 +921,7 @@ get_enumeration_commits <- function(config_file) {
 #' configuration file. The function will inform the user if the start commit
 #' exists in the parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The start commit for a window for analysis.
 #' @export
 get_window_start_commit <- function(config_file) {
@@ -943,7 +943,7 @@ get_window_start_commit <- function(config_file) {
 #' configuration file. The function will inform the user if the end commit
 #' exists in the parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The end commit for a window for analysis.
 #' @export
 get_window_end_commit <- function(config_file) {
@@ -964,7 +964,7 @@ get_window_end_commit <- function(config_file) {
 #' must be a parsed configuration file. The function will inform the user if
 #' the window size exists in the parsed configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The size of a window for analysis.
 #' @export
 get_window_size <- function(config_file) {
@@ -986,7 +986,7 @@ get_window_size <- function(config_file) {
 #' inform the user if the list of keywords and topics exists in the parsed
 #' configuration file, `config_file`.
 #'
-#' @param config_file The parsed configuration file.
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The list of keywords and topics for analysis.
 #' @export
 get_topics <- function(config_file) {

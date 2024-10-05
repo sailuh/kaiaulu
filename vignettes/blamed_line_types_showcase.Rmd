@@ -84,8 +84,8 @@ filter:
 We load the above various sections of the single .yaml project configuration file as follows:
 
 ```{r}
-tool <- get_parsed("tools.yml")
-conf <- get_parsed("conf/apr.yml")
+tool <- parse_config("tools.yml")
+conf <- parse_config("conf/apr.yml")
 
 # 3rd Party Tools
 perceval_path <- get_tool_project("perceval", tool)

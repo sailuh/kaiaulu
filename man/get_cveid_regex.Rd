@@ -8,7 +8,7 @@ for commit messages.}
 get_cveid_regex(config_file)
 }
 \arguments{
-\item{config_file}{The parsed configuration file.}
+\item{config_file}{The parsed configuration file obtained from \code{\link{parse_config}}.}
 }
 \value{
 The commit message CVE regular expression.
