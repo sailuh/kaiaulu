@@ -81,7 +81,7 @@ By organizing the configuration in this way, you can manage multiple projects an
 The following code reads the configuration parameters for project_key_1 of pipermail:
 
 ```{r}
-conf <- yaml::read_yaml("../conf/helix.yml")
+conf <- yaml::read_yaml("conf/helix.yml")
 mailing_list <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["mailing_list"]]
 start_year_month <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["start_year_month"]]
 end_year_month <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["end_year_month"]]
@@ -153,7 +153,7 @@ The configuration parameters are the same as the ones explained in the section a
 The following code reads the configuration parameters:
 
 ```{r eval=FALSE}
-conf <- yaml::read_yaml("../conf/helix.yml")
+conf <- yaml::read_yaml("conf/helix.yml")
 mailing_list <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["mailing_list"]]
 start_year_month <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["start_year_month"]]
 end_year_month <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["end_year_month"]]
@@ -234,10 +234,10 @@ mbox_file_path: should point to the saved .mbox file that will be parsed. See th
 Load the configuration:
 
 ```{r eval=FALSE}
-tools_config <- yaml::read_yaml("../tools.yml")
+tools_config <- yaml::read_yaml("tools.yml")
 parse_perceval_path <- tools_config[["perceval"]]
 
-conf <- yaml::read_yaml("../conf/helix.yml")
+conf <- yaml::read_yaml("conf/helix.yml")
 mbox_file_path <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["mbox_file_path"]]
 
 ```
