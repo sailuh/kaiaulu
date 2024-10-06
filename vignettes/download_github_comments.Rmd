@@ -44,16 +44,16 @@ Therefore, in this Notebook we have to rely on three endpoints from the GitHub A
 To use the pipeline, you must specify the organization and project of interest, and your token. Obtain a github token following the instructions [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
 
 ```{r}
-conf <- yaml::read_yaml("../conf/kaiaulu.yml")
+conf <- parse_config("conf/kaiaulu.yml")
 
-save_path_issue_refresh <- conf[["issue_tracker"]][["github"]][["project_key_1"]][["issue_search"]]
-save_path_issue <- conf[["issue_tracker"]][["github"]][["project_key_1"]][["issue"]]
-save_path_pull_request <- conf[["issue_tracker"]][["github"]][["project_key_1"]][["pull_request"]]
-save_path_issue_or_pr_comments <- conf[["issue_tracker"]][["github"]][["project_key_1"]][["issue_or_pr_comment"]]
-save_path_commit <- conf[["issue_tracker"]][["github"]][["project_key_1"]][["commit"]]
+save_path_issue_refresh <- get_github_issue_search_path(conf, "project_key_1")
+save_path_issue <- get_github_issue_path(conf, "project_key_1")
+save_path_pull_request <- get_github_pull_request_path(conf, "project_key_1")
+save_path_issue_or_pr_comments <- get_github_issue_or_pr_comment_path(conf, "project_key_1")
+save_path_commit <- get_github_commit_path(conf, "project_key_1")
 # Path you wish to save all raw data. A folder with the repo name and sub-folders will be created.
-owner <- conf[["issue_tracker"]][["github"]][["project_key_1"]][["owner"]] # Has to match github organization (e.g. github.com/sailuh)
-repo <- conf[["issue_tracker"]][["github"]][["project_key_1"]][["repo"]] # Has to match github repository (e.g. github.com/sailuh/perceive)
+owner <- get_github_owner(conf, "project_key_1") # Has to match github organization (e.g. github.com/sailuh)
+repo <- get_github_repo(conf, "project_key_1") # Has to match github repository (e.g. github.com/sailuh/perceive)
 # your file github_token (a text file) contains the GitHub token API
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 ```
