@@ -36,4 +36,6 @@ overwriting any existing file with the same name. The original .gz file is delet
 
 The downloaded .mbox files are saved in the specified folder following the naming convention kaiaulu_YYYYMM.mbox.
 The function only downloads files that fall between the specified start_year_month and end_year_month.
+When both formats fail to download, the function issues a warning indicating the missing month.
+At the end, the function summarizes the downloads, indicating the range of dates present and any missing months.
 }
