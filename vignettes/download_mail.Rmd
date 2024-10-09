@@ -29,6 +29,33 @@ set.seed(seed)
 
 # Introduction
 
+Open source projects require a means for developers to communicate. These may include mailing lists, issue trackers, discord, etc. This notebooks showcases how to download data from mailing list archives. Two often used archive types are [mod_mbox](https://httpd.apache.org/mod_mbox/) and [pipermail](https://en.wikipedia.org/wiki/GNU_Mailman#cite_note-9), which Kaiaulu offer functions to download data from. The former is commonly used by the Apache Software Foundation projects. The latter, is more commonly use in GNU related projects, but this can vary. 
+
+# Project Configuration File 
+
+Mailing List archives are hosted by their respective open source projects. Therefore, in order to use Kaiaulu downloaders to obtain mail data, you will need to access the respective open source project, and find out the URL tied to the archive you are interested. Generally, that is the developer mailing list, if your interest is to understand communication patterns among developers. Alternatively, if the focus of the research is Q&A from the userbase, then a user mailing list may make more sense.
+
+Because project lifetime can go as far as a few decades, to have the full picture of what communication took place in the project, if your analysis include a long period of time, you may need to download multiple archives to combine them after turning them into tables using Kaiaulu parser.
+
+The information you need to find out for each open source project is documented in Kaiaulu using a project configuration file format. For pipermail and mod_mbox this is as follows:
+
+```
+# top-level key for mailing list config
+mailing_list:
+  # for pipermail
+  pipermail:
+    project_key_1:
+      mailing_list: https://mta.openssl.org/pipermail/openssl-users/
+      start_year_month: 202310
+      end_year_month: 202405
+      save_folder_path: "../extdata/save_folder_mail"
+
+```
+
+Regardless of which mail archive you choose, the downloaders will store the mail data in monthly files, in a `.mbox` format. This is a simple text file that contains some markings to identify the header of the e-mail containing title, authors, etc. You can open any of the .mbox downloaded files with any text editor. 
+
+#### Edit below
+
 Mailing list data is stored in a variety of archives. See:
 - Mod Mbox: [Apache Geronimo](https://geronimo.apache.org/mailing-lists.html)).
 - Pipermail: [OpenSSL](https://mta.openssl.org/mailman/listinfo/).
@@ -81,7 +108,7 @@ By organizing the configuration in this way, you can manage multiple projects an
 The following code reads the configuration parameters for project_key_1 of pipermail:
 
 ```{r}
-conf <- yaml::read_yaml("conf/helix.yml")
+conf <- yaml::read_yaml("../conf/helix.yml")
 mailing_list <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["mailing_list"]]
 start_year_month <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["start_year_month"]]
 end_year_month <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["end_year_month"]]
