@@ -50,7 +50,9 @@ The parameters necessary for analysis are kept in a project configuration file t
 tool <- parse_config("tools.yml")
 conf <- parse_config("conf/redhat.yml")
 
-key <- get_bugzilla_project_key(conf)
+key <- get_bugzilla_project_key(conf, "project_key_1")
+save_issues_path_redhat <- get_bugzilla_issue_path(conf, "project_key_1")
+save_issues_comments_path_redhat <- get_bugzilla_issue_comment_path(conf, "project_key_1")
 perceval_path <- get_tool_project("perceval", tool)
 ```
 
@@ -174,11 +176,6 @@ limit_upperbound to ensure full bug retrieval. Here, limit_upperbound is set to 
 The save_issues_path and save_comments_path will be used to store Bugzilla data.
 
 ```{r eval = FALSE}
-save_issues_path_redhat <- "../../rawdata/bugzilla/redhat/issues"
-```
-
-
-```{r eval = FALSE}
 bugzilla_site <- "https://bugzilla.redhat.com/"
 start_timestamp <- "2023-05-02T00:48:57Z"
 bug_ids <- download_bugzilla_rest_issues(bugzilla_site, start_timestamp, save_issues_path, limit_upperbound=20)
@@ -232,7 +229,6 @@ More details at: https://github.com/kaiaulu/issues/285
 ```{r}
 bugzilla_site <- "https://bugzilla.redhat.com"
 start_timestamp <- "2024-04-27T00:00:00Z"
-save_issues_path_redhat <- "../../rawdata/redhat/bugzilla/issues"
 ```
 
 ```{r eval = FALSE}
@@ -243,10 +239,6 @@ download_bugzilla_rest_issues_comments_by_date(bugzilla_site, start_timestamp, s
 bugzillarest_issues_table <- parse_bugzilla_rest_issues(save_issues_path_redhat)
 head(bugzillarest_issues_table)  %>%
   gt(auto_align = FALSE)
-```
-
-```{r}
-save_issues_comments_path_redhat <- "../../rawdata/redhat/bugzilla/issues_comments"
 ```
 
 ```{r eval = FALSE}
