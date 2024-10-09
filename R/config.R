@@ -486,26 +486,73 @@ get_github_commit_path <- function(config_file, project_key_index) {
 
 ### Bugzilla Functions #####
 
-#' Returns the name of the Bugzilla project key.
+#' Returns the name of the Bugzilla project key for a specific project key index.
 #'
-#' @description This function returns the name of the Bugzilla project key, that
-#' is specified in the input parameter `config_file`. The input, `config_file`
-#' must be a parsed configuration file. The function will inform the user if
-#' the name of the Bugzilla project key exists in the parsed configuration
-#' file, `config_file`.
+#' @description This function returns the name of the Bugzilla project key for
+#' a specific project key, that is specified in the input parameter
+#' `config_file`. The input, `config_file` must be a parsed configuration file.
+#' The function will inform the user if the name of the Bugzilla project key
+#' exists in the parsed configuration file, `config_file`.
 #'
 #' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
-#' @return The Bugzilla project key name.
+#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
+#' @return The Bugzilla project key name for project specified by key `project_key_index`.
 #' @export
-get_bugzilla_project_key <- function(config_file) {
+get_bugzilla_project_key <- function(config_file, project_key_index) {
 
-  bugzilla_key <- config_file[["issue_tracker"]][["bugzilla"]][["project_key"]]
+  bugzilla_key <- config_file[["issue_tracker"]][["bugzilla"]][[project_key_index]][["project_key"]]
 
   if (is.null(bugzilla_key)) {
     warning("Attribute does not exist in the configuration file.")
   }
 
   return(bugzilla_key)
+}
+
+#' Returns the local folder path for Bugzilla issues for a specific project key.
+#'
+#' @description This function returns the local folder path for Bugzilla issues
+#' for a specific project key, that is specified in the input parameter
+#' `config_file`. The input, `config_file` must be a parsed configuration file.
+#' The function will inform the user if the folder path for Bugzilla issues
+#' exists in the parsed configuration file, `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
+#' @return The local folder path for Bugzilla issues for project specified by key `project_key_index`.
+#' @export
+get_bugzilla_issue_path <- function(config_file, project_key_index) {
+
+  issue_path <- config_file[["issue_tracker"]][["bugzilla"]][[project_key_index]][["issues"]]
+
+  if (is.null(issue_path)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(issue_path)
+}
+
+#' Returns the local folder path for Bugzilla issue comments for a specific project key.
+#'
+#' @description This function returns the local folder path for Bugzilla issue
+#' comments for a specific project key, that is specified in the input parameter
+#' `config_file`. The input, `config_file` must be a parsed configuration file.
+#' The function will inform the user if the folder path for Bugzilla issue
+#' comments exists in the parsed configuration file, `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
+#' @return The local folder path for Bugzilla issue comments for project specified by key `project_key_index`.
+#' @export
+get_bugzilla_issue_comment_path <- function(config_file, project_key_index) {
+
+  issue_comment_path <- config_file[["issue_tracker"]][["bugzilla"]][[project_key_index]][["issue_comments"]]
+
+  if (is.null(issue_comment_path)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(issue_comment_path)
 }
 
 ##### Issue Tracker Functions End #####
