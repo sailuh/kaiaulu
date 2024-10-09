@@ -148,55 +148,7 @@ get_mbox_path <- function(config_file, project_key_index) {
   return(mbox_path)
 }
 
-#' Returns the mbox mailing list for a specific project key.
-#'
-#' @description This function returns the specific mbox mailing list for a
-#' specific project key, `project_key_index`, that is specified in the input
-#' parameter `config_file`. The input, `config_file` must be a parsed
-#' configuration file. The function will inform the user if the mailing
-#' list for mbox exists in the parsed configuration file, `config_file`.
-#'
-#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
-#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
-#' @return The mbox mailing list for project specified by key `project_key_index`.
-#' @export
-get_mbox_mailing_list <- function(config_file, project_key_index) {
-
-  mailing_list <- config_file[["mailing_list"]][["mod_mbox"]][[project_key_index]][["mailing_list_type"]]
-
-  if (is.null(mailing_list)) {
-    warning("Attribute does not exist in the configuration file.")
-  }
-
-  return(mailing_list)
-}
-
-#' Returns the mbox archive type for a specific project key.
-#'
-#' @description This function returns the specific mbox archive type for a
-#' specific project key, `project_key_index`, that is specified in the input
-#' parameter `config_file`. The input, `config_file` must be a parsed
-#' configuration file. The function will inform the user if the archive type
-#' for mbox exists in the parsed configuration file, `config_file`.
-#'
-#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
-#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
-#' @return The mbox archive type for project specified by key `project_key_index`.
-#' @export
-get_mbox_archive_type <- function(config_file, project_key_index) {
-
-  archive_type <- config_file[["mailing_list"]][["mod_mbox"]][[project_key_index]][["archive_type"]]
-
-  if (is.null(archive_type)) {
-    warning("Attribute does not exist in the configuration file.")
-  }
-
-  return(archive_type)
-}
-
 ##### Mailing List Functions End #####
-
-
 
 ##### Issue Tracker Functions Start #####
 
