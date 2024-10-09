@@ -13,7 +13,7 @@ vignette: >
 
 # Introduction
 
-Within a project, we might want to see the dependencies between files and classes. parse_r_dependencies and parse_dependencies uses in-house or Depends software, respectively, to analyze projects. parse_dependencies only provides file dependencies, while parse_r_dependencies provides file and function dependencies for a set of R files. Having Understand installed, we can analyze projects for both file and class dependencies in multiple languages like Java, PHP, HTML, C/C++, Python, Assembly, Ada, etc.
+Within a project, we might want to see the dependencies of files and classes between themselves respectively. parse_r_dependencies and parse_dependencies uses in-house or Depends software respectively to analyze projects. parse_dependencies only provides file dependencies, while parse_r_dependencies provides file and function dependencies for a set of R files. Having Understand installed, we can analyze projects for both file and class dependencies in multiple languages like Java, PHP, HTML, C/C++, Python, Assembly, Ada, etc.
 
 Here is more information on [Scitool's Understand](https://scitools.com)).
 
@@ -26,6 +26,7 @@ This notebook demonstrates a sample use case of the two functions that generates
 rm(list = ls())
 require(kaiaulu)
 require(visNetwork)
+require(XML)
 require(stringi)
 require(igraph)
 require(data.table)
@@ -34,50 +35,54 @@ require(data.table)
 
 # Parse a sample project folder
 
-For sample purposes, we will use the project from [Houari Zegai's Calculator](https://github.com/HouariZegai/Calculator)) saved into a folder called
-sample_project. This folder contains all the .java files that the project uses and the ones we will be analyzing.
+For sample purposes, we will use the project from [Houari Zegai's Calculator](https://github.com/HouariZegai/Calculator) saved into a folder called sample_project. This folder contains all the .java files that the project uses and the ones we will be analyzing. The directory where we will build the understand analysis base will be saved in a folder called understand
 
 ```{r}
-folder_path <- "../tests/sample_project"
+project_path <- "tests/sample_project"
+understand_folder <- "understand"
 ```
 
 
 # Build the Understand project
 
-Before asking for the generation of data or parsing through it, we must first build the Understand project data. Firstly, provide the project_path and the primary project language, which in this case is Java. There is a third parameter named output_dir where the project will be built at (by default, will go to '../tmp'). After building once, you do not need to call this function again unless you have changed files within the project that would need to be re-analyzed.
+Before asking for the generation of data or parsing through it, we must first build the Understand project data. Firstly, provide the project_path and the primary project language, which in this case is Java. There is a third parameter named output_dir where the project will be built at, so we will give it understand_folder. After building once, you do not need to call this function again unless you have changed files within the project that would need to be re-analyzed.
 
 Please remember/save where the folder is generated as it is necessary for understand_parse_dependencies.
 
 ```{r}
-build_understand_project(project_path = folder_path, language = "java")
+build_understand_project(project_path = project_path, language = "java", output_dir = understand_folder)
 ```
 
 
-# File Dependencies
+# Generate Dependencies Network
+## For Files
 
-To generate a list containing the node and edge data.tables containing the file dependencies of the project, we will provide it the file path to the built Understand project folder and the parse_type. In this case, we will tell Understand to build the "file" dependencies for us. We will not provide a folder as the default folder to search for is '../tmp' (the same as found in build_understand_project).
+To generate a list containing the node and edge data.tables containing the file dependencies of the project, we will provide it the file path to the built Understand project folder and the parse_type. In this case, we will tell Understand to build the "file" dependencies for us. Once again, providing understand_folder as the value for understand_dir.
 
 Note the format of the generated data.tables after running the below code.
 
 ```{r}
-file_dependencies <- parse_understand_dependencies(parse_type = "file")
-head(file_dependencies)
+file_dependencies <- parse_understand_dependencies(understand_dir = understand_folder, parse_type = "file")
+head(file_dependencies[["node_list"]])
+head(file_dependencies[["edge_list"]])
 ```
 
 
-# Class Dependencies
+## For Classes
 
 Near-identical to parsing for file dependencies, class dependencies only requires us change the parse_type to "class". In the output folder, this .xml will be separate from the one generated for file dependencies: fileDependencies.xml and classDependencies.xml respectively.
 
 The generated data is in the same format, however note the different types of dependency types in the edge_table.
 
 ```{r}
-class_dependencies <- parse_understand_dependencies(parse_type = "class")
-head(class_dependencies)
+class_dependencies <- parse_understand_dependencies(understand_dir = understand_folder, parse_type = "class")
+head(class_dependencies[["node_list"]])
+head(class_dependencies[["edge_list"]])
 ```
 
 
-## Transforming to Network (File)
+# Transforming to Network
+## For Files
 
 To filter out edges by their dependency_kind and prepare the generated table from understand_parse_dependencies by appending label_from and label_to columns to the edge_table, we can call transform_und_dependencies_to_network. All we need to do is provide the generated data into parsed and the vector containing the filter weights into weight_types.
 
@@ -100,7 +105,7 @@ visIgraph(project_function_network,randomSeed = 1)
 ```
 
 
-## Transforming to Network (Class)
+## For Classes
 
 The same applies to outputting our class_dependencies, but we can visualize what our class dependency data is using the same parameters sans the parsed data table.
 

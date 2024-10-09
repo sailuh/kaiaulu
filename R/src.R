@@ -6,22 +6,22 @@
 
 ############## Understand Project Builder ##############
 
-#' @description This function builds the data files for Understand from the provided project folder, reading from files that are written in the target language into a folder
+#' @description This function builds the data files for Understand from the project_path folder, reading from files that are written in the target language into output_dir
 #'
 #' @param project_path path to the project folder to analyze
 #' @param language the primary language of the project (language must be supported by Understand)
 #' @param output_dir path to output directory (formatted output_path/)
 #' @export
 #' @family parsers
-build_understand_project <- function(project_path, language, output_dir = "../tmp/"){
-
+build_understand_project <- function(project_path, language, output_dir){
   # Create variables for command line
   command <- "und"
-  project_path <- paste0("\"", project_path, "\"")
-  db_dir <- paste0(output_dir, "/Understand.und")
+  project_path <- shQuote(project_path) # Quoting the project path
+  db_dir <- file.path(output_dir, "Understand.und")
   args <- c("create", "-db", db_dir, "-languages", language)
 
-  # Build the Understand project
+  # Build the Understand project by parsing through using Understand's und command
+  # Derived from pg. 352 in https://documentation.scitools.com/pdf/understand.pdf Sept. 2024 Edition
   system2(command, args)
   args <- c("-db", db_dir, "add", project_path)
   system2(command, args)
@@ -32,72 +32,108 @@ build_understand_project <- function(project_path, language, output_dir = "../tm
 
 ############## Parsers ##############
 
-#' @description This function parses the data in the Understand build folder to find the parse_type dependencies into a list of two data.tables
+#' @description This function parses the data in the Understand build folder to export the parse_type dependencies into a network
 #'
-#' @param understand_dir path to the built Understand project folder (same used in build_understand_project)
+#' @param understand_dir path to the built Understand project folder used in \code{\link{build_understand_project}}
 #' @param parse_type Type of dependencies to generate into xml (either "file" or "class")
 #' @export
 #' @family parsers
-parse_understand_dependencies <- function(understand_dir="../tmp/", parse_type = c("file", "class")) {
+parse_understand_dependencies <- function(understand_dir, parse_type = c("file", "class")) {
   # Before running, check if parse_type is correct
   parse_type <- match.arg(parse_type)
 
-  # Use Understand to parse the code folder.
   # Create the variables used in command lines
-  db_dir <- paste0(understand_dir, "/Understand.und")
-  xml_dir <- paste0(db_dir, "/", parse_type, "Dependencies.xml")
+  db_dir <- file.path(understand_dir, "Understand.und")
+  file_name <- paste0(parse_type, "Dependencies.xml")
+  xml_dir <- file.path(db_dir, file_name)
 
   # Generate the XML file
+  # Derived from pg. 352 in https://documentation.scitools.com/pdf/understand.pdf Sept. 2024 Edition
   args <- c("export", "-dependencies", parse_type, "cytoscape", xml_dir, db_dir)
   system2("und", args)
 
+  # Generated XML file is assumed to be in this approximate format (regardless of parse_type) using Understand Build 1202
+  # <graph ...>
+  #   ... [Irrelevant graph attributes and rdf grandchildren]
+  #   <node id="67" label="ObjectMapper id:67">
+  #     <att type="string" name="node.shape" value="rect"/>
+  #     <att type="string" name="node.fontSize" value="5"/>
+  #     <att type="string" name="node.label" value="ObjectMapper"/>
+  #     <att type="string" name="longName" value="com.fasterxml.jackson.databind.ObjectMapper"/>
+  #     <att type="string" name="kind" value="Unknown Class"/>
+  #     <graphics type="RECTANGLE" h="35" w="35" x="0" y="0" fill="#ffffff" width="1" outline="#000000" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-8" cy:borderLineType="solid"/>
+  #   </node>
+  #   ... [Other nodes sharing the format]
+  #   <edge source="2" target="9" label="App(Depends On)CalculatorUI">
+  #     <att type="string" name="edge.targetArrowShape" value="ARROW"/>
+  #     <att type="string" name="edge.color" value="#0000FF"/>
+  #     <att type="string" name="canonicalName" value="App(Depends On)CalculatorUI"/>
+  #     <att type="string" name="interaction" value="Depends On"/>
+  #     <att type="string" name="dependency kind" value="Call, Create"/>
+  #   </edge>
+  #   ... [Other edges sharing the format]
+
+
   # Parse the XML file
-  xml_data <- xmlParse(xml_dir)
-  xml_nodes <- xmlRoot(xml_data)
+  xml_data <- xmlParse(xml_dir)  # Creates pointer to file
+  xml_nodes <- xmlRoot(xml_data)  # Finds the head: graph
   xml_nodes <- xmlChildren(xml_nodes)
+  # xml_nodes now contains the nodes and edges (which were children of graph) and also graph's atts
 
   # From child nodes- filter for those with name "node"
+  # Create a list by iterating through all the children in xml_nodes
   node_elements <- lapply(xml_nodes, function(child) {
-    if (xmlName(child) == "node") {
-      # Extract the id
-      id <- xmlGetAttr(child, "id")
-      # Find the node.label attribute
-      att_nodes <- xmlChildren(child)
-      node_label <- xmlGetAttr(att_nodes[[3]], "value")
-      long_name <- xmlGetAttr(att_nodes[[4]], "value")
-      return(data.table(node_label = node_label, id = id, long_name = long_name))
+    if (xmlName(child) == "node") {  # We're searching for nodes, not att or edges
+      id <- xmlGetAttr(child, "id")  # Extract the id from the node line
+      att_nodes <- xmlChildren(child)  # To access the atts of the node
+      node_label <- xmlGetAttr(att_nodes[[3]], "value")  # Relevant att is the 3rd line
+      long_name <- xmlGetAttr(att_nodes[[4]], "value")  # Relevant att is the 4th line
+      return(data.table(node_label = node_label, id = id, long_name = long_name))  # Returns the table containing the filtered node data
     } else {
-      return(NULL)
+      return(NULL) # Return NULL for the entry to be filtered out later
     }
   })
 
-  # Remove NULLs and combine the results into a data frame
+  # Remove NULLs and combine the results from the node_elements list
   node_list <- rbindlist(node_elements[!sapply(node_elements, is.null)], use.names = TRUE, fill = TRUE)
 
   # From child nodes- filter for those with name "edge"
+  # Create a list by iterating through all the children in xml_nodes
   edge_elements <- lapply(xml_nodes, function(child) {
-    if (xmlName(child) == "edge") {
-      # Extract the id_from and id_to
+    if (xmlName(child) == "edge") {  # We're searching for edges, not att or nodes
+      # Extract the id_from and id_to from the edge line
       id_from <- xmlGetAttr(child, "source")
       id_to <- xmlGetAttr(child, "target")
-      # Find the dependency kind attribute
-      att_nodes <- xmlChildren(child)
-      dependency_kind <- xmlGetAttr(att_nodes[[5]], "value")
+      att_nodes <- xmlChildren(child)  # To access the atts of the edge
+      dependency_kind <- xmlGetAttr(att_nodes[[5]], "value")  # Relevant att is the 5th line
+      # Error handling for empty and NULL dependency_kind (this is necessary as errors do occur even in the formatted style)
+      # Code correctly handles all the edges, however produces error if error handling is not included... so...
       if (!is.null(dependency_kind) && dependency_kind != "") {
-        dependency_kind <- unlist(stri_split(dependency_kind, regex = ",\\s*"))
-        return(data.table(id_from = id_from, id_to = id_to, dependency_kind = dependency_kind))
+        dependency_kind <- unlist(stri_split(dependency_kind, regex = ",\\s*"))  # Separates the string into a vector
+        return(data.table(id_from = id_from, id_to = id_to, dependency_kind = dependency_kind)) # Returns the table containing the filtered node data
       } else {
-        return(NULL)
+        return(NULL) # Return NULL for the entry to be filtered out later
       }
     } else {
-      return(NULL)
+      return(NULL) # Return NULL for the entry to be filtered out later
     }
   })
 
-  # Remove NULLs and combine the results into a data frame
+  # Remove NULLs and combine the results from the edge_elements list
   edge_list <- rbindlist(edge_elements[!sapply(edge_elements, is.null)], use.names = TRUE, fill = TRUE)
 
-  # Create a list to return
+  # Merge edges with nodes to get label_from
+  edge_list <- merge(edge_list, node_list[, .(id, node_label)], by.x = "id_from", by.y = "id", all.x = TRUE)
+  setnames(edge_list, "node_label", "label_from")
+
+  # Merge again to get label_to
+  edge_list <- merge(edge_list, node_list[, .(id, node_label)], by.x = "id_to", by.y = "id", all.x = TRUE)
+  setnames(edge_list, "node_label", "label_to")
+
+  # Reorder columns to have label_from and label_to on the left
+  edge_list <- edge_list[, .(label_from, label_to, id_from, id_to, dependency_kind)]
+
+  # Create a list of the network to return
   graph <- list(node_list = node_list, edge_list = edge_list)
   return(graph)
 }
@@ -310,29 +346,16 @@ parse_r_dependencies <- function(folder_path){
 
 ############## Network Transform ##############
 
-#' @description This function transforms parsed Understand data.tables into networks by appending columns to edge_tables and filtering for weight_types.
+#' @description This function subsets a parsed table from parse_understand_dependencies
 #'
-#' @param depends_parsed Parsed data from parse_understand_dependencies
-#' @param weight_types The weight types as defined in Depends.
-#'                     Accepts single string and vector input
-#'
+#' @param depends_parsed Parsed table from \code{\link{parse_understand_dependencies}}
+#' @param weight_types The weight types as defined in Depends. Accepts single string and vector input
 #' @export
 #' @family edgelists
 transform_understand_dependencies_to_network <- function(parsed, weight_types) {
 
   nodes <- parsed[["node_list"]]
   edges <- parsed[["edge_list"]]
-
-  # Merge edges with nodes to get label_from
-  edges <- merge(edges, nodes[, .(id, node_label)], by.x = "id_from", by.y = "id", all.x = TRUE)
-  setnames(edges, "node_label", "label_from")
-
-  # Merge again to get label_to
-  edges <- merge(edges, nodes[, .(id, node_label)], by.x = "id_to", by.y = "id", all.x = TRUE)
-  setnames(edges, "node_label", "label_to")
-
-  # Reorder columns to have label_from and label_to on the left
-  edges <- edges[, .(label_from, label_to, id_from, id_to, dependency_kind)]
 
   # Filter out by weights if vector provided
   if (length(weight_types) > 0) {
