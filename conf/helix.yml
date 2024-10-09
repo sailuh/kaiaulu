@@ -34,7 +34,7 @@ project:
 
 version_control:
   # Where is the git log located locally?
-  log: ../../rawdata/git_repo/helix/.git
+  log: ../../rawdata/helix/git_repo/.git
   # From where the git log was downloaded?
   log_url: https://github.com/apache/helix
   # List of branches used for analysis
@@ -51,25 +51,25 @@ mailing_list:
   mod_mbox:
     project_key_1:
       mailing_list: http://mail-archives.apache.org/mod_mbox/helix-dev
-      mbox: ../../rawdata/helix/mod_mbox/helix-dev/
+      save_folder_path: ../../rawdata/helix/mod_mbox/helix-dev/
       mailing_list_type: helix-dev
       archive_type: apache
     project_key_2:
       mailing_list: http://mail-archives.apache.org/mod_mbox/helix-user
-      mbox: ../../rawdata/helix/mod_mbox/helix-user/
+      save_folder_path: ../../rawdata/helix/mod_mbox/helix-user/
       mailing_list_type: helix-user
       archive_type: apache
-  # pipermail:
-  #   project_key_1:
-  #     mailing_list: https://mta.openssl.org/pipermail/openssl-dev/
-  #     mbox: ../../rawdata/openssl/pipermail/openssl-dev/
-  #     mailing_list_type: openssl-dev
-  #     archive_type: mta
-  #   project_key_2:
-  #     mailing_list: https://mta.openssl.org/pipermail/openssl-users/
-  #     mbox: ../../rawdata/openssl/pipermail/openssl-users/
-  #     mailing_list_type: openssl-users
-  #     archive_type: mta
+#   pipermail:
+#     project_key_1:
+#       mailing_list: https://mta.openssl.org/pipermail/kaiaulu-dev/
+#       save_folder_path: ../../rawdata/kaiaulu/pipermail/kaiaulu-dev/
+#       mailing_list_type: kaiaulu-dev
+#       archive_type: mta
+#     project_key_2:
+#       mailing_list: https://mta.openssl.org/pipermail/kaiaulu-users/
+#       save_folder_path: ../../rawdata/kaiaulu/pipermail/kaiaulu-users/
+#       mailing_list_type: kaiaulu-users
+#       archive_type: mta
 
 issue_tracker:
   jira:
@@ -89,10 +89,14 @@ issue_tracker:
       issue_or_pr_comment: ../../rawdata/helix/github/issue_or_pr_comment/apache_helix/
       issue: ../../rawdata/helix/github/issue/apache_helix/
       issue_search: ../../rawdata/helix/github/issue_search/apache_helix/
+      issue_event: ../../rawdata/helix/github/issue_event/apache_helix/
       pull_request: ../../rawdata/helix/github/pull_request/apache_helix/
       commit: ../../rawdata/helix/github/commit/apache_helix/
   # bugzilla:
-  #   project_key: helix
+  #   project_key_1:
+  #     project_key: helix
+  #     issues: ../../rawdata/helix/bugzilla/issues/helix/
+  #     issue_comments: ../../rawdata/helix/bugzilla/issue_comments/helix/
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
@@ -142,6 +146,32 @@ tool:
       - Throw
       - Parameter
       - Contain
+  # dv8:
+  #   # The project folder path to store various intermediate
+  #   # files for DV8 Analysis
+  #   # The folder name will be used in the file names.
+  #   folder_path: ../../analysis/junit/dv8/
+  #   # the architectural flaws thresholds that should be used
+  #   architectural_flaws:
+  #     cliqueDepends:
+  #       - call
+  #       - use
+  #     crossingCochange: 2
+  #     crossingFanIn: 4
+  #     crossingFanOut: 4
+  #     mvCochange: 2
+  #     uiCochange: 2
+  #     uihDepends:
+  #       - call
+  #       - use
+  #     uihInheritance:
+  #       - extend
+  #       - implement
+  #       - public
+  #       - private
+  #       - virtual
+  #     uiHistoryImpact: 10
+  #     uiStructImpact: 0.01
   # Uctags allows finer file-file dependency parsing (e.g. functions, classes, structs)
   uctags:
     # See https://github.com/sailuh/kaiaulu/wiki/Universal-Ctags for details
@@ -161,6 +191,22 @@ tool:
         - f # functions
       r:
         - f # functions
+  # # srcML allow to parse src code as text (e.g. identifiers)
+  # srcml:
+  #   # The file path to where you wish to store the srcml output of the project
+  #   srcml_path: ../../analysis/junit5/srcml/srcml_junit.xml
+  # pattern4:
+  #   # The file path to where you wish to store the classes of the pattern4 analysis
+  #   class_folder_path: ../../rawdata/junit5/pattern4/classes/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
+  #   # The file path to where you wish to store the output of the pattern4 analysis
+  #  output_filepath: ../../analysis/junit5/pattern4/
+  #   compile_note: >
+  #     1. Switch Java version to Java 17:
+  #        https://stackoverflow.com/questions/69875335/macos-how-to-install-java-17
+  #     2. Disable VPN to pull modules from Gradle Plugin Portal.
+  #     3. Use sudo ./gradlew build
+  #     4. After building, locate the engine class files and specify as the class_folder_path:
+  #        in this case they are in: /path/to/junit5/analysis/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
 
 # Analysis Configuration #
 analysis:

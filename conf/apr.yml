@@ -36,7 +36,7 @@ version_control:
   # Where is the git log located locally?
   # This is the path to the .git of the project repository you are analyzing.
   # The .git is hidden, so you can see it using `ls -a`
-  log: ../../rawdata/git_repo/APR/.git
+  log: ../../rawdata/apr/git_repo/.git
   # From where the git log was downloaded?
   log_url: https://github.com/apache/apr
   # List of branches used for analysis
@@ -48,18 +48,18 @@ mailing_list:
   mod_mbox: 
     project_key_1:
       mailing_list: http://mail-archives.apache.org/mod_mbox/apr-dev
-      mbox: ../../rawdata/apr/mod_mbox/apr-dev/
+      save_folder_path: ../../rawdata/apr/mod_mbox/apr-dev/
       mailing_list_type: apr-dev
       archive_type: apache
   # pipermail:
   #   project_key_1:
   #     mailing_list: https://mta.openssl.org/pipermail/openssl-dev/
-  #     mbox: ../../rawdata/openssl/pipermail/openssl-dev/
+  #     save_folder_path: ../../rawdata/openssl/pipermail/openssl-dev/
   #     mailing_list_type: openssl-dev
   #     archive_type: mta
   #   project_key_2:
   #     mailing_list: https://mta.openssl.org/pipermail/openssl-users/
-  #     mbox: ../../rawdata/openssl/pipermail/openssl-users/
+  #     save_folder_path: ../../rawdata/openssl/pipermail/openssl-users/
   #     mailing_list_type: openssl-users
   #     archive_type: mta
 
@@ -80,28 +80,33 @@ issue_tracker:
       # Download using `download_github_comments.Rmd`
       issue_or_pr_comment: ../../rawdata/apr/github/issue_or_pr_comment/apache_apr/
       issue: ../../rawdata/apr/github/issue/apache_apr/
-      issue_search: ../..rawdata/apr/github/issue_search/apache_apr/
+      issue_search: ../../rawdata/apr/github/issue_search/apache_apr/
+      issue_event: ../../rawdata/apr/github/issue_event/apache_apr/
       pull_request: ../../rawdata/apr/github/pull_request/apache_apr/
       commit: ../../rawdata/apr/github/commit/apache_apr/
-    # project_key_2:
-    #   # Obtained from the project's GitHub URL
-    #   owner: ssunoo2
-    #   repo: kaiaulu
-    #   # Download using `download_github_comments.Rmd`
-    #   issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/ssunoo2_kaiaulu/
-    #   issue: ../../rawdata/kaiaulu/github/issue/ssunoo2_kaiaulu/
-    #   refresh_issues: ../..rawdata/kaiaulu/github/refresh_issues/ssunoo2_kaiaulu
-    #   pull_request: ../../kaiaulu/github/pull_request/ssunoo2_kaiaulu/
-    #   commit: ../../rawdata/kaiaulu/github/commit/ssunoo2_kaiaulu/
+#     project_key_2:
+#       # Obtained from the project's GitHub URL
+#       owner: ssunoo2
+#       repo: kaiaulu
+#       # Download using `download_github_comments.Rmd`
+#       issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/ssunoo2_kaiaulu/
+#       issue: ../../rawdata/kaiaulu/github/issue/ssunoo2_kaiaulu/
+#       issue_search: ../../rawdata/kaiaulu/github/issue_search/ssunoo2_kaiaulu/
+#       issue_event: ../../rawdata/kaiaulu/github/issue_event/ssunoo2_kaiaulu/
+#       pull_request: ../../rawdata/kaiaulu/github/pull_request/ssunoo2_kaiaulu/
+#       commit: ../../rawdata/kaiaulu/github/commit/ssunoo2_kaiaulu/
 #   bugzilla:
-#     project_key: kaiaulu
+#     project_key_1:
+#       project_key: kaiaulu
+#       issues: ../../rawdata/kaiaulu/bugzilla/issues/kaiaulu/
+#       issue_comments: ../../rawdata/kaiaulu/bugzilla/issue_comments/kaiaulu/
 
       
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
   # Download at: https://nvd.nist.gov/vuln/data-feeds
-  #nvd_feed: rawdata/nvdfeed
+  # nvd_feed: rawdata/nvdfeed
 
 # Commit message CVE or Issue Regular Expression (regex)
 # See project's commit message for examples to create the regex
@@ -150,7 +155,7 @@ tool:
     # The project folder path to store various intermediate
     # files for DV8 Analysis
     # The folder name will be used in the file names.
-    folder_path: ../../analysis/dv8/apr
+    folder_path: ../../analysis/apr/dv8/
     # the architectural flaws thresholds that should be used
     architectural_flaws:
       cliqueDepends:
@@ -191,6 +196,22 @@ tool:
         - f # functions
       r:
         - f # functions
+  # # srcML allow to parse src code as text (e.g. identifiers)
+  # srcml:
+  #   # The file path to where you wish to store the srcml output of the project
+  #   srcml_path: ../../analysis/junit5/srcml/srcml_junit.xml
+  # pattern4:
+  #   # The file path to where you wish to store the classes of the pattern4 analysis
+  #   class_folder_path: ../../rawdata/junit5/pattern4/classes/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
+  #   # The file path to where you wish to store the output of the pattern4 analysis
+  #  output_filepath: ../../analysis/junit5/pattern4/
+  #   compile_note: >
+  #     1. Switch Java version to Java 17:
+  #        https://stackoverflow.com/questions/69875335/macos-how-to-install-java-17
+  #     2. Disable VPN to pull modules from Gradle Plugin Portal.
+  #     3. Use sudo ./gradlew build
+  #     4. After building, locate the engine class files and specify as the class_folder_path:
+  #        in this case they are in: /path/to/junit5/analysis/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
 
 # Analysis Configuration #
 analysis:

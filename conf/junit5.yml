@@ -36,7 +36,8 @@ version_control:
   # Where is the git log located locally?
   # This is the path to the .git of the project repository you are analyzing.
   # The .git is hidden, so you can see it using `ls -a`
-  log: ../../rawdata/git_repo/junit5/.git
+  # log: ../../rawdata/git_repo/junit5/.git
+  log: ../../rawdata/junit5/git_repo/.git
   # From where the git log was downloaded?
   log_url: https://github.com/junit-team/junit5/
   # List of branches used for analysis
@@ -44,27 +45,27 @@ version_control:
     - main
 
 # mailing_list:
-#   mod_mbox: 
+#   mod_mbox:
 #     project_key_1:
-#       mailing_list: http://mail-archives.apache.org/mod_mbox/geronimo-dev
-#       mbox: ./../../../tse_motif_2021/dataset/mbox/apex-dev.mbox
-#       mailing_list_type: geronimo-dev
+#       mailing_list: http://mail-archives.apache.org/mod_mbox/kaiaulu-dev
+#       save_folder_path: ../../rawdata/kaiaulu/mod_mbox/kaiaulu-dev/
+#       mailing_list_type: kaiaulu-dev
 #       archive_type: apache
 #     project_key_2:
-#       mailing_list: http://mail-archives.apache.org/mod_mbox/geronimo-user
-#       mbox: ../../rawdata/geronimo/mod_mbox/geronimo-user/
-#       mailing_list_type: geronimo-user
+#       mailing_list: http://mail-archives.apache.org/mod_mbox/kaiaulu-user
+#       save_folder_path: ../../rawdata/kaiaulu/mod_mbox/kaiaulu-user/
+#       mailing_list_type: kaiaulu-user
 #       archive_type: apache
 #   pipermail:
 #     project_key_1:
-#       mailing_list: https://mta.openssl.org/pipermail/openssl-dev/
-#       mbox: ../../rawdata/openssl/pipermail/openssl-dev/
-#       mailing_list_type: openssl-dev
+#       mailing_list: https://mta.openssl.org/pipermail/kaiaulu-dev/
+#       save_folder_path: ../../rawdata/kaiaulu/pipermail/kaiaulu-dev/
+#       mailing_list_type: kaiaulu-dev
 #       archive_type: mta
 #     project_key_2:
-#       mailing_list: https://mta.openssl.org/pipermail/openssl-users/
-#       mbox: ../../rawdata/openssl/pipermail/openssl-users/
-#       mailing_list_type: openssl-users
+#       mailing_list: https://mta.openssl.org/pipermail/kaiaulu-users/
+#       save_folder_path: ../../rawdata/kaiaulu/pipermail/kaiaulu-users/
+#       mailing_list_type: kaiaulu-users
 #       archive_type: mta
 
 # issue_tracker:
@@ -84,8 +85,9 @@ version_control:
 #       # Download using `download_github_comments.Rmd`
 #       issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/sailuh_kaiaulu/
 #       issue: ../../rawdata/kaiaulu/github/issue/sailuh_kaiaulu/
-#       issue_search: ../..rawdata/kaiaulu/github/issue_search/sailuh_kaiaulu/
-#       pull_request: ../../kaiaulu/github/pull_request/sailuh_kaiaulu/
+#       issue_search: ../../rawdata/kaiaulu/github/issue_search/sailuh_kaiaulu/
+#       issue_event: ../../rawdata/kaiaulu/github/issue_event/sailuh_kaiaulu/
+#       pull_request: ../../rawdata/kaiaulu/github/pull_request/sailuh_kaiaulu/
 #       commit: ../../rawdata/kaiaulu/github/commit/sailuh_kaiaulu/
 #     project_key_2:
 #       # Obtained from the project's GitHub URL
@@ -94,22 +96,26 @@ version_control:
 #       # Download using `download_github_comments.Rmd`
 #       issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/ssunoo2_kaiaulu/
 #       issue: ../../rawdata/kaiaulu/github/issue/ssunoo2_kaiaulu/
-#       refresh_issues: ../..rawdata/kaiaulu/github/refresh_issues/ssunoo2_kaiaulu
-#       pull_request: ../../kaiaulu/github/pull_request/ssunoo2_kaiaulu/
+#       issue_search: ../../rawdata/kaiaulu/github/issue_search/ssunoo2_kaiaulu/
+#       issue_event: ../../rawdata/kaiaulu/github/issue_event/ssunoo2_kaiaulu/
+#       pull_request: ../../rawdata/kaiaulu/github/pull_request/ssunoo2_kaiaulu/
 #       commit: ../../rawdata/kaiaulu/github/commit/ssunoo2_kaiaulu/
 #   bugzilla:
-#     project_key: kaiaulu
+#     project_key_1:
+#       project_key: kaiaulu
+#       issues: ../../rawdata/kaiaulu/bugzilla/issues/kaiaulu/
+#       issue_comments: ../../rawdata/kaiaulu/bugzilla/issue_comments/kaiaulu/
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
   # Download at: https://nvd.nist.gov/vuln/data-feeds
-  #nvd_feed: rawdata/nvdfeed
+  # nvd_feed: rawdata/nvdfeed
 
 # Commit message CVE or Issue Regular Expression (regex)
 # See project's commit message for examples to create the regex
-#commit_message_id_regex:
+# commit_message_id_regex:
 #  issue_id: \#[0-9]+
-  #cve_id: ?
+#  cve_id: ?
 
 filter:
   keep_filepaths_ending_with:
@@ -153,7 +159,7 @@ tool:
     # The project folder path to store various intermediate
     # files for DV8 Analysis
     # The folder name will be used in the file names.
-    folder_path: ../../analysis/dv8/junit
+    folder_path: ../../analysis/junit5/dv8/
     # the architectural flaws thresholds that should be used
     architectural_flaws:
       cliqueDepends:
@@ -197,17 +203,20 @@ tool:
   # srcML allow to parse src code as text (e.g. identifiers)
   srcml:
     # The file path to where you wish to store the srcml output of the project
-    srcml_path: ../../analysis/junit/srcml_junit.xml
+    srcml_path: ../../analysis/junit5/srcml/srcml_junit.xml
   pattern4:
-    # The file path to where you wish to store the srcml output of the project
-    class_folder_path: ../../rawdata/git_repo/junit5/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
+    # The file path to where you wish to store the classes of the pattern4 analysis
+    class_folder_path: ../../rawdata/junit5/pattern4/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
+    # The file path to where you wish to store the output of the pattern4 analysis
+  #  output_filepath: ../../analysis/junit5/pattern4/
     compile_note: >
       1. Switch Java version to Java 17:
          https://stackoverflow.com/questions/69875335/macos-how-to-install-java-17
       2. Disable VPN to pull modules from Gradle Plugin Portal.
       3. Use sudo ./gradlew build
       4. After building, locate the engine class files and specify as the class_folder_path:
-         in this case they are in: /path/to/junit5/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
+         in this case they are in: /path/to/junit5/analysis/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
+
 # Analysis Configuration #
 analysis:
   # A list of topic and keywords (see src_text_showcase.Rmd).
@@ -236,20 +245,20 @@ analysis:
       - command
   # You can specify the intervals in 2 ways: window, or enumeration
 #  window:
-    # If using gitlog, use start_commit and end_commit. Timestamp is inferred from gitlog
+#    # If using gitlog, use start_commit and end_commit. Timestamp is inferred from gitlog
 #    start_commit: 9eae9e96f15e1f216162810cef4271a439a74223
 #    end_commit: f8f9ec1f249dd552065aa37c983bed4d4d869bb0
-    # Use datetime only if no gitlog is used in the analysis.
-    #start_datetime: 2013-05-01 00:00:00
-    #end_datetime: 2013-11-01 00:00:00
+#    # Use datetime only if no gitlog is used in the analysis.
+#    start_datetime: 2013-05-01 00:00:00
+#    end_datetime: 2013-11-01 00:00:00
 #    size_days: 90
 #  enumeration:
-     # If using gitlog, specify the commits
+#    # If using gitlog, specify the commits
 #    commit:
 #      - 9eae9e96f15e1f216162810cef4271a439a74223
 #      - f1d2d568776b3708dd6a3077376e2331f9268b04
 #      - c33a2ce74c84f0d435bfa2dd8953d132ebf7a77a
-     # Use datetime only if no gitlog is used in the analysis. Timestamp is inferred from gitlog
+#    # Use datetime only if no gitlog is used in the analysis. Timestamp is inferred from gitlog
 #    datetime:
 #      - 2013-05-01 00:00:00
 #      - 2013-08-01 00:00:00
