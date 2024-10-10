@@ -832,18 +832,18 @@ get_tool_project <- function(tool_name, config_file) {
   return(tool_path)
 }
 
-#' Returns the code language for analysis.
+#' Returns the depends code language for analysis.
 #'
 #' @description This function returns the specified code language that should
 #' be used to parse file-file static dependencies with the depends tool, that
 #' is specified in the input parameter `config_file`. The input, `config_file`
 #' must be a parsed configuration file. The function will inform the user if
-#' the code language exists in the parsed configuration file, `config_file`.
+#' the depends code language exists in the parsed configuration file, `config_file`.
 #'
 #' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @return The code language for parsing file-file static dependencies.
 #' @export
-get_code_language <- function(config_file) {
+get_depends_code_language <- function(config_file) {
 
   language <- config_file[["tool"]][["depends"]][["code_language"]]
 
@@ -863,9 +863,9 @@ get_code_language <- function(config_file) {
 #' types of dependencies exists in the parsed configuration file, `config_file`.
 #'
 #' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
-#' @return A list of the types of dependencies to keep for analysis.
+#' @return A list of the types of depends dependencies to keep for analysis.
 #' @export
-get_keep_dependencies_type <- function(config_file) {
+get_depends_keep_dependencies_type <- function(config_file) {
 
   keep_dependencies_type <- config_file[["tool"]][["depends"]][["keep_dependencies_type"]]
 
@@ -1007,6 +1007,94 @@ get_pattern4_filepath <- function(config_file) {
   }
 
   return(pattern4_filepath)
+}
+
+#' Returns the understand code language for analysis.
+#'
+#' @description This function returns the specified code language that should
+#' be used to parse dependencies with the understand tool, that
+#' is specified in the input parameter `config_file`. The input, `config_file`
+#' must be a parsed configuration file. The function will inform the user if
+#' the understand code language exists in the parsed configuration file, `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @return The code language for parsing with the understand tool.
+#' @export
+get_understand_code_language <- function(config_file) {
+
+  language <- config_file[["tool"]][["understand"]][["code_language"]]
+
+  if (is.null(language)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(language)
+}
+
+#' Returns a list of the types of understand dependencies to keep for analysis.
+#'
+#' @description This function returns the specified types of dependencies to
+#' keep for analysis with the understand tool, that is specified in the input
+#' parameter `config_file`. The input, `config_file` must be a parsed
+#' configuration file. The function will inform the user if the list of the
+#' types of understand dependencies exists in the parsed configuration file, `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @return A list of the types of understand dependencies to keep for analysis.
+#' @export
+get_understand_keep_dependencies_type <- function(config_file) {
+
+  keep_dependencies_type <- config_file[["tool"]][["understand"]][["keep_dependencies_type"]]
+
+  if (is.null(keep_dependencies_type)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(keep_dependencies_type)
+}
+
+#' Returns the folder path for the input of the understand analysis.
+#'
+#' @description This function returns the folder path that contains the
+#' input of the understand analysis for the project, that is specified in the
+#' input parameter `config_file`. The input, `config_file` must be a parsed
+#' configuration file. The function will inform the user if the folder path
+#' exists in the parsed configuration file, `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @return The understand project folder path.
+#' @export
+get_understand_project_path <- function(config_file) {
+
+  understand_project_path <- config_file[["tool"]][["understand"]][["project_path"]]
+
+  if (is.null(understand_project_path)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(understand_project_path)
+}
+
+#' Returns the folder path for the output of the understand analysis.
+#'
+#' @description This function returns the folder path that contains the
+#' output of the understand analysis for the project, that is specified in the
+#' input parameter `config_file`. The input, `config_file` must be a parsed
+#' configuration file. The function will inform the user if the folder path
+#' exists in the parsed configuration file, `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @return The understand output folder path.
+#' @export
+get_understand_output_path <- function(config_file) {
+
+  understand_output_path <- config_file[["tool"]][["understand"]][["output_path"]]
+
+  if (is.null(understand_output_path)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(understand_output_path)
 }
 
 ##### Third Party Tools Functions End #####

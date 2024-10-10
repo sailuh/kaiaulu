@@ -40,8 +40,8 @@ git_repo_path <- get_git_repo_path(conf)
 
 # Depends parameters
 depends_jar_path <- get_tool_project("depends", tool)
-language <- get_code_language(conf)
-keep_dependencies_type <- get_keep_dependencies_type(conf)
+language <- get_depends_code_language(conf)
+keep_dependencies_type <- get_depends_keep_dependencies_type(conf)
 
 # DV8 parameters 
 project_path <- get_dv8_folder_path(conf)

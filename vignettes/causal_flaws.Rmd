@@ -58,8 +58,8 @@ git_branch <- get_git_branches(conf)[4] # camel 1.0.0
 
 # Depends parameters
 depends_jar_path <- get_tool_project("depends", tool)
-language <- get_code_language(conf)
-keep_dependencies_type <- get_keep_dependencies_type(conf)
+language <- get_depends_code_language(conf)
+keep_dependencies_type <- get_depends_keep_dependencies_type(conf)
 
 # Mailing List
 # Specify project_key_index in get_mbox_path() (e.g. "project_key_1")
