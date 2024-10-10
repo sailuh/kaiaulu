@@ -13,7 +13,10 @@ parse_bugzilla_rest_issues_comments(bugzilla_folder_path)
 data table with Bugzilla issue data and Bugzilla comments data
 }
 \description{
-Parse Bugzilla issues and comments data table
+When comments data is present, every row in the returned table
+is uniquely identified by the `issue_key` and `comment_id` column.
+When comment data is not present, every row is uniquely identified by the
+`issue_key` colummn.
 }
 \seealso{
 \code{\link{parse_bugzilla_rest_issues}} a parser function to parse Bugzilla issues data
@@ -21,6 +24,7 @@ Parse Bugzilla issues and comments data table
 \code{\link{download_bugzilla_rest_issues_comments}} a downloader function to parse Bugzilla issues and comments data
 
 Other parsers: 
+\code{\link{parse_bugzilla_latest_date}()},
 \code{\link{parse_bugzilla_perceval_rest_issue_comments}()},
 \code{\link{parse_bugzilla_perceval_traditional_issue_comments}()},
 \code{\link{parse_bugzilla_rest_comments}()},
@@ -29,9 +33,9 @@ Other parsers:
 \code{\link{parse_dependencies}()},
 \code{\link{parse_dv8_clusters}()},
 \code{\link{parse_gitlog}()},
+\code{\link{parse_jira}()},
 \code{\link{parse_jira_latest_date}()},
 \code{\link{parse_jira_rss_xml}()},
-\code{\link{parse_jira}()},
 \code{\link{parse_mbox}()},
 \code{\link{parse_nvdfeed}()}
 }

@@ -45,29 +45,46 @@ version_control:
     - master
 
 mailing_list:
-  # Where is the mbox located locally?
-  #mbox: ../../rawdata/mbox/openssl_dev_mbox # 2004-2008 fields are complete
-  mbox: ../../rawdata/mbox/openssl-dev.mbx # 2002-2019 gmail field is redacted due to google groups
-  # What is the domain of the chosen mailing list archive?
-  #domain: http://mail-archives.apache.org/mod_mbox
-  # Which lists of the domain will be used?
-  #list_key:
-  #  - apr-dev
+  mod_mbox:
+    mail_key_1:
+      archive_url: http://mail-archives.apache.org/mod_mbox/apr-dev
+      mbox: ../../rawdata/apr/mod_mbox/apr-dev/
+      mailing_list: apr-dev
+      archive_type: apache
+  pipermail:
+    mail_key_1:
+      archive_url: https://mta.openssl.org/pipermail/openssl-dev/
+      mbox: ../../rawdata/openssl/pipermail/openssl-dev/
+      mailing_list: openssl-dev
+      archive_type: mta
+    mail_key_2:
+      archive_url: https://mta.openssl.org/pipermail/openssl-users/
+      mbox: ../../rawdata/openssl/pipermail/openssl-users/
+      mailing_list: openssl-users
+      archive_type: mta
 
-#issue_tracker:
-  #jira:
-    # Obtained from the project's JIRA URL
-    #domain: https://issues.apache.org/jira
-    #project_key: HELIX
-    # Download using `download_jira_data.Rmd`
-    #issues: ../../rawdata/issue_tracker/helix_issues.json
-    #issue_comments: ../../rawdata/issue_tracker/helix_issue_comments.json
-  #github:
-    # Obtained from the project's GitHub URL
-    #owner: apache
-    #repo: apr
-    # Download using `download_github_comments.Rmd`
-    #replies: ../../rawdata/github/apr/
+# issue_tracker:
+#   jira:
+#     project_key_1:
+#       # Obtained from the project's JIRA URL
+#       domain: https://issues.apache.org/jira
+#       #project_key: HELIX
+#       # Download using `download_jira_data.Rmd`
+#       # issues: ../../rawdata/helix/jira/issues/helix/
+#       # issue_comments: ../../rawdata/helix/jira/issue_comments/helix/
+#   github:
+#     project_key_1:
+#       # Obtained from the project's GitHub URL
+#       owner: apache
+#       repo: apr
+#       # Download using `download_github_comments.Rmd`
+#       issue_or_pr_comment: ../../rawdata/apr/github/issue_or_pr_comment/apache_apr/
+#       issue: ../../rawdata/apr/github/issue/apache_apr/
+#       issue_search: ../../rawdata/apr/github/issue_search/apache_apr/
+#       pull_request: ../../rawdata/apr/github/pull_request/apache_apr/
+#       commit: ../../rawdata/apr/github/commit/apache_apr/
+#  bugzilla:
+#      project_key: openssl
 
 vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
