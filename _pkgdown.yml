@@ -117,10 +117,10 @@ reference:
   - parse_jira_rss_xml
   - make_jira_issue
   - make_jira_issue_tracker
-  - download_jira_issues_comments
-  - download_jira_issues_comments_by_date
-  - download_jira_issues_comments_by_issuekey
-  - refresh_jira_issues_comments_by_issuekey
+  - download_jira_issues
+  - download_jira_issues_by_date
+  - download_jira_issues_by_issue_key
+  - refresh_jira_issues
 - title: __GitHub__
   desc: >
        Functions to interact and download data from GitHub API.
