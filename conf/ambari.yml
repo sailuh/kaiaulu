@@ -55,25 +55,25 @@ mailing_list:
   mod_mbox:
     project_key_1:
       mailing_list: http://mail-archives.apache.org/mod_mbox/ambari-dev
-      save_folder_path: ../../rawdata/ambari/mod_mbox/ambari-dev/
-      mailing_list_type: ambari-dev
-      archive_type: apache
+      save_folder_path: ../../rawdata/ambari/mod_mbox/save_mbox_mail/
+      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+#      mbox_file_path: ../../rawdata/ambari/mod_mbox/save_mbox_mail/ambari.mbox
     project_key_2:
       mailing_list: http://mail-archives.apache.org/mod_mbox/ambari-user
-      save_folder_path: ../../rawdata/ambari/mod_mbox/ambari-user/
-      mailing_list_type: ambari-user
-      archive_type: apache
+      save_folder_path: ../../rawdata/ambari/mod_mbox/save_mbox_mail_2/
+      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+#      mbox_file_path: ../../rawdata/ambari/mod_mbox/save_mbox_mail_2/ambari.mbox
 #   pipermail:
 #     project_key_1:
-#       mailing_list: https://mta.openssl.org/pipermail/openssl-dev/
-#       save_folder_path: ../../rawdata/openssl/pipermail/openssl-dev/
-#       mailing_list_type: openssl-dev
-#       archive_type: mta
+#       mailing_list: https://mta.openssl.org/pipermail/kaiaulu-dev/
+#       save_folder_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail/
+#       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+#       mbox_file_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail/kaiaulu.mbox
 #     project_key_2:
-#       mailing_list: https://mta.openssl.org/pipermail/openssl-users/
-#       save_folder_path: ../../rawdata/openssl/pipermail/openssl-users/
-#       mailing_list_type: openssl-users
-#       archive_type: mta
+#       mailing_list: https://mta.openssl.org/pipermail/kaiaulu-users/
+#       save_folder_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail_2/
+#       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+#       mbox_file_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail_2/kaiaulu.mbox
 
 issue_tracker:
   jira:
@@ -211,6 +211,20 @@ tool:
   #     3. Use sudo ./gradlew build
   #     4. After building, locate the engine class files and specify as the class_folder_path:
   #        in this case they are in: /path/to/junit5/analysis/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
+  # understand:
+  #   # Accepts one language at a time: ada, assembly, c/c++, c#, fortran, java, jovial, delphi/pascal, python, vhdl, basic, javascript
+  #   code_language: java
+  #   # Specify which types of Dependencies to keep
+  #   keep_dependencies_type:
+  #     - Import
+  #     - Call
+  #     - Create
+  #     - Use
+  #     - Type GenericArgument
+  #   # Where the files to analyze should be stored
+  #   project_path: ../../rawdata/kaiaulu/git_repo/understand/
+  #   # Where the output for the understands analysis is stored
+  #   output_path: ../../analysis/kaiaulu/understand/
 
 # Analysis Configuration #
 analysis:
