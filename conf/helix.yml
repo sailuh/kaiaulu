@@ -69,14 +69,14 @@ mailing_list:
       start_year_month: 202310
       end_year_month: 202405
       save_folder_path: "../extdata/save_folder_mail"
-      # mbox_path is for use only with parse_mbox() function. It is the file to parse.
+      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse.
       mbox_file_path: "../extdata/save_mbox_mail/kaiaulu_202310.mbox"
     project_key_2:
       mailing_list: https://mta.openssl.org/pipermail/openssl-project/
       start_year_month: 202203
       end_year_month: 202303
       save_folder_path: "../extdata/save_folder_mail_2"
-      # mbox_path is for use only with parse_mbox() function. It is the file to parse.
+      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse.
       mbox_file_path: "../extdata/save_mbox_mail/kaiaulu_202210.mbox"
 
 issue_tracker:
