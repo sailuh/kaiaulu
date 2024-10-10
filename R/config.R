@@ -111,7 +111,7 @@ get_mbox_key_indexes <- function(config_file) {
 #'
 #' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
 #' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
-#' @return The URL of the mailing list archive for project specified by key `project_key_index`.
+#' @return The URL of the mbox mailing list archive for project specified by key `project_key_index`.
 #' @export
 get_mbox_domain <- function(config_file, project_key_index) {
 
@@ -146,6 +146,53 @@ get_mbox_path <- function(config_file, project_key_index) {
   }
 
   return(mbox_path)
+}
+
+#' Returns the URL to the archives for pipermail for a specific project key.
+#'
+#' @description This function returns the URL to the archives for a specific
+#' project key, `project_key_index`, that is specified in the input parameter
+#' `config_file`. The input, `config_file` must be a parsed configuration file.
+#' The function will inform the user if the specific URL to the archives for
+#' pipermail exists in the parsed configuration file, `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
+#' @return The URL of the pipermail mailing list archive for project specified by key `project_key_index`.
+#' @export
+get_pipermail_domain <- function(config_file, project_key_index) {
+
+  pipermail_url <- config_file[["mailing_list"]][["pipermail"]][[project_key_index]][["mailing_list"]]
+
+  if (is.null(pipermail_url)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(pipermail_url)
+}
+
+#' Returns the local folder path to store pipermail data for a specific project key.
+#'
+#' @description This function returns the local folder path used to store
+#' pipermail data for a specific project key, `project_key_index`, that is specified
+#' in the input parameter `config_file`. The input, `config_file` must be a
+#' parsed configuration file. The function will inform the user if the specific
+#' local folder path to store pipermail data exists in the parsed configuration
+#' file, `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
+#' @return The local pipermail path for project specified by key `project_key_index`.
+#' @export
+get_pipermail_path <- function(config_file, project_key_index) {
+
+  pipermail_path <- config_file[["mailing_list"]][["pipermail"]][[project_key_index]][["save_folder_path"]]
+
+  if (is.null(pipermail_path)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(pipermail_path)
 }
 
 ##### Mailing List Functions End #####
