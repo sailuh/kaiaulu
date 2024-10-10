@@ -90,7 +90,7 @@ As stated in the introduction, we need both git log and at least one communicati
 
 To get started, we use the `parse_gitlog` function to extract a table from the git log. You can inspect the `project_git` variable to inspect what information is available from the git log. 
 
-```{r}
+```{r Parse Git Log}
 git_checkout(git_branch,git_repo_path)
 project_git <- parse_gitlog(perceval_path,git_repo_path)
 project_git <- project_git  %>%
@@ -104,7 +104,7 @@ Next, we parse the various communication channels the project use. Similarly to 
 
 We also have to parse and normalize the timezone across the different projects. Since one of the social metrics in the quality framework is the count of different timezones, we separate the timezone information before normalizing them.
 
-```{r}
+```{r Convert Timestamps to POSIXct}
 project_git$author_tz <- sapply(stringi::stri_split(project_git$author_datetimetz,
                                                           regex=" "),"[[",6)
 project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
@@ -236,15 +236,24 @@ A third choice we make here is whether the collaboration being analyzed is done 
 
 ## Community Detection
 
-For some social smells, such as radio silence and primma donna, community detection is required to be applied to the constructed networks. Do consider the implications of the one chosen below in your results.
+For some social smells, such as radio silence and primma donna, community detection is required to be applied to the constructed networks. Do consider the implications of the one chosen below in your results. We will use a sample of the data here for demonstration instead of the full dataset:
 
 ```{r}
 # Define all timestamp in number of days since the very first commit of the repo 
 # Note here the start_date and end_date are in respect to the git log.
-
 # Transform commit hashes into datetime so window_size can be used
-start_date <- get_date_from_commit_hash(project_git,start_commit)
-end_date <- get_date_from_commit_hash(project_git,end_commit)
+#start_date <- get_date_from_commit_hash(project_git,start_commit)
+#end_date <- get_date_from_commit_hash(project_git,end_commit)
+
+
+
+start_date <- as.POSIXct("2012-10-17 18:19:46", tz = "UTC")
+
+end_date <- as.POSIXct("2013-02-17 18:19:46", tz = "UTC")
+```
+
+
+```{r Compute Social Smells}
 datetimes <- project_git$author_datetimetz
 reply_datetimes <- project_reply$reply_datetimetz
 

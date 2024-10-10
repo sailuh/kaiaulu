@@ -111,6 +111,10 @@ Note in the subsequent code block we specified the fields from the issue we are 
 
 Beware that even if only 3 issues exist in a JIRA, a large time range will still request several API calls (in contrast to the issue endpoint below). Therefore, it is advisable to use the issue key query instead which is explained in the next sub-section.
 
+```{r}
+file.exists(save_path_issue_tracker_issues)
+```
+
 ```{r eval = FALSE}
 # e.g. date_lower_bound <- "1970/01/01". 
 date_lower_bound <- "2023/11/16 21:00"
@@ -172,11 +176,14 @@ In the subsequent codeblock, note we also include a new field, `comment`. This i
 
 ```{r eval = FALSE}
 # eg issueKey_lower_bound <- "GERONIMO-740"
-#issue_key_lower_bound <- "GERONIMO-500"
-#issue_key_upper_bound <- "GERONIMO-560"
+#issue_key_lower_bound <- "GERONIMO-5000"
+#issue_key_upper_bound <- "GERONIMO-5010"
 
 issue_key_lower_bound <- "SAILUH-1"
-issue_key_upper_bound <- "SAILUH-3"
+issue_key_upper_bound <- "SAILUH-7"
+
+#issue_key_lower_bound <- "CAMEL-1"
+#issue_key_upper_bound <- "CAMEL-800"
 
 all_issues <- download_jira_issues_by_issue_key(domain = issue_tracker_domain,
                            jql_query = paste0("project='",issue_tracker_project_key,"'"), 
@@ -202,13 +209,12 @@ all_issues <- download_jira_issues_by_issue_key(domain = issue_tracker_domain,
                            username = username,
                            password = password,
                            save_folder_path = save_path_issue_tracker_issue_comments, 
-                           max_results = 50, 
-                           max_total_downloads = 60,
+                           max_results = 500, 
+                           max_total_downloads = 500,
                            issue_key_lower_bound = issue_key_lower_bound,
                            issue_key_upper_bound = issue_key_upper_bound,
                            verbose = TRUE)
 ```
-
 
 ```{r}
 names(parsed_jira_issues)

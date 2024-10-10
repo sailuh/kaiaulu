@@ -53,7 +53,7 @@ scc_path <- get_tool_project("scc", tool)
 
 # Gitlog parameters
 git_repo_path <- get_git_repo_path(conf)
-git_branch <- get_git_branches(conf)[4] # camel 1.0.0
+git_branch <- get_git_branches(conf)[1] # camel 1.6.0
 
 
 # Depends parameters
