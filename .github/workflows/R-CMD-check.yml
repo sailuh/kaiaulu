@@ -15,7 +15,7 @@ jobs:
     runs-on: macOS-13
     strategy:
       matrix:
-        r-version: ['4.2']
+        r-version: ['4.4']
 
     steps:
       - uses: actions/checkout@v3
@@ -51,7 +51,6 @@ jobs:
       - name: Install dependencies
         run: |
           remotes::install_deps(dependencies = TRUE)
-          install.packages("XML")
           remotes::install_cran("rcmdcheck")
         shell: Rscript {0}
 
