@@ -86,8 +86,6 @@ mailing_list:
   pipermail:
     project_key_1:
       mailing_list: https://mta.openssl.org/pipermail/openssl-users/
-      start_year_month: 202310
-      end_year_month: 202405
       save_folder_path: "../extdata/save_folder_mail"
 
 ```
@@ -108,11 +106,11 @@ By organizing the configuration in this way, you can manage multiple projects an
 The following code reads the configuration parameters for project_key_1 of pipermail:
 
 ```{r}
-conf <- yaml::read_yaml("../conf/helix.yml")
-mailing_list <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["mailing_list"]]
-start_year_month <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["start_year_month"]]
-end_year_month <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["end_year_month"]]
-save_folder_path <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["save_folder_path"]]
+conf <- parse_config("conf/helix.yml")
+mailing_list <- get_pipermail_domain(conf, "project_key_1")
+start_year_month <- 202310
+end_year_month <- 202405
+save_folder_path <- get_pipermail_path(conf, "project_key_1")
 ```
 
 After setting the configurations above, you can download the archives using the download_pipermail() function, which downloads and saves .mbox files to the specified directory (save_folder_path). The .mbox files are named with the format kaiaulu_YYYYMM.mbox, where YYYYMM refers to the year and month of the archive.
@@ -169,8 +167,6 @@ mailing_list:
   mod_mbox:
     project_key_1:
       mailing_list: https://lists.apache.org/list.html?announce@apache.org
-      start_year_month: 202310
-      end_year_month: 202405
       save_folder_path: "../../extdata/save_mbox_mail"
 
 ```
@@ -180,11 +176,11 @@ The configuration parameters are the same as the ones explained in the section a
 The following code reads the configuration parameters:
 
 ```{r eval=FALSE}
-conf <- yaml::read_yaml("conf/helix.yml")
-mailing_list <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["mailing_list"]]
-start_year_month <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["start_year_month"]]
-end_year_month <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["end_year_month"]]
-save_folder_path <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["save_folder_path"]]
+conf <- parse_config("conf/helix.yml")
+mailing_list <- get_mbox_domain(conf, "project_key_1")
+start_year_month <- 202310
+end_year_month <- 202405
+save_folder_path <- get_mbox_path(conf, "project_key_1")
 ```
 
 - mailing_list: The URL of the Mod Mbox mailing list (e.g., https://lists.apache.org/list.html?announce@apache.org).
@@ -261,12 +257,11 @@ mbox_file_path: should point to the saved .mbox file that will be parsed. See th
 Load the configuration:
 
 ```{r eval=FALSE}
-tools_config <- yaml::read_yaml("tools.yml")
-parse_perceval_path <- tools_config[["perceval"]]
+tools <- parse_config("tools.yml")
+parse_perceval_path <- get_tool_project("perceval", tools)
 
-conf <- yaml::read_yaml("conf/helix.yml")
-mbox_file_path <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["mbox_file_path"]]
-
+conf <- parse_config("conf/helix.yml")
+mbox_file_path <- get_mbox_input_file(conf, "project_key_1")
 ```
 
 Run the parser:
