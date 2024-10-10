@@ -71,8 +71,8 @@ issue_tracker:
       domain: https://issues.apache.org/jira
       project_key: HELIX
       # Download using `download_jira_data.Rmd`
-      issues: ../../rawdata/helix/jira/issues/helix
-      issue_comments: ../../rawdata/helix/jira/issue_comments/helix
+      issues: ../../rawdata/issue_tracker/helix/issues/
+      issue_comments: ../../rawdata/issue_tracker/helix/issue_comments/
   github:
     project_key_1:
       # Obtained from the project's GitHub URL

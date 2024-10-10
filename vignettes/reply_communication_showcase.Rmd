@@ -30,7 +30,7 @@ Load config file.
 
 ```{r}
 tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/geronimo.yml")
+conf <- yaml::read_yaml("../conf/helix.yml")
 perceval_path <- tool[["perceval"]]
 
 mbox_path <- conf[["mailing_list"]][["mbox"]]
@@ -79,9 +79,11 @@ project_mbox <- project_mbox[!is.na(reply_datetimetz)]
 project_jira <- project_jira[!is.na(reply_datetimetz)]
 
 
-project_mbox_slice <- project_mbox[reply_datetimetz >= as.POSIXct("2005-08-01", format = "%Y-%m-%d",tz = "UTC") & reply_datetimetz < as.POSIXct("2005-08-30", format = "%Y-%m-%d",tz = "UTC")]
 
-project_jira_slice <- project_jira[reply_datetimetz >= as.POSIXct("2005-08-01", format = "%Y-%m-%d",tz = "UTC") & reply_datetimetz < as.POSIXct("2005-08-30", format = "%Y-%m-%d",tz = "UTC")]
+
+project_mbox_slice <- project_mbox[reply_datetimetz >= as.POSIXct("2018-04-29", format = "%Y-%m-%d",tz = "UTC") & reply_datetimetz < as.POSIXct("2019-02-26", format = "%Y-%m-%d",tz = "UTC")]
+
+project_jira_slice <- project_jira[reply_datetimetz >= as.POSIXct("2018-04-29", format = "%Y-%m-%d",tz = "UTC") & reply_datetimetz < as.POSIXct("2019-02-26", format = "%Y-%m-%d",tz = "UTC")]
 ```
 
 # Mailing List
