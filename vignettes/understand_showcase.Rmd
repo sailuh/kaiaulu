@@ -32,16 +32,19 @@ require(igraph)
 require(data.table)
 ```
 
+# Project Configuration File
+
+```{r}
+conf <- parse_config("conf/kaiaulu.yml")
+keep_dependencies_type <- get_understand_keep_dependencies_type(conf)
+project_path <- get_understand_project_path(conf)
+understand_folder <- get_understand_output_path(conf)
+code_language <- get_understand_code_language(conf)
+```
 
 # Parse a sample project folder
 
 For sample purposes, we will use the project from [Houari Zegai's Calculator](https://github.com/HouariZegai/Calculator) saved into a folder called sample_project. This folder contains all the .java files that the project uses and the ones we will be analyzing. The directory where we will build the understand analysis base will be saved in a folder called understand
-
-```{r}
-project_path <- "tests/sample_project"
-understand_folder <- "understand"
-```
-
 
 # Build the Understand project
 
@@ -50,7 +53,7 @@ Before asking for the generation of data or parsing through it, we must first bu
 Please remember/save where the folder is generated as it is necessary for understand_parse_dependencies.
 
 ```{r}
-build_understand_project(project_path = project_path, language = "java", output_dir = understand_folder)
+build_understand_project(project_path = project_path, language = code_language, output_dir = understand_folder)
 ```
 
 
@@ -96,7 +99,7 @@ Some valid weight_types that are included for files are:
 Apart from having a filtered edge_table, this data can also be used for inputting into graph_from_data_frame and visIgraph to visualize the table as a graph, as shown below where we filter by Call and Type GenericArgument.
 
 ```{r}
-file_graph <- transform_understand_dependencies_to_network(parsed = file_dependencies, weight_types = c("Call", "Type GenericArgument"))
+file_graph <- transform_understand_dependencies_to_network(parsed = file_dependencies, weight_types = c(keep_dependencies_type[2], keep_dependencies_type[5]))
 head(file_graph)
 project_function_network <- igraph::graph_from_data_frame(d=file_graph[["edge_list"]], 
                       directed = TRUE,
@@ -110,7 +113,7 @@ visIgraph(project_function_network,randomSeed = 1)
 The same applies to outputting our class_dependencies, but we can visualize what our class dependency data is using the same parameters sans the parsed data table.
 
 ```{r}
-class_graph <- transform_understand_dependencies_to_network(parsed = class_dependencies, weight_types = c("Call", "Type GenericArgument"))
+class_graph <- transform_understand_dependencies_to_network(parsed = class_dependencies, weight_types = c(keep_dependencies_type[2], keep_dependencies_type[5]))
 head(class_graph)
 project_function_network <- igraph::graph_from_data_frame(d=class_graph[["edge_list"]], 
                       directed = TRUE,
