@@ -33,6 +33,10 @@ require(data.table)
 ```
 
 # Project Configuration File
+For our variables we will be grabbing them from our configuration file kaiaulu.yml. We will provide a short insight into what we're doing throughout the notebook, but to summarize:
+- Our folder and path will be saved into the rawdata and analysis folders respectively
+- Within the configuration file, keep_dependencies_type is a list of dependency types that Understand finds for analysis
+- And our code_language. Although self-explanatory, Understand supports [many languages](https://support.scitools.com/support/solutions/articles/70000582794-supported-languages)- but for today we will be analyzing a Java project.
 
 ```{r}
 conf <- parse_config("conf/kaiaulu.yml")
@@ -42,15 +46,15 @@ understand_folder <- get_understand_output_path(conf)
 code_language <- get_understand_code_language(conf)
 ```
 
-# Parse a sample project folder
+## Parse a sample project folder
 
-For sample purposes, we will use the project from [Houari Zegai's Calculator](https://github.com/HouariZegai/Calculator) saved into a folder called sample_project. This folder contains all the .java files that the project uses and the ones we will be analyzing. The directory where we will build the understand analysis base will be saved in a folder called understand
+For sample purposes, we will use the project from [Houari Zegai's Calculator](https://github.com/HouariZegai/Calculator) saved into the folder ../../rawdata/kaiaulu/git_rep/understand/ This folder contains all the .java files that the project uses and the ones we will be analyzing. The directory where we will build the understand analysis base will be saved in a folder called understand
 
 # Build the Understand project
 
 Before asking for the generation of data or parsing through it, we must first build the Understand project data. Firstly, provide the project_path and the primary project language, which in this case is Java. There is a third parameter named output_dir where the project will be built at, so we will give it understand_folder. After building once, you do not need to call this function again unless you have changed files within the project that would need to be re-analyzed.
 
-Please remember/save where the folder is generated as it is necessary for understand_parse_dependencies.
+Please remember/save where the folder is generated as it is necessary for understand_parse_dependencies, but for the purpose of this notebook- we will save this output at ../../analysis/kaiaulu/understand
 
 ```{r}
 build_understand_project(project_path = project_path, language = code_language, output_dir = understand_folder)
@@ -87,15 +91,19 @@ head(class_dependencies[["edge_list"]])
 # Transforming to Network
 ## For Files
 
-To filter out edges by their dependency_kind and prepare the generated table from understand_parse_dependencies by appending label_from and label_to columns to the edge_table, we can call transform_und_dependencies_to_network. All we need to do is provide the generated data into parsed and the vector containing the filter weights into weight_types.
+To filter out edges by their dependency_kind we can call transform_und_dependencies_to_network. Although this function performs as a simple sub-setter (filters for the provided dependency types), as the parsed data is a valid network, this function is kept for consistency across our parser functions.
 
-Some valid weight_types that are included for files are:
-- Import
-- Call
-- Create
-- Use
-- Type GenericArgument
+Back to the function, all we need to do is provide the generated data into parsed and the vector containing the filter weights into weight_types.
 
+Some valid weight_types that are included are:
+- Import (1)
+- Call (2)
+- Create (3)
+- Use (4)
+- Type GenericArgument (5)
+
+NOTE: These weight_types are listed in the same order saved into our keep_dependencies_type variable pulled from kaiaulu.yml, and are a list (note the index numbers provided next to each itemized list). Here is a [good place to start](https://documentation.scitools.com/pdf/understand.pdf) for reading on dependencies generated from Understand.
+ 
 Apart from having a filtered edge_table, this data can also be used for inputting into graph_from_data_frame and visIgraph to visualize the table as a graph, as shown below where we filter by Call and Type GenericArgument.
 
 ```{r}
