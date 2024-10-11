@@ -51,33 +51,25 @@ mailing_list:
   mod_mbox:
     project_key_1:
       mailing_list: https://lists.apache.org/list.html?announce@apache.org
-      start_year_month: 202310
-      end_year_month: 202405
-      save_folder_path: "../extdata/save_mbox_mail"
-      # mbox_path is for use only with parse_mbox() function. It is the file to parse.
-      mbox_file_path: "../extdata/save_mbox_mail/kaiaulu_202410.mbox"
+      save_folder_path: ../../rawdata/kaiaulu/mod_mbox/save_mbox_mail/
+      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+      mbox_file_path: ../../rawdata/kaiaulu/mod_mbox/save_mbox_mail/kaiaulu.mbox
     project_key_2:
       mailing_list: https://lists.apache.org/list.html?dev@felix.apache.org
-      start_year_month: 202201
-      end_year_month: 202401
-      save_folder_path: "../extdata/save_mbox_mail"
-      # mbox_path is for use only with parse_mbox() function. It is the file to parse.
-      mbox_file_path: "../extdata/save_mbox_mail/kaiaulu_202210.mbox"
+      save_folder_path: ../../rawdata/kaiaulu/mod_mbox/save_mbox_mail_2/
+      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+      mbox_file_path: ../../rawdata/kaiaulu/mod_mbox/save_mbox_mail_2/kaiaulu.mbox
   pipermail:
     project_key_1:
       mailing_list: https://mta.openssl.org/pipermail/openssl-users/
-      start_year_month: 202310
-      end_year_month: 202405
-      save_folder_path: "../extdata/save_folder_mail"
-      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse.
-      mbox_file_path: "../extdata/save_mbox_mail/kaiaulu_202310.mbox"
+      save_folder_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail/
+      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+      mbox_file_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail/kaiaulu.mbox
     project_key_2:
       mailing_list: https://mta.openssl.org/pipermail/openssl-project/
-      start_year_month: 202203
-      end_year_month: 202303
-      save_folder_path: "../extdata/save_folder_mail_2"
-      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse.
-      mbox_file_path: "../extdata/save_mbox_mail/kaiaulu_202210.mbox"
+      save_folder_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail_2/
+      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+      mbox_file_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail_2/kaiaulu.mbox
 
 issue_tracker:
   jira:
