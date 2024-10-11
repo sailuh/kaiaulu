@@ -53,7 +53,7 @@ scc_path <- tool[["scc"]]
 
 # Gitlog parameters
 git_repo_path <- conf[["version_control"]][["log"]]
-git_branch <- conf[["version_control"]][["branch"]][4] # camel 1.0.0
+git_branch <- conf[["version_control"]][["branch"]][1] # camel 1.6.0
 
 
 # Depends parameters
