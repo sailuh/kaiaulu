@@ -5,7 +5,8 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 ############## Understand Project Builder ##############
-
+#' Build Understand Analysis Folder
+#'
 #' @description This function builds the data files for Understand from the project_path folder, reading from files that are written in the target language into output_dir
 #'
 #' @param project_path path to the project folder to analyze
@@ -31,7 +32,8 @@ build_understand_project <- function(project_path, language, output_dir){
 }
 
 ############## Parsers ##############
-
+#' Parse Built Folder to Network
+#'
 #' @description This function parses the data in the Understand build folder to export the parse_type dependencies into a network
 #'
 #' @param understand_dir path to the built Understand project folder used in \code{\link{build_understand_project}}
@@ -345,7 +347,8 @@ parse_r_dependencies <- function(folder_path){
 }
 
 ############## Network Transform ##############
-
+#' Transform Understand Dependencies
+#'
 #' @description This function subsets a parsed table from parse_understand_dependencies
 #'
 #' @param depends_parsed Parsed table from \code{\link{parse_understand_dependencies}}
