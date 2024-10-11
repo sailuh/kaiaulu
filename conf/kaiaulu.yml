@@ -46,23 +46,23 @@ version_control:
 # mailing_list:
 #   mod_mbox:
 #     project_key_1:
-#       mailing_list: http://mail-archives.apache.org/mod_mbox/kaiaulu-dev
+#       mailing_list: https://lists.apache.org/list.html?announce@apache.org
 #       save_folder_path: ../../rawdata/kaiaulu/mod_mbox/save_mbox_mail/
 #       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
 #       mbox_file_path: ../../rawdata/kaiaulu/mod_mbox/save_mbox_mail/kaiaulu.mbox
 #     project_key_2:
-#       mailing_list: http://mail-archives.apache.org/mod_mbox/kaiaulu-user
+#       mailing_list: https://lists.apache.org/list.html?dev@felix.apache.org
 #       save_folder_path: ../../rawdata/kaiaulu/mod_mbox/save_mbox_mail_2/
 #       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
 #       mbox_file_path: ../../rawdata/kaiaulu/mod_mbox/save_mbox_mail_2/kaiaulu.mbox
 #   pipermail:
 #     project_key_1:
-#       mailing_list: https://mta.openssl.org/pipermail/kaiaulu-dev/
+#       mailing_list: https://mta.openssl.org/pipermail/openssl-users/
 #       save_folder_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail/
 #       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
 #       mbox_file_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail/kaiaulu.mbox
 #     project_key_2:
-#       mailing_list: https://mta.openssl.org/pipermail/kaiaulu-users/
+#       mailing_list: https://mta.openssl.org/pipermail/openssl-project/
 #       save_folder_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail_2/
 #       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
 #       mbox_file_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail_2/kaiaulu.mbox

@@ -47,6 +47,7 @@ __kaiaulu 0.0.0.9700 (in development)__
  * graph_to_dsmj is now vectorized, increasing performance [#209](https://github.com/sailuh/kaiaulu/issues/209)
  * Bugzilla API now allows for output file to be specified. [#202](https://github.com/sailuh/kaiaulu/issues/202)
  * Paired parser functions now expects a filepath instead of a json string character. [#202](https://github.com/sailuh/kaiaulu/issues/202)
+ * refactored file organization in config files for clearer hierarchy. [#230](https://github.com/sailuh/kaiaulu/issues/230)
 
 ### BUG FIXES
 
@@ -222,6 +223,7 @@ __kaiaulu [0.0.0.9000](https://github.com/sailuh/kaiaulu/milestone/1) (04/24/202
   * igraph is no longer a dependence of the package. `parse_log_*()` functions now provide edgelist instead of igraph objects. vignettes were adjusted to showcase usage. [#14](https://github.com/sailuh/kaiaulu/issues/14)
   * lubridate dependency was removed, this package now uses base R POSIXct to handle dates. [#13](https://github.com/sailuh/kaiaulu/issues/13)
   * stringr was replaced by stringi to respect license terms of this and stringr packages. [#21](https://github.com/sailuh/kaiaulu/issues/21)
+
 
 ### BUG FIXES
 
