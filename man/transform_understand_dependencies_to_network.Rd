@@ -7,9 +7,9 @@
 transform_understand_dependencies_to_network(parsed, weight_types)
 }
 \arguments{
-\item{weight_types}{The weight types as defined in Depends. Accepts single string and vector input}
+\item{parsed}{Parsed table from \code{\link{parse_understand_dependencies}}}
 
-\item{depends_parsed}{Parsed table from \code{\link{parse_understand_dependencies}}}
+\item{weight_types}{The weight types as defined in Depends. Accepts single string and vector input}
 }
 \description{
 This function subsets a parsed table from parse_understand_dependencies

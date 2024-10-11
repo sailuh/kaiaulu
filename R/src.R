@@ -351,7 +351,7 @@ parse_r_dependencies <- function(folder_path){
 #'
 #' @description This function subsets a parsed table from parse_understand_dependencies
 #'
-#' @param depends_parsed Parsed table from \code{\link{parse_understand_dependencies}}
+#' @param parsed Parsed table from \code{\link{parse_understand_dependencies}}
 #' @param weight_types The weight types as defined in Depends. Accepts single string and vector input
 #' @export
 #' @family edgelists
