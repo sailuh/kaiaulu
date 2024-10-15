@@ -48,15 +48,28 @@ version_control:
     - revert-1685-master
 
 mailing_list:
-  # Where is the mbox located locally?
-  # This is the path to the .git of the project repository you are analyzing.
-  # The .git is hidden, so you can see it using `ls -a`
-  mbox: ../../rawdata/mbox/helix_mbox
-  # What is the domain of the chosen mailing list archive?
-  domain: http://mail-archives.apache.org/mod_mbox
-  # Which lists of the domain will be used?
-  list_key:
-    - helix-dev
+  mod_mbox:
+    project_key_1:
+      mailing_list: https://lists.apache.org/list.html?announce@apache.org
+      save_folder_path: ../../rawdata/kaiaulu/mod_mbox/save_mbox_mail/
+      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+      mbox_file_path: ../../rawdata/kaiaulu/mod_mbox/save_mbox_mail/kaiaulu.mbox
+    project_key_2:
+      mailing_list: https://lists.apache.org/list.html?dev@felix.apache.org
+      save_folder_path: ../../rawdata/kaiaulu/mod_mbox/save_mbox_mail_2/
+      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+      mbox_file_path: ../../rawdata/kaiaulu/mod_mbox/save_mbox_mail_2/kaiaulu.mbox
+  pipermail:
+    project_key_1:
+      mailing_list: https://mta.openssl.org/pipermail/openssl-users/
+      save_folder_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail/
+      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+      mbox_file_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail/kaiaulu.mbox
+    project_key_2:
+      mailing_list: https://mta.openssl.org/pipermail/openssl-project/
+      save_folder_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail_2/
+      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+      mbox_file_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail_2/kaiaulu.mbox
 
 issue_tracker:
   jira:

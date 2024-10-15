@@ -45,14 +45,12 @@ version_control:
     - master
 
 mailing_list:
-  # Where is the mbox located locally?
-  #mbox: ../../rawdata/mbox/openssl_dev_mbox # 2004-2008 fields are complete
-  mbox: ../../rawdata/mbox/openssl-dev.mbx # 2002-2019 gmail field is redacted due to google groups
-  # What is the domain of the chosen mailing list archive?
-  #domain: http://mail-archives.apache.org/mod_mbox
-  # Which lists of the domain will be used?
-  #list_key:
-  #  - apr-dev
+  pipermail:
+    mail_key_1:
+      archive_url: https://mta.openssl.org/pipermail/openssl-dev
+      pipermail: ../../rawdata/openssl/pipermail/openssl-dev/
+      mailing_list: openssl-dev
+      archive_type: mta
 
 #issue_tracker:
   #jira:

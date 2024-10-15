@@ -20,7 +20,8 @@ Authors@R: c(
     person('Nicole', 'Hoess', role = c('ctb')),
     person('Anthony', 'Lau', role = c('ctb')),
     person('Sean', 'Sunoo', role = c('ctb')),
-    person('Ian Jaymes', 'Iwata', role= c('ctb'))
+    person('Ian Jaymes', 'Iwata', role= c('ctb')),
+    person('Dao', 'McGill', role= c('ctb'))
     )
 Maintainer: Carlos Paradis <cvas@hawaii.edu>
 License: MPL-2.0 | file LICENSE
@@ -42,7 +43,7 @@ Imports:
     httr (>= 1.4.1),
     curl (>= 4.3),
     gh (>= 1.2.0),
-    XML (>= 3.99-0.7),
+    XML (>= 3.99),
     RColorBrewer (>= 1.1-2),
     cli (>= 2.0.2),
     docopt (>= 0.7.1)

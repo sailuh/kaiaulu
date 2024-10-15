@@ -584,7 +584,7 @@ example_mailing_list_two_threads <- function(folder_path = "/tmp", folder_name, 
   replies <- c(thread_1_reply_1, thread_1_reply_2, thread_2_reply_1)
 
   # Create mbox file from the list of replies
-  mbox_path <- make_mbox_mailing_list(replies = replies, folder_path = folder_path, file_name = file_name)
+  mbox_path <- make_mbox_mailing_list(replies = replies, file_name = file_name)
 
   return(mbox_path)
 }
