@@ -31,6 +31,8 @@ set.seed(seed)
 
 Open source projects require a means for developers to communicate. These may include mailing lists, issue trackers, discord, etc. This notebooks showcases how to download data from mailing list archives. Two often used archive types are [mod_mbox](https://httpd.apache.org/mod_mbox/) and [pipermail](https://en.wikipedia.org/wiki/GNU_Mailman#cite_note-9), which Kaiaulu offer functions to download data from. The former is commonly used by the Apache Software Foundation projects. The latter, is more commonly use in GNU related projects, but this can vary. 
 
+Each mailing list maintains archives of past messages, often organized by month and year. These archives can be accessed and downloaded for analysis. However, it is important to note that mailing list archives may be split into multiple formats or locations, and not all archives contain the same information. Different archives can differ in completeness, date ranges, and the data they contain. Some archives might lack important fields like "In-Reply-To," which is important for reconstructing message threads. It is, therefore, important the archive being used is carefully selected, since this effects the quality and completeness of analysis.
+
 # Mailing List Organization
 
 Mailing list data is stored in a variety of archives. See:
@@ -46,8 +48,6 @@ Mailing lists are typically organized by topic or purpose. For example, the [Ope
 - **project-users**: For general user questions and discussions.
 
 Mod Mbox archives also organize mailing lists by topic. The apache mailing list archives can be found at https://lists.apache.org/.
-
-Each mailing list maintains archives of past messages, often organized by month and year. These archives can be accessed and downloaded for analysis. However, it is important to note that mailing list archives may be split into multiple formats or locations, and not all archives contain the same information. Different archives can differ in completeness, date ranges, and the data they contain. Some archives might lack important fields like "In-Reply-To," which is important for reconstructing message threads. It is, therefore, important the archive being used is carefully selected, since this effects the quality and completeness of analysis.
 
 # Project Configuration File 
 
@@ -176,13 +176,14 @@ parse_config(): Function to parse the YAML configuration files.
 get_tool("perceval", tools): Retrieves the Perceval path from the tools configuration.
 get_mbox_input_file(conf, "project_key_1"): Retrieves the .mbox file path for project_key_1 from the helix configuration.
 
-Now that you have loaded the configurations, you can proceed to use them in downloading and parsing the mailing list archives.
-
 # Downloaders and Refreshers
 
-## Pipermail Downloader
+## Downloaders
 
-### How download_pipermail() Works
+With the configurations loaded, we can proceed to download the mailing list archives. The downloaders are responsible for fetching the archives from the specified mailing lists and saving them locally in .mbox format.
+
+### Pipermail Downloader
+
 The download_pipermail() function downloads Pipermail archives from a specified mailing list within a given date range. Here's how it operates:
 
 - Archive Index Retrieval: It begins by downloading an HTML page that lists the URLs for the monthly archives, which are typically available in .txt or .gz formats.
@@ -194,7 +195,7 @@ The download_pipermail() function downloads Pipermail archives from a specified 
 - Summary Output: At the end of the process, the function summarizes the downloads, indicating the range of dates present and any missing months.
 - Set verbose to TRUE to see status updates and detailed output.
 
-### Example Usage 
+#### Example Usage 
 
 ```{r eval=FALSE}
 # Download archives
@@ -210,33 +211,8 @@ download_pipermail(
 
 After running this function, the .mbox files will be saved in the specified directory with filenames like kaiaulu_202310.mbox, kaiaulu_202311.mbox, etc.
 
-## Pipermail Refresher
+### Mod Mbox Downloader
 
-In some cases, you may want to refresh the archive to ensure the most recent months are up-to-date or to handle updates to the mailing list. The refresh_pipermail() function helps automate this process.
-
-How refresh_pipermail Works
-1. Checks if the folder is empty: If the folder is empty, it downloads archives starting from start_year_month to the current month using download_pipermail().
-2. Finds the most recent file: If the folder is not empty, the function checks for the most recent month’s file (based on the filename) and deletes it.
-3. Redownloads from the most recent month: The function then redownloads the archive from the most recent month up to the current month.
-
-### Example Usage
-
-```{r eval=FALSE}
-# Refresh archives
-refresh_pipermail(
-  mailing_list = mailing_list,
-  start_year_month = start_year_month,
-  save_folder_path = save_folder_path,
-  verbose = TRUE
-)
-
-```
-
-This function will ensure that the most recent archives are always up-to-date by redownloading the current month's archive and adding any new months that have been added to the mailing list.
-
-## Mod Mbox Downloader
-
-### How download_mod_mbox() Works
 The download_mod_mbox() function downloads Mod Mbox archives from a specified Apache Pony Mail mailing list over a given date range:
 
 - URL Construction: It constructs the download URLs for each month based on the mailing list URL and the date range.
@@ -248,7 +224,7 @@ The download_mod_mbox() function downloads Mod Mbox archives from a specified Ap
 
 The download_mod_mbox() function downloads Mod Mbox archives by constructing URLs based on the mailing list and date range, saving them as .mbox files named kaiaulu_YYYYMM.mbox.
 
-### Example Usage
+#### Example Usage
 
 ```{r eval=FALSE}
 download_mod_mbox(
@@ -264,7 +240,37 @@ download_mod_mbox(
 After running the function, it constructs URLs like: https://lists.apache.org/api/mbox.lua?list=announce@apache.org&date=2024-01
 and saves the files in the specified folder.
 
-## Mod Mbox Refresher
+## Refreshers
+
+Over time, new messages are added to mailing lists. It's important to keep your local archives up-to-date to ensure that your analysis includes the latest communications. The refreshers are functions designed to update your existing archives efficiently.
+
+Mailing lists are dynamic, with new emails being added regularly. If you're conducting ongoing analysis or need the most recent data, it's important to refresh your downloaded archives. Manually redownloading all archives can be time-consuming and inefficient. The refresher functions automate this process by updating only the necessary parts of your archives, saving time and ensuring data completeness.
+
+### Pipermail Refresher
+
+In some cases, you may want to refresh the archive to ensure the most recent months are up-to-date or to handle updates to the mailing list. The refresh_pipermail() function helps automate this process.
+
+How refresh_pipermail Works
+1. Checks if the folder is empty: If the folder is empty, it downloads archives starting from start_year_month to the current month using download_pipermail().
+2. Finds the most recent file: If the folder is not empty, the function checks for the most recent month’s file (based on the filename) and deletes it.
+3. Redownloads from the most recent month: The function then redownloads the archive from the most recent month up to the current month.
+
+#### Example Usage
+
+```{r eval=FALSE}
+# Refresh archives
+refresh_pipermail(
+  mailing_list = mailing_list,
+  start_year_month = start_year_month,
+  save_folder_path = save_folder_path,
+  verbose = TRUE
+)
+
+```
+
+This function will ensure that the most recent archives are always up-to-date by redownloading the current month's archive and adding any new months that have been added to the mailing list.
+
+### Mod Mbox Refresher
 
 To refresh these archives to ensure that you have the latest messages, you can use the refresh_mod_mbox function. This function works similarly to the Pipermail refresher.
 
@@ -272,7 +278,7 @@ How refresh_mod_mbox Works
 1. Checks if the folder is empty and, if so, downloads the archives starting from start_year_month to the current month by calling download_mod_mbox().
 2. If the folder contains files, it identifies the most recent one using the YYYYMM found in the filename. This file is deleted, and then redownloaded along with all future months.
 
-### Example Usage
+#### Example Usage
 
 ```{r eval=FALSE}
 refresh_mod_mbox(
@@ -291,7 +297,9 @@ After downloading the mailing list archives as .mbox files, the next step is to 
 
 ## Mbox Parser
 
-### ow parse_mbox() Works
+After downloading the mailing list archives as .mbox files, the next step is to parse these files to extract meaningful information for analysis. The parse_mbox() function utilizes the Perceval library to parse .mbox files and convert them into structured data tables. This enables easier manipulation and analysis of mailing list data.
+
+### How parse_mbox() Works
 - Perceval Integration: Interfaces with the Perceval library to parse the .mbox file.
 - Flexible Parsing: Handles variations in .mbox file structures, which may have inconsistent fields due to different email headers.
 - Data Extraction: Extracts key information such as email content, sender, recipients, dates, and threading information.
