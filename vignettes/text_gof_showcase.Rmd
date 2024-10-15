@@ -24,7 +24,7 @@ You should also install the identifier splitter, [Spiral](https://github.com/cas
 
 `sudo pip3 install git+https://github.com/casics/spiral.git`
 
-Finally,because we require interacting with Python to use this library, you should install the `reticulate` R package. If `install.package('reticulate')` fails due to any error, try to `install.package('Rcpp')` and then re-attempt. You must specify the local Python version which you installed Spiral when using RStudio. See: https://stackoverflow.com/a/71044068/1260232 otherwise, `reticulate` will be unable to load the `Spiral` Python library for not being installed in the correct Python version.
+Finally,because we require interacting with Python to use this library, you should install the `reticulate` R package. If `install.packages('reticulate')` fails due to any error, try to `install.packages('Rcpp')` and then re-attempt. You must specify the local Python version which you installed Spiral when using RStudio. See: https://stackoverflow.com/a/71044068/1260232 otherwise, `reticulate` will be unable to load the `Spiral` Python library for not being installed in the correct Python version.
 
 
 ```{r}
@@ -112,8 +112,8 @@ require(gt)
 
 
 ```{r}
-tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/junit5.yml")
+tool <- yaml::read_yaml("tools.yml")
+conf <- yaml::read_yaml("conf/junit5.yml")
 srcml_path <- tool[["srcml"]]
 
 git_repo_path <- conf[["version_control"]][["log"]]
@@ -156,7 +156,7 @@ head(query_table)  %>%
 We can see that both the file name and class name were output here. To perform keyword matching, we must now split the class name identifiers into tokens. This is where the Spiral Python library comes in. First, we load the `Ronin` method in R, via the `reticulate` library:
 
 ```{r}
-reticulate::use_python("/usr/local/bin/python3")
+reticulate::use_python("/Users/dao/anaconda3/bin/python")
 spiral_library <-reticulate::import("spiral.ronin", convert = TRUE)
 collections_library <-reticulate::import("collections", convert = TRUE) 
 

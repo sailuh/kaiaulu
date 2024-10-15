@@ -36,7 +36,7 @@ version_control:
   # Where is the git log located locally?
   # This is the path to the .git of the project repository you are analyzing.
   # The .git is hidden, so you can see it using `ls -a`
-  log: ../../rawdata/git_repo/junit5/.git
+  log: ../rawdata/git_repo/junit5/.git
   # From where the git log was downloaded?
   log_url: https://github.com/junit-team/junit5/
   # List of branches used for analysis
@@ -120,7 +120,7 @@ tool:
     # The project folder path to store various intermediate
     # files for DV8 Analysis
     # The folder name will be used in the file names.
-    folder_path: ../../analysis/dv8/junit
+    folder_path: ../analysis/dv8/junit
     # the architectural flaws thresholds that should be used
     architectural_flaws:
       cliqueDepends:
@@ -164,10 +164,10 @@ tool:
   # srcML allow to parse src code as text (e.g. identifiers)
   srcml:
     # The file path to where you wish to store the srcml output of the project
-    srcml_path: ../../analysis/junit/srcml_junit.xml
+    srcml_path: ../analysis/junit/srcml_junit.xml
   pattern4:
     # The file path to where you wish to store the srcml output of the project
-    class_folder_path: ../../rawdata/git_repo/junit5/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
+    class_folder_path: ../rawdata/git_repo/junit5/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
     compile_note: >
       1. Switch Java version to Java 17:
          https://stackoverflow.com/questions/69875335/macos-how-to-install-java-17
