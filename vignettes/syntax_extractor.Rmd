@@ -91,24 +91,25 @@ Here’s how you can set up the configuration:
 ``` {r eval=FALSE}
 # Load the project configuration
 tool <- yaml::read_yaml("tools.yml")
-conf <- yaml::read_yaml("conf/syntax.yml")
+conf <- yaml::read_yaml("conf/maven.yml")
 
 # Path to srcML binary
 srcml_path <- tool[["srcml"]]
 
-# Git repository and folder path (using Maven as an example)
-git_repo_path <- conf[["version_control"]][["log"]]
-folder_path <- stri_replace_last(git_repo_path, replacement="", regex=".git")
+# Paths from config
+srcml_path <- conf[["tool"]][["srcml_path"]]
+src_folder <- conf[["version_control"]][["log"]]
+srcml_output_path <- conf[["tool"]][["srcml_output_path"]]
+srcml_filepath <- conf[["tool"]][["srcml_output_path"]]
 
-# Tool Parameters 
-srcml_filepath <- conf[["tool"]][["srcml"]][["srcml_path"]]
 
-# Filters for file extensions and substrings in file paths
+# Filters
 file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
-substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+exclude_paths <- conf[["filter"]][["remove_filepaths_containing"]]
 
-# Analysis topics (optional)
+# Analysis topics
 topics <- conf[["analysis"]][["topics"]]
+
 ```
 
 # Running the Syntax Extractor
@@ -137,7 +138,7 @@ Here’s how you might use it:
 # Creating annotated XML from source code
 annotated_file <- annotate_src_text(
   srcml_path = srcml_path,
-  src_folder = folder_path,
+  src_folder = src_folder,
   srcml_filepath = srcml_filepath
 )
 ```
@@ -276,8 +277,8 @@ It calls query_src_text() with a specific query that looks for class names:
 ``` {r eval=FALSE}
 # Extracting class names from the XML
 class_names <- query_src_text_class_names(
-  srcml_path = "path/to/srcML",
-  srcml_filepath = "path/to/output.xml"
+  srcml_path = srcml_path,
+  srcml_filepath = srcml_filepath
 )
 
 # Display the result as a table
@@ -302,8 +303,8 @@ Here’s how you might use it:
 ``` {r eval=FALSE}
 # Extracting namespaces from the XML
 namespaces <- query_src_text_namespace(
-  srcml_path = "path/to/srcML",
-  srcml_filepath = "path/to/output.xml"
+  srcml_path = srcml_path,
+  srcml_filepath = srcml_filepath
 )
 
 # Display the namespaces
