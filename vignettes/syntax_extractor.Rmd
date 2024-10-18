@@ -26,29 +26,27 @@ set.seed(seed)
 
 # Introduction
 
-In open-source projects, code is often spread across many files and organized in various ways. Understanding this code at a glance can be difficult, especially when projects grow large and complex. This is where syntax extraction comes in.
+This notebook explains how to convert source code into a structured XML format using srcML and extract meaningful syntax from it. Syntax extraction allows us to selectively pull out code elements like classes, functions, and comments, which helps in generating structured representations of a project.
 
-The Syntax Extractor is a tool that helps us dive into the structure of source code by using an annotated format. It works by converting code into a structured XML format using srcML, making it easier to analyze and understand the underlying architecture of the project. By extracting key pieces of information such as class names, functions, or even comments (like documentation), we can generate meaningful data that helps with things like semantic analysis, code comprehension, and more.
+Syntax extraction is important for understanding the semantic relationships in code. For example, rather than examining the entire code, we can focus on key components like documentation, function names, or associated commits and issue discussions, to help us compare and comprehend the files better. This structured approach aids in deeper analysis such as semantic similarity or machine learning models applied to code.
 
-Imagine a codebase as a collection of books in a library. Without a catalog, finding the right book would be nearly impossible. Syntax extraction is like building a catalog for a codebase. It allows us to quickly pinpoint where classes, methods, and important comments are located, and organize this data in a structured way.
+In large projects, representing files through different methods can lead to varied interpretations of how files are related. For example:
 
-For Kaiaulu, this is particularly useful as we move toward deeper analysis, such as applying machine learning techniques like word embeddings to the extracted syntax. This allows us to not only understand how the code is written but also how the pieces relate to each other on a semantic level.
+- Representation A could show all the file content to a machine.
+- Representation B could focus only on the names of classes, variables, and documentation, capturing semantic meaning tied to the code.
+- Representation C might focus on commits and issues, capturing conversations about the file’s development.
 
-In short, syntax extraction gives us a way to “see the big picture” without having to manually dig through every line of code.
+If we compare two files using these different representations, the machine might reach different conclusions. A computer might say the files are similar if we only consider the issue discussions, but if we look at the actual code (Representation A), they might be very different.
 
-## How the Syntax Extractor Works
-
-At its core, the syntax extractor relies on [srcML](https://www.srcml.org/), which is a tool that converts source code into an XML representation. This XML structure gives us a detailed breakdown of the code: classes, functions, variables, and comments are annotated with specific XML tags, allowing us to query and extract what we need.
-
-In this notebook, we’ll walk through the process of setting up the syntax extractor, running the extraction process, and then querying the annotated code for useful information like class names, namespaces, and documentation.
+In Kaiaulu, we aim to develop multiple representations of the code to extract its meaning. This notebook explains how to set up and use these extraction functions with srcML.
 
 # Project Configuration File
 
-In a project, source code is spread across multiple repositories and folders. To use Kaiaulu’s syntax extraction functions, you need to configure the system with details about where the source code is stored and where the tools (like srcML) are located.
+To extract useful syntax information from a project, Kaiaulu uses configuration files that describe where the source code is stored, where the srcML tool is located, and what parts of the code we want to analyze.
 
-Kaiaulu uses a project configuration file format to specify the paths and settings necessary for syntax extraction. This allows you to manage different projects and their associated codebases efficiently.
+Kaiaulu's configuration files help store this information to ensure reproducibility, meaning anyone can rerun the extraction process with the same input and settings and expect the same results. These files store input paths, tool configurations, and arguments.
 
-Here’s an example of how a project configuration file might look for syntax extraction (this example configuration file makes it so that the syntax extractor will focus on the relevant .java and .xml files in the Maven project, ignoring test and example files):
+Here’s an example configuration for the Maven project:
 
 ```
 version_control:
@@ -75,6 +73,7 @@ analysis:
 ```
 
 ### Explanation
+
 - srcml_path: The path to the srcML binary that will be used to generate the XML.
 - git_repo_path: The path to the local git repository containing the source code for Maven. The folder_path variable strips out the .git part of the path.
 - srcml_filepath: This is where the annotated XML file will be saved.
@@ -113,6 +112,12 @@ topics <- conf[["analysis"]][["topics"]]
 ```
 
 # Running the Syntax Extractor
+
+## How the Syntax Extractor Works
+
+At its core, the syntax extractor relies on [srcML](https://www.srcml.org/), which is a tool that converts source code into an XML representation. This XML structure gives us a detailed breakdown of the code: classes, functions, variables, and comments are annotated with specific XML tags, allowing us to query and extract what we need.
+
+In this notebook, we’ll walk through the process of setting up the syntax extractor, running the extraction process, and then querying the annotated code for useful information like class names, namespaces, and documentation.
 
 ## Annotating the Source Code
 
@@ -256,12 +261,15 @@ query_result <- query_src_text(
 )
 ```
 
+## Extract Classes
+
 One of the most common tasks when analyzing a codebase is identifying the classes that make up the system. The query_src_text_class_names() function makes this task easy by extracting all class names from the annotated XML file.
 
 This function:
 
 - Runs a predefined XPath query that searches for all class declarations in the code.
 - Parses the XML output to extract the class names and the file paths where they are defined.
+- XPath query //src:class/src:name - Retrieves the <name> nodes inside <class> nodes.
 
 It calls query_src_text() with a specific query that looks for class names:
 
@@ -279,12 +287,15 @@ class_names %>%
 
 This function returns a table with class names and the file paths where those classes are located. It's particularly useful for gaining an overview of the structure of a project.
 
+## Extract Namespaces
+
 Namespaces (or packages) are also important for understanding how different parts of the code are organized and how they relate to each other. The query_src_text_namespace() function extracts this information from the XML.
 
 This function:
 
 - Runs an XPath query to find the package or namespace declarations in the code (depending on the programming language).
 - Returns a data table that maps the file paths to their namespaces.
+- XPath query //src:package - Retrieves the <package> nodes in the XML.
 
 Here’s how you might use it:
 
@@ -301,5 +312,36 @@ namespaces %>%
 ```
 
 This is especially useful in larger projects like Maven, where code is split across multiple packages or modules, giving you a clear picture of how the project is organized.
+
+## Extract File-Level Documentation
+
+To extract file-level documentation comments, we want to ignore the licensing information and focus on comments that describe the file’s purpose or contents. In Maven, file-class comments appear following package or import statements.
+
+``` {r eval=FALSE}
+file_docs <- query_src_text_file_docs(
+  srcml_path = srcml_path,
+  srcml_filepath = srcml_filepath
+)
+
+# Display the file-level documentation
+file_docs %>%
+  gt()
+```
+
+## Class-Level Documentation
+
+Class-level documentation comments are essential for understanding the purpose and functionality of a class. Meaningful comments about the class appear just before the <class> tag (class definitions).
+
+``` {r eval=FALSE}
+class_docs <- query_src_text_class_docs(
+  srcml_path = srcml_path,
+  srcml_filepath = srcml_filepath
+)
+
+# Display the class-level documentation
+class_docs %>%
+  gt()
+```
+
 
 
