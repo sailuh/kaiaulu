@@ -66,8 +66,8 @@ The file makes all assumptions explicit to you when using the code. Note these a
 The following code block reads the information explained just now:
 
 ```{r}
-tool <- parse_config("tools.yml")
-conf <- parse_config("conf/kaiaulu.yml")
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/kaiaulu.yml")
 perceval_path <- get_tool_project("perceval", tool)
 git_repo_path <- get_git_repo_path(conf)
 git_branch <- get_git_branches(conf)[1]
