@@ -299,9 +299,10 @@ annotate_src_text <- function(srcml_path,src_folder,srcml_filepath){
   srcml_filepath <- path.expand(srcml_filepath)
 
   srcml_output <- system2(srcml_path,
-                          args = c(src_folder, '--output',srcml_filepath),
-                          stdout = FALSE,
-                          stderr = FALSE)
+                          args = c(src_folder, '--output', srcml_filepath),
+                          stdout = TRUE,
+                          stderr = TRUE)
+  print(srcml_output)
 
   return(srcml_filepath)
 }
@@ -336,9 +337,8 @@ query_src_text <- function(srcml_path,xpath_query,srcml_filepath){
                                    srcml_filepath),
                           stdout = TRUE,
                           stderr = FALSE)
-
-  return(srcml_output)
 }
+
 
 #' Query srcML Class Names
 #'
@@ -382,6 +382,7 @@ query_src_text_class_names <- function(srcml_path,srcml_filepath){
   return(dt_filepath_classname)
 
 }
+
 
 #' Query srcML Namespace
 #'
@@ -435,6 +436,121 @@ query_src_text_namespace <- function(srcml_path,srcml_filepath){
 
   return(dt_filepath_classname)
 }
+
+
+#' Query srcML File-Level Documentation Comments
+#'
+#' This is a convenience function to parse file-level documentation comments, excluding the license block.
+#'
+#' @param srcml_path The path to the srcML binary.
+#' @param srcml_filepath The path to the srcML file to be queried.
+#'
+#' @return A data.table containing the file path and the file-level documentation comment.
+#' @export
+query_src_text_file_docs <- function(srcml_path, srcml_filepath) {
+  # Expand paths
+  srcml_path <- path.expand(srcml_path)
+  srcml_filepath <- path.expand(srcml_filepath)
+
+  # This XPath query is designed to extract meaningful file-level documentation comments
+  # while excluding the common license blocks found at the top of many source files.
+  # It works as follows:
+  #
+  # 1. "//src:unit/src:comment": Selects all <comment> elements within the <unit> (file) node,
+  #    representing file-level documentation comments in the XML document.
+  #
+  # 2. "[not(contains(., 'Licensed')) and not(contains(., 'license'))]": Filters out
+  #    comments that contain the text 'Licensed' or 'license', which are typically used
+  #    for licensing information like the Apache License.
+
+  xpath_query <- "//src:unit/src:comment[not(contains(., 'Licensed')) and not(contains(., 'license'))]"
+
+  # Execute query using the srcML binary
+  srcml_output <- query_src_text(srcml_path, xpath_query, srcml_filepath)
+
+  # Parse XML output with namespace support
+  srcml_output <- XML::xmlTreeParse(paste(srcml_output, collapse = "\n"), useInternalNodes = TRUE)
+  srcml_root <- XML::xmlRoot(srcml_output)
+
+  # Extract the 'unit' nodes with comments using the srcML namespace
+  srcml_units <- XML::xmlChildren(srcml_root)
+
+  # Parsing function to extract filepath and corresponding Javadoc comment
+  parse_filepath_and_file_docs <- function(unit) {
+    filepath <- XML::xmlGetAttr(unit, "filename")
+
+    # Extract all comments within the unit
+    comments <- XML::getNodeSet(unit, ".//src:comment", namespaces = c(src = "http://www.srcML.org/srcML/src"))
+
+    # Combine comments and the filepath
+    lapply(comments, function(comment) {
+      comment_text <- XML::xmlValue(comment)
+      return(data.table(filepath = filepath, file_docs = comment_text))
+    })
+  }
+
+  # Apply the parsing function to all units
+  dt_filepath_file_docs <- rbindlist(unlist(lapply(srcml_units, parse_filepath_and_file_docs), recursive = FALSE))
+
+  return(dt_filepath_file_docs)
+}
+
+
+#' Query srcML Class Documentation Comments
+#'
+#' This is a convenience function to parse class-level Javadoc comments immediately preceding class definitions, excluding the license block.
+#'
+#' @param srcml_path The path to the srcML binary.
+#' @param srcml_filepath The path to the srcML file to be queried.
+#'
+#' @return A data.table containing the file path and the class-level documentation comment.
+#' @export
+query_src_text_class_docs <- function(srcml_path, srcml_filepath) {
+  # Expand paths
+  srcml_path <- path.expand(srcml_path)
+  srcml_filepath <- path.expand(srcml_filepath)
+
+  # This XPath query is designed to extract meaningful class-level Javadoc comments
+  # while avoiding license blocks. It works as follows:
+  #
+  # 1. "//src:class": Selects all <class> elements representing class definitions
+  #    in the XML document.
+  #
+  # 2. "[preceding-sibling::src:comment[@format='javadoc' and not(contains(., 'Licensed'))]]":
+  #    Ensures the selected class is preceded by a Javadoc comment (comments with
+  #    "@format='javadoc'") and excludes comments that contain the word 'Licensed',
+  #    typically used for license blocks (such as Apache License).
+  #
+  # 3. "/preceding-sibling::src:comment[@format='javadoc'][1]": Once the class is found,
+  #    this selects the first Javadoc comment that directly precedes the class definition
+  #    and is closest to it.
+
+  xpath_query <- "//src:class[preceding-sibling::src:comment[@format='javadoc' and not(contains(., 'Licensed'))]]/preceding-sibling::src:comment[@format='javadoc'][1]"
+
+  # Execute query
+  srcml_output <- query_src_text(srcml_path, xpath_query, srcml_filepath)
+
+  # Parse XML output
+  srcml_output <- XML::xmlTreeParse(paste(srcml_output, collapse = "\n"), useInternalNodes = TRUE)
+  srcml_root <- XML::xmlRoot(srcml_output)
+
+  # Extract comments
+  srcml_class_docs <- XML::xmlChildren(srcml_root)
+
+  # Parsing function
+  parse_filepath_and_class_docs <- function(unit) {
+    comment_text <- XML::xmlValue(unit)
+    filepath <- XML::xmlGetAttr(unit, "filename")
+    return(data.table(filepath = filepath, class_docs = comment_text))
+  }
+
+  # Apply parsing function
+  dt_filepath_class_docs <- rbindlist(lapply(srcml_class_docs, parse_filepath_and_class_docs))
+
+  return(dt_filepath_class_docs)
+}
+
+
 
 ############## GoF Detection ##############
 
