@@ -112,8 +112,8 @@ require(gt)
 
 
 ```{r}
-tool <- parse_config("tools.yml")
-conf <- parse_config("conf/junit5.yml")
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/junit5.yml")
 srcml_path <- get_tool_project("srcml", tool)
 
 git_repo_path <- get_git_repo_path(conf)

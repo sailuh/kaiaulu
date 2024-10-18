@@ -32,8 +32,8 @@ require(knitr)
 # Project Configuration File
 
 ```{r}
-tool <- parse_config("tools.yml")
-conf <- parse_config("conf/kaiaulu.yml")
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/kaiaulu.yml")
 
 # 3rd Party Tools
 perceval_path <- get_tool_project("perceval", tool)

@@ -24,7 +24,7 @@ require(knitr)
 # Parse R Package 
 
 ```{r}
-folder_path <- "R"
+folder_path <- "../R"
 ```
 
 # Dependencies

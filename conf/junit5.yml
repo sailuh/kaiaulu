@@ -208,7 +208,7 @@ tool:
     # The file path to where you wish to store the classes of the pattern4 analysis
     class_folder_path: ../../rawdata/junit5/pattern4/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
     # The file path to where you wish to store the output of the pattern4 analysis
-  #  output_filepath: ../../analysis/junit5/pattern4/
+    output_filepath: ../../analysis/junit5/pattern4/
     compile_note: >
       1. Switch Java version to Java 17:
          https://stackoverflow.com/questions/69875335/macos-how-to-install-java-17

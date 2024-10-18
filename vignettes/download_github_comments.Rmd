@@ -44,7 +44,7 @@ Therefore, in this Notebook we have to rely on three endpoints from the GitHub A
 To use the pipeline, you must specify the organization and project of interest, and your token. Obtain a github token following the instructions [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
 
 ```{r}
-conf <- parse_config("conf/kaiaulu.yml")
+conf <- parse_config("../conf/kaiaulu.yml")
 save_path_issue_or_pr_comments <- path.expand(get_github_issue_or_pr_comment_path(conf, "project_key_1"))
 save_path_issue <- get_github_issue_path(conf, "project_key_1")
 save_path_pull_request <- get_github_pull_request_path(conf, "project_key_1")
