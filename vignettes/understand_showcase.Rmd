@@ -39,7 +39,7 @@ For our variables we will be grabbing them from our configuration file kaiaulu.y
 - And our code_language. Although self-explanatory, Understand supports [many languages](https://support.scitools.com/support/solutions/articles/70000582794-supported-languages)- but for today we will be analyzing a Java project.
 
 ```{r}
-conf <- parse_config("conf/kaiaulu.yml")
+conf <- parse_config("../conf/kaiaulu.yml")
 keep_dependencies_type <- get_understand_keep_dependencies_type(conf)
 project_path <- get_understand_project_path(conf)
 understand_folder <- get_understand_output_path(conf)
