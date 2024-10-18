@@ -47,8 +47,8 @@ require(gt)
 The parameters necessary for analysis are kept in a project configuration file to ensure reproducibility. In this project, we will use Perceval, the path to which is kept in the `tools.yml` file, to download the Bugzilla data. 
 
 ```{r}
-tool <- parse_config("tools.yml")
-conf <- parse_config("conf/redhat.yml")
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/redhat.yml")
 
 key <- get_bugzilla_project_key(conf, "project_key_1")
 save_issues_path_redhat <- get_bugzilla_issue_path(conf, "project_key_1")
