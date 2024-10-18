@@ -29,49 +29,62 @@
 # https://github.com/sailuh/kaiaulu/discussions
 
 project:
-  website: https://apex.apache.org/
-  openhub: https://www.openhub.net/p/apache-apex
+  website: http://itm0.shidler.hawaii.edu/kaiaulu
+  openhub: https://www.openhub.net/p/kaiaulu
 
 version_control:
   # Where is the git log located locally?
   # This is the path to the .git of the project repository you are analyzing.
   # The .git is hidden, so you can see it using `ls -a`
-  log: ../../../../tse_motif_2021/dataset/gitlog/apex-core/.git
+  log: ../../rawdata/git_repo/kaiaulu/.git
   # From where the git log was downloaded?
-  log_url: https://github.com/apache/apex-core
+  log_url: https://github.com/sailuh/kaiaulu
   # List of branches used for analysis
   branch:
     - master
 
 mailing_list:
   # Where is the mbox located locally?
-  mbox: ../../../../tse_motif_2021/dataset/mbox/apex-dev.mbox
+  #mbox: ../../rawdata/mbox/geronimo-dev.mbox
   # What is the domain of the chosen mailing list archive?
-#  domain: http://mail-archives.apache.org/mod_mbox
+  #domain: http://mail-archives.apache.org/mod_mbox
   # Which lists of the domain will be used?
-#  list_key:
-#    - geronimo-dev
+  #list_key:
+  #  - geronimo-dev
 
-    issue_tracker:
+issue_tracker:
   jira:
     project_key_1:
       # Obtained from the project's JIRA URL
-      domain: https://issues.apache.org/jira
-      project_key: APEXCORE
+      domain: https://sailuh.atlassian.net
+      project_key: SAILUH
       # Download using `download_jira_data.Rmd`
-      issues: ../../rawdata/apex/jira/issues/apexcore/
-      issue_comments: ../../rawdata/apex/jira/issue_comments/apexcore/
-#   github:
-#     project_key_1:
-#       # Obtained from the project's GitHub URL
-#       owner: apache
-#       repo: apr
-#       # Download using `download_github_comments.Rmd`
-#       issue_or_pr_comment: ../../rawdata/apr/github/issue_or_pr_comment/apache_apr/
-#       issue: ../../rawdata/apr/github/issue/apache_apr/
-#       issue_search: ../../rawdata/apr/github/issue_search/apache_apr/
-#       pull_request: ../../rawdata/apr/github/pull_request/apache_apr/
-#       commit: ../../rawdata/apr/github/commit/apache_apr/
+      issues: ../../rawdata/kaiaulu/jira/issues/sailuh/
+      issue_comments: ../../rawdata/kaiaulu/jira/issue_comments/sailuh/
+  github:
+    project_key_1:
+      # Obtained from the project's GitHub URL
+      owner: sailuh
+      repo: kaiaulu
+      # Download using `download_github_comments.Rmd`
+      issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/sailuh_kaiaulu/
+      issue: ../../rawdata/kaiaulu/github/issue/sailuh_kaiaulu/
+      issue_search: ../..rawdata/kaiaulu/github/issue_search/sailuh_kaiaulu/
+      pull_request: ../../kaiaulu/github/pull_request/sailuh_kaiaulu/
+      commit: ../../rawdata/kaiaulu/github/commit/sailuh_kaiaulu/
+    # project_key_2:
+      # # Obtained from the project's GitHub URL
+      # owner: ssunoo2
+      # repo: kaiaulu
+      # # Download using `download_github_comments.Rmd`
+      # issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/ssunoo2_kaiaulu/
+      # issue: ../../rawdata/kaiaulu/github/issue/ssunoo2_kaiaulu/
+      # refresh_issues: ../..rawdata/kaiaulu/github/refresh_issues/ssunoo2_kaiaulu
+      # pull_request: ../../kaiaulu/github/pull_request/ssunoo2_kaiaulu/
+      # commit: ../../rawdata/kaiaulu/github/commit/ssunoo2_kaiaulu/
+  bugzilla:
+    project_key: redhat
+
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
@@ -81,22 +94,14 @@ mailing_list:
 # Commit message CVE or Issue Regular Expression (regex)
 # See project's commit message for examples to create the regex
 commit_message_id_regex:
-  issue_id: APEXCORE-[0-9]+
+  issue_id: \#[0-9]+
   #cve_id: ?
 
 filter:
   keep_filepaths_ending_with:
-    - cpp
-    - c
-    - h
-    - java
-    - js
-    - py
-    - cc
+    - R
   remove_filepaths_containing:
     - test
-  remove_filepaths_on_commit_size_greather_than:
-    - 30
 
 
 # Third Party Tools Configuration #
@@ -123,32 +128,6 @@ tool:
       - Throw
       - Parameter
       - Contain
-  dv8:
-    # The project folder path to store various intermediate
-    # files for DV8 Analysis
-    # The folder name will be used in the file names.
-    folder_path: ../../analysis/dv8/tse_apex
-    # the architectural flaws thresholds that should be used
-    architectural_flaws:
-      cliqueDepends:
-        - call
-        - use
-      crossingCochange: 2
-      crossingFanIn: 4
-      crossingFanOut: 4
-      mvCochange: 2
-      uiCochange: 2
-      uihDepends:
-        - call
-        - use
-      uihInheritance:
-        - extend
-        - implement
-        - public
-        - private
-        - virtual
-      uiHistoryImpact: 10
-      uiStructImpact: 0.01
   # Uctags allows finer file-file dependency parsing (e.g. functions, classes, structs)
   uctags:
     # See https://github.com/sailuh/kaiaulu/wiki/Universal-Ctags for details
@@ -174,12 +153,12 @@ analysis:
   # You can specify the intervals in 2 ways: window, or enumeration
   window:
     # If using gitlog, use start_commit and end_commit. Timestamp is inferred from gitlog
-    #start_commit: 9eae9e96f15e1f216162810cef4271a439a74223
-    #end_commit: f8f9ec1f249dd552065aa37c983bed4d4d869bb0
+    start_commit: 224a729f44f554af311ca52cf01b105ded87499b
+    end_commit: 74cd4d4835a02e01e310476c6776192ad0d97173
     # Use datetime only if no gitlog is used in the analysis.
     #start_datetime: 2013-05-01 00:00:00
     #end_datetime: 2013-11-01 00:00:00
-    #size_days: 90
+    size_days: 30
 #  enumeration:
      # If using gitlog, specify the commits
 #    commit:

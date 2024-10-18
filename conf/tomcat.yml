@@ -44,31 +44,42 @@ version_control:
     - master
 
 mailing_list:
-  # Where is the mbox located locally?
-  #mbox: ../../rawdata/mbox/tomcat-dev_2013_2019.mbox
-  # What is the domain of the chosen mailing list archive?
-  domain: http://mail-archives.apache.org/mod_mbox
-  # Which lists of the domain will be used?
-  list_key:
-    - tomcat-dev
+  mod_mbox: 
+    mail_key_1:
+      archive_url: http://mail-archives.apache.org/mod_mbox/tomcat-dev
+      mbox: ../../rawdata/tomcat/mod_mbox/tomcat-dev/
+      mailing_list: tomcat-dev
+      archive_type: apache
+    mail_key_2:
+      archive_url: http://mail-archives.apache.org/mod_mbox/tomcat-users
+      mbox: ../../rawdata/tomcat/mod_mbox/tomcat-users/
+      mailing_list: tomcat-users
+      archive_type: apache
+  pipermail:
+    mail_key_1:
+      archive_url: http://some/pipermail/url
+      mbox: ../../rawdata/geronimo/pipermail/geronimo-dev/
 
-issue_tracker:
-  jira:
-    # Obtained from the project's JIRA URL
-    #domain: https://issues.apache.org/jira
-    #project_key: GERONIMO
-    # Download using `download_jira_data.Rmd`
-    #issues: ../../rawdata/issue_tracker/geronimo_issues.json
-    #issue_comments: ../../rawdata/issue_tracker/geronimo_issue_comments.json
-  github:
-    # Obtained from the project's GitHub URL
-    #owner: apache
-    #repo: geronimo
-    # Download using `download_github_comments.Rmd`
-    #replies: ../../rawdata/github/geronimo/
-  # Currently not supported
-  #bugzilla:
-    #url: https://bz.apache.org/bugzilla/buglist.cgi?bug_status=__open__&no_redirect=1&order=Importance&product=Tomcat%209&query_format=specific
+# issue_tracker:
+#   jira:
+#     project_key_1:
+#       # Obtained from the project's JIRA URL
+#       domain: https://issues.apache.org/jira
+#       #project_key: HELIX
+#       # Download using `download_jira_data.Rmd`
+#       # issues: ../../rawdata/helix/jira/issues/helix/
+#       # issue_comments: ../../rawdata/helix/jira/issue_comments/helix/
+#   github:
+#     project_key_1:
+#       # Obtained from the project's GitHub URL
+#       owner: apache
+#       repo: apr
+#       # Download using `download_github_comments.Rmd`
+#       issue_or_pr_comment: ../../rawdata/apr/github/issue_or_pr_comment/apache_apr/
+#       issue: ../../rawdata/apr/github/issue/apache_apr/
+#       issue_search: ../../rawdata/apr/github/issue_search/apache_apr/
+#       pull_request: ../../rawdata/apr/github/pull_request/apache_apr/
+#       commit: ../../rawdata/apr/github/commit/apache_apr/
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)

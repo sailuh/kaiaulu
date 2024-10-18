@@ -54,18 +54,37 @@ mailing_list:
 
 issue_tracker:
   jira:
-    # Obtained from the project's JIRA URL
-    domain: https://sailuh.atlassian.net
-    project_key: SAILUH
-    # Download using `download_jira_data.Rmd`
-    issues: ../../rawdata/issue_tracker/kaiaulu/issues/
-    issue_comments: ../../rawdata/issue_tracker/kaiaulu/issue_comments/
+    project_key_1:
+      # Obtained from the project's JIRA URL
+      domain: https://sailuh.atlassian.net
+      project_key: SAILUH
+      # Download using `download_jira_data.Rmd`
+      issues: ../../rawdata/kaiaulu/jira/issues/sailuh/
+      issue_comments: ../../rawdata/kaiaulu/jira/issue_comments/sailuh/
   github:
-    # Obtained from the project's GitHub URL
-    owner: sailuh
-    repo: kaiaulu
-    # Download using `download_github_comments.Rmd`
-    replies: ../../rawdata/github/kaiaulu
+    project_key_1:
+      # Obtained from the project's GitHub URL
+      owner: sailuh
+      repo: kaiaulu
+      # Download using `download_github_comments.Rmd`
+      issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/sailuh_kaiaulu/
+      issue: ../../rawdata/kaiaulu/github/issue/sailuh_kaiaulu/
+      issue_search: ../..rawdata/kaiaulu/github/issue_search/sailuh_kaiaulu/
+      pull_request: ../../kaiaulu/github/pull_request/sailuh_kaiaulu/
+      commit: ../../rawdata/kaiaulu/github/commit/sailuh_kaiaulu/
+    # project_key_2:
+      # # Obtained from the project's GitHub URL
+      # owner: ssunoo2
+      # repo: kaiaulu
+      # # Download using `download_github_comments.Rmd`
+      # issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/ssunoo2_kaiaulu/
+      # issue: ../../rawdata/kaiaulu/github/issue/ssunoo2_kaiaulu/
+      # refresh_issues: ../..rawdata/kaiaulu/github/refresh_issues/ssunoo2_kaiaulu
+      # pull_request: ../../kaiaulu/github/pull_request/ssunoo2_kaiaulu/
+      # commit: ../../rawdata/kaiaulu/github/commit/ssunoo2_kaiaulu/
+  #bugzilla:
+    #project_key: kaiaulu
+
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)

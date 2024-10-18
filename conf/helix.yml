@@ -48,30 +48,44 @@ version_control:
     - revert-1685-master
 
 mailing_list:
-  # Where is the mbox located locally?
-  # This is the path to the .git of the project repository you are analyzing.
-  # The .git is hidden, so you can see it using `ls -a`
-  mbox: ../../rawdata/mbox/helix_mbox
-  # What is the domain of the chosen mailing list archive?
-  domain: http://mail-archives.apache.org/mod_mbox
-  # Which lists of the domain will be used?
-  list_key:
-    - helix-dev
+  mod_mbox:
+    mail_key_1:
+      archive_url: http://mail-archives.apache.org/mod_mbox/helix-dev
+      mbox: ../../rawdata/helix/mod_mbox/helix-dev/
+      mailing_list: helix-dev
+      archive_type: apache
+    mail_key_2:
+      archive_url: http://mail-archives.apache.org/mod_mbox/helix-user
+      mbox: ../../rawdata/helix/mod_mbox/helix-user/
+      mailing_list: helix-user
+      archive_type: apache
+  pipermail:
+    mail_key_1:
+      archive_url: http://some/pipermail/url
+      mbox: ../../rawdata/geronimo/pipermail/geronimo-dev/
 
 issue_tracker:
   jira:
-    # Obtained from the project's JIRA URL
-    domain: https://issues.apache.org/jira
-    project_key: HELIX
-    # Download using `download_jira_data.Rmd`
-    issues: ../../rawdata/issue_tracker/helix/issues/
-    issue_comments: ../../rawdata/issue_tracker/helix/issue_comments/
+    project_key_1:
+      # Obtained from the project's JIRA URL
+      domain: https://issues.apache.org/jira
+      project_key: HELIX
+      # Download using `download_jira_data.Rmd`
+      issues: ../../rawdata/issue_tracker/helix/issues/
+      issue_comments: ../../rawdata/issue_tracker/helix/issue_comments/
   github:
-    # Obtained from the project's GitHub URL
-    owner: apache
-    repo: helix
-    # Download using `download_github_comments.Rmd`
-    replies: ../../rawdata/github/helix/
+    project_key_1:
+      # Obtained from the project's GitHub URL
+      owner: apache
+      repo: helix
+      # Download using `download_github_comments.Rmd`
+      issue_or_pr_comment: ../../rawdata/helix/github/issue_or_pr_comment/apache_helix/
+      issue: ../../rawdata/helix/github/issue/apache_helix/
+      issue_search: ../../rawdata/helix/github/issue_search/apache_helix/
+      pull_request: ../../rawdata/helix/github/pull_request/apache_helix/
+      commit: ../../rawdata/helix/github/commit/apache_helix/
+  #bugzilla:
+    #project_key: helix
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)

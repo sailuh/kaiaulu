@@ -25,17 +25,18 @@ in IEEE Transactions on Software Engineering, vol. 48, no. 8, pp. 3159-3184,
 }
 \seealso{
 Other parsers: 
+\code{\link{parse_bugzilla_latest_date}()},
 \code{\link{parse_bugzilla_perceval_rest_issue_comments}()},
 \code{\link{parse_bugzilla_perceval_traditional_issue_comments}()},
 \code{\link{parse_bugzilla_rest_comments}()},
-\code{\link{parse_bugzilla_rest_issues_comments}()},
 \code{\link{parse_bugzilla_rest_issues}()},
+\code{\link{parse_bugzilla_rest_issues_comments}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
 \code{\link{parse_dv8_clusters}()},
 \code{\link{parse_gitlog}()},
-\code{\link{parse_jira_latest_date}()},
 \code{\link{parse_jira}()},
+\code{\link{parse_jira_latest_date}()},
 \code{\link{parse_mbox}()},
 \code{\link{parse_nvdfeed}()}
 }
