@@ -29,19 +29,19 @@ require(knitr)
 ```
 
 ```{r}
-tool <- yaml::read_yaml("../tools.yml")
-#conf <- yaml::read_yaml("../conf/apr.yml")
-conf <- yaml::read_yaml("../conf/helix.yml")
-git_repo_path <- conf[["version_control"]][["log"]]
+tool <- parse_config("../tools.yml")
+#conf <- parse_config("../conf/apr.yml")
+conf <- parse_config("../conf/helix.yml")
+git_repo_path <- get_git_repo_path(conf)
 
 # Depends parameters
-depends_jar_path <- tool[["depends"]]
-language <- conf[["tool"]][["depends"]][["code_language"]]
-keep_dependencies_type <- conf[["tool"]][["depends"]][["keep_dependencies_type"]]
+depends_jar_path <- get_tool_project("depends", tool)
+language <- get_depends_code_language(conf)
+keep_dependencies_type <- get_depends_keep_dependencies_type(conf)
 
 # Filters
-file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
-substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+file_extensions <- get_file_extensions(conf)
+substring_filepath <- get_substring_filepath(conf)
 ```
 
 # Construct File Network

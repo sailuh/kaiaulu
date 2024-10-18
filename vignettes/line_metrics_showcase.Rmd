@@ -57,16 +57,16 @@ filter:
 We load the necessary information in this code block: 
 
 ```{r}
-tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/apr.yml")
-scc_path <- tool[["scc"]]
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/apr.yml")
+scc_path <- get_tool_project("scc", tool)
 
-git_repo_path <- conf[["version_control"]][["log"]]
-git_branch <- conf[["version_control"]][["branch"]][1]
+git_repo_path <- get_git_repo_path(conf)
+git_branch <- get_git_branches(conf)[1]
 
 # Filters
-file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
-substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+file_extensions <- get_file_extensions(conf)
+substring_filepath <- get_substring_filepath(conf)
 ```
 
 The loaded variables are just strings or numbers. You can always inspect any variable to double check what is being used in the analysis. For instance, we are interested on analyzing a specific release of APR here:

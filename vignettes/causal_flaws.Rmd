@@ -44,46 +44,47 @@ For implementation details, please refer to the function reference documentation
 The first step is loading the project configuration file, which contains information for both the project data provenance, and the various parameters used for all the tools. Refer to [Kaiaulu's repo conf folder](https://github.com/sailuh/kaiaulu/tree/master/conf) for the configuration file of interest used in the code block below. 
 
 ```{r}
-tool <- yaml::read_yaml("../tools.yml")
-#conf <- yaml::read_yaml("../conf/tse_cassandra.yml")
-conf <- yaml::read_yaml("../conf/camel.yml")
-perceval_path <- tool[["perceval"]]
-dv8_path <- tool[["dv8"]]
-scc_path <- tool[["scc"]]
+tool <- parse_config("../tools.yml")
+#conf <- parse_config("../conf/tse_cassandra.yml")
+conf <- parse_config("../conf/camel.yml")
+perceval_path <- get_tool_project("perceval", tool)
+dv8_path <- get_tool_project("dv8", tool)
+scc_path <- get_tool_project("scc", tool)
 
 # Gitlog parameters
-git_repo_path <- conf[["version_control"]][["log"]]
-git_branch <- conf[["version_control"]][["branch"]][1] # camel 1.6.0
+git_repo_path <- get_git_repo_path(conf)
+git_branch <- get_git_branches(conf)[1] # camel 1.6.0
 
 
 # Depends parameters
-depends_jar_path <- tool[["depends"]]
-language <- conf[["tool"]][["depends"]][["code_language"]]
-keep_dependencies_type <- conf[["tool"]][["depends"]][["keep_dependencies_type"]]
+depends_jar_path <- get_tool_project("depends", tool)
+language <- get_depends_code_language(conf)
+keep_dependencies_type <- get_depends_keep_dependencies_type(conf)
 
 # Mailing List
-mbox_path <- conf[["mailing_list"]][["mbox"]]
+# Specify project_key_index in get_mbox_path() (e.g. "project_key_1")
+mbox_path <- get_mbox_path(conf, "project_key_1")
 
 # DV8 parameters 
-project_path <- conf[["tool"]][["dv8"]][["folder_path"]]
+project_path <- get_dv8_folder_path(conf)
 project_name <- stringi::stri_split_regex(project_path,pattern = "/")[[1]]
 project_name <- project_name[length(project_name)]
 
-flaws_params <- conf[["tool"]][["dv8"]][["architectural_flaws"]]
+flaws_params <- get_dv8_flaws_params(conf)
 
 # Filters
-file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
-substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
-filter_commit_size <- conf[["filter"]][["remove_filepaths_on_commit_size_greather_than"]]
+file_extensions <- get_file_extensions(conf)
+substring_filepath <- get_substring_filepath(conf)
+filter_commit_size <- get_filter_commit_size(conf)
 
 
 # Issue ID Regex on Commit Messages
-issue_id_regex <- conf[["commit_message_id_regex"]][["issue_id"]]
+issue_id_regex <- get_issue_id_regex(conf)
 # Path to Jira Issues (obtained using `download_jira_data Notebook`)
-jira_issues_path <- conf[["issue_tracker"]][["jira"]][["issues"]]
-jira_issue_comments_path <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
-
-
+# Specify project_key_index in get_jira_issues_path() (e.g. "project_key_1")
+jira_issues_path <- get_jira_issues_path(conf, "project_key_1")
+# Specify project_key_index in get_jira_issues_comments_path (e.g. "project_key_1")
+jira_issue_comments_path <- get_jira_issues_comments_path(conf, "project_key_1")
 ```
 
 # Raw Data Pre-Processing for DV8

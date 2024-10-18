@@ -36,19 +36,20 @@ This notebook leverages the JIRA issues data collected from the R Notebook `down
 As usual, the first step is to load the project configuration file. 
 
 ```{r}
-tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/geronimo.yml")
-perceval_path <- tool[["perceval"]]
-git_repo_path <- conf[["version_control"]][["log"]]
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/geronimo.yml")
+perceval_path <- get_tool_project("perceval", tool)
+git_repo_path <- get_git_repo_path(conf)
 
 # Issue ID Regex on Commit Messages
-issue_id_regex <- conf[["commit_message_id_regex"]][["issue_id"]]
+issue_id_regex <- get_issue_id_regex(conf)
 # Path to Jira Issues (obtained using `download_jira_data Notebook`)
-jira_issues_path <- conf[["issue_tracker"]][["jira"]][["issues"]]
+# Specify project_key_index in get_jira_issues_path() (e.g. "project_key_1")
+jira_issues_path <- get_jira_issues_path(conf, "project_key_1")
 
 # Filters
-file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
-substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+file_extensions <- get_file_extensions(conf)
+substring_filepath <- get_substring_filepath(conf)
 ```
 
 To establish bug count, we must map each file to its associated issue. In general (but not always), an open source project will adopt a commit message convention to label issue ids. For example, Kaiaulu uses `i #<issue number>`. JIRA dictates issue ids in the format PROJECT-<issue-number>. We can use this assumption to find the issues that the git log commits are trying to fix. You can create your own regular expression by manually inspecting some of the commit messages (for example, compare the regular expression from the geronimo project used here against [its commit message](https://github.com/apache/geronimo/commits/trunk)).

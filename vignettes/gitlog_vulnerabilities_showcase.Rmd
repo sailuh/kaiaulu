@@ -28,16 +28,16 @@ require(yaml)
 Load config file.
 
 ```{r}
-tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/chromium.yml")
-perceval_path <- tool[["perceval"]]
-git_repo_path <- conf[["version_control"]][["log"]]
-nvdfeed_folder_path <- conf[["vulnerabilities"]][["nvd_feed"]]
-cveid_regex <- conf[["commit_message_id_regex"]][["cve_id"]]
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/chromium.yml")
+perceval_path <- get_tool_project("perceval", tool)
+git_repo_path <- get_git_repo_path(conf)
+nvdfeed_folder_path <- get_nvdfeed_folder_path(conf)
+cveid_regex <- get_cveid_regex(conf)
 
 # Filters
-file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
-substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+file_extensions <- get_file_extensions(conf)
+substring_filepath <- get_substring_filepath(conf)
 ```
 
 # Construct Contribution Network

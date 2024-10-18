@@ -36,7 +36,7 @@ version_control:
   # Where is the git log located locally?
   # This is the path to the .git of the project repository you are analyzing.
   # The .git is hidden, so you can see it using `ls -a`
-  log: ../../rawdata/git_repo/OpenSSL/.git
+  log: ../../rawdata/openssl/git_repo/.git
   # From where the git log was downloaded?
   log_url: https://github.com/openssl/openssl
   # List of branches used for analysis
@@ -45,29 +45,65 @@ version_control:
     - master
 
 mailing_list:
-  # Where is the mbox located locally?
-  #mbox: ../../rawdata/mbox/openssl_dev_mbox # 2004-2008 fields are complete
-  mbox: ../../rawdata/mbox/openssl-dev.mbx # 2002-2019 gmail field is redacted due to google groups
-  # What is the domain of the chosen mailing list archive?
-  #domain: http://mail-archives.apache.org/mod_mbox
-  # Which lists of the domain will be used?
-  #list_key:
-  #  - apr-dev
+   mod_mbox:
+     project_key_1:
+       mailing_list: http://mail-archives.apache.org/mod_mbox/kaiaulu-dev
+       save_folder_path: ../../rawdata/kaiaulu/mod_mbox/save_mbox_mail/
+       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+       mbox_file_path: ../../rawdata/kaiaulu/mod_mbox/save_mbox_mail/kaiaulu.mbox
+     project_key_2:
+       mailing_list: http://mail-archives.apache.org/mod_mbox/kaiaulu-user
+       save_folder_path: ../../rawdata/kaiaulu/mod_mbox/save_mbox_mail_2/
+       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+       mbox_file_path: ../../rawdata/kaiaulu/mod_mbox/save_mbox_mail_2/kaiaulu.mbox
+   pipermail:
+    project_key_1:
+      mailing_list: https://mta.openssl.org/pipermail/openssl-dev/
+      save_folder_path: ../../rawdata/openssl/pipermail/save_mbox_mail/
+      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+#      mbox_file_path: ../../rawdata/openssl/pipermail/save_mbox_mail/openssl.mbox
+    project_key_2:
+      mailing_list: https://mta.openssl.org/pipermail/openssl-users/
+      save_folder_path: ../../rawdata/openssl/pipermail/save_mbox_mail_2/
+#      mbox_file_path: ../../rawdata/openssl/pipermail/save_mbox_mail_2/openssl.mbox
 
-#issue_tracker:
-  #jira:
-    # Obtained from the project's JIRA URL
-    #domain: https://issues.apache.org/jira
-    #project_key: HELIX
-    # Download using `download_jira_data.Rmd`
-    #issues: ../../rawdata/issue_tracker/helix_issues.json
-    #issue_comments: ../../rawdata/issue_tracker/helix_issue_comments.json
-  #github:
-    # Obtained from the project's GitHub URL
-    #owner: apache
-    #repo: apr
-    # Download using `download_github_comments.Rmd`
-    #replies: ../../rawdata/github/apr/
+# issue_tracker:
+#   jira:
+#     project_key_1:
+#       # Obtained from the project's JIRA URL
+#       domain: https://sailuh.atlassian.net
+#       project_key: SAILUH
+#       # Download using `download_jira_data.Rmd`
+#       issues: ../../rawdata/kaiaulu/jira/issues/sailuh/
+#       issue_comments: ../../rawdata/kaiaulu/jira/issue_comments/sailuh/
+#   github:
+#     project_key_1:
+#       # Obtained from the project's GitHub URL
+#       owner: sailuh
+#       repo: kaiaulu
+#       # Download using `download_github_comments.Rmd`
+#       issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/sailuh_kaiaulu/
+#       issue: ../../rawdata/kaiaulu/github/issue/sailuh_kaiaulu/
+#       issue_search: ../../rawdata/kaiaulu/github/issue_search/sailuh_kaiaulu/
+#       issue_event: ../../rawdata/kaiaulu/github/issue_event/sailuh_kaiaulu/
+#       pull_request: ../../rawdata/kaiaulu/github/pull_request/sailuh_kaiaulu/
+#       commit: ../../rawdata/kaiaulu/github/commit/sailuh_kaiaulu/
+#     project_key_2:
+#       # Obtained from the project's GitHub URL
+#       owner: ssunoo2
+#       repo: kaiaulu
+#       # Download using `download_github_comments.Rmd`
+#       issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/ssunoo2_kaiaulu/
+#       issue: ../../rawdata/kaiaulu/github/issue/ssunoo2_kaiaulu/
+#       issue_search: ../../rawdata/kaiaulu/github/issue_search/ssunoo2_kaiaulu/
+#       issue_event: ../../rawdata/kaiaulu/github/issue_event/ssunoo2_kaiaulu/
+#       pull_request: ../../rawdata/kaiaulu/github/pull_request/ssunoo2_kaiaulu/
+#       commit: ../../rawdata/kaiaulu/github/commit/ssunoo2_kaiaulu/
+#   bugzilla:
+#     project_key_1:
+#       project_key: kaiaulu
+#       issues: ../../rawdata/kaiaulu/bugzilla/issues/kaiaulu/
+#       issue_comments: ../../rawdata/kaiaulu/bugzilla/issue_comments/kaiaulu/
 
 vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
@@ -117,6 +153,32 @@ tool:
       - Throw
       - Parameter
       - Contain
+  # dv8:
+  #   # The project folder path to store various intermediate
+  #   # files for DV8 Analysis
+  #   # The folder name will be used in the file names.
+  #   folder_path: ../../analysis/junit/dv8/
+  #   # the architectural flaws thresholds that should be used
+  #   architectural_flaws:
+  #     cliqueDepends:
+  #       - call
+  #       - use
+  #     crossingCochange: 2
+  #     crossingFanIn: 4
+  #     crossingFanOut: 4
+  #     mvCochange: 2
+  #     uiCochange: 2
+  #     uihDepends:
+  #       - call
+  #       - use
+  #     uihInheritance:
+  #       - extend
+  #       - implement
+  #       - public
+  #       - private
+  #       - virtual
+  #     uiHistoryImpact: 10
+  #     uiStructImpact: 0.01
   # Uctags allows finer file-file dependency parsing (e.g. functions, classes, structs)
   uctags:
     # See https://github.com/sailuh/kaiaulu/wiki/Universal-Ctags for details
@@ -136,6 +198,36 @@ tool:
         - f # functions
       r:
         - f # functions
+  # # srcML allow to parse src code as text (e.g. identifiers)
+  # srcml:
+  #   # The file path to where you wish to store the srcml output of the project
+  #   srcml_path: ../../analysis/junit5/srcml/srcml_junit.xml
+  # pattern4:
+  #   # The file path to where you wish to store the classes of the pattern4 analysis
+  #   class_folder_path: ../../rawdata/junit5/pattern4/classes/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
+  #   # The file path to where you wish to store the output of the pattern4 analysis
+  #  output_filepath: ../../analysis/junit5/pattern4/
+  #   compile_note: >
+  #     1. Switch Java version to Java 17:
+  #        https://stackoverflow.com/questions/69875335/macos-how-to-install-java-17
+  #     2. Disable VPN to pull modules from Gradle Plugin Portal.
+  #     3. Use sudo ./gradlew build
+  #     4. After building, locate the engine class files and specify as the class_folder_path:
+  #        in this case they are in: /path/to/junit5/analysis/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
+  # understand:
+  #   # Accepts one language at a time: ada, assembly, c/c++, c#, fortran, java, jovial, delphi/pascal, python, vhdl, basic, javascript
+  #   code_language: java
+  #   # Specify which types of Dependencies to keep
+  #   keep_dependencies_type:
+  #     - Import
+  #     - Call
+  #     - Create
+  #     - Use
+  #     - Type GenericArgument
+  #   # Where the files to analyze should be stored
+  #   project_path: ../../rawdata/kaiaulu/git_repo/understand/
+  #   # Where the output for the understands analysis is stored
+  #   output_path: ../../analysis/kaiaulu/understand/
 
 # Analysis Configuration #
 analysis:
