@@ -90,27 +90,44 @@ Here’s how you can set up the configuration:
 
 ``` {r eval=FALSE}
 # Load the project configuration
-tool <- yaml::read_yaml("tools.yml")
-conf <- yaml::read_yaml("conf/maven.yml")
-
-# Path to srcML binary
-srcml_path <- tool[["srcml"]]
+tool <- yaml::read_yaml("../tools.yml")
+conf <- yaml::read_yaml("../conf/maven.yml")
 
 # Paths from config
-srcml_path <- conf[["tool"]][["srcml_path"]]
-src_folder <- conf[["version_control"]][["log"]]
-srcml_output_path <- conf[["tool"]][["srcml_output_path"]]
-srcml_filepath <- conf[["tool"]][["srcml_output_path"]]
+srcml_path <- conf[["srcml"]][["srcml_path"]]
+src_folder <- conf[["srcml"]][["src_folder"]]
+# srcml_output_path <- conf[["tool"]][["srcml_output_path"]]
+srcml_filepath <- conf[["srcml"]][["srcml_filepath"]]
 
 
 # Filters
 file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
 exclude_paths <- conf[["filter"]][["remove_filepaths_containing"]]
 
-# Analysis topics
-topics <- conf[["analysis"]][["topics"]]
 
 ```
+
+# Project Configuration File for Maven Project
+project:
+  website: https://github.com/apache/maven
+
+filter:
+  # File extensions to include in the analysis
+  keep_filepaths_ending_with:
+    - .java
+    - .xml
+  # File paths to exclude from the analysis (e.g., test files)
+  remove_filepaths_containing:
+    - test
+    - example
+
+srcml:
+  # path to tool binary (change this location later)
+  srcml_path: /usr/local/bin/srcml
+  # path to the folder to analyze
+  src_folder: ../../maven/maven-artifact/src/main/java/org/apache/maven/artifact/
+  srcml_filepath: ../../analysis/maven/srcml_output.xml
+
 
 # Running the Syntax Extractor
 
@@ -209,7 +226,7 @@ Explanation:
 #### Step 3: Testing the XPath Query
 Once you have written the XPath query, you can test it in Kaiaulu using the query_src_text() function. Here’s an example of how to use it:
 
-``` {r eval=FALSE}
+``` 
 # Extracting function documentation comments
 function_comments <- query_src_text(
   srcml_path = "path/to/srcML",
@@ -253,7 +270,7 @@ The query_src_text() function:
 
 Here’s an example of how you might use it:
 
-``` {r eval=FALSE}
+```
 # Running an XPath query on the annotated XML
 query_result <- query_src_text(
   srcml_path = "path/to/srcML",
@@ -316,12 +333,15 @@ This is especially useful in larger projects like Maven, where code is split acr
 
 ## Extract File-Level Documentation
 
-To extract file-level documentation comments, we want to ignore the licensing information and focus on comments that describe the file’s purpose or contents. In Maven, file-class comments appear following package or import statements.
+In Maven, file-class comments appear following package or import statements.
+
+- Has a parameter exclude_license which defaults to TRUE. Set it to FALSE if you want the extraction to include licensing information (e.g. Apache Licensing Header on all files from Maven).
 
 ``` {r eval=FALSE}
 file_docs <- query_src_text_file_docs(
   srcml_path = srcml_path,
-  srcml_filepath = srcml_filepath
+  srcml_filepath = srcml_filepath,
+  exclude_license = TRUE
 )
 
 # Display the file-level documentation
@@ -329,14 +349,79 @@ file_docs %>%
   gt()
 ```
 
+From the generated output table, we are able to use regular expressions to alter the output with the stringi library. For example, the out put contains empty comments /** */. We can remove these and get the table with empty comments filtered out:
+
+``` {r eval=FALSE}
+dt_file_docs <- file_docs
+
+# Define a function to check if a comment is empty
+is_comment_empty <- function(comment_text) {
+  # Remove comment markers and asterisks
+  cleaned_text <- stri_replace_all_regex(
+    comment_text,
+    pattern = "/\\*\\*?|\\*/|\\*",
+    replacement = ""
+  )
+  # Trim whitespaces
+  cleaned_text <- stri_trim_both(cleaned_text)
+  # Check if the cleaned text is empty
+  return(nchar(cleaned_text) == 0)
+}
+
+# Create a vector indicating which comments are empty
+empty_comments <- sapply(dt_file_docs$file_docs, is_comment_empty)
+
+# Filter out the empty comments
+dt_file_docs <- dt_file_docs[!empty_comments, ]
+
+# Display the filtered data
+dt_file_docs %>%
+  gt()
+```
+
+Another example is removing the comment delimiters, leaving just the plain text:
+
+```{r eval=FALSE}
+# Define a function to clean the comment text
+clean_comment <- function(comment_text) {
+  # Remove the starting /** and ending */
+  comment_text <- stri_replace_all_regex(
+    comment_text,
+    pattern = "^/\\*\\*?|\\*/$",
+    replacement = ""
+  )
+  # Split the comment into lines
+  comment_lines <- unlist(stri_split_lines(comment_text))
+  # Remove leading * and whitespace from each line
+  comment_lines <- stri_replace_all_regex(
+    comment_lines,
+    pattern = "^\\s*\\*\\s?",
+    replacement = ""
+  )
+  # Combine the lines back into a single string
+  cleaned_text <- stri_trim_both(paste(comment_lines, collapse = "\n"))
+  return(cleaned_text)
+}
+
+# Apply the cleaning function to the 'file_docs' column
+dt_file_docs[, file_docs := sapply(file_docs, clean_comment)]
+
+# Display the cleaned data
+dt_file_docs %>%
+  gt()
+```
+
 ## Class-Level Documentation
 
 Class-level documentation comments are essential for understanding the purpose and functionality of a class. Meaningful comments about the class appear just before the <class> tag (class definitions).
 
+- Has a parameter exclude_license which defaults to TRUE. Set it to FALSE if you want the extraction to include licensing information (e.g. Apache Licensing Header on all files from Maven).
+
 ``` {r eval=FALSE}
 class_docs <- query_src_text_class_docs(
   srcml_path = srcml_path,
-  srcml_filepath = srcml_filepath
+  srcml_filepath = srcml_filepath,
+  exclude_license = TRUE
 )
 
 # Display the class-level documentation
@@ -344,5 +429,48 @@ class_docs %>%
   gt()
 ```
 
+## Variable Extraction
 
+Extracts variables. var_type param TRUE to include the types.
 
+``` {r eval=FALSE}
+# Extract variables with types
+variables_with_types <- query_src_text_variables(
+  srcml_path = srcml_path,
+  srcml_filepath = srcml_filepath,
+  var_type = TRUE
+)
+
+# Display the result
+variables_with_types %>%
+  gt()
+```
+
+## Extract Functions
+With or without parameters, include_parameters = T/F
+
+```{r eval=FALSE}
+# Extract functions with parameters
+functions_with_params <- query_src_text_functions(
+  srcml_path = srcml_path,
+  srcml_filepath = srcml_filepath,
+  include_parameters = TRUE
+)
+
+# Display the result
+functions_with_params %>%
+  gt()
+
+```
+```{r eval=FALSE}
+# Extract functions without parameters
+functions_without_params <- query_src_text_functions(
+  srcml_path = srcml_path,
+  srcml_filepath = srcml_filepath,
+  include_parameters = FALSE
+)
+
+# Display the result
+functions_without_params %>%
+  gt()
+```

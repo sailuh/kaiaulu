@@ -4,12 +4,14 @@
 \alias{query_src_text_file_docs}
 \title{Query srcML File-Level Documentation Comments}
 \usage{
-query_src_text_file_docs(srcml_path, srcml_filepath)
+query_src_text_file_docs(srcml_path, srcml_filepath, exclude_license = TRUE)
 }
 \arguments{
 \item{srcml_path}{The path to the srcML binary.}
 
 \item{srcml_filepath}{The path to the srcML file to be queried.}
+
+\item{exclude_license}{If TRUE, excludes license-related comments. Defaults to TRUE.}
 }
 \value{
 A data.table containing the file path and the file-level documentation comment.
