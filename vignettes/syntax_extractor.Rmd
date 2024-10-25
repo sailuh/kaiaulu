@@ -474,3 +474,52 @@ functions_without_params <- query_src_text_functions(
 functions_without_params %>%
   gt()
 ```
+
+## Extract Imports
+
+```{r eval=FALSE}
+# Extract functions without parameters
+imports <- query_src_text_imports(
+  srcml_path = srcml_path,
+  srcml_filepath = srcml_filepath
+)
+
+# Display the result
+imports %>%
+  gt()
+```
+
+
+## Combined Queries
+
+To join two queries into one table, e.g. file and class level documentation:
+
+```{r eval=FALSE}
+# Extract file-level comments
+file_docs <- query_src_text_file_docs(
+  srcml_path = srcml_path,
+  srcml_filepath = srcml_filepath
+)
+
+# Extract class-level comments
+class_docs <- query_src_text_class_docs(
+  srcml_path = srcml_path,
+  srcml_filepath = srcml_filepath
+)
+
+# Join the two tables by 'filepath'
+comments_combined <- merge(
+  file_docs, 
+  class_docs, 
+  by = "filepath", 
+  all = TRUE  # Keep all files, even if only file-level or class-level comments exist
+)
+
+# Display the combined table with gt for better formatting
+comments_combined %>%
+  gt()
+```
+
+
+
+
