@@ -5,6 +5,300 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 
+########## OpenHub Functions / Ohloh API Interfacing Functions ##########
+
+#' placeholder
+#'
+#' @description placeholder
+#'
+#' @param token placeholder
+#' @param openhub_api_parameters placeholder
+#' @param page placeholder
+#' @return placeholder
+#' @export
+openhub_api_organizations <- function(token, openhub_api_parameters, page=1) {
+
+  organization_name <- openhub_api_parameters[["organization_name"]]
+
+  organizations_collection_site = "https://www.openhub.net/orgs.xml"
+
+  http_get_request <- paste0(organizations_collection_site, "?api_key=", token, "&query=", URLencode(organization_name), "&page=", page)
+
+  api_response <- httr::GET(http_get_request)
+
+  return(api_response)
+}
+
+#' placeholder
+#'
+#' @description placeholder
+#'
+#' @param token placeholder
+#' @param openhub_api_parameters placeholder
+#' @param page placeholder
+#' @return placeholder
+#' @export
+openhub_api_portfolio_projects <- function(token, openhub_api_parameters, page=1) {
+
+  portfolio_project_site <- openhub_api_parameters[["portfolio_project_site"]]
+
+  http_get_request <- paste0(portfolio_project_site, "?api_key=", token, "&page=", page)
+
+  api_response <- httr::GET(http_get_request)
+
+  return(api_response)
+}
+
+#' placeholder
+#'
+#' @description placeholder
+#'
+#' @param token placeholder
+#' @param openhub_api_parameters placeholder
+#' @param page placeholder
+#' @return placeholder
+#' @export
+openhub_api_projects <- function(token, openhub_api_parameters,  page=1) {
+
+  project_collection_site = "https://www.openhub.net/p.xml"
+
+  project_name <- openhub_api_parameters[["project_name"]]
+
+  http_get_request <- paste0(project_collection_site, "?api_key=", token, "&query=", URLencode(project_name), "&page=", page)
+
+  api_response <- httr::GET(http_get_request)
+
+  return(api_response)
+}
+
+#' placeholder
+#'
+#' @description placeholder
+#'
+#' @param token placeholder
+#' @param openhub_api_parameters placeholder
+#' @param page placeholder
+#' @return placeholder
+#' @export
+openhub_api_analyses <- function(token, openhub_api_parameters,  page=1) {
+
+  analysis_collection_site_start = "https://www.openhub.net/p/"
+
+  analysis_collection_site_end = "/analyses/latest.xml"
+
+  project_id <- openhub_api_parameters[["project_id"]]
+
+  http_get_request <- paste0(analysis_collection_site_start, URLencode(project_id), analysis_collection_site_end, "?api_key=", token, "&page=", page)
+
+  api_response <- httr::GET(http_get_request)
+
+  return(api_response)
+}
+
+#' placeholder
+#'
+#' @description placeholder
+#'
+#' @param api_responses placeholder
+#' @param openhub_api_parameters placeholder
+#' @return placeholder
+#' @export
+openhub_parse_organizations <- function(api_responses, openhub_api_parameters) {
+  organization_name <- openhub_api_parameters[["organization_name"]]
+  parse_response <- function(api_response) {
+    #pages <- NULL # maybe have openhub_api_iterate_pages() handle this
+    #matchFound <- FALSE # maybe have openhub_api_iterate_pages() handle this
+    xmlDoc <- XML::xmlParse(api_response, validate=F)
+    root <- XML::xmlRoot(xmlDoc)
+    status <- XML::xmlValue(root[[1]]) # the value of <status>
+    itemsReturned <- XML::xmlValue(root[[2]])
+    itemsAvailable <- XML::xmlValue(root[[3]])
+    returnItems <- root[[5]] # <result>
+    parsed_response <- list()
+    if (status == "success") {
+      for (i in 1:itemsReturned) {
+        if (XML::xmlValue(returnItems[[i]][[1]]) == organization_name) {
+          parsed_response[["name"]] <- append(parsed_response[["name"]], XML::xmlValue(returnItems[[i]][[1]])) # means <result><org><name> (i-th org indexed)
+          parsed_response[["html_url_projects"]] <- append(parsed_response[["html_url_projects"]], paste0(XML::xmlValue(returnItems[[i]][[3]]), "/projects.xml")) # grab <result><org><html_url> (i-th org indexed)
+          break
+        }
+      }
+    } else {
+      warning(status) # prints the status warning message
+    }
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+  return(rbindlist(lapply(api_responses,parse_response),fill=TRUE))
+}
+
+#' placeholder
+#'
+#' @description placeholder
+#'
+#' @param api_responses placeholder
+#' @param openhub_api_parameters placeholder
+#' @return placeholder
+#' @export
+openhub_parse_portfolio_projects <- function(api_responses, openhub_api_parameters) {
+  language <- openhub_api_parameters[["language"]]
+  parse_response <- function(api_response) {
+    xmlDoc <- XML::xmlParse(api_response, validate=F)
+    root <- XML::xmlRoot(xmlDoc)
+    itemsReturned <- XML::xmlValue(root[[2]])
+    itemsAvailable <- XML::xmlValue(root[[3]])
+    itemsFirstPosition <- XML::xmlValue(root[[4]])
+    status <- XML::xmlValue(root[[1]]) # the value of <status>
+    returnItems <- root[[5]] # <result>
+    parsed_response <- list()
+    if (status == "success") {
+      for (i in 1:itemsReturned) {
+        if (XML::xmlValue(returnItems[[1]][[i]][[3]]) == language) {
+          #parsed_response[["project_number_in_list"]] <- append(parsed_response[["project_number_in_list"]] ,as.numeric(itemsFirstPosition)+i)
+          parsed_response[["name"]] <- append(parsed_response[["name"]], XML::xmlValue(returnItems[[1]][[i]][[1]])) # means <result><portfolio_projects><project><name>
+          parsed_response[["language"]] <- append(parsed_response[["language"]], XML::xmlValue(returnItems[[1]][[i]][[3]])) # means <result><portfolio_projects><project><primary_language>
+          parsed_response[["activity"]] <- append(parsed_response[["activity"]], XML::xmlValue(returnItems[[1]][[i]][[2]])) # means <result><portfolio_projects><project><activity>
+        }
+      }
+    } else {
+      warning(status) # prints the status warning message
+    }
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+
+  return(rbindlist(lapply(api_responses,parse_response),fill=TRUE))
+}
+
+#' placeholder
+#'
+#' @description placeholder
+#'
+#' @param api_responses placeholder
+#' @param openhub_api_parameters placeholder
+#' @return placeholder
+#' @export
+openhub_parse_projects <- function(api_responses, openhub_api_parameters) {
+  project_name <- openhub_api_parameters[["project_name"]]
+  parse_response <- function(api_response) {
+    xmlDoc <- XML::xmlParse(api_response, validate=F)
+    root <- XML::xmlRoot(xmlDoc)
+    itemsReturned <- XML::xmlValue(root[[2]])
+    itemsAvailable <- XML::xmlValue(root[[3]])
+    itemsFirstPosition <- XML::xmlValue(root[[4]])
+    status <- XML::xmlValue(root[[1]]) # the value of <status>
+    returnItems <- root[[5]] # <result>
+    parsed_response <- list()
+    if (status == "success") {
+      for (i in 1:itemsReturned) {
+        if (XML::xmlValue(returnItems[[i]][[2]]) == project_name) {
+          parsed_response[["name"]] <- append(parsed_response[["name"]], XML::xmlValue(returnItems[[i]][[2]])) # means <result><project><name>
+          parsed_response[["id"]] <- append(parsed_response[["id"]], XML::xmlValue(returnItems[[i]][[1]])) # means <result><project><id>
+          break
+        }
+      }
+    } else {
+      warning(status) # prints the status warning message
+    }
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+
+  return(rbindlist(lapply(api_responses,parse_response),fill=TRUE))
+}
+
+#' placeholder
+#'
+#' @description placeholder
+#'
+#' @param api_responses placeholder
+#' @return placeholder
+#' @export
+openhub_parse_analyses <- function(api_responses) {
+  parse_response <- function(api_response) {
+    xmlDoc <- XML::xmlParse(api_response, validate=F)
+    root <- XML::xmlRoot(xmlDoc)
+    status <- XML::xmlValue(root[[1]]) # the value of <status>
+    returnItems <- root[[2]] # <result>
+    parsed_response <- list()
+    if (status == "success") {
+      parsed_response[["id"]] <- append(parsed_response[["id"]], XML::xmlValue(returnItems[[1]][[3]])) # primary key link to other data tables that possess the "id" key
+      parsed_response[["twelve_month_contributor_count"]] <- append(parsed_response[["twelve_month_contributor_count"]], XML::xmlValue(returnItems[[1]][[8]])) # means <result><analysis><twelve_month_contributor_count>
+      parsed_response[["total_contributor_count"]] <- append(parsed_response[["total_contributor_count"]], XML::xmlValue(returnItems[[1]][[9]])) # means <result><analysis><total_contributor_count>
+      parsed_response[["twelve_month_commit_count"]] <- append(parsed_response[["twelve_month_commit_count"]], XML::xmlValue(returnItems[[1]][[10]])) # means <result><analysis><twelve_month_commit_count>
+      parsed_response[["total_commit_count"]] <- append(parsed_response[["total_commit_count"]], XML::xmlValue(returnItems[[1]][[11]])) # means <result><analysis><total_commit_count>
+      parsed_response[["total_code_lines"]] <- append(parsed_response[["total_code_lines"]], XML::xmlValue(returnItems[[1]][[12]])) # means <result><analysis><total_code_lines>
+    } else {
+      warning(status) # prints the status warning message
+    }
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+
+  return(rbindlist(lapply(api_responses,parse_response),fill=TRUE))
+}
+
+#' placeholder
+#'
+#' @description placeholder
+#'
+#' @param token placeholder
+#' @param openhub_api_function placeholder
+#' @param openhub_api_parameters placeholder
+#' @param max_pages placeholder
+#' @return placeholder
+#' @export
+openhub_api_iterate_pages <- function(token, openhub_api_function, openhub_api_parameters, max_pages=NULL) {
+  initial_api_response <- openhub_api_function(token, openhub_api_parameters)
+  #print(initial_api_response)
+  initialXmlDoc <- XML::xmlParse(initial_api_response, validate=F)
+  initialRoot <- XML::xmlRoot(initialXmlDoc)
+  initialStatus <- XML::xmlValue(initialRoot[[1]]) # the value of <status>
+  print(paste0("Status: ", initialStatus))
+  api_responses <- list()
+
+  if (initialStatus == "success") {
+    maxPageCount <- 1
+    initialItemsReturned <- XML::xmlValue(initialRoot[[2]])
+    initialItemsAvailable <- XML::xmlValue(initialRoot[[3]])
+    if (!is.na(initialItemsAvailable)) {
+      print(paste0("Items per page / Available Items: ", initialItemsAvailable, " / ", initialItemsReturned))
+      maxPageCount <- ceiling(as.numeric(initialItemsAvailable)/as.numeric(initialItemsReturned)) # If the requested XML file returned successfully, but is only one page with one item, then its maxPageCount is set to 1.
+    }
+    print(paste0("maxPageCount is: ", maxPageCount))
+
+    if (!is.nan(maxPageCount)){
+      if (!is.null(max_pages)) {
+        if (max_pages > maxPageCount) {
+          warning(paste0("max_pages is greater than the maximum number of available pages: requesting maximum number of pages possible (", maxPageCount, ")" ))
+        } else {
+          maxPageCount <- max_pages
+        }
+      }
+      api_responses[[1]] <- initial_api_response
+      if (maxPageCount > 1) {
+        for (page in 2:maxPageCount) {
+          api_responses[[page]] <- openhub_api_function(token, openhub_api_parameters, page) # gets http request for each response and puts into list
+        }
+      }
+    } else {
+      warning("No items available in the return request.")
+    }
+  } else {
+    warning(initialStatus) # prints the status warning message
+  }
+
+  return(api_responses)
+}
+
 ########## Configuration File Parser Functions ##########
 
 #' Returns the parsed configuration file (.yml).

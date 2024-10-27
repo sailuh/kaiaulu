@@ -1,0 +1,119 @@
+---
+title: "OpenHub API Interfacing for Project Search"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{OpenHub API Interfacing for Project Search}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r warning=FALSE,message=FALSE}
+rm(list = ls())
+require(kaiaulu)
+require(data.table)
+require(knitr)
+require(XML)
+require(httr)
+```
+
+
+```{r}
+openhub_api_parameters <- list()
+# organization_name is case sensitive
+openhub_api_parameters[["organization_name"]] <- "Apache Software Foundation"
+# language is case sensitive
+openhub_api_parameters[["language"]] <- "java"
+# your file openhub_token (a text file) contains the OpenHub token API
+token <- scan("~/.ssh/openhub_token",what="character",quiet=TRUE)
+```
+
+
+```{r}
+#organizations_api_request <- openhub_api_organizations(token, organization_name)
+#print(organizations_api_request)
+```
+
+
+```{r}
+openhub_organization_api_requests <- openhub_api_iterate_pages(token, openhub_api_organizations, openhub_api_parameters, max_pages=1)
+```
+
+```{r}
+openhub_organizations <- openhub_parse_organizations(openhub_organization_api_requests, openhub_api_parameters)
+print(openhub_organizations)
+```
+
+```{r}
+openhub_api_parameters[["portfolio_project_site"]] <- openhub_organizations[["html_url_projects"]][[1]] # grab the first project.xml link for organization specified by name: organization_name
+#portfolio_projects_api_request <- openhub_api_portfolio_projects(token, openhub_api_parameters) # returns the first xml file for portfolio projects
+```
+
+```{r}
+#MAKE SURE TO REMOVE MAX PAGE COUNT (temp_max_number_of_portfolio_projects_pages_to_search_through) TO GET ALL PROJECTS THAT USE JAVA
+temp_max_number_of_portfolio_projects_pages_to_search_through <- 1
+portfolio_projects_api_requests <- openhub_api_iterate_pages(token, openhub_api_portfolio_projects, openhub_api_parameters, max_pages=temp_max_number_of_portfolio_projects_pages_to_search_through) # returns all api_responses for portfolio projects
+```
+
+
+```{r}
+openhub_portfolio_projects <- openhub_parse_portfolio_projects(portfolio_projects_api_requests, openhub_api_parameters)
+print(openhub_portfolio_projects) # names of all portfolio projects under the organization that use java as the primary language
+```
+
+```{r}
+#print(openhub_portfolio_projects[["name"]][[1]])
+#print(length(openhub_portfolio_projects[["name"]]))
+```
+
+
+```{r}
+#MAYBE REMOVE MAX PAGE COUNT (1) (IT'S USED TO LOOP THROUGH EACH PAGE TO FIND THE NAME OF THE PROJECT)
+projects_api_requests <- list()
+for (i in 1:length(openhub_portfolio_projects[["name"]])) {
+  project_name <- openhub_portfolio_projects[["name"]][[i]]
+  openhub_api_parameters[["project_name"]] <- project_name
+  projects_api_requests <- append(projects_api_requests, openhub_api_iterate_pages(token, openhub_api_projects, openhub_api_parameters, max_pages=1)) # returns the first page for api_response for projects (ctrl+f query that ohloh api does is good enough to where the first api requested page will return a project with the matching name, no need to waste more api calls to search through the other pages)
+}
+```
+
+```{r}
+openhub_projects <- list()
+for (i in 1:length(projects_api_requests)) {
+  project_name <- openhub_portfolio_projects[["name"]][[i]]
+  openhub_api_parameters[["project_name"]] <- project_name
+  openhub_projects[[i]] <- openhub_parse_projects(projects_api_requests, openhub_api_parameters)
+}
+openhub_projects <- rbindlist(openhub_projects)
+print(openhub_projects)
+```
+
+```{r}
+openhub_combined_projects <- merge(openhub_projects, openhub_portfolio_projects, by = "name", all = FALSE) # performs inner-join by "name" column
+print(openhub_combined_projects)
+```
+
+```{r}
+analyses_api_requests <- list()
+for (i in 1:length(openhub_combined_projects[["name"]])) {
+  project_id <- openhub_combined_projects[["id"]][[i]]
+  openhub_api_parameters[["project_id"]] <- project_id
+  analyses_api_requests[[i]] <- openhub_api_iterate_pages(token, openhub_api_analyses, openhub_api_parameters) # returns all api_responses for portfolio projects
+}
+```
+
+```{r}
+openhub_analyses <- list()
+for (i in 1:length(analyses_api_requests)) {
+  openhub_analyses[[i]] <- openhub_parse_analyses(analyses_api_requests[[i]])
+}
+openhub_analyses <- rbindlist(openhub_analyses)
+print(openhub_analyses)
+```
+
+```{r}
+openhub_combined_data <- merge(openhub_combined_projects, openhub_analyses, by = "id", all = FALSE) # performs inner-join by "id" column
+print(openhub_combined_data)
+```
