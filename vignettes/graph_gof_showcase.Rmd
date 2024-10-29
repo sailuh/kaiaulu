@@ -16,19 +16,37 @@ This notebook provides a brief introduction to the early version of the **GoF** 
 
 # Setup
 
-## Graph Approach
-
-The graph approach uses Tsantalis [pattern4.jar](https://users.encs.concordia.ca/~nikolaos/pattern_detection.html). As with other third party tools, you should specify the path to the jar in the `tools.yml` and provide the necessary parameters of the project configuration file. 
-
 ```{r}
 rm(list = ls())
 seed <- 1
 set.seed(seed)
 ```
 
-# Project Configuration File
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(data.table)
+require(yaml)
+require(stringi)
+require(knitr)
+require(reticulate)
+require(magrittr)
+require(gt)
+```
+
+# The Graph Approach
+
+The graph approach uses Tsantalis [pattern4.jar](https://users.encs.concordia.ca/~nikolaos/pattern_detection.html). As with other third party tools, you should specify the path to the jar in the `tools.yml` and provide the necessary parameters of the project configuration file. 
+
+// PROPOSED EDIT: Leave The Graph Approach section as an explanation of the approach rather than delving into configuring the tools.yml. If it only serves as to point to where they should be getting the jar, maybe a reworking of this section would be necessary- while configuring tools.yml to point to their installed jar should be included in the next section. 
+
+# Project Configuration Files
+
+// PROPOSED EDIT: Inserting where and what I should be changing to point to the jar here. Something like: "Now with the pattern4.jar installed, in the Kaiaulu folder is a tools.yml file. Changing the pattern4 variable there..." would be sufficient in guiding the user. Then an explanation on what, how, why, etc. can be inserted afterwards.
 
 Analyzing open source projects often requires some manual work on your part to find where the open source project hosts its codebase and mailing list. Instead of hard-coding this on Notebooks, we keep this information in a project configuration file. Here's the minimal information this Notebook requires in a project configuration file:
+
+// PROPOSED EDIT: This part was confusing to me stepping in: I was confused whether I should find the configuration file (if it existed) or if I should edit the values in this yaml bit. A user should not have to read the code block (which requires an understanding of R) to glean where they should go (in this case tools.yml and /conf/junit5.yml respectively). Clearing up where they should be changing the files explicitly helps reduce the confusion, as well as explaining why we've put this yaml block below or possibly removing it from this notebook and having more explanatory comments in the junit5.yml.
 
 ```yaml
 project:
@@ -74,17 +92,6 @@ tool:
       3. Use sudo ./gradlew build
       4. After building, locate the engine class files and specify as the class_folder_path:
          in this case they are in: /path/to/junit5/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
-```
-
-```{r warning=FALSE,message=FALSE}
-require(kaiaulu)
-require(data.table)
-require(yaml)
-require(stringi)
-require(knitr)
-require(reticulate)
-require(magrittr)
-require(gt)
 ```
 
 
