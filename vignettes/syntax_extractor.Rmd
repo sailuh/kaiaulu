@@ -462,6 +462,9 @@ functions_with_params %>%
   gt()
 
 ```
+
+
+
 ```{r eval=FALSE}
 # Extract functions without parameters
 functions_without_params <- query_src_text_functions(
@@ -489,6 +492,18 @@ imports %>%
   gt()
 ```
 
+``` {r eval=FALSE}
+  
+packages <- query_src_text_packages(
+  srcml_path = srcml_path,
+  srcml_filepath = srcml_filepath
+)
+
+# Display the result
+packages %>%
+  gt()  
+```
+
 
 ## Combined Queries
 
@@ -507,7 +522,7 @@ class_docs <- query_src_text_class_docs(
   srcml_filepath = srcml_filepath
 )
 
-# Join the two tables by 'filepath'
+# Join the two tables by filepath
 comments_combined <- merge(
   file_docs, 
   class_docs, 
