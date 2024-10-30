@@ -614,12 +614,12 @@ query_src_text_variables <- function(srcml_path, srcml_filepath, var_type = TRUE
 #' @return A data.table containing filepath and package names.
 #' @export
 query_src_text_packages <- function(srcml_path, srcml_filepath) {
-  # Expand the paths to absolute forms
+  # Expand the paths
   srcml_path <- path.expand(srcml_path)
   srcml_filepath <- path.expand(srcml_filepath)
 
-  # Define the XPath query to select package names, using the namespace
-  xpath_query <- "//src:package"
+  # Define the XPath query to select all unit nodes
+  xpath_query <- "//src:unit"
 
   # Run the XPath query using the srcML binary
   srcml_output <- query_src_text(srcml_path, xpath_query, srcml_filepath)
@@ -631,31 +631,36 @@ query_src_text_packages <- function(srcml_path, srcml_filepath) {
   # Define the srcML namespace (src)
   namespaces <- c(src = "http://www.srcML.org/srcML/src")
 
-  # Find all package nodes using the namespace
-  package_nodes <- XML::getNodeSet(srcml_root, "//src:package", namespaces = namespaces)
+  # Find all <unit> nodes to get filenames and associated packages
+  unit_nodes <- XML::getNodeSet(srcml_root, "//src:unit", namespaces = namespaces)
 
-  # Define a function to parse each package node
-  parse_package_info <- function(unit) {
-    # Get the filepath from the 'filename' attribute (if available)
+  # Define a function to parse each unit node
+  parse_unit_packages <- function(unit) {
+    # Extract the filepath from the 'filename' attribute in <unit>
     filepath <- XML::xmlGetAttr(unit, "filename", default = NA)
 
-    # Extract the package path
-    # Combine the <name> elements within the <package> element
-    package_name_nodes <- XML::getNodeSet(unit, ".//src:name", namespaces = namespaces)
-    package_path <- paste(sapply(package_name_nodes, XML::xmlValue), collapse = ".")
+    # Find the first package node within this unit
+    package_node <- XML::getNodeSet(unit, ".//src:package", namespaces = namespaces)[[1]]
 
-    # Return a data.table with filepath and package path
-    return(data.table(filepath = filepath, package = package_path))
+    # If a package node exists, extract its name
+    if (!is.null(package_node)) {
+      # Get all <name> elements within <package>
+      package_name_nodes <- XML::getNodeSet(package_node, ".//src:name", namespaces = namespaces)
+      package_path <- paste(sapply(package_name_nodes, XML::xmlValue), collapse = ".")
+    } else {
+      package_path <- NA
+    }
+
+    # Return a single row data.table with filepath and package path
+    data.table(filepath = filepath, package = package_path)
   }
 
-  # Apply the parsing function to each package node
-  dt_packages <- rbindlist(lapply(package_nodes, parse_package_info))
+  # Apply the parsing function to each unit node and bind results together
+  dt_packages <- rbindlist(lapply(unit_nodes, parse_unit_packages), fill = TRUE)
 
   # Return the final data.table
   return(dt_packages)
 }
-
-
 
 #' Query srcML Function Declarations
 #'
