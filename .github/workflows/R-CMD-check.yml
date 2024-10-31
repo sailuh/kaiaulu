@@ -12,10 +12,10 @@ name: R-CMD-check
 
 jobs:
   R-CMD-check:
-    runs-on: macOS-14
+    runs-on: macOS-13
     strategy:
       matrix:
-        r-version: ['4.2']
+        r-version: ['4.4']
 
     steps:
       - uses: actions/checkout@v3
