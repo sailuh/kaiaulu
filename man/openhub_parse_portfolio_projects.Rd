@@ -2,18 +2,23 @@
 % Please edit documentation in R/config.R
 \name{openhub_parse_portfolio_projects}
 \alias{openhub_parse_portfolio_projects}
-\title{placeholder}
+\title{Parses Portfolio Projects XML Responses to Table.}
 \usage{
 openhub_parse_portfolio_projects(api_responses, openhub_api_parameters)
 }
 \arguments{
-\item{api_responses}{placeholder}
+\item{api_responses}{A list of XML responses obtained from \code{\link{openhub_api_portfolio_projects}} function.}
 
-\item{openhub_api_parameters}{placeholder}
+\item{openhub_api_parameters}{List of parameters; must contain "language" key-value pair (e.g. "java").}
 }
 \value{
-placeholder
+A parsed version of the XML responses into a table with relevant columns.
 }
 \description{
-placeholder
+Parses a list of XML responses `api_responses` containing
+portfolio project items, extracting relevant tags from each XML response in
+`api_responses`. The `openhub_api_parameters` list must contain a "language"
+key-value pair to filter portfolio projects using the specified code
+language. This function returns a parsed version of the XML responses in a
+table format.
 }

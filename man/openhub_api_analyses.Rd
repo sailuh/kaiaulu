@@ -2,20 +2,28 @@
 % Please edit documentation in R/config.R
 \name{openhub_api_analyses}
 \alias{openhub_api_analyses}
-\title{placeholder}
+\title{Downloads a page of Analysis XML Response File.}
 \usage{
 openhub_api_analyses(token, openhub_api_parameters, page = 1)
 }
 \arguments{
-\item{token}{placeholder}
+\item{token}{Your OpenHub API token.}
 
-\item{openhub_api_parameters}{placeholder}
+\item{openhub_api_parameters}{List of parameters; must contain "project_id" key-value pair (e.g. "3562").}
 
-\item{page}{placeholder}
+\item{page}{The page number to index (Default set to 1) (e.g. 1).}
 }
 \value{
-placeholder
+The response XML single page file that contains an analysis item.
 }
 \description{
-placeholder
+Downloads an XML response file from the "analysis" collection endpoint.
+The `openhub_api_parameters` list must contain a "project_id" key-value pair
+for use in the URL for the project's id. The XML response file will return
+a single page containing the analysis item. The `page` parameter serves no
+current function besides conforming to the function signature
+in \code{\link{openhub_api_iterate_pages}}.
+}
+\references{
+For analysis collection details, see \url{https://github.com/blackducksoftware/ohloh_api/blob/main/reference/analysis.md}.
 }

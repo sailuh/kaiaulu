@@ -2,16 +2,19 @@
 % Please edit documentation in R/config.R
 \name{openhub_parse_analyses}
 \alias{openhub_parse_analyses}
-\title{placeholder}
+\title{Parses Analysis XML Responses to Table.}
 \usage{
 openhub_parse_analyses(api_responses)
 }
 \arguments{
-\item{api_responses}{placeholder}
+\item{api_responses}{A list of XML responses obtained from \code{\link{openhub_api_analyses}} function.}
 }
 \value{
-placeholder
+A parsed version of the XML responses into a table with relevant columns.
 }
 \description{
-placeholder
+Parses a list of XML responses `api_responses` containing
+analysis items, extracting relevant tags from each XML response in
+`api_responses`. This function returns a parsed version of the XML responses
+in a table format.
 }

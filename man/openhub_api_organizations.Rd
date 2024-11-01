@@ -2,20 +2,26 @@
 % Please edit documentation in R/config.R
 \name{openhub_api_organizations}
 \alias{openhub_api_organizations}
-\title{placeholder}
+\title{Download a page of Organization XML Response File.}
 \usage{
 openhub_api_organizations(token, openhub_api_parameters, page = 1)
 }
 \arguments{
-\item{token}{placeholder}
+\item{token}{Your OpenHub API token.}
 
-\item{openhub_api_parameters}{placeholder}
+\item{openhub_api_parameters}{List of parameters; must contain "organization_name" key-value pair (e.g. "Apache Software Foundation").}
 
-\item{page}{placeholder}
+\item{page}{The page number to index (Default set to 1) (e.g. 1).}
 }
 \value{
-placeholder
+The response XML single page file that contains a list of organization items.
 }
 \description{
-placeholder
+Downloads an XML response file from "organization" collection
+endpoint. The `openhub_api_parameters` list must contain an "organization_name"
+key-value pair to query the organization names. The XML response file will return
+a page of items which can be indexed by the numeric `page` parameter.
+}
+\references{
+For organization collection details, see \url{https://github.com/blackducksoftware/ohloh_api/blob/main/reference/organization.md}.
 }

@@ -2,20 +2,26 @@
 % Please edit documentation in R/config.R
 \name{openhub_api_projects}
 \alias{openhub_api_projects}
-\title{placeholder}
+\title{Downloads a page of Project XML Response File.}
 \usage{
 openhub_api_projects(token, openhub_api_parameters, page = 1)
 }
 \arguments{
-\item{token}{placeholder}
+\item{token}{Your OpenHub API token.}
 
-\item{openhub_api_parameters}{placeholder}
+\item{openhub_api_parameters}{List of parameters; must contain "project_name" key-value pair (e.g. "Apache Tomcat").}
 
-\item{page}{placeholder}
+\item{page}{The page number to index (Default set to 1) (e.g. 1).}
 }
 \value{
-placeholder
+The response XML single page file that contains a list of project items.
 }
 \description{
-placeholder
+Downloads an XML response file from the "project" collection endpoint.
+The `openhub_api_parameters` list must contain a "project_name" key-value pair
+to query the project's name. The XML response file will return a page
+of items which can be indexed by the numeric `page` parameter.
+}
+\references{
+For project collection details, see \url{https://github.com/blackducksoftware/ohloh_api/blob/main/reference/project.md}.
 }

@@ -7,14 +7,18 @@
 
 ########## OpenHub Functions / Ohloh API Interfacing Functions ##########
 
-#' placeholder
+#' Download a page of Organization XML Response File.
 #'
-#' @description placeholder
+#' @description Downloads an XML response file from "organization" collection
+#' endpoint. The `openhub_api_parameters` list must contain an "organization_name"
+#' key-value pair to query the organization names. The XML response file will return
+#' a page of items which can be indexed by the numeric `page` parameter.
 #'
-#' @param token placeholder
-#' @param openhub_api_parameters placeholder
-#' @param page placeholder
-#' @return placeholder
+#' @param token Your OpenHub API token.
+#' @param openhub_api_parameters List of parameters; must contain "organization_name" key-value pair (e.g. "Apache Software Foundation").
+#' @param page The page number to index (Default set to 1) (e.g. 1).
+#' @return The response XML single page file that contains a list of organization items.
+#' @references For organization collection details, see \url{https://github.com/blackducksoftware/ohloh_api/blob/main/reference/organization.md}.
 #' @export
 openhub_api_organizations <- function(token, openhub_api_parameters, page=1) {
 
@@ -29,14 +33,18 @@ openhub_api_organizations <- function(token, openhub_api_parameters, page=1) {
   return(api_response)
 }
 
-#' placeholder
+#' Downloads a page of Portfolio Projects XML Response File.
 #'
-#' @description placeholder
+#' @description Downloads an XML response file from the "portfolio_projects" collection
+#' endpoint. The `openhub_api_parameters` list must contain a "portfolio_project_site"
+#' key-value pair for use as part of the URL. The XML response file will return a page
+#' of items which can be indexed by the numeric `page` parameter.
 #'
-#' @param token placeholder
-#' @param openhub_api_parameters placeholder
-#' @param page placeholder
-#' @return placeholder
+#' @param token Your OpenHub API token.
+#' @param openhub_api_parameters List of parameters; must contain "portfolio_project_site" key-value pair (e.g. "https://openhub.net/orgs/apache/projects.xml").
+#' @param page The page number to index (Default set to 1) (e.g. 1).
+#' @return The response XML single page file that contains a list of portfolio project items.
+#' @references For portfolio projects collection details, see \url{https://github.com/blackducksoftware/ohloh_api/blob/main/reference/portfolio_projects.md}.
 #' @export
 openhub_api_portfolio_projects <- function(token, openhub_api_parameters, page=1) {
 
@@ -49,14 +57,18 @@ openhub_api_portfolio_projects <- function(token, openhub_api_parameters, page=1
   return(api_response)
 }
 
-#' placeholder
+#' Downloads a page of Project XML Response File.
 #'
-#' @description placeholder
+#' @description Downloads an XML response file from the "project" collection endpoint.
+#' The `openhub_api_parameters` list must contain a "project_name" key-value pair
+#' to query the project's name. The XML response file will return a page
+#' of items which can be indexed by the numeric `page` parameter.
 #'
-#' @param token placeholder
-#' @param openhub_api_parameters placeholder
-#' @param page placeholder
-#' @return placeholder
+#' @param token Your OpenHub API token.
+#' @param openhub_api_parameters List of parameters; must contain "project_name" key-value pair (e.g. "Apache Tomcat").
+#' @param page The page number to index (Default set to 1) (e.g. 1).
+#' @return The response XML single page file that contains a list of project items.
+#' @references For project collection details, see \url{https://github.com/blackducksoftware/ohloh_api/blob/main/reference/project.md}.
 #' @export
 openhub_api_projects <- function(token, openhub_api_parameters,  page=1) {
 
@@ -71,14 +83,20 @@ openhub_api_projects <- function(token, openhub_api_parameters,  page=1) {
   return(api_response)
 }
 
-#' placeholder
+#' Downloads a page of Analysis XML Response File.
 #'
-#' @description placeholder
+#' @description Downloads an XML response file from the "analysis" collection endpoint.
+#' The `openhub_api_parameters` list must contain a "project_id" key-value pair
+#' for use in the URL for the project's id. The XML response file will return
+#' a single page containing the analysis item. The `page` parameter serves no
+#' current function besides conforming to the function signature
+#' in \code{\link{openhub_api_iterate_pages}}.
 #'
-#' @param token placeholder
-#' @param openhub_api_parameters placeholder
-#' @param page placeholder
-#' @return placeholder
+#' @param token Your OpenHub API token.
+#' @param openhub_api_parameters List of parameters; must contain "project_id" key-value pair (e.g. "3562").
+#' @param page The page number to index (Default set to 1) (e.g. 1).
+#' @return The response XML single page file that contains an analysis item.
+#' @references For analysis collection details, see \url{https://github.com/blackducksoftware/ohloh_api/blob/main/reference/analysis.md}.
 #' @export
 openhub_api_analyses <- function(token, openhub_api_parameters,  page=1) {
 
@@ -95,13 +113,17 @@ openhub_api_analyses <- function(token, openhub_api_parameters,  page=1) {
   return(api_response)
 }
 
-#' placeholder
+#' Parses Organization XML Responses to Table.
 #'
-#' @description placeholder
+#' @description Parses a list of XML responses `api_responses` containing
+#' organization items, extracting relevant tags from the each XML response in
+#' `api_responses`. The `openhub_api_parameters` list must contain an
+#' "organization_name" key-value pair to index the correct organization. This
+#' function returns a parsed version of the XML responses in a table format.
 #'
-#' @param api_responses placeholder
-#' @param openhub_api_parameters placeholder
-#' @return placeholder
+#' @param api_responses A list of XML responses obtained from \code{\link{openhub_api_organizations}} function.
+#' @param openhub_api_parameters List of parameters; must contain "organization_name" key-value pair (e.g. "Apache Software Foundation").
+#' @return A parsed version of the XML responses into a table with relevant columns.
 #' @export
 openhub_parse_organizations <- function(api_responses, openhub_api_parameters) {
   organization_name <- openhub_api_parameters[["organization_name"]]
@@ -134,13 +156,18 @@ openhub_parse_organizations <- function(api_responses, openhub_api_parameters) {
   return(rbindlist(lapply(api_responses,parse_response),fill=TRUE))
 }
 
-#' placeholder
+#' Parses Portfolio Projects XML Responses to Table.
 #'
-#' @description placeholder
+#' @description Parses a list of XML responses `api_responses` containing
+#' portfolio project items, extracting relevant tags from each XML response in
+#' `api_responses`. The `openhub_api_parameters` list must contain a "language"
+#' key-value pair to filter portfolio projects using the specified code
+#' language. This function returns a parsed version of the XML responses in a
+#' table format.
 #'
-#' @param api_responses placeholder
-#' @param openhub_api_parameters placeholder
-#' @return placeholder
+#' @param api_responses A list of XML responses obtained from \code{\link{openhub_api_portfolio_projects}} function.
+#' @param openhub_api_parameters List of parameters; must contain "language" key-value pair (e.g. "java").
+#' @return A parsed version of the XML responses into a table with relevant columns.
 #' @export
 openhub_parse_portfolio_projects <- function(api_responses, openhub_api_parameters) {
   language <- openhub_api_parameters[["language"]]
@@ -174,13 +201,17 @@ openhub_parse_portfolio_projects <- function(api_responses, openhub_api_paramete
   return(rbindlist(lapply(api_responses,parse_response),fill=TRUE))
 }
 
-#' placeholder
+#' Parses Project XML Responses to Table.
 #'
-#' @description placeholder
+#' @description Parses a list of XML responses `api_responses` containing
+#' project items, extracting relevant tags from each XML response in
+#' `api_responses`. The `openhub_api_parameters` list must contain a
+#' "project_name" key-value pair to index the correct project. This function
+#' returns a parsed version of the XML responses in a table format.
 #'
-#' @param api_responses placeholder
-#' @param openhub_api_parameters placeholder
-#' @return placeholder
+#' @param api_responses A list of XML responses obtained from \code{\link{openhub_api_projects}} function.
+#' @param openhub_api_parameters List of parameters; must contain "project_name" key-value pair (e.g. "Apache Tomcat").
+#' @return A parsed version of the XML responses into a table with relevant columns.
 #' @export
 openhub_parse_projects <- function(api_responses, openhub_api_parameters) {
   project_name <- openhub_api_parameters[["project_name"]]
@@ -213,12 +244,15 @@ openhub_parse_projects <- function(api_responses, openhub_api_parameters) {
   return(rbindlist(lapply(api_responses,parse_response),fill=TRUE))
 }
 
-#' placeholder
+#' Parses Analysis XML Responses to Table.
 #'
-#' @description placeholder
+#' @description Parses a list of XML responses `api_responses` containing
+#' analysis items, extracting relevant tags from each XML response in
+#' `api_responses`. This function returns a parsed version of the XML responses
+#' in a table format.
 #'
-#' @param api_responses placeholder
-#' @return placeholder
+#' @param api_responses A list of XML responses obtained from \code{\link{openhub_api_analyses}} function.
+#' @return A parsed version of the XML responses into a table with relevant columns.
 #' @export
 openhub_parse_analyses <- function(api_responses) {
   parse_response <- function(api_response) {
@@ -246,19 +280,22 @@ openhub_parse_analyses <- function(api_responses) {
   return(rbindlist(lapply(api_responses,parse_response),fill=TRUE))
 }
 
-#' placeholder
+#' OpenHub Page Iterator
 #'
-#' @description placeholder
+#' @description Ohloh API endpoints return data in pages, each containing a
+#' set number of items. This iterator can be used to iterate over the pages in
+#' the a collection that corresponds to `openhub_api_function`. `max_pages` can
+#' be used to define the maximum number of pages to iterate through, otherwise,
+#' the maximum number of pages will be iterated.
 #'
-#' @param token placeholder
-#' @param openhub_api_function placeholder
-#' @param openhub_api_parameters placeholder
-#' @param max_pages placeholder
-#' @return placeholder
+#' @param token Your OpenHub API token.
+#' @param openhub_api_function A function that downloads a page of a specific XML Response File (e.g. \code{\link{openhub_api_organizations}}).
+#' @param openhub_api_parameters List of parameters to use in `openhub_api_function` (e.g. `openhub_api_parameters` in \code{\link{openhub_api_organizations}}).
+#' @param max_pages The maximum number of pages to download, if NULL, maximum number of pages will be used (Default set to NULL).
+#' @return A list of XML responses obtained from `openhub_api_function` function.
 #' @export
 openhub_api_iterate_pages <- function(token, openhub_api_function, openhub_api_parameters, max_pages=NULL) {
   initial_api_response <- openhub_api_function(token, openhub_api_parameters)
-  #print(initial_api_response)
   initialXmlDoc <- XML::xmlParse(initial_api_response, validate=F)
   initialRoot <- XML::xmlRoot(initialXmlDoc)
   initialStatus <- XML::xmlValue(initialRoot[[1]]) # the value of <status>

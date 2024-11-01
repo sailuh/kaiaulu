@@ -2,7 +2,7 @@
 % Please edit documentation in R/config.R
 \name{openhub_api_iterate_pages}
 \alias{openhub_api_iterate_pages}
-\title{placeholder}
+\title{OpenHub Page Iterator}
 \usage{
 openhub_api_iterate_pages(
   token,
@@ -12,17 +12,21 @@ openhub_api_iterate_pages(
 )
 }
 \arguments{
-\item{token}{placeholder}
+\item{token}{Your OpenHub API token.}
 
-\item{openhub_api_function}{placeholder}
+\item{openhub_api_function}{A function that downloads a page of a specific XML Response File (e.g. \code{\link{openhub_api_organizations}}).}
 
-\item{openhub_api_parameters}{placeholder}
+\item{openhub_api_parameters}{List of parameters to use in `openhub_api_function` (e.g. `openhub_api_parameters` in \code{\link{openhub_api_organizations}}).}
 
-\item{max_pages}{placeholder}
+\item{max_pages}{The maximum number of pages to download, if NULL, maximum number of pages will be used (Default set to NULL).}
 }
 \value{
-placeholder
+A list of XML responses obtained from `openhub_api_function` function.
 }
 \description{
-placeholder
+Ohloh API endpoints return data in pages, each containing a
+set number of items. This iterator can be used to iterate over the pages in
+the a collection that corresponds to `openhub_api_function`. `max_pages` can
+be used to define the maximum number of pages to iterate through, otherwise,
+the maximum number of pages will be iterated.
 }
