@@ -10,74 +10,119 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r warning=FALSE,message=FALSE}
+# Introduction
+
+This notebook explains how to acquire information on a set of projects that reside in Openhub's open-source project collection based on search parameters under an organization using [Ohloh API](https://github.com/blackducksoftware/ohloh_api). 
+
+Kaiaulu's interface to Ohloh's API, an API for OpenHub's open-source project collection, relies on [httr](https://httr.r-lib.org) to create http GET requests that interface with Ohloh's API. Ohloh API responds to these requests by returning an XML response file with nested tags.
+
+In essence, Kaiaulu only defines a few API endpoints of interest ([organization-collection](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/organization-collection.md), [portfolio_projects](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/portfolio_projects.md), [project](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/project.md), and [analysis](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/analysis.md)) where the tool is currently used, and parses the returned XML output into a table keeping only fields of interest. More endpoints and/or fields of interest per endpoint can be added in the future.
+
+## Create a Personal API Token
+
+OpenHub has a limit to the number of API calls per token (maximum set to 1000) per day. The current rate for your personal API token and to acquire an API key, they may be found at [its website](https://www.openhub.net/accounts/me/api_keys) and an account is required to acquire your personal API token. The process should not take more than two minutes.
+
+The functions in Kaiaulu will assume you have an OpenHub API token available, which can be passed as parameter. 
+
+## Libraries
+
+Please ensure the following R packages are installed on your computer. 
+
+```{r warning = FALSE, message = FALSE}
 rm(list = ls())
 require(kaiaulu)
 require(data.table)
 require(knitr)
-require(XML)
 require(httr)
 ```
 
+# Configuration Section
+
+Below are a set of required variables for the `openhub_*` functions.
 
 ```{r}
 openhub_api_parameters <- list()
-# organization_name is case sensitive
-openhub_api_parameters[["organization_name"]] <- "Apache Software Foundation"
-# language is case sensitive
-openhub_api_parameters[["language"]] <- "java"
-# your file openhub_token (a text file) contains the OpenHub token API
+organization_name <- "Apache Software Foundation"
+language <- "java"
+openhub_api_parameters[["organization_name"]] <- organization_name
+openhub_api_parameters[["language"]] <- language
 token <- scan("~/.ssh/openhub_token",what="character",quiet=TRUE)
 ```
 
+Explanation:
 
-```{r}
-#organizations_api_request <- openhub_api_organizations(token, organization_name)
-#print(organizations_api_request)
-```
+* openhub_api_parameters: A list containing key-value pairs of parameters to pass into the `openhub_*` functions. The following key names are valid and are required for proper execution (`openhub_*` functions possess documentation that detail the key-value pairs required for proper execution): organization_name, language, portfolio_project_site, project_name, project_id
+* organization_name: The name of the organization (case sensitive).
+* language: The code language to filter for projects only containing the specified code language (case sensitive).
+* token: The file named "openhub_token" containing the OpenHub API Token.
 
+# Collecting and Parsing Data via Ohloh API
+
+In this section, for each endpoint, we collect the data, through a series of Ohloh API requests, and parse the API responses with its corresponding parser function. These parsed API responses are data tables which are displayed for each subsection. The values from one endpoint may be extracted for use to obtain a path to the next endpoint, and the merging of data tables is important for a holistic display of the data for the list of projects.
+
+## Organizations
+
+We call `openhub_api_iterate_pages` to collect the API responses from a `openhub_api_*` function, `openhub_api_organizations`, ensuring that `openhub_api_parameters` contains the "organization_name"
+key-value pair, and setting the maximum number of pages to iterate to 1 to iterate through the paginated API responses returned from `openhub_api_organizations`. We set the maximum pages to iterate over in `openhub_api_iterate_pages` to 1 because `openhub_api_organizations` employs the "query" collection request parameter, a filter that searches every tag for a matching part to the query string. For example, the query string "Apache Software Foundation", `organization_name`, will return every organization containing the "Apache", "Software", "Foundation", and/or a combination of these strings, so the query collection request parameter is essentially a "ctrl+f" search that helps to narrow down a list of potential matches.
 
 ```{r}
 openhub_organization_api_requests <- openhub_api_iterate_pages(token, openhub_api_organizations, openhub_api_parameters, max_pages=1)
 ```
 
+With the organization API response (only one page), we may parse this response with its corresponding parser function, `openhub_parse_organizations`, to acquire a data table with columns representing the tags for each organization listed:
+
+* name: The name of the organization.
+* html_url_projects: The URL to the XML file on the OpenHub website corresponding to a list of portfolio projects for the organization.
+
+
 ```{r}
 openhub_organizations <- openhub_parse_organizations(openhub_organization_api_requests, openhub_api_parameters)
-print(openhub_organizations)
+kable(openhub_organizations)
 ```
+
+We then acquire the first organization's "html_url_projects" column value and place it as the value for the `openhub_api_parameters` "portfolio_project_site" key.
 
 ```{r}
-openhub_api_parameters[["portfolio_project_site"]] <- openhub_organizations[["html_url_projects"]][[1]] # grab the first project.xml link for organization specified by name: organization_name
-#portfolio_projects_api_request <- openhub_api_portfolio_projects(token, openhub_api_parameters) # returns the first xml file for portfolio projects
+openhub_api_parameters[["portfolio_project_site"]] <- openhub_organizations[["html_url_projects"]][[1]]
 ```
+
+## Portfolio Projects
+
+Following the same process as the Organization section, we acquire the portfolio projects for the organization, "Apache Software Foundation", that possess the code language specified by `language`, in this case "java", by acquiring the portfolio projects API requests and parsing these API requests into a data table. Each page for the portfolio_projects collection returns a maximum of 20 items, portfolio projects, and **to not exceed the API token rate limit, we only request the first page (maximum of twenty portfolio projects)**. To grab as many matches as possible or up to a number of pages (if `max_portfolio_project_pages` exceeds the total pages acquired by the API response, it will grab the maximum number of pages possible), `max_portfolio_project_pages` may be removed from `openhub_api_iterate_pages` or `max_portfolio_project_pages` may be set to an arbitrary value, respectively.
 
 ```{r}
-#MAKE SURE TO REMOVE MAX PAGE COUNT (temp_max_number_of_portfolio_projects_pages_to_search_through) TO GET ALL PROJECTS THAT USE JAVA
-temp_max_number_of_portfolio_projects_pages_to_search_through <- 1
-portfolio_projects_api_requests <- openhub_api_iterate_pages(token, openhub_api_portfolio_projects, openhub_api_parameters, max_pages=temp_max_number_of_portfolio_projects_pages_to_search_through) # returns all api_responses for portfolio projects
+max_portfolio_project_pages <- 1
+portfolio_projects_api_requests <- openhub_api_iterate_pages(token, openhub_api_portfolio_projects, openhub_api_parameters, max_pages=max_portfolio_project_pages)
 ```
 
+We ensure that `openhub_api_parameters` possesses the "language" key-value pair and pass the portfolio_projects API requests into its corresponding parser function to acquire a data table with columns representing the tags for each portfolio project listed:
+
+* name: The name of the portfolio project.
+* language: The primary code language used by the portfolio project.
+* activity: The portfolio project's activity level (Very Low, Low, Moderate, High, and Very High).
 
 ```{r}
 openhub_portfolio_projects <- openhub_parse_portfolio_projects(portfolio_projects_api_requests, openhub_api_parameters)
-print(openhub_portfolio_projects) # names of all portfolio projects under the organization that use java as the primary language
+kable(openhub_portfolio_projects)
 ```
 
-```{r}
-#print(openhub_portfolio_projects[["name"]][[1]])
-#print(length(openhub_portfolio_projects[["name"]]))
-```
+## Projects
 
+To acquire more information about a portfolio project, we need to access it in the project collection, and the link between the portfolio_projects endpoint and project endpoint is the "name" tag (e.g. "Apache Tomcat"). Following a similar style of acquiring the project API responses and parsing them with its corresponding parser function, we loop through each "name" in the portfolio projects' data table `openhub_portfolio_projects`. For each project name, "name", acquired, we append an API request containing the page where the project with the name, "project_name" (e.g. "Apache Tomcat") attached as a key-value pair to `openhub_api_parameters`, exists to the `projects_api_requests` list with the aid of the collection request query command (Using this query command, the first API requested page will contain a project with a matching "name" tag, thus there is no need to waste API calls to search through the other pages for the project, so `max_pages` is set to 1). 
 
 ```{r}
-#MAYBE REMOVE MAX PAGE COUNT (1) (IT'S USED TO LOOP THROUGH EACH PAGE TO FIND THE NAME OF THE PROJECT)
 projects_api_requests <- list()
 for (i in 1:length(openhub_portfolio_projects[["name"]])) {
   project_name <- openhub_portfolio_projects[["name"]][[i]]
   openhub_api_parameters[["project_name"]] <- project_name
-  projects_api_requests <- append(projects_api_requests, openhub_api_iterate_pages(token, openhub_api_projects, openhub_api_parameters, max_pages=1)) # returns the first page for api_response for projects (ctrl+f query that ohloh api does is good enough to where the first api requested page will return a project with the matching name, no need to waste more api calls to search through the other pages)
+  projects_api_requests <- append(projects_api_requests, openhub_api_iterate_pages(token, openhub_api_projects, openhub_api_parameters, max_pages=1))
 }
 ```
+
+With the list of project API requests, we perform another for loop to parse these responses, which also requires the project names, "name" in `openhub_portfolio_projects`, to acquire a data table with columns representing the tags for each project listed:
+
+* name: The name of the project.
+* id: The project's unique ID.
 
 ```{r}
 openhub_projects <- list()
@@ -87,22 +132,37 @@ for (i in 1:length(projects_api_requests)) {
   openhub_projects[[i]] <- openhub_parse_projects(projects_api_requests, openhub_api_parameters)
 }
 openhub_projects <- rbindlist(openhub_projects)
-print(openhub_projects)
+kable(openhub_projects)
 ```
 
+We combine the portfolio_projects and project data tables into one data table, `openhub_combined_projects`, by performing an inner-join by "name" column.
+
 ```{r}
-openhub_combined_projects <- merge(openhub_projects, openhub_portfolio_projects, by = "name", all = FALSE) # performs inner-join by "name" column
-print(openhub_combined_projects)
+openhub_combined_projects <- merge(openhub_projects, openhub_portfolio_projects, by = "name", all = FALSE)
+kable(openhub_combined_projects)
 ```
+
+## Analyses
+
+The previously acquired "id" tag (represented as a column) for each project allows us to acquire the latest analysis collection for a project, containing a multitude of important metrics. Following the same logic as the Projects section, looping through each project in `openhub_combined_projects`, we acquire the analysis endpoint for each project using its "id", specified as "project_id" as a key-value pair in `openhub_api_parameters`. The analysis API requests only return a maximum of one page, thus max_pages is not specified.
 
 ```{r}
 analyses_api_requests <- list()
 for (i in 1:length(openhub_combined_projects[["name"]])) {
   project_id <- openhub_combined_projects[["id"]][[i]]
   openhub_api_parameters[["project_id"]] <- project_id
-  analyses_api_requests[[i]] <- openhub_api_iterate_pages(token, openhub_api_analyses, openhub_api_parameters) # returns all api_responses for portfolio projects
+  analyses_api_requests[[i]] <- openhub_api_iterate_pages(token, openhub_api_analyses, openhub_api_parameters)
 }
 ```
+
+With the list of analysis API requests, we perform another for loop to parse these responses to acquire a data table with columns representing the tags for each analysis listed:
+
+* id: The project's unique ID.
+* twelve_month_contributor_count: The number of contributors who made at least one commit to the project source code in the past twelve months.
+* total_contributor_count: The total number of contributors who made at least one commit to the project source code since the project's inception.
+* twelve_month_commit_count: The total number of commits to the project source code in the past twelve months.
+* total_commit_count: The total number of commits to the project source code since the project's inception.
+* total_code_lines: The most recent total count of all source code lines.
 
 ```{r}
 openhub_analyses <- list()
@@ -110,10 +170,12 @@ for (i in 1:length(analyses_api_requests)) {
   openhub_analyses[[i]] <- openhub_parse_analyses(analyses_api_requests[[i]])
 }
 openhub_analyses <- rbindlist(openhub_analyses)
-print(openhub_analyses)
+kable(openhub_analyses)
 ```
 
+We combine the combined portfolio_projects and project data table, `openhub_combined_projects`, with the analysis data table, `openhub_analyses`, into one data table, `openhub_combined_data`, by performing an inner-join by "id" column.
+
 ```{r}
-openhub_combined_data <- merge(openhub_combined_projects, openhub_analyses, by = "id", all = FALSE) # performs inner-join by "id" column
-print(openhub_combined_data)
+openhub_combined_data <- merge(openhub_combined_projects, openhub_analyses, by = "id", all = FALSE)
+kable(openhub_combined_data)
 ```

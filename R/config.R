@@ -183,7 +183,6 @@ openhub_parse_portfolio_projects <- function(api_responses, openhub_api_paramete
     if (status == "success") {
       for (i in 1:itemsReturned) {
         if (XML::xmlValue(returnItems[[1]][[i]][[3]]) == language) {
-          #parsed_response[["project_number_in_list"]] <- append(parsed_response[["project_number_in_list"]] ,as.numeric(itemsFirstPosition)+i)
           parsed_response[["name"]] <- append(parsed_response[["name"]], XML::xmlValue(returnItems[[1]][[i]][[1]])) # means <result><portfolio_projects><project><name>
           parsed_response[["language"]] <- append(parsed_response[["language"]], XML::xmlValue(returnItems[[1]][[i]][[3]])) # means <result><portfolio_projects><project><primary_language>
           parsed_response[["activity"]] <- append(parsed_response[["activity"]], XML::xmlValue(returnItems[[1]][[i]][[2]])) # means <result><portfolio_projects><project><activity>
@@ -284,14 +283,14 @@ openhub_parse_analyses <- function(api_responses) {
 #'
 #' @description Ohloh API endpoints return data in pages, each containing a
 #' set number of items. This iterator can be used to iterate over the pages in
-#' the a collection that corresponds to `openhub_api_function`. `max_pages` can
+#' the collection that corresponds to `openhub_api_function`. `max_pages` can
 #' be used to define the maximum number of pages to iterate through, otherwise,
 #' the maximum number of pages will be iterated.
 #'
 #' @param token Your OpenHub API token.
 #' @param openhub_api_function A function that downloads a page of a specific XML Response File (e.g. \code{\link{openhub_api_organizations}}).
 #' @param openhub_api_parameters List of parameters to use in `openhub_api_function` (e.g. `openhub_api_parameters` in \code{\link{openhub_api_organizations}}).
-#' @param max_pages The maximum number of pages to download, if NULL, maximum number of pages will be used (Default set to NULL).
+#' @param max_pages The maximum number of pages to download, if NULL, maximum number of pages will be used, and if max_pages exceeds the maximum number of pages, it will use the maximum number of pages (Default set to NULL).
 #' @return A list of XML responses obtained from `openhub_api_function` function.
 #' @export
 openhub_api_iterate_pages <- function(token, openhub_api_function, openhub_api_parameters, max_pages=NULL) {
@@ -299,7 +298,7 @@ openhub_api_iterate_pages <- function(token, openhub_api_function, openhub_api_p
   initialXmlDoc <- XML::xmlParse(initial_api_response, validate=F)
   initialRoot <- XML::xmlRoot(initialXmlDoc)
   initialStatus <- XML::xmlValue(initialRoot[[1]]) # the value of <status>
-  print(paste0("Status: ", initialStatus))
+  #print(paste0("Status: ", initialStatus))
   api_responses <- list()
 
   if (initialStatus == "success") {
@@ -307,10 +306,10 @@ openhub_api_iterate_pages <- function(token, openhub_api_function, openhub_api_p
     initialItemsReturned <- XML::xmlValue(initialRoot[[2]])
     initialItemsAvailable <- XML::xmlValue(initialRoot[[3]])
     if (!is.na(initialItemsAvailable)) {
-      print(paste0("Items per page / Available Items: ", initialItemsAvailable, " / ", initialItemsReturned))
+      #print(paste0("Items per page / Available Items: ", initialItemsAvailable, " / ", initialItemsReturned))
       maxPageCount <- ceiling(as.numeric(initialItemsAvailable)/as.numeric(initialItemsReturned)) # If the requested XML file returned successfully, but is only one page with one item, then its maxPageCount is set to 1.
     }
-    print(paste0("maxPageCount is: ", maxPageCount))
+    #print(paste0("maxPageCount is: ", maxPageCount))
 
     if (!is.nan(maxPageCount)){
       if (!is.null(max_pages)) {
