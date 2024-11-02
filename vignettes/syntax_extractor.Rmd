@@ -5,9 +5,12 @@ output:
     toc: true
     number_sections: true
 vignette: >
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{Kaiaulu Syntax Extractor}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r eval=FALSE}
@@ -26,69 +29,99 @@ set.seed(seed)
 
 # Introduction
 
-This notebook explains how to convert source code into a structured XML format using srcML and extract meaningful syntax from it. Syntax extraction allows us to selectively pull out code elements like classes, functions, and comments, which helps in generating structured representations of a project.
+This notebook explains how to convert source code into a structured XML
+format using srcML and extract meaningful syntax from it. Syntax
+extraction allows us to selectively pull out code elements like classes,
+functions, and comments, which helps in generating structured
+representations of a project.
 
-Syntax extraction is important for understanding the semantic relationships in code. For example, rather than examining the entire code, we can focus on key components like documentation, function names, or associated commits and issue discussions, to help us compare and comprehend the files better. This structured approach aids in deeper analysis such as semantic similarity or machine learning models applied to code.
+Syntax extraction is important for understanding the semantic
+relationships in code. For example, rather than examining the entire
+code, we can focus on key components like documentation, function names,
+or associated commits and issue discussions, to help us compare and
+comprehend the files better. This structured approach aids in deeper
+analysis such as semantic similarity or machine learning models applied
+to code.
 
-In large projects, representing files through different methods can lead to varied interpretations of how files are related. For example:
+In large projects, representing files through different methods can lead
+to varied interpretations of how files are related. For example:
 
-- Representation A could show all the file content to a machine.
-- Representation B could focus only on the names of classes, variables, and documentation, capturing semantic meaning tied to the code.
-- Representation C might focus on commits and issues, capturing conversations about the file’s development.
+-   Representation A could show all the file content to a machine.
+-   Representation B could focus only on the names of classes,
+    variables, and documentation, capturing semantic meaning tied to the
+    code.
+-   Representation C might focus on commits and issues, capturing
+    conversations about the file’s development.
 
-If we compare two files using these different representations, the machine might reach different conclusions. A computer might say the files are similar if we only consider the issue discussions, but if we look at the actual code (Representation A), they might be very different.
+If we compare two files using these different representations, the
+machine might reach different conclusions. A computer might say the
+files are similar if we only consider the issue discussions, but if we
+look at the actual code (Representation A), they might be very
+different.
 
-In Kaiaulu, we aim to develop multiple representations of the code to extract its meaning. This notebook explains how to set up and use these extraction functions with srcML.
+In Kaiaulu, we aim to develop multiple representations of the code to
+extract its meaning. This notebook explains how to set up and use these
+extraction functions with srcML.
 
 # Project Configuration File
 
-To extract useful syntax information from a project, Kaiaulu uses configuration files that describe where the source code is stored, where the srcML tool is located, and what parts of the code we want to analyze.
+To extract useful syntax information from a project, Kaiaulu uses
+configuration files that describe where the source code is stored, where
+the srcML tool is located, and what parts of the code we want to
+analyze.
 
-Kaiaulu's configuration files help store this information to ensure reproducibility, meaning anyone can rerun the extraction process with the same input and settings and expect the same results. These files store input paths, tool configurations, and arguments.
+Kaiaulu's configuration files help store this information to ensure
+reproducibility, meaning anyone can rerun the extraction process with
+the same input and settings and expect the same results. These files
+store input paths, tool configurations, and arguments.
 
 Here’s an example configuration for the Maven project:
 
-```
-version_control:
-  log: /path/to/local/maven/repo/.git
+```         
+# Project Configuration File for Maven Project
+project:
+  website: https://github.com/apache/maven
 
 filter:
+  # File extensions to include in the analysis
   keep_filepaths_ending_with:
     - .java
     - .xml
+  # File paths to exclude from the analysis (e.g., test files)
   remove_filepaths_containing:
     - test
     - example
 
-tool:
-  srcml:
-    srcml_path: /usr/local/bin/srcml
-    srcml_output_path: ../../analysis/maven/srcml_output.xml
-
-analysis:
-  topics:
-    - class
-    - method
-    - documentation
+srcml:
+  # Path to the srcML tool binary
+  srcml_path: /usr/local/bin/srcml
+  # Path to the folder containing the source code to analyze
+  src_folder: ../../maven/maven-artifact/src/main/java/org/apache/maven/artifact/
+  # Path where the annotated XML file will be saved
+  srcml_filepath: ../../analysis/maven/srcml_output.xml
 ```
 
 ### Explanation
 
-- srcml_path: The path to the srcML binary that will be used to generate the XML.
-- git_repo_path: The path to the local git repository containing the source code for Maven. The folder_path variable strips out the .git part of the path.
-- srcml_filepath: This is where the annotated XML file will be saved.
-- file_extensions: A list of file extensions (e.g., .java, .xml) that you want to include in the analysis.
-- substring_filepath: Any parts of the file paths you want to exclude from the analysis (e.g., test files).
-- topics: (Optional) You can define specific topics to analyze, such as classes, functions, or documentation.
+-   website: URL to the project repository, helpful for reference or project metadata.
+-   keep_filepaths_ending_with: A list of file extensions (e.g., .java, .xml) to include in the analysis. This allows you to limit analysis to certain types of files within the project.
+-   remove_filepaths_containing: Keywords in file paths to exclude from the analysis (e.g., test, example). This filters out files not relevant to the primary analysis, such as test or example files.
+-   srcml_path: The path to the srcML binary that will be used to generate the XML. Update this path according to your srcML installation.
+-   src_folder: The directory containing the source code to analyze, relative to the configuration file location. Ensure this is set to the root directory of your codebase (in this example, Maven’s artifact code).
+-   srcml_filepath: The output file path for the XML representation generated by srcML. This path stores the annotated XML, making it available for subsequent XPath queries.
 
+Kaiaulu reads these parameters and uses them to perform syntax extraction 
+across different codebases without needing to hard-code paths or settings in the scripts.
 
-Kaiaulu reads these parameters and uses them to perform syntax extraction across different codebases without needing to hard-code paths or settings in the scripts.
-
-Before we can begin extracting syntax from the source code, we need to set up the appropriate paths and configurations. We do this by specifying the location of the source code, tools, and the desired output file for the XML annotations. In this case, we will use the Maven repository as our example project.
+Before we can begin extracting syntax from the source code, we need to
+set up the appropriate paths and configurations. We do this by
+specifying the location of the source code, tools, and the desired
+output file for the XML annotations. In this case, we will use the Maven
+repository as our example project.
 
 Here’s how you can set up the configuration:
 
-``` {r eval=FALSE}
+```{r eval=FALSE}
 # Load the project configuration
 tool <- yaml::read_yaml("../tools.yml")
 conf <- yaml::read_yaml("../conf/maven.yml")
@@ -107,51 +140,42 @@ exclude_paths <- conf[["filter"]][["remove_filepaths_containing"]]
 
 ```
 
-# Project Configuration File for Maven Project
-project:
-  website: https://github.com/apache/maven
-
-filter:
-  # File extensions to include in the analysis
-  keep_filepaths_ending_with:
-    - .java
-    - .xml
-  # File paths to exclude from the analysis (e.g., test files)
-  remove_filepaths_containing:
-    - test
-    - example
-
-srcml:
-  # path to tool binary (change this location later)
-  srcml_path: /usr/local/bin/srcml
-  # path to the folder to analyze
-  src_folder: ../../maven/maven-artifact/src/main/java/org/apache/maven/artifact/
-  srcml_filepath: ../../analysis/maven/srcml_output.xml
-
-
 # Running the Syntax Extractor
 
 ## How the Syntax Extractor Works
 
-At its core, the syntax extractor relies on [srcML](https://www.srcml.org/), which is a tool that converts source code into an XML representation. This XML structure gives us a detailed breakdown of the code: classes, functions, variables, and comments are annotated with specific XML tags, allowing us to query and extract what we need.
+At its core, the syntax extractor relies on
+[srcML](https://www.srcml.org/), which is a tool that converts source
+code into an XML representation. This XML structure gives us a detailed
+breakdown of the code: classes, functions, variables, and comments are
+annotated with specific XML tags, allowing us to query and extract what
+we need.
 
-In this notebook, we’ll walk through the process of setting up the syntax extractor, running the extraction process, and then querying the annotated code for useful information like class names, namespaces, and documentation.
+In this notebook, we’ll walk through the process of setting up the
+syntax extractor, running the extraction process, and then querying the
+annotated code for useful information like class names, namespaces, and
+documentation.
 
 ## Annotating the Source Code
 
-Now that we have our configuration set up, we can generate the annotated XML from the source code.
+Now that we have our configuration set up, we can generate the annotated
+XML from the source code.
 
-The first step in extracting useful information from source code is to convert it into a structured format. That’s where the annotate_src_text() function comes in.
+The first step in extracting useful information from source code is to
+convert it into a structured format. That’s where the
+annotate_src_text() function comes in.
 
-This function takes the source code and runs srcML on it to generate an XML file that contains annotations for all the code elements.
+This function takes the source code and runs srcML on it to generate an
+XML file that contains annotations for all the code elements.
 
 The annotate_src_text() function:
 
-- Takes in three parameters: the path to srcML, the path to the source code folder, and the path where you want to save the annotated XML.
-- Runs the srcML command with these inputs and outputs the XML file.
-Here’s how you might use it:
+-   Takes in three parameters: the path to srcML, the path to the source
+    code folder, and the path where you want to save the annotated XML.
+-   Runs the srcML command with these inputs and outputs the XML file.
+    Here’s how you might use it:
 
-``` {r eval=FALSE}
+```{r eval=FALSE}
 # Creating annotated XML from source code
 annotated_file <- annotate_src_text(
   srcml_path = srcml_path,
@@ -160,138 +184,82 @@ annotated_file <- annotate_src_text(
 )
 ```
 
-This file will be key for all further queries, as it contains the entire structure of the source code in a machine-readable format. Before we continue, lets take a look at XPath.
+This file will be key for all further queries, as it contains the entire
+structure of the source code in a machine-readable format.
 
 ## Understanding XPath and XPath Queries
 
-XPath is a tool that allows us to query XML documents. Since srcML converts source code into XML, we use XPath to navigate and extract specific elements from this structured representation.
+XPath is a query language that allows us to navigate XML documents. Since srcML
+converts source code into XML, we use XPath to navigate and extract
+specific elements from this structured representation. XPath
+expressions are essentially paths that describe how to reach specific
+parts of the XML tree. We can use XPath expressions to retrieve classes, functions, and comments, all represented as XML tags.
 
-Whether you want to retrieve class names, function declarations, or comments, XPath provides a way to get the data you need.
+#### Understanding the XML Structure
 
-What is XPath?
-XPath (XML Path Language) is a query language designed to navigate XML documents. It allows us to select nodes (such as elements or attributes) in an XML document based on certain patterns. XPath expressions are essentially paths that describe how to reach specific parts of the XML tree.
+When srcML annotates source code, it converts elements into an XML structure where code components are encapsulated within tags. For example, comments are enclosed in <comment> tags, classes in <class> tags, functions in <function> tags, and imports in <import> tags. Let’s look at an example from the Maven project:
 
-For example:
-
-//src:class/src:name: This query retrieves all name nodes inside class elements in the srcML XML.
-/project/src:package/src:name: This selects name nodes inside package elements under a project element.
-
-How XPath Queries Work in Kaiaulu:
-When we use XPath with srcML, we’re querying an XML file that represents source code. This XML has specific tags based on the structure of the code, and XPath helps us extract these elements.
-
-For instance, when querying for class names, the XML generated by srcML might look something like this:
-
-``` {xml eval=FALSE}
-<class>
-  <name>MyClass</name>
-</class>
-```
-
-Using the XPath expression //src:class/src:name, we can retrieve the value MyClass from this structure.
-
-### Writing Custom XPath Queries
-
-Now, let's walk through how to write a custom XPath query for a new function that will extract function documentation comments. For this example, we want to retrieve comments that appear directly above a function definition in the code.
-
-#### Step 1: Understanding the XML Structure
-When srcML annotates the source code, it creates an XML structure where comments are enclosed in <comment> tags, and functions are enclosed in <function> tags.
-
-Here’s an example of what this might look like in the XML:
-
-``` {xml eval=FALSE}
+```{xml eval=FALSE}
 <unit>
-  <comment>// This is a function</comment>
-  <function>
-    <name>doSomething</name>
-    <parameter_list>()</parameter_list>
-    <block> ... </block>
-  </function>
+  <import>import <name><name>org</name><operator>.</operator><name>apache</name><operator>.</operator><name>maven</name><operator>.</operator><name>artifact</name><operator>.</operator><name>resolver</name><operator>.</operator><name>filter</name><operator>.</operator><name>ArtifactFilter</name></name>;</import>
+  <comment type="block" format="javadoc">/**
+   * Default artifact implementation.
+   */</comment>
+  <class><specifier>public</specifier> class <name>DefaultArtifact</name> <block>{ ... }</block>
+</class>
 </unit>
 ```
 
-#### Step 2: Writing the XPath Query
-To extract the function comments, we want an XPath expression that targets the comment node that immediately precedes a function node.
+In this XML, <import> elements contain imported classes, <comment> tags encapsulate file-level or class-level comments, and <class> defines classes with their attributes like <specifier> (e.g., public) and <name> (e.g., DefaultArtifact). This structure allows us to use XPath to target specific elements.
 
-Here’s how you can define that query:
+#### Writing the XPath Query
 
-``` {r eval=FALSE}
-//src:function[preceding-sibling::src:comment]/preceding-sibling::src:comment
+To extract specific elements from this XML, we can write an XPath query. For example, let’s create a query to extract all class names within the XML structure, as well as the comments that precede them. Here’s how we can structure this query:
+
+```{r eval=FALSE}
+# Query to extract class comments and names
+xpath_query <- "//src:class[preceding-sibling::src:comment]/preceding-sibling::src:comment | //src:class/src:name"
 ```
 
-Explanation:
-- //src:function: This selects all function elements in the XML.
-- [preceding-sibling::src:comment]: This filters the function elements to only include those that have a comment immediately before them.
-- /preceding-sibling::src:comment: This part retrieves the actual comment node that appears before each matching function.
+This query combines two expressions:
 
-#### Step 3: Testing the XPath Query
-Once you have written the XPath query, you can test it in Kaiaulu using the query_src_text() function. Here’s an example of how to use it:
+1. //src:class[preceding-sibling::src:comment]/preceding-sibling::src:comment: Finds all comment nodes that appear directly before a class.
+2. //src:class/src:name: Retrieves the name of each class.
 
-``` 
-# Extracting function documentation comments
-function_comments <- query_src_text(
-  srcml_path = "path/to/srcML",
-  xpath_query = "//src:function[preceding-sibling::src:comment]/preceding-sibling::src:comment",
-  srcml_filepath = "path/to/output.xml"
-)
+Each part targets specific parts of the XML hierarchy, allowing us to gather relevant information about classes and their associated comments.
 
-# Display the extracted comments
-function_comments %>%
-  gt()
-```
+#### XPath Cheat Sheet
 
-This query will return a list of comments associated with each function in the code.
+Here are some additional XPath expressions that might come in handy when
+querying XML files in Kaiaulu:
 
-### XPath Cheat Sheet
+-   Selecting all elements of a specific type: //src:class - Selects all
+    class elements.
 
-Here are some additional XPath expressions that might come in handy when querying XML files in Kaiaulu:
+-   Selecting by attribute: //src:function[@name='doSomething'] -
+    Selects function elements with the attribute name equal to
+    doSomething.
 
-- Selecting all elements of a specific type:
-//src:class - Selects all class elements.
+-   Selecting based on hierarchy: /src:package/src:class/src:function -
+    Selects all function elements inside class elements, which in turn
+    are inside package elements.
 
-- Selecting by attribute:
-//src:function[@name='doSomething'] - Selects function elements with the attribute name equal to doSomething.
+-   Selecting text inside an element: //src:class/src:name/text() -
+    Retrieves the text value inside the name element of a class.
 
-- Selecting based on hierarchy:
-/src:package/src:class/src:function - Selects all function elements inside class elements, which in turn are inside package elements.
+By understanding these basic XPath expressions, you can create custom
+queries to extract any specific part of the code that’s represented in
+the XML file.
 
-- Selecting text inside an element:
-//src:class/src:name/text() - Retrieves the text value inside the name element of a class.
+## Using the Extraction Functions
 
-By understanding these basic XPath expressions, you can create custom queries to extract any specific part of the code that’s represented in the XML file.
+The following sections demonstrate each extraction function. Each function runs a specific XPath query to retrieve different elements from the XML.
 
-## Query the Annotated XML
+### Extract Classes
 
-Once we have the annotated XML file, we need a way to extract specific pieces of information from it. That’s where query_src_text() comes in. This is a function that allows you to run XPath queries on the annotated XML. 
+Retrieves class names and file paths:
 
-The query_src_text() function:
-
-- Takes in the path to srcML, the XPath query string, and the path to the XML file.
-- Returns the result of the XPath query, which could be class names, function names, or other code elements.
-
-Here’s an example of how you might use it:
-
-```
-# Running an XPath query on the annotated XML
-query_result <- query_src_text(
-  srcml_path = "path/to/srcML",
-  xpath_query = "//src:class/src:name",
-  srcml_filepath = "path/to/output.xml"
-)
-```
-
-## Extract Classes
-
-One of the most common tasks when analyzing a codebase is identifying the classes that make up the system. The query_src_text_class_names() function makes this task easy by extracting all class names from the annotated XML file.
-
-This function:
-
-- Runs a predefined XPath query that searches for all class declarations in the code.
-- Parses the XML output to extract the class names and the file paths where they are defined.
-- XPath query //src:class/src:name - Retrieves the <name> nodes inside <class> nodes.
-
-It calls query_src_text() with a specific query that looks for class names:
-
-``` {r eval=FALSE}
+```{r eval=FALSE}
 # Extracting class names from the XML
 class_names <- query_src_text_class_names(
   srcml_path = srcml_path,
@@ -303,21 +271,13 @@ class_names %>%
   gt()
 ```
 
-This function returns a table with class names and the file paths where those classes are located. It's particularly useful for gaining an overview of the structure of a project.
+This function uses XPath to retrieve all classes by finding <class> tags. This is useful for understanding the core structure of a codebase by listing the classes.
 
-## Extract Namespaces
+### Extract Namespaces
 
-Namespaces (or packages) are also important for understanding how different parts of the code are organized and how they relate to each other. The query_src_text_namespace() function extracts this information from the XML.
+Retrieves namespaces (or packages) from the XML, helping organize and locate code sections based on their namespaces:
 
-This function:
-
-- Runs an XPath query to find the package or namespace declarations in the code (depending on the programming language).
-- Returns a data table that maps the file paths to their namespaces.
-- XPath query //src:package - Retrieves the <package> nodes in the XML.
-
-Here’s how you might use it:
-
-``` {r eval=FALSE}
+```{r eval=FALSE}
 # Extracting namespaces from the XML
 namespaces <- query_src_text_namespace(
   srcml_path = srcml_path,
@@ -329,15 +289,13 @@ namespaces %>%
   gt()
 ```
 
-This is especially useful in larger projects like Maven, where code is split across multiple packages or modules, giving you a clear picture of how the project is organized.
+The function looks for <package> tags to identify namespaces, which is particularly useful in projects that follow package-based organization.
 
-## Extract File-Level Documentation
+### Extract File-Level Documentation
 
-In Maven, file-class comments appear following package or import statements.
+Retrieves file-level documentation, optionally excluding license headers:
 
-- Has a parameter exclude_license which defaults to TRUE. Set it to FALSE if you want the extraction to include licensing information (e.g. Apache Licensing Header on all files from Maven).
-
-``` {r eval=FALSE}
+```{r eval=FALSE}
 file_docs <- query_src_text_file_docs(
   srcml_path = srcml_path,
   srcml_filepath = srcml_filepath,
@@ -349,9 +307,16 @@ file_docs %>%
   gt()
 ```
 
-From the generated output table, we are able to use regular expressions to alter the output with the stringi library. For example, the out put contains empty comments /** */. We can remove these and get the table with empty comments filtered out:
+exclude_license: If TRUE, excludes comments containing license-related keywords. Defaults to TRUE.
 
-``` {r eval=FALSE}
+Useful for summarizing file-level comments or introductory documentation without including boilerplate license headers.
+
+Optional step: From the generated output table, we are able to use regular expressions
+to alter the output with the stringi library. For example, the output
+contains empty comments /\*\* \*/. We can remove these and get the table
+with empty comments filtered out:
+
+```{r eval=FALSE}
 dt_file_docs <- file_docs
 
 # Define a function to check if a comment is empty
@@ -379,7 +344,8 @@ dt_file_docs %>%
   gt()
 ```
 
-Another example is removing the comment delimiters, leaving just the plain text:
+Another example is removing the comment delimiters, leaving just the
+plain text:
 
 ```{r eval=FALSE}
 # Define a function to clean the comment text
@@ -411,13 +377,11 @@ dt_file_docs %>%
   gt()
 ```
 
-## Class-Level Documentation
+### Extract Class-Level Documentation
 
-Class-level documentation comments are essential for understanding the purpose and functionality of a class. Meaningful comments about the class appear just before the <class> tag (class definitions).
+Retrieves documentation comments directly preceding class definitions:
 
-- Has a parameter exclude_license which defaults to TRUE. Set it to FALSE if you want the extraction to include licensing information (e.g. Apache Licensing Header on all files from Maven).
-
-``` {r eval=FALSE}
+```{r eval=FALSE}
 class_docs <- query_src_text_class_docs(
   srcml_path = srcml_path,
   srcml_filepath = srcml_filepath,
@@ -429,11 +393,15 @@ class_docs %>%
   gt()
 ```
 
-## Variable Extraction
+exclude_license: If TRUE, excludes comments containing license-related keywords. Defaults to TRUE.
 
-Extracts variables. var_type param TRUE to include the types.
+Class-specific documentation is useful for providing insight into the purpose or functionality of each class.
 
-``` {r eval=FALSE}
+### Extract Variables
+
+Retrieves variables, optionally including variable types:
+
+```{r eval=FALSE}
 # Extract variables with types
 variables_with_types <- query_src_text_variables(
   srcml_path = srcml_path,
@@ -446,8 +414,13 @@ variables_with_types %>%
   gt()
 ```
 
-## Extract Functions
-With or without parameters, include_parameters = T/F
+var_type: If TRUE, includes variable types alongside names. Defaults to TRUE.
+
+Retrieves variable names, and optionally types, which can be helpful for analyzing data structures or variable usage patterns in the code.
+
+### Extract Functions
+
+Retrieves function names and optionally includes parameters:
 
 ```{r eval=FALSE}
 # Extract functions with parameters
@@ -463,22 +436,13 @@ functions_with_params %>%
 
 ```
 
+include_parameters: If TRUE, includes function parameters in the output. Defaults to TRUE.
 
+Useful for identifying function definitions and their expected inputs, helping with code comprehension and documentation.
 
-```{r eval=FALSE}
-# Extract functions without parameters
-functions_without_params <- query_src_text_functions(
-  srcml_path = srcml_path,
-  srcml_filepath = srcml_filepath,
-  include_parameters = FALSE
-)
+### Extract Imports
 
-# Display the result
-functions_without_params %>%
-  gt()
-```
-
-## Extract Imports
+Extracts all import statements, indicating dependencies or external packages used by the project:
 
 ```{r eval=FALSE}
 # Extract functions without parameters
@@ -492,7 +456,13 @@ imports %>%
   gt()
 ```
 
-``` {r eval=FALSE}
+Lists all imported libraries or packages, showing a clear view of dependencies or third-party tools integrated into the codebase.
+
+### Extract Packages
+
+Retrieves package names and their associated file paths:
+
+```{r eval=FALSE}
   
 packages <- query_src_text_packages(
   srcml_path = srcml_path,
@@ -504,10 +474,11 @@ packages %>%
   gt()  
 ```
 
+Shows the package structure, which aids with understanding how code is modularized or grouped in the project.
 
-## Combined Queries
+### Combined Queries
 
-To join two queries into one table, e.g. file and class level documentation:
+You can combine queries, such as file and class-level documentation, into one table for easier comparison:
 
 ```{r eval=FALSE}
 # Extract file-level comments
@@ -534,7 +505,3 @@ comments_combined <- merge(
 comments_combined %>%
   gt()
 ```
-
-
-
-
