@@ -1,0 +1,63 @@
+#!/usr/local/bin/Rscript
+
+# Kaiaulu - https://github.com/sailuh/kaiaulu
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+require(yaml,quietly=TRUE)
+require(cli,quietly=TRUE)
+require(docopt,quietly=TRUE)
+require(kaiaulu,quietly=TRUE)
+require(data.table,quietly=TRUE)
+require(stringi,quietly=TRUE)
+require(XML,quietly=TRUE)
+require(gt,quietly=TRUE)
+
+
+doc <- "
+USAGE:
+  annotate.R annotate help
+  annotate.R annotate <tools.yml> <maven.yml> <srcml_filepath>
+  annotate.R (-h | --help)
+  annotate.R --version
+
+DESCRIPTION:
+  Provides a function to interact with Kaiaulu's Syntax Extractor,
+  to generate an annotated XML file. Please see
+  Kaiaulu's README.md for instructions on how to create <tool.yml>
+  and <maven.yml>.
+
+
+OPTIONS:
+  -h --help     Show this screen.
+  --version     Show version.
+"
+
+
+
+arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9600')
+if(arguments[["annotate"]] & arguments[["help"]]){
+  cli_alert_info("Annotates source code using srcML.")
+}else if(arguments[["annotate"]]){
+
+  tools_path <- arguments[["<tools.yml>"]]
+  conf_path <- arguments[["<project_conf.yml>"]]
+  srcml_filepath <- arguments[["<srcml_filepath>"]]
+
+  tool <- yaml::read_yaml(tools_path)
+  conf <- yaml::read_yaml(conf_path)
+
+  srcml_path <- path.expand(tool[["srcml"]])
+  src_folder <- path.expand(conf[["srcml"]][["src_folder"]])
+  srcml_filepath <- path.expand(conf[["srcml"]][["srcml_filepath"]])
+
+  annotated_file <- annotate_src_text(
+    srcml_path = srcml_path,
+    src_folder = src_folder,
+    srcml_filepath = srcml_filepath
+  )
+
+  cli_alert_success(paste0("Annotated xml was saved at: ",srcml_filepath))
+}
