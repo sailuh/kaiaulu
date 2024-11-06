@@ -182,9 +182,9 @@ openhub_parse_portfolio_projects <- function(api_responses, openhub_api_paramete
     parsed_response <- list()
     if (status == "success") {
       for (i in 1:itemsReturned) {
-        if (XML::xmlValue(returnItems[[1]][[i]][[3]]) == language) {
+        if (stringi::stri_detect_regex(XML::xmlValue(returnItems[[1]][[i]][[3]]), language, case_insensitive = TRUE)) {
           parsed_response[["name"]] <- append(parsed_response[["name"]], XML::xmlValue(returnItems[[1]][[i]][[1]])) # means <result><portfolio_projects><project><name>
-          parsed_response[["language"]] <- append(parsed_response[["language"]], XML::xmlValue(returnItems[[1]][[i]][[3]])) # means <result><portfolio_projects><project><primary_language>
+          parsed_response[["primary_language"]] <- append(parsed_response[["primary_language"]], XML::xmlValue(returnItems[[1]][[i]][[3]])) # means <result><portfolio_projects><project><primary_language>
           parsed_response[["activity"]] <- append(parsed_response[["activity"]], XML::xmlValue(returnItems[[1]][[i]][[2]])) # means <result><portfolio_projects><project><activity>
         }
       }
@@ -228,6 +228,22 @@ openhub_parse_projects <- function(api_responses, openhub_api_parameters) {
         if (XML::xmlValue(returnItems[[i]][[2]]) == project_name) {
           parsed_response[["name"]] <- append(parsed_response[["name"]], XML::xmlValue(returnItems[[i]][[2]])) # means <result><project><name>
           parsed_response[["id"]] <- append(parsed_response[["id"]], XML::xmlValue(returnItems[[i]][[1]])) # means <result><project><id>
+          parsed_response[["html_url"]] <- append(parsed_response[["html_url"]], XML::xmlValue(returnItems[[i]][[4]])) # means <result><project><html_url>
+          links_tag <- returnItems[[i]][[23]] # <links> tag (sometimes present in a project's api response)
+          mailing_list <- "N/A"
+          if (!is.null(links_tag)) {
+            links <- XML::xmlChildren(links_tag)
+            for (i in seq_along(links)) {
+              link <- links[[i]] # i-th <link> tag in <links>
+              link_title <- stringi::stri_detect_regex(XML::xmlValue(link[[1]]), "Mailing List", case_insensitive = TRUE) # checks <title> in specific the <link> to see if "Mailing List" is contained, case insensitive
+              link_category <- stringi::stri_detect_regex(XML::xmlValue(link[[3]]), "Mailing List", case_insensitive = TRUE) # checks <category> in specific the <link> to see if "Mailing List" is contained, case insensitive
+              if (link_title || link_category) {
+                mailing_list <- XML::xmlValue(link[[2]]) # <url> in the specific <link> tag
+                break
+              }
+            }
+          }
+          parsed_response[["mailing_list"]] <- append(parsed_response[["mailing_list"]], mailing_list) # means <result><project><links><link><url> specific link that has a mailing list or not found (N/A)
           break
         }
       }
@@ -262,11 +278,22 @@ openhub_parse_analyses <- function(api_responses) {
     parsed_response <- list()
     if (status == "success") {
       parsed_response[["id"]] <- append(parsed_response[["id"]], XML::xmlValue(returnItems[[1]][[3]])) # primary key link to other data tables that possess the "id" key
+      parsed_response[["min_month"]] <- append(parsed_response[["min_month"]], stri_replace_all_regex(XML::xmlValue(returnItems[[1]][[6]]), "-\\d{2}$", "")) # means <result><analysis><min_month> truncated day because it is meaningless (always 01), only YYYY-MM is relevant
       parsed_response[["twelve_month_contributor_count"]] <- append(parsed_response[["twelve_month_contributor_count"]], XML::xmlValue(returnItems[[1]][[8]])) # means <result><analysis><twelve_month_contributor_count>
       parsed_response[["total_contributor_count"]] <- append(parsed_response[["total_contributor_count"]], XML::xmlValue(returnItems[[1]][[9]])) # means <result><analysis><total_contributor_count>
       parsed_response[["twelve_month_commit_count"]] <- append(parsed_response[["twelve_month_commit_count"]], XML::xmlValue(returnItems[[1]][[10]])) # means <result><analysis><twelve_month_commit_count>
       parsed_response[["total_commit_count"]] <- append(parsed_response[["total_commit_count"]], XML::xmlValue(returnItems[[1]][[11]])) # means <result><analysis><total_commit_count>
       parsed_response[["total_code_lines"]] <- append(parsed_response[["total_code_lines"]], XML::xmlValue(returnItems[[1]][[12]])) # means <result><analysis><total_code_lines>
+      languages <- XML::xmlChildren(returnItems[[1]][[14]]) # <languages> children tags
+      code_languages_data_text <- list()
+      for (i in seq_along(languages)) {
+        language <- languages[[i]]
+        code_language_percentage <- paste0(XML::xmlGetAttr(language, "percentage"), "%") # adds a percentage symbol to the end of the percentage value for the code language
+        code_language <- stringi::stri_trim_both(stringi::stri_replace_all_fixed(XML::xmlValue(language), "\n", "")) # grabs code language text, then removes spaces and new line characters
+        code_languages_data_text[[i]] <- paste(code_language_percentage, code_language)
+      }
+      code_languages_data_text <- paste(code_languages_data_text, collapse = ", ")
+      parsed_response[["code_languages"]] <- append(parsed_response[["code_languages"]], code_languages_data_text)
     } else {
       warning(status) # prints the status warning message
     }

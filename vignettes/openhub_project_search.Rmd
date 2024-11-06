@@ -31,6 +31,7 @@ Please ensure the following R packages are installed on your computer.
 ```{r warning = FALSE, message = FALSE}
 rm(list = ls())
 require(kaiaulu)
+require(stringi)
 require(data.table)
 require(knitr)
 require(httr)
@@ -53,7 +54,7 @@ Explanation:
 
 * openhub_api_parameters: A list containing key-value pairs of parameters to pass into the `openhub_*` functions. The following key names are valid and are required for proper execution (`openhub_*` functions possess documentation that detail the key-value pairs required for proper execution): organization_name, language, portfolio_project_site, project_name, project_id
 * organization_name: The name of the organization (case sensitive).
-* language: The code language to filter for projects only containing the specified code language (case sensitive).
+* language: The code language to filter for projects only containing the specified code language (case insensitive).
 * token: The file named "openhub_token" containing the OpenHub API Token.
 
 # Collecting and Parsing Data via Ohloh API
@@ -98,7 +99,7 @@ portfolio_projects_api_requests <- openhub_api_iterate_pages(token, openhub_api_
 We ensure that `openhub_api_parameters` possesses the "language" key-value pair and pass the portfolio_projects API requests into its corresponding parser function to acquire a data table with columns representing the tags for each portfolio project listed:
 
 * name: The name of the portfolio project.
-* language: The primary code language used by the portfolio project.
+* primary_language: The primary code language used by the portfolio project.
 * activity: The portfolio project's activity level (Very Low, Low, Moderate, High, and Very High).
 
 ```{r, eval = FALSE}
@@ -123,6 +124,9 @@ With the list of project API requests, we perform another for loop to parse thes
 
 * name: The name of the project.
 * id: The project's unique ID.
+* html_url: The project's url to the current Project's details page on OpenHub.
+* mailing_list: The project's mailing list url link (if "N/A", please check the project's url (html_url) and verify under the links section to verify that the project doesn't have a mailing list to be certain).
+
 
 ```{r, eval = FALSE}
 openhub_projects <- list()
@@ -158,11 +162,13 @@ for (i in 1:length(openhub_combined_projects[["name"]])) {
 With the list of analysis API requests, we perform another for loop to parse these responses to acquire a data table with columns representing the tags for each analysis listed:
 
 * id: The project's unique ID.
+* min_month: OpenHub's first recorded year and month of the project's data (typically the date of the project's first commit, YYYY-MM format).
 * twelve_month_contributor_count: The number of contributors who made at least one commit to the project source code in the past twelve months.
 * total_contributor_count: The total number of contributors who made at least one commit to the project source code since the project's inception.
 * twelve_month_commit_count: The total number of commits to the project source code in the past twelve months.
 * total_commit_count: The total number of commits to the project source code since the project's inception.
 * total_code_lines: The most recent total count of all source code lines.
+* code_languages: A language breakdown with percentages for each substantial (as determined by OpenHub, less contributing languages are grouped and renamed as "Other") contributing language in the project's source code.
 
 ```{r, eval = FALSE}
 openhub_analyses <- list()
