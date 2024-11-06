@@ -35,15 +35,13 @@ OPTIONS:
   --version     Show version.
 "
 
-
-
 arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9600')
 if(arguments[["annotate"]] & arguments[["help"]]){
   cli_alert_info("Annotates source code using srcML.")
 }else if(arguments[["annotate"]]){
 
   tools_path <- arguments[["<tools.yml>"]]
-  conf_path <- arguments[["<project_conf.yml>"]]
+  conf_path <- arguments[["<maven.yml>"]]
   srcml_filepath <- arguments[["<srcml_filepath>"]]
 
   tool <- yaml::read_yaml(tools_path)
