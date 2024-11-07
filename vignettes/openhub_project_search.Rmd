@@ -18,6 +18,12 @@ Kaiaulu's interface to Ohloh's API, an API for OpenHub's open-source project col
 
 In essence, Kaiaulu only defines a few API endpoints of interest ([organization-collection](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/organization-collection.md), [portfolio_projects](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/portfolio_projects.md), [project](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/project.md), and [analysis](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/analysis.md)) where the tool is currently used, and parses the returned XML output into a table keeping only fields of interest. More endpoints and/or fields of interest per endpoint can be added in the future.
 
+## Project Labeling Commits with Issue IDs
+
+If you're interested in verifying if a project labels their commits with issue IDs and whether they have unique issue types (i.e. "bug", "feature", "security bug", "refactoring", etc), which is outside of the scope of this notebook, please see [this issue comment](https://github.com/sailuh/kaiaulu/issues/317#issuecomment-2456153693). A summary of the relevant text is shown below:
+
+> To check the issue IDs, it requires you to parse the project's code git log. Then you can use [this function](http://itm0.shidler.hawaii.edu/kaiaulu/reference/commit_message_id_coverage.html) on the resulting table. See [this notebook](http://itm0.shidler.hawaii.edu/kaiaulu/articles/bug_count.html#identifying-issue-ids-in-commit-messages) for example usage. This notebook uses the regex written in the project configuration file, which is a regex. The user will need to manually figure out from the git log if any can be found, to then specify in Kaiaulu config, to then have Kaiaulu calculate the metric. There is no other way to automate that since the conventions used vary across projects, if at all used.
+
 ## Create a Personal API Token
 
 OpenHub has a limit to the number of API calls per token (maximum set to 1000) per day. The current rate for your personal API token and to acquire an API key, they may be found at [its website](https://www.openhub.net/accounts/me/api_keys) and an account is required to acquire your personal API token. The process should not take more than two minutes.
@@ -178,6 +184,8 @@ for (i in 1:length(analyses_api_requests)) {
 openhub_analyses <- rbindlist(openhub_analyses)
 kable(openhub_analyses)
 ```
+
+## Combining the Data
 
 We combine the combined portfolio_projects and project data table, `openhub_combined_projects`, with the analysis data table, `openhub_analyses`, into one data table, `openhub_combined_data`, by performing an inner-join by "id" column.
 
