@@ -10,7 +10,7 @@ require(XML, quietly = TRUE)
 
 doc <- "
 USAGE:
-  query.R query <tools.yml> <project_conf.yml> <srcml_filepath> [--namespace | --file-docs | --class-docs | --variables | --packages | --functions | --imports]
+  query.R query <tools.yml> <project_conf.yml> <srcml_filepath> [--namespace | --file-docs | --class-docs | --variables | --packages | --functions | --imports | --class-names]
 
 DESCRIPTION:
   Runs a specified query on the annotated XML file and saves the output to the appropriate path.
@@ -23,6 +23,7 @@ OPTIONS:
   --packages       Run the packages query.
   --functions      Run the functions query.
   --imports        Run the imports query.
+  --class-names    Run the class names query.
 "
 
 arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9600')
@@ -45,6 +46,9 @@ if (!dir.exists(output_folder)) {
 if (arguments[["--namespace"]]) {
   output_file <- file.path(output_folder, "namespace_output.csv")
   query_result <- query_src_text_namespace(srcml_path, srcml_filepath)
+} else if (arguments[["--class-names"]]) {
+  output_file <- file.path(output_folder, "class_names_output.csv")
+  query_result <- query_src_text_class_names(srcml_path, srcml_filepath)
 } else if (arguments[["--file-docs"]]) {
   output_file <- file.path(output_folder, "file_docs_output.csv")
   query_result <- query_src_text_file_docs(srcml_path, srcml_filepath)
