@@ -579,6 +579,30 @@ get_github_commit_path <- function(config_file, project_key_index) {
   return(commit_path)
 }
 
+#' Returns the local folder path for Github Discussions for a specific project key.
+#'
+#' @description This function returns the local folder path for GitHub discussions
+#' for a specific project key, that is specified in the input
+#' parameter `config_file`. The input, `config_file` must be a parsed
+#' configuration file. The function will inform the user if the local folder
+#' path for the discussions exists in the parsed configuration file,
+#' `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
+#' @return The local folder path for GitHub Discussions for project specified by key `project_key_index`.
+#' @export
+get_github_discussions_path <- function(config_file, project_key_index) {
+
+  discussion_path <- config_file[["issue_tracker"]][["github"]][[project_key_index]][["discussion"]]
+
+  if (is.null(discussion_path)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(discussion_path)
+}
+
 ### Bugzilla Functions #####
 
 #' Returns the name of the Bugzilla project key for a specific project key index.

@@ -312,6 +312,7 @@ github_api_project_issue_or_pr_comments <- function(owner,repo,token){
          per_page=100,
          .token=token)
 }
+
 #' Parse Issues' or Pull Requests' Comments JSON to Table
 #'
 #' Note not all columns available in the downloaded json are parsed.
@@ -336,6 +337,7 @@ github_parse_project_issue_or_pr_comments <- function(api_responses){
   }
   rbindlist(lapply(api_responses,parse_response),fill=TRUE)
 }
+
 #' Download Project Commits
 #'
 #' Download Commits from "GET /repos/{owner}/{repo}/commits" endpoint.
@@ -356,6 +358,7 @@ github_api_project_commits <- function(owner,repo,token){
          per_page=100,
          .token=token)
 }
+
 #' Parse Commits JSON to Table
 #'
 #' Note not all columns available in the downloaded json are parsed.
@@ -380,6 +383,111 @@ github_parse_project_commits <- function(api_responses){
   rbindlist(lapply(api_responses,parse_response),fill=TRUE)
 }
 
+#' Download Discussions
+#'
+#' Download Discussions from GraphQL endpoint.
+#'
+#' @param token Your Github API token
+#' @param owner Github's repository owner (e.g. sailuh)
+#' @param repo Github's repository name (e.g. kaiaulu)
+#' @export
+github_api_discussions <- function(token, owner, repo){
+
+  query <- paste0('query {
+      repository (owner:"', owner, '", name:"', repo, '") {
+        discussions (first: 100) {
+          edges {
+            node {
+              title
+              bodyText
+              author { login }
+              createdAt
+              category { name }
+              id
+              answer { id }
+              comments(first: 5) {
+                edges {
+                  node {
+                    discussion { id }
+                    bodyText
+                    author { login }
+                    id
+                    createdAt
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }'
+  )
+
+  gh::gh("POST /graphql", query=query, .token=token)
+}
+
+#' Parse Discussions JSON to Table
+#'
+#' @description This function parses through the JSON of Github Discussions
+#' downloaded from the `github_api_discussions` function, and turns it into
+#' a table. This function does not parse the data for the discussion comments.
+#'
+#' @param api_responses API response obtained from `github_api_discussions` function.
+#' @return The parsed table on the discussions.
+#' @export
+github_parse_discussions <- function(api_response) {
+  parsed_response <- list()
+  parsed_response[["author_login"]] <- unlist(lapply(api_response[["data"]][["repository"]][["discussions"]][["edges"]],
+                                              function(edge) { edge[["node"]][["author"]][["login"]] }))
+  parsed_response[["title"]] <- unlist(lapply(api_response[["data"]][["repository"]][["discussions"]][["edges"]],
+                                       function(edge) { edge[["node"]][["title"]] }))
+  parsed_response[["discussion_id"]] <- unlist(lapply(api_response[["data"]][["repository"]][["discussions"]][["edges"]],
+                                               function(edge) { edge[["node"]][["id"]] }))
+  parsed_response[["created_at"]] <- unlist(lapply(api_response[["data"]][["repository"]][["discussions"]][["edges"]],
+                                            function(edge) { edge[["node"]][["createdAt"]] }))
+  parsed_response[["category_name"]] <- unlist(lapply(api_response[["data"]][["repository"]][["discussions"]][["edges"]],
+                                               function(edge) { edge[["node"]][["category"]][["name"]] }))
+  parsed_response[["answer_id"]] <- unlist(lapply(api_response[["data"]][["repository"]][["discussions"]][["edges"]],
+                                           function(edge) { edge[["node"]][["answer"]][["id"]] %||% NA}))
+  parsed_response[["body"]] <- unlist(lapply(api_response[["data"]][["repository"]][["discussions"]][["edges"]],
+                                      function(edge) { edge[["node"]][["bodyText"]] }))
+
+  parsed_response <- as.data.table(parsed_response)
+
+  return(parsed_response)
+}
+
+#' Parse Discussions JSON to Table
+#'
+#' @description This function parses through the JSON of Github Discussions
+#' downloaded from the `github_api_discussions` function, and turns it into
+#' a table. This function only parses through the Discussion comments within
+#' the JSON, and does not parse the discussion themselves.
+#'
+#' @param api_response API response obtained from `github_api_discussions` function.
+#' @return The parsed table of Discussion Comments.
+#' @export
+github_parse_discussion_comments <- function(api_response) {
+  parsed_response <- list()
+  parsed_response[["parent_discussion_id"]] <- unlist(lapply(api_response[["data"]][["repository"]][["discussions"]][["edges"]],
+                                                       function(edge) { lapply(edge[["node"]][["comments"]][["edges"]],
+                                                                               function(edge) {edge[["node"]][["discussion"]][["id"]]}) }))
+  parsed_response[["comment_id"]] <- unlist(lapply(api_response[["data"]][["repository"]][["discussions"]][["edges"]],
+                                                       function(edge) { lapply(edge[["node"]][["comments"]][["edges"]],
+                                                                               function(edge) {edge[["node"]][["id"]]}) }))
+  parsed_response[["comments_author_login"]] <- unlist(lapply(api_response[["data"]][["repository"]][["discussions"]][["edges"]],
+                                                       function(edge) { lapply(edge[["node"]][["comments"]][["edges"]],
+                                                                               function(edge) {edge[["node"]][["author"]][["login"]]}) }))
+  parsed_response[["comments_created_at"]] <- unlist(lapply(api_response[["data"]][["repository"]][["discussions"]][["edges"]],
+                                                     function(edge) { lapply(edge[["node"]][["comments"]][["edges"]],
+                                                                             function(edge) {edge[["node"]][["createdAt"]]}) }))
+  parsed_response[["comments_body"]] <- unlist(lapply(api_response[["data"]][["repository"]][["discussions"]][["edges"]],
+                                               function(edge) { lapply(edge[["node"]][["comments"]][["edges"]],
+                                                                       function(edge) {edge[["node"]][["bodyText"]]}) }))
+  parsed_response <- as.data.table(parsed_response)
+
+  return(parsed_response)
+}
 
 #' Download Project Contributors
 #'

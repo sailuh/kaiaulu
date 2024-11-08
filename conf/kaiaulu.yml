@@ -88,6 +88,7 @@ issue_tracker:
       issue_event: ../../rawdata/kaiaulu/github/issue_event/sailuh_kaiaulu/
       pull_request: ../../rawdata/kaiaulu/github/pull_request/sailuh_kaiaulu/
       commit: ../../rawdata/kaiaulu/github/commit/sailuh_kaiaulu/
+      discussion: ../../rawdata/kaiaulu/github/discussion/sailuh_kaiaulu/
 #     project_key_2:
 #       # Obtained from the project's GitHub URL
 #       owner: ssunoo2

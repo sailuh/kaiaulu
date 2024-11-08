@@ -51,6 +51,7 @@ repo <- get_github_repo(conf, "project_key_1") # Has to match github repository 
 save_path_issue_or_pr_comments <- path.expand(get_github_issue_or_pr_comment_path(conf, "project_key_1"))
 save_path_issue_event <- get_github_issue_event_path(conf, "project_key_1")
 save_path_commit <- get_github_commit_path(conf, "project_key_1")
+save_path_discussions <- get_github_discussions_path(conf, "project_key_1")
 # your file github_token contains the GitHub token API obtained in the steps above
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 ```
@@ -77,11 +78,26 @@ gh_response <- github_api_project_commits(owner,repo,token)
 github_api_iterate_pages(token,gh_response,save_path_commit,prefix="commit")
 ```
 
+# Downloading Github Discussions
+
+We obtain the raw data from Github Discussions and Discussion Comments using the GraphQL API endpoint.
+
+```{r Collect Github Discussions, eval = FALSE}
+gh_response <- github_api_discussions(token, owner, repo)
+github_api_iterate_pages(token, gh_response, save_path_discussions, prefix="discussion")
+```
+
+```{r}
+gh_response <- github_api_discussions(token, owner, repo)
+github_parse_discussions(gh_response)
+github_parse_discussion_comments(gh_response)
+```
+
 # Parsing Raw Data to Csv
 
 To parse raw data, we use the associated endpoint parser functions. Keep in mind these functions only parse a subset of all the information in the json ("column wise"). Please consult with the GitHub API or inspect the raw data directly to see all information which is available. 
 
-```{r}
+```{r Parse the Github Issue Events}
 all_issue_event <- lapply(list.files(save_path_issue_event,full.names = TRUE),read_json)
 all_issue_event <- lapply(all_issue_event,github_parse_project_issue_events)
 all_issue_event <- rbindlist(all_issue_event,fill=TRUE)
@@ -89,7 +105,7 @@ all_issue_event[,issue_body:=NULL] # removing column just to prevent html render
 kable(head(all_issue_event))
 ```
 
-```{r}
+```{r Parse the Github Commits}
 all_commit <- lapply(list.files(save_path_commit,full.names = TRUE),read_json)
 all_commit <- lapply(all_commit,github_parse_project_commits)
 all_commit <- rbindlist(all_commit,fill=TRUE)
