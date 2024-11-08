@@ -37,7 +37,7 @@ conf <- yaml::read_yaml(conf_path)
 srcml_path <- path.expand(tool[["srcml"]])
 
 # Set output folder path
-output_folder <- "../../analysis/maven/queries"
+output_folder <- "../analysis/maven/queries"
 if (!dir.exists(output_folder)) {
   dir.create(output_folder, recursive = TRUE)
 }
@@ -75,6 +75,6 @@ if (arguments[["--namespace"]]) {
 plain_text_output <- apply(query_result, 1, function(row) paste(row, collapse = " "))
 
 # Save to file
-writeLines(plain_text_output, output_file)
+write.table(query_result, output_file, row.names = FALSE, col.names = FALSE, sep = ",", quote = FALSE)
 cli_alert_success(paste0("Query results saved for fastText at: ", output_file))
 
