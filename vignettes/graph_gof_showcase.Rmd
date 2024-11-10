@@ -12,9 +12,34 @@ vignette: >
 
 # Introduction
 
-This notebook provides a brief introduction to the early version of the **GoF** module (in particular Tsantalis pattern4.jar), using some parts of the **Text** module to identify some of the Gang of Four (GoF) Design Patterns in source code [pattern4.jar](https://users.encs.concordia.ca/~nikolaos/pattern_detection.html).
+> "The Gang of Four (GoF) Design Patterns, introduced in the book “Design Patterns: Elements of Reusable Object-Oriented Software,” authored by Erich Gamma, Richard Helm, Ralph Johnson, and John Vlissides, provide a catalog of proven solutions to common design problems in software development. The GoF Design Patterns encourage best practices, code reusability, and the separation of concerns, aiding in the development of robust and scalable applications."
+- [GeeksForGeeks](https://www.geeksforgeeks.org/gang-of-four-gof-design-patterns/) (2023)
+
+Analyzing a project to detect if such design patterns exist is difficult, as doing so manually takes time to understand the code base, let alone making a custom code to detect syntax and meta relationships. However, with a GoF module (in particular Tsantalis pattern4.jar) that allows us to find such patterns within compiled Java projects. With all that in mind, the reason why we would want to find such patterns is to find out the frequency and where a design GoF design pattern is used within external Java projects. (For a deeper understanding of design patterns in Java, here is a [Java Design Pattern Repository](https://github.com/iluwatar/java-design-patterns) that showcases some).
+
+In short: this notebook provides a brief introduction to the early version of the **GoF** module , using some parts of the **Text** module to identify some of the GoF Design Patterns in source code.
 
 # Setup
+
+Before we begin, ensure that you download Tsantalis [pattern4.jar](https://users.encs.concordia.ca/~nikolaos/pattern_detection.html) and remember where it is saved. To analyze the data that the pattern4.jar generates, we will be using [srcml](https://www.srcml.org) to query against the bytecode analysis of pattern4.
+
+Preparing the Java project for analysis is also important, but keep in mind: not all projects will generate results (as they might not have implemented GoF design patterns)- especially smaller ones! For this purpose, retrieving the .git of the project you are analyzing and compiling the project to retrieve their .class files is paramount!
+
+## Compiling Java Projects
+
+As a short aside, compilation of Java projects is a complex and varied affair. Some projects specify what compilation software they use, while others do not offer such assistance. However, all Java projects require the [Java SDK](https://www.oracle.com/java/technologies/downloads/) to compile- so ensuring this is on your system is necessary before even attempting to compile. It is recommended to use the latest Long-Term Support JDK version, as most software reliably runs on it.
+
+To give an idea about Java compilation, below is a set of projects that use different compilation methods. We will also link to the software that they use. Determining what you should use depends if the project is configured for a certain software or not already, or even whatever software you are comfortable with using. Most well-developed projects describe the building process using their software of choice in their READMEs. The following list is a subset of the top repositories for Java projects, where the two most popular compilation/building software were the primary methods of compilation: Maven (aka Apache Maven) and Gradle. (Note that the projects below are not recommended for use in this notebook)
+
+- [Spring Cloud Alibaba](https://github.com/alibaba/spring-cloud-alibaba): [Maven (aka Apache Maven)](https://maven.apache.org)
+- [FastJSON](https://github.com/alibaba/fastjson): [Maven (aka Apache Maven)](https://maven.apache.org) or [Gradle](https://gradle.org)
+- [Mindustry](https://github.com/Anuken/Mindustry): [Gradle](https://gradle.org)
+
+There will be times when projects do not explicitly say how they build, so do keep in mind that you will find some difficulty in analyzing such projects. Despite that, gaining familiarity with compiling with these two command-line tools should allow for the compilation of the majority of Java projects on the market.
+
+After compiling the project, locating the folder where all the .class files were generated during compilation and remembering it is necessary to configure the notebook.
+
+## Notebook Setup and Library Requirements
 
 ```{r}
 rm(list = ls())
@@ -34,65 +59,22 @@ require(magrittr)
 require(gt)
 ```
 
-# The Graph Approach
-
-The graph approach uses Tsantalis [pattern4.jar](https://users.encs.concordia.ca/~nikolaos/pattern_detection.html). As with other third party tools, you should specify the path to the jar in the `tools.yml` and provide the necessary parameters of the project configuration file. 
-
-// PROPOSED EDIT: Leave The Graph Approach section as an explanation of the approach rather than delving into configuring the tools.yml. If it only serves as to point to where they should be getting the jar, maybe a reworking of this section would be necessary- while configuring tools.yml to point to their installed jar should be included in the next section. 
 
 # Project Configuration Files
 
-// PROPOSED EDIT: Inserting where and what I should be changing to point to the jar here. Something like: "Now with the pattern4.jar installed, in the Kaiaulu folder is a tools.yml file. Changing the pattern4 variable there..." would be sufficient in guiding the user. Then an explanation on what, how, why, etc. can be inserted afterwards.
+Analyzing open source projects often requires some manual work on your part to find where the open source project hosts its code base and mailing list. Instead of hard-coding this in Notebooks, we keep this information in a project configuration file, relevantly:
 
-Analyzing open source projects often requires some manual work on your part to find where the open source project hosts its codebase and mailing list. Instead of hard-coding this on Notebooks, we keep this information in a project configuration file. Here's the minimal information this Notebook requires in a project configuration file:
+- ../tools.yml: 
+  - The file path to your pattern4.jar (located under pattern4)*
+  - The file path to the srcml folder you installed (located under srcml)*
+- ../conf/junit5.yml: 
+  - The file path to the .git of the project repository you are analyzing (located under version_control/log)*
+  - The file path to where you wish to store the srcml output of the project (located under tool/srcml/srcml_path)
+  - The file path to where you have the class files (located under tool/pattern4/class_folder_path)*
+  - The file path to where you wish to store the output of pattern4: an xml file (located under tool/pattern4/output_filepath)
+  - Filters to exclude and include files with specific endings (located under filter)
 
-// PROPOSED EDIT: This part was confusing to me stepping in: I was confused whether I should find the configuration file (if it existed) or if I should edit the values in this yaml bit. A user should not have to read the code block (which requires an understanding of R) to glean where they should go (in this case tools.yml and /conf/junit5.yml respectively). Clearing up where they should be changing the files explicitly helps reduce the confusion, as well as explaining why we've put this yaml block below or possibly removing it from this notebook and having more explanatory comments in the junit5.yml.
-
-```yaml
-project:
-  website: https://github.com/junit-team/junit5/
-  #openhub: https://www.openhub.net/p/apache_portable_runtime
-
-version_control:
-  # Where is the git log located locally?
-  # This is the path to the .git of the project repository you are analyzing.
-  # The .git is hidden, so you can see it using `ls -a`
-  log: ../../rawdata/git_repo/junit5/.git
-  # From where the git log was downloaded?
-  log_url: https://github.com/junit-team/junit5/
-  # List of branches used for analysis
-  branch:
-    - main
-    
-filter:
-  keep_filepaths_ending_with:
-    - cpp
-    - c
-    - h
-    - java
-    - js
-    - py
-    - cc
-  remove_filepaths_containing:
-    - test
-    - java_code_examples
-
-tool:
- # srcML allow to parse src code as text (e.g. identifiers)
-  srcml:
-    # The file path to where you wish to store the srcml output of the project
-    srcml_path: ../../analysis/depends/srcml_depends.xml
-  pattern4:
-    # The file path to where you wish to store the srcml output of the project
-    class_folder_path: ../../rawdata/git_repo/junit5/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
-    compile_note: >
-      1. Switch Java version to Java 17:
-         https://stackoverflow.com/questions/69875335/macos-how-to-install-java-17
-      2. Disable VPN to pull modules from Gradle Plugin Portal.
-      3. Use sudo ./gradlew build
-      4. After building, locate the engine class files and specify as the class_folder_path:
-         in this case they are in: /path/to/junit5/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
-```
+The variables that we are initializing are located in these yml configuration files. Please do note that the variables are strings, and a majority are file paths that point somewhere on your machine. The configuration information that it is recommended you check (and most likely have to change) are denoted with a "*". Locate these variables and change them to the correct filepath as necessary.
 
 
 ```{r}
@@ -114,7 +96,6 @@ file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
 substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
 ```
 
-This is all the project configuration files are used for. If you inspect the variables above, you will see they are just strings. As a reminder, the tools.yml is where you store the filepaths to third party software in your computer. Please see Kaiaulu's README.md for details. As a rule of thumb, any R Notebooks in Kaiaulu load the project configuration file at the start, much like you would normally initialize variables at the start of your source code.
 
 # Obtaining GoF Patterns
 
