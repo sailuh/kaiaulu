@@ -77,8 +77,8 @@ issue_tracker:
       domain: https://issues.apache.org/jira
       project_key: CAMEL
       # Download using `download_jira_data.Rmd`
-      issues: ../../rawdata/camel/jira/issues/camel/
-      issue_comments: ../../rawdata/camel/jira/issue_comments/camel/
+      issues: ../../rawdata/camel/jira/issues/
+      issue_comments: ../../rawdata/camel/jira/issue_comments/
 #   github:
 #     project_key_1:
 #       # Obtained from the project's GitHub URL
@@ -162,7 +162,7 @@ tool:
     # The project folder path to store various intermediate
     # files for DV8 Analysis
     # The folder name will be used in the file names.
-    folder_path: ../../analysis/camel/dv8/
+    folder_path: ../../analysis/camel/dv8/camel_1_6
     # the architectural flaws thresholds that should be used
     architectural_flaws:
       cliqueDepends:

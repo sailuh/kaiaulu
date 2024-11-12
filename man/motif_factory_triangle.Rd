@@ -22,9 +22,9 @@ in IEEE Transactions on Software Engineering, vol. 48, no. 8, pp. 3159-3184,
 }
 \seealso{
 Other motif: 
-\code{\link{motif_factory}()},
 \code{\link{motif_factory_anti_square}()},
 \code{\link{motif_factory_anti_triangle}()},
-\code{\link{motif_factory_square}()}
+\code{\link{motif_factory_square}()},
+\code{\link{motif_factory}()}
 }
 \concept{motif}

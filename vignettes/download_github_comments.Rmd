@@ -169,7 +169,7 @@ Note because we obtain the authors and committers name and e-mail, **only commen
 
 Below we show the result of such merge, including the name and e-mail fields obtained from the commit table. As before, we do not display the body column to prevent breaking the HTML format. 
 
-```{r}
+```{r eval = FALSE}
 replies <- parse_github_replies(save_path_issue_or_pr_comments)
 
 tail(replies,2)  %>%
