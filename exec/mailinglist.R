@@ -14,8 +14,8 @@ require(data.table, quietly = TRUE)
 
 doc <- "
 USAGE:
-  mailinglist.R tabulate help
-  mailinglist.R tabulate <tools.yml> <project_conf.yml> <project_key> <save_file_name_path>
+  mailinglist.R parse help
+  mailinglist.R parse <tools.yml> <project_conf.yml> <project_key> <save_file_name_path>
   mailinglist.R download modmbox help
   mailinglist.R download modmbox <project_conf.yml> <project_key> <start_year_month>
   mailinglist.R download pipermail help
@@ -35,9 +35,9 @@ OPTIONS:
 
 arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9700')
 
-if (arguments[["tabulate"]] & arguments[["help"]]) {
-  cli::cli_alert_info("Tabulates a mailing list using parse_mbox().")
-} else if (arguments[["tabulate"]]) {
+if (arguments[["parse"]] & arguments[["help"]]) {
+  cli::cli_alert_info("Parses an mbox file using parse_mbox().")
+} else if (arguments[["parse"]]) {
 
   tools_path <- arguments[["<tools.yml>"]]
   conf_path <- arguments[["<project_conf.yml>"]]
@@ -56,7 +56,7 @@ if (arguments[["tabulate"]] & arguments[["help"]]) {
   )
 
   data.table::fwrite(parsed_mbox, save_path)
-  cli::cli_alert_success(paste0("Tabulated mailing list was saved at: ", save_path))
+  cli::cli_alert_success(paste0("Parsed mbox file was saved at: ", save_path))
 
 } else if (arguments[["download"]] & arguments[["modmbox"]] & arguments[["help"]]) {
   cli::cli_alert_info("Downloads mailing list archives from mod_mbox using download_mod_mbox().")
