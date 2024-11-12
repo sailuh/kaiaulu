@@ -15,11 +15,11 @@ require(data.table, quietly = TRUE)
 doc <- "
 USAGE:
   mailinglist.R tabulate help
-  mailinglist.R tabulate <tools.yml> <project_conf.yml> <save_file_name_path>
+  mailinglist.R tabulate <tools.yml> <project_conf.yml> <project_key> <save_file_name_path>
   mailinglist.R download modmbox help
-  mailinglist.R download modmbox <project_conf.yml> <start_year_month> <end_year_month> <save_folder_path>
+  mailinglist.R download modmbox <project_conf.yml> <project_key> <start_year_month>
   mailinglist.R download pipermail help
-  mailinglist.R download pipermail <project_conf.yml> <start_year_month> <end_year_month> <save_folder_path>
+  mailinglist.R download pipermail <project_conf.yml> <project_key> <start_year_month> <end_year_month>
   mailinglist.R (-h | --help)
   mailinglist.R --version
 
@@ -33,7 +33,7 @@ OPTIONS:
   --version     Show version.
 "
 
-arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9600')
+arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9700')
 
 if (arguments[["tabulate"]] & arguments[["help"]]) {
   cli::cli_alert_info("Tabulates a mailing list using parse_mbox().")
@@ -41,35 +41,39 @@ if (arguments[["tabulate"]] & arguments[["help"]]) {
 
   tools_path <- arguments[["<tools.yml>"]]
   conf_path <- arguments[["<project_conf.yml>"]]
+  project_key <- arguments[["<project_key>"]]
   save_path <- arguments[["<save_file_name_path>"]]
 
-  tool <- yaml::read_yaml(tools_path)
+  tools <- yaml::read_yaml(tools_path)
   conf <- yaml::read_yaml(conf_path)
 
-  perceval_path <- path.expand(tool[["perceval"]])
-  mbox_file_path <- path.expand(conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["mbox_file_path"]])
+  perceval_path <- get_tool("perceval", tools)
+  mbox_file_path <- get_mbox_input_file(conf, project_key)
 
-  project_mbox <- parse_mbox(perceval_path, mbox_file_path)
+  parsed_mbox <- parse_mbox(
+    perceval_path = perceval_path,
+    mbox_file_path = mbox_file_path
+  )
 
-  data.table::fwrite(project_mbox, save_path)
+  data.table::fwrite(parsed_mbox, save_path)
   cli::cli_alert_success(paste0("Tabulated mailing list was saved at: ", save_path))
 
 } else if (arguments[["download"]] & arguments[["modmbox"]] & arguments[["help"]]) {
   cli::cli_alert_info("Downloads mailing list archives from mod_mbox using download_mod_mbox().")
+
 } else if (arguments[["download"]] & arguments[["modmbox"]]) {
 
   conf_path <- arguments[["<project_conf.yml>"]]
+  project_key <- arguments[["<project_key>"]]
   start_year_month <- arguments[["<start_year_month>"]]
-  end_year_month <- arguments[["<end_year_month>"]]
-  save_folder_path <- arguments[["<save_folder_path>"]]
 
   conf <- yaml::read_yaml(conf_path)
-  mailing_list <- conf[["mailing_list"]][["mod_mbox"]][["project_key_1"]][["mailing_list"]]
+  mailing_list <- get_mbox_domain(conf, project_key)
+  save_folder_path <- get_mbox_path(conf, project_key)
 
-  download_mod_mbox(
+  refresh_mod_mbox(
     mailing_list = mailing_list,
     start_year_month = start_year_month,
-    end_year_month = end_year_month,
     save_folder_path = save_folder_path,
     verbose = TRUE
   )
@@ -81,17 +85,16 @@ if (arguments[["tabulate"]] & arguments[["help"]]) {
 } else if (arguments[["download"]] & arguments[["pipermail"]]) {
 
   conf_path <- arguments[["<project_conf.yml>"]]
+  project_key <- arguments[["<project_key>"]]
   start_year_month <- arguments[["<start_year_month>"]]
-  end_year_month <- arguments[["<end_year_month>"]]
-  save_folder_path <- arguments[["<save_folder_path>"]]
 
   conf <- yaml::read_yaml(conf_path)
-  mailing_list <- conf[["mailing_list"]][["pipermail"]][["project_key_1"]][["mailing_list"]]
+  mailing_list <- get_pipermail_domain(conf, project_key)
+  save_folder_path <- get_pipermail_path(conf, project_key)
 
-  download_pipermail(
+  refresh_pipermail(
     mailing_list = mailing_list,
     start_year_month = start_year_month,
-    end_year_month = end_year_month,
     save_folder_path = save_folder_path,
     verbose = TRUE
   )
@@ -101,8 +104,7 @@ if (arguments[["tabulate"]] & arguments[["help"]]) {
 } else if (arguments[["-h"]] || arguments[["--help"]]) {
   cli::cli_alert_info(doc)
 } else if (arguments[["--version"]]) {
-  cli::cli_alert_info('Kaiaulu 0.0.0.9600')
+  cli::cli_alert_info('Kaiaulu 0.0.0.9700')
 } else {
   cli::cli_alert_danger("Invalid command or arguments. Use --help for usage information.")
 }
-

@@ -50,7 +50,6 @@ mailing_list:
       archive_url: https://mta.openssl.org/pipermail/openssl-dev
       pipermail: ../../rawdata/openssl/pipermail/openssl-dev/
       mailing_list: openssl-dev
-      archive_type: mta
 
 # issue_tracker:
 #   jira:

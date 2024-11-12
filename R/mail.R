@@ -17,8 +17,8 @@
 #'
 #' The downloaded .mbox files are saved in the specified folder following the naming convention kaiaulu_YYYYMM.mbox.
 #' The function only downloads files that fall between the specified start_year_month and end_year_month.
-#' When both formats fail to download, the function issues a warning indicating the missing month.
-#' At the end, the function summarizes the downloads, indicating the range of dates present and any missing months.
+#' When both formats fail to download, the function issues a warning indimessageing the missing month.
+#' At the end, the function summarizes the downloads, indimessageing the range of dates present and any missing months.
 #'
 #' @param mailing_list The name of the mailing list being downloaded e.g. "https://mta.openssl.org/pipermail/openssl-announce/"
 #' @param start_year_month The year and month of the first file to be downloaded format: 'YYYYMM'
@@ -141,13 +141,13 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
   ########## Write Downloaded File to Disk ##########
     # Print diagnostic info if verbose is TRUE
     if (verbose) {
-      cat("Downloading: ", download_url, "\n")
-      cat("Saving to: ", dest, "\n")
+      message("Downloading: ", download_url, "\n")
+      message("Saving to: ", dest, "\n")
     }
 
     # Write the downloaded file to disk. If the file is a .gz file, it needs to be unzipped and converted to .mbox format.
     if (grepl("\\.gz$", download_url)) {
-      # Download the .gz file to a temporary location.
+      # Download the .gz file to a temporary lomessageion.
       gz_file_path <- file.path(save_folder_path, stringi::stri_c('kaiaulu_', year_month_clean, '.mbox.gz'))
       httr::GET(download_url, httr::write_disk(gz_file_path, overwrite = TRUE), httr::timeout(60))
 
@@ -164,7 +164,7 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
       close(gz_con)
       close(out_con)
 
-      # Remove the .gz file after unzipping to avoid storing duplicate data.
+      # Remove the .gz file after unzipping to avoid storing duplimessagee data.
       file.remove(gz_file_path)
     } else {
       # If the .txt file is available, download it directly and save it as a .mbox file.
@@ -202,18 +202,18 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
     max_downloaded_date <- max(downloaded_dates)
 
     if (verbose) {
-      cat("\nSummary of Downloads:\n")
-      cat("save_folder_path contains mail from date ", min_downloaded_date, " to ", max_downloaded_date, "\n")
+      message("\nSummary of Downloads:\n")
+      message("save_folder_path contains mail from date ", min_downloaded_date, " to ", max_downloaded_date, "\n")
     }
   } else {
     if (verbose) {
-      cat("No files found in save_folder_path\n")
+      message("No files found in save_folder_path\n")
     }
   }
 
   if (length(missing_months) == 0) {
     if (verbose) {
-      cat("No missing months\n")
+      message("No missing months\n")
     }
   } else {
     warning("Months missing in the date range: ", paste(missing_months, collapse = ", "), "\n")
@@ -254,7 +254,7 @@ refresh_pipermail <- function(mailing_list, start_year_month, save_folder_path, 
     # If the folder is empty, download all pipermail files starting from the start_year_month
     # The end date is set to the current month based on the system date
     end_year_month <- format(Sys.Date(), "%Y%m")
-    if (verbose) cat("Folder is empty. Downloading from", start_year_month, "to", end_year_month, "\n")
+    if (verbose) message("Folder is empty. Downloading from", start_year_month, "to", end_year_month, "\n")
 
     # Call the download_pipermail function to download files from start_year_month to end_year_month
     download_pipermail(mailing_list, start_year_month, end_year_month, save_folder_path)
@@ -272,7 +272,7 @@ refresh_pipermail <- function(mailing_list, start_year_month, save_folder_path, 
     recent_file <- file.path(save_folder_path, stringi::stri_c("kaiaulu_", recent_month, ".mbox"))
     if (file.exists(recent_file)) {
       file.remove(recent_file)
-      if (verbose) cat("Deleted the most recent file:", recent_file, "\n")
+      if (verbose) message("Deleted the most recent file:", recent_file, "\n")
     }
 
   ########## Redownload from the Most Recent Month ##########
@@ -280,14 +280,14 @@ refresh_pipermail <- function(mailing_list, start_year_month, save_folder_path, 
     end_year_month <- format(Sys.Date(), "%Y%m")
 
     # Redownload files from the most recent month (that was just deleted) to the current month
-    if (verbose) cat("Redownloading from", recent_month, "to", end_year_month, "\n")
+    if (verbose) message("Redownloading from", recent_month, "to", end_year_month, "\n")
 
     # Call the download_pipermail function to redownload the deleted month and all subsequent months up to the current month
     download_pipermail(mailing_list, recent_month, end_year_month, save_folder_path)
   }
   ########## Process .gz Files After Refresh ##########
   # Call process_gz_to_mbox_in_folder to ensure all .gz files are converted to .mbox after the refresh
-  if (verbose) cat("Processing .gz files in the folder (if any) to convert them to .mbox format...\n")
+  if (verbose) message("Processing .gz files in the folder (if any) to convert them to .mbox format...\n")
   process_gz_to_mbox_in_folder(save_folder_path = save_folder_path, verbose = verbose)
 }
 
@@ -313,7 +313,7 @@ process_gz_to_mbox_in_folder <- function(save_folder_path, verbose = TRUE) {
 
   # If there are no .gz files, print a message (if verbose is TRUE) and return NULL
   if (length(gz_files) == 0) {
-    if (verbose) cat("This folder does not contain any .gz files.\n")
+    if (verbose) message("This folder does not contain any .gz files.\n")
     return(invisible(NULL))
   }
 
@@ -326,7 +326,7 @@ process_gz_to_mbox_in_folder <- function(save_folder_path, verbose = TRUE) {
     # Define the corresponding .mbox file path by replacing .gz with .mbox in the file name
     mbox_file <- gsub("\\.gz$", ".mbox", gz_file)
 
-    if (verbose) cat("Processing:", gz_file, " -> ", mbox_file, "\n")
+    if (verbose) message("Processing:", gz_file, " -> ", mbox_file, "\n")
 
     # Open the .gz file in binary mode for reading
     gz_con <- gzfile(gz_file, open = "rb")
@@ -369,7 +369,7 @@ process_gz_to_mbox_in_folder <- function(save_folder_path, verbose = TRUE) {
 #' The function loops through each month in the range specified by `start_year_month` and `end_year_month`,
 #' and constructs the appropriate URL to download each month's data. If any download fails, an warning is issued for the failed months.
 #' This means the file could not be found and that month's data may not exist.
-#' At the end, the function summarizes the downloads, indicating the range of dates present and any missing months.
+#' At the end, the function summarizes the downloads, indimessageing the range of dates present and any missing months.
 #'
 #' @param mailing_list The URL of the Apache Pony Mail list from which mbox files are to be downloaded
 #' (e.g., "https://lists.apache.org/list.html?announce@apache.org").
@@ -386,7 +386,7 @@ download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, sa
   # embedded within the URL (after the 'list.html?').
   # We are using 'sub()' to perform a simple string replacement, extracting everything after 'list.html?'.
   mailing_list_name <- sub(".*list.html\\?(.+)", "\\1", mailing_list)
-  if (verbose) cat("Base list extracted:", mailing_list_name, "\n")
+  if (verbose) message("Base list extracted:", mailing_list_name, "\n")
 
   ########## Prepare Year and Month ##########
   # The start_year_month and end_year_month are in the format "YYYYMM".
@@ -426,8 +426,8 @@ download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, sa
       file_path <- file.path(save_folder_path, file_name)
 
       if (verbose) {
-        cat("Constructed URL:", download_url, "\n")
-        cat("Saving to file:", file_path, "\n")
+        message("Constructed URL:", download_url, "\n")
+        message("Saving to file:", file_path, "\n")
       }
 
       ########## Download Mbox File ##########
@@ -438,11 +438,11 @@ download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, sa
 
       # Check for successful download (status code 200).
       if (status_code == 200) {
-        if (verbose) cat("Successfully downloaded:", download_url, "\n")
+        if (verbose) message("Successfully downloaded:", download_url, "\n")
       } else {
         if (verbose) {
-          cat("Failed to download:", download_url, "\n")
-          cat("HTTP Status Code:", status_code, "\n")
+          message("Failed to download:", download_url, "\n")
+          message("HTTP Status Code:", status_code, "\n")
         }
         # Remove failed download file.
         unlink(file_path)
@@ -477,18 +477,18 @@ download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, sa
     max_downloaded_date <- max(downloaded_dates)
 
     if (verbose) {
-      cat("\nSummary of Downloads:\n")
-      cat("save_folder_path contains mail from date", min_downloaded_date, "to", max_downloaded_date, "\n")
+      message("\nSummary of Downloads:\n")
+      message("save_folder_path contains mail from date", min_downloaded_date, "to", max_downloaded_date, "\n")
     }
   } else {
     if (verbose) {
-      cat("No files found in save_folder_path\n")
+      message("No files found in save_folder_path\n")
     }
   }
 
   if (length(missing_months) == 0) {
     if (verbose) {
-      cat("No missing months\n")
+      message("No missing months\n")
     }
   } else {
     warning("Months missing in the date range:", paste(missing_months, collapse = ", "), "\n")
@@ -530,7 +530,7 @@ refresh_mod_mbox <- function(mailing_list, start_year_month, save_folder_path, v
     # If the folder is empty, download all mod_mbox files starting from start_year_month
     # The end date is set to the current month based on the system date
     end_year_month <- format(Sys.Date(), "%Y%m")
-    if (verbose) cat("Folder is empty. Downloading from", start_year_month, "to", end_year_month, "\n")
+    if (verbose) message("Folder is empty. Downloading from", start_year_month, "to", end_year_month, "\n")
 
     # Call the download_mod_mbox function to download files from start_year_month to end_year_month
     download_mod_mbox(mailing_list, start_year_month, end_year_month, save_folder_path, verbose = verbose)
@@ -548,7 +548,7 @@ refresh_mod_mbox <- function(mailing_list, start_year_month, save_folder_path, v
     recent_file <- file.path(save_folder_path, stringi::stri_c("kaiaulu_", recent_month, ".mbox"))
     if (file.exists(recent_file)) {
       file.remove(recent_file)
-      if (verbose) cat("Deleted the most recent file:", recent_file, "\n")
+      if (verbose) message("Deleted the most recent file:", recent_file, "\n")
     }
 
     ########## Redownload from the Most Recent Month ##########
@@ -556,7 +556,7 @@ refresh_mod_mbox <- function(mailing_list, start_year_month, save_folder_path, v
     end_year_month <- format(Sys.Date(), "%Y%m")
 
     # Redownload files from the most recent month (that was just deleted) to the current month
-    if (verbose) cat("Redownloading from", recent_month, "to", end_year_month, "\n")
+    if (verbose) message("Redownloading from", recent_month, "to", end_year_month, "\n")
 
     # Call the download_mod_mbox function to redownload the deleted month and all subsequent months up to the current month
     download_mod_mbox(mailing_list, recent_month, end_year_month, save_folder_path, verbose = verbose)
@@ -707,14 +707,14 @@ make_mbox_reply <- function(mailing_list, reply_from_author, reply_from_email, r
 #' fake .mbox file
 #'
 #' @param replies An array of replies that have been created with \code{\link{make_mbox_reply}}
-#' @param mbox  Folder path for the .mbox file being created. Defaulted at /tmp
+#' @param folder_path  Folder path for the .mbox file being created. Defaulted at /tmp
 #' @param file_name Name of the file that will store the .mbox file
 #' @return the path of the .mbox file that was created
 #' @export
-make_mbox_mailing_list <- function(replies, mbox = "/tmp", file_name) {
+make_mbox_mailing_list <- function(replies, folder_path = "/tmp", file_name) {
 
   # Create a unique filename for the mbox file
-  mbox_filepath <- file.path(mbox, stringi::stri_c(file_name, ".mbox"))
+  mbox_filepath <- file.path(folder_path, stringi::stri_c(file_name, ".mbox"))
 
  # make the file
   mbox_body <- stringi::stri_c(replies,collapse = "\n\n")
@@ -723,8 +723,3 @@ make_mbox_mailing_list <- function(replies, mbox = "/tmp", file_name) {
   # Return the path of the created mbox file
   return(mbox_filepath)
 }
-
-
-
-
-

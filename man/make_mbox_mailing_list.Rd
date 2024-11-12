@@ -4,12 +4,12 @@
 \alias{make_mbox_mailing_list}
 \title{Takes in mbox replies and creates a .mbox file}
 \usage{
-make_mbox_mailing_list(replies, mbox = "/tmp", file_name)
+make_mbox_mailing_list(replies, folder_path = "/tmp", file_name)
 }
 \arguments{
 \item{replies}{An array of replies that have been created with \code{\link{make_mbox_reply}}}
 
-\item{mbox}{Folder path for the .mbox file being created. Defaulted at /tmp}
+\item{folder_path}{Folder path for the .mbox file being created. Defaulted at /tmp}
 
 \item{file_name}{Name of the file that will store the .mbox file}
 }
