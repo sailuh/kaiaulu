@@ -11,15 +11,22 @@
 #' Parses Issue, Pull Request, and Comments Endpoints into a reply table.
 #' See example usage in the download_github_comments.Rmd vignette.
 #'
-#' @param github_replies_folder_path The folder path to where the github api json files have been downloaded.
+#' @param issues_json_folder_path The path to the downloaded issues JSON. See \code{\link{github_api_project_issue}}.
+#' @param pull_requests_json_folder_path The path to the downloaded pull requests JSON. See \code{\link{github_api_project_pull_request}}.
+#' @param comments_json_folder_path The path to the downloaded comments JSON. See \code{\link{github_api_project_issue_or_pr_comments}}.
+#' @param commit_json_folder_path The path to the downloaded commits JSON (used to map github username to the git log). See \code{\link{github_api_project_commits}}.
 #' @return A single reply table which combines the communication from the three jsons.
 #' @export
-parse_github_replies <- function(github_replies_folder_path){
+parse_github_replies <- function(issues_json_folder_path,
+                                 pull_requests_json_folder_path,
+                                 comments_json_folder_path,
+                                 commit_json_folder_path){
+# PASSING THE WRONG PARAMETER HERE
 
-  issues_json_folder_path <- paste0(github_replies_folder_path,"/issue/")
-  pull_requests_json_folder_path <- paste0(github_replies_folder_path,"/pull_request/")
-  comments_json_folder_path <- paste0(github_replies_folder_path,"/issue_or_pr_comment/")
-  commit_json_folder_path <- paste0(github_replies_folder_path,"/commit/")
+#  issues_json_folder_path <- paste0(github_replies_folder_path,"/issue/")
+#  pull_requests_json_folder_path <- paste0(github_replies_folder_path,"/pull_request/")
+#  comments_json_folder_path <- paste0(github_replies_folder_path,"/issue_or_pr_comment/")
+#  commit_json_folder_path <- paste0(github_replies_folder_path,"/commit/")
 
   # Tabulate Issues
   all_issue <- lapply(list.files(issues_json_folder_path,
@@ -750,9 +757,10 @@ github_api_project_issue_or_pr_comment_refresh <- function(owner,repo,token,file
 #' ../../rawdata/github/kaiaulu/issue_or_pr_comment/sailuh_kaiaulu_issue_or_pr_comment_1701216000_1701261374.json
 #' @param item_path specifies the level of nesting to look for the created_at value. This was
 #' implemented given that the results of the search endpoint are differently nested than others.
-#' @export
+
 #' @seealso  \code{link{github_api_project_issue_or_pr_comment_refresh}} to refresh comment data
 #' @seealso  \code{link{github_api_project_issue_refresh}} to refresh issue data
+#' @keywords internal
 format_created_at_from_file <- function(file_name,item_path) {
   # Read the JSON file
   json_data <- fromJSON(txt= file_name, simplifyVector = FALSE)
