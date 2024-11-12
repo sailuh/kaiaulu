@@ -4,7 +4,7 @@
 \alias{github_api_project_issue_or_pr_comments}
 \title{Download Project Issue's or Pull Request's Comments}
 \usage{
-github_api_project_issue_or_pr_comments(owner, repo, token)
+github_api_project_issue_or_pr_comments(owner, repo, token, since = NULL)
 }
 \arguments{
 \item{owner}{GitHub's repository owner (e.g. sailuh)}
@@ -12,9 +12,13 @@ github_api_project_issue_or_pr_comments(owner, repo, token)
 \item{repo}{GitHub's repository name (e.g. kaiaulu)}
 
 \item{token}{Your GitHub API token}
+
+\item{since}{Optional parameter to specify pulling only comments updated after this date}
 }
 \description{
 Download Issues' or Pull Request's Comments from "GET /repos/{owner}/{repo}/issues/comments" endpoint.
+Optional parameter since is used to download comments updated after the specified date.
+If the value of since is NULL, it is not passed to the API call and all comments are downloaded.
 }
 \references{
 For details, see \url{https://docs.github.com/en/rest/reference/issues#list-issue-comments-for-a-repository} and

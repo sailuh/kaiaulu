@@ -72,7 +72,12 @@ end_commit <- get_window_end_commit(conf)
 window_size <- get_window_size(conf)
 
 mbox_path <- get_mbox_path(conf, "project_key_1")
-github_replies_path <- get_github_issue_or_pr_comment_path(conf, "project_key_1")
+
+issues_json_folder_path <- get_github_issue_path(conf, "project_key_1")
+pull_requests_json_folder_path <- get_github_pull_request_path(conf, "project_key_1")
+comments_json_folder_path <- get_github_issue_or_pr_comment_path(conf, "project_key_1")
+commit_json_folder_path <- get_github_commit_path(conf, "project_key_1")
+
 jira_issue_comments_path <- get_jira_issues_comments_path(conf, "project_key_1")
 
 # Filters
@@ -149,8 +154,16 @@ if(!is.null(jira_issue_comments_path)){
   project_jira$reply_datetimetz <- as.POSIXct(project_jira$reply_datetimetz,
                                         format = "%Y-%m-%dT%H:%M:%S.000+0000", tz = "UTC")
 }
-if(!is.null(github_replies_path)){
-  project_github_replies <- parse_github_replies(github_replies_path)  
+
+github_reply_paths <- !is.null(issues_json_folder_path) & !is.null(pull_requests_json_folder_path) & !is.null(comments_json_folder_path) & !is.null(commit_json_folder_path)
+if(github_reply_paths){
+  
+  
+
+  project_github_replies <- parse_github_replies(issues_json_folder_path,
+                                                 pull_requests_json_folder_path,
+                                                 comments_json_folder_path,
+                                                 commit_json_folder_path)  
   
   
   # Timezone is not available on GitHub timestamp, all in UTC

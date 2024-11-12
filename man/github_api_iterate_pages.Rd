@@ -9,7 +9,8 @@ github_api_iterate_pages(
   gh_response,
   save_folder_path,
   prefix = NA,
-  max_pages = NA
+  max_pages = NA,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -22,12 +23,20 @@ github_api_iterate_pages(
 \item{prefix}{Prefix to be added to every json file name}
 
 \item{max_pages}{The maximum number of pages to download. MAX = Available token requests left}
+
+\item{verbose}{Boolean value that prints operating messages when set to TRUE, does not print when false.
+Operating messages may be details about certain parts of the code correctly executing or printing names
+of files created, etc.}
 }
 \description{
 GitHub API endpoints return data in pages, each containing by default 100 entries.
 This iterator can be used to iterate over the next page in order to download all the
 project's data available from the endpoint (up to a user-defined maximum or the remaining
-available requests in the used user's token).
+available requests in the used user's token). This function can differentiate between
+data downloaded from search endpoint or not, in which the issues are differently nested.
+It also differentiates these endpoints from commit data, which also uses a different level
+of nesting. This is important in order to extract the minimum and maximum value of time created
+for each page for the naming convention, which is owner_repo_(min time)_(max time).json.
 }
 \references{
 For details see \url{https://docs.github.com/en/free-pro-team@latest/rest/guides/traversing-with-pagination}.
