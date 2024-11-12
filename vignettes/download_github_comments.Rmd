@@ -44,10 +44,13 @@ Therefore, in this Notebook we have to rely on three endpoints from the GitHub A
 To use the pipeline, you must specify the organization and project of interest, and your token. Obtain a github token following the instructions [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
 
 ```{r}
-conf <- yaml::read_yaml("../conf/kaiaulu.yml")
-save_path <- path.expand(conf[["issue_tracker"]][["github"]][["replies"]]) # Path you wish to save all raw data. A folder with the repo name and sub-folders will be created.
-owner <- conf[["issue_tracker"]][["github"]][["owner"]] # Has to match github organization (e.g. github.com/sailuh)
-repo <- conf[["issue_tracker"]][["github"]][["repo"]] # Has to match github repository (e.g. github.com/sailuh/perceive)
+conf <- parse_config("../conf/kaiaulu.yml")
+save_path_issue_or_pr_comments <- path.expand(get_github_issue_or_pr_comment_path(conf, "project_key_1"))
+save_path_issue <- get_github_issue_path(conf, "project_key_1")
+save_path_pull_request <- get_github_pull_request_path(conf, "project_key_1")
+save_path_commit <- get_github_commit_path(conf, "project_key_1")
+owner <- get_github_owner(conf, "project_key_1") # Has to match github organization (e.g. github.com/sailuh)
+repo <- get_github_repo(conf, "project_key_1") # Has to match github repository (e.g. github.com/sailuh/perceive)
 # your file github_token (a text file) contains the GitHub token API
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 ```
@@ -56,18 +59,9 @@ token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 
 In this section we obtain the raw data (.json) containing all information the GitHub API endpoint provides. We parse the information of interest in the subsequent section.  
 
-```{r eval = FALSE}
-dir.create(paste0(save_path))
-```
-
 ## Issues
 
 First we will obtain all the issues (i.e. "first comments"). 
-
-```{r}
-save_path_issue <- paste0(save_path,"/issue/")
-```
-
 
 ```{r Collect all issues, eval = FALSE}
 gh_response <- github_api_project_issue(owner,repo,token)
@@ -81,11 +75,6 @@ github_api_iterate_pages(token,gh_response,
 
 Next we obtain the "first comment" of every pull request.
 
-```{r}
-save_path_pull_request <- paste0(save_path,"/pull_request/")
-```
-
-
 ```{r Collect all pull requests, eval = FALSE}
 gh_response <- github_api_project_pull_request(owner,repo,token)
 dir.create(save_path_pull_request)
@@ -97,11 +86,6 @@ github_api_iterate_pages(token,gh_response,
 ## Issues and Pull Requests Comments
 
 Finally we obtain the comments of both issue and pull requests (which does not contain the data obtained in the prior two endpoints).
-
-```{r}
-save_path_issue_or_pr_comments <- paste0(save_path,"/issue_or_pr_comment/")
-```
-
 
 ```{r Collect all issue and pull request comments, eval = FALSE}
 gh_response <- github_api_project_issue_or_pr_comments(owner,repo,token)
@@ -116,10 +100,6 @@ github_api_iterate_pages(token,gh_response,
 The three endpoints used above do not contain author and e-mail information, only the developers GitHub ids. This is a problem, if the project being studied contains communication data outside the GitHub ecosystem (e.g. uses JIRA as issue tracker). In order to link developers to other sources, we need both author and e-mail information.
 
 To do so, we can use the committer endpoint. 
-
-```{r}
-save_path_commit <- paste0(save_path,"/commit/")
-```
 
 ```{r Collect all authors and committers name and e-mail, eval = FALSE}
 gh_response <- github_api_project_commits(owner,repo,token)
@@ -189,8 +169,8 @@ Note because we obtain the authors and committers name and e-mail, **only commen
 
 Below we show the result of such merge, including the name and e-mail fields obtained from the commit table. As before, we do not display the body column to prevent breaking the HTML format. 
 
-```{r}
-replies <- parse_github_replies(save_path)
+```{r eval = FALSE}
+replies <- parse_github_replies(save_path_issue_or_pr_comments)
 
 tail(replies,2)  %>%
   gt(auto_align = FALSE) 

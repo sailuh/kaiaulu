@@ -285,3 +285,62 @@ reference:
   - dv8_clsxb_to_clsxj
   - dv8_clsxj_to_clsxb
   - parse_dv8_clusters
+- title: __Config__
+  desc: >
+   Get functions to access config fields.
+   The use of get() in Notebooks and executable
+   scripts is encouraged fornotebook compatibility
+   in future versions of the config.
+- contents:
+  - parse_config
+  - get_tool_project
+  - gitlog_to_hdsmj
+  - get_bugzilla_issue_comment_path
+  - get_bugzilla_issue_path
+  - get_bugzilla_project_key
+  - get_cveid_regex
+  - get_depends_code_language
+  - get_depends_keep_dependencies_type
+  - get_dv8_flaws_params
+  - get_dv8_folder_path
+  - get_enumeration_commits
+  - get_file_extensions
+  - get_filter_commit_size
+  - get_git_branches
+  - get_git_repo_path
+  - get_github_commit_path
+  - get_github_issue_event_path
+  - get_github_issue_or_pr_comment_path
+  - get_github_issue_path
+  - get_github_issue_search_path
+  - get_github_keys
+  - get_github_owner
+  - get_github_pull_request_path
+  - get_github_repo
+  - get_issue_id_regex
+  - get_jira_domain
+  - get_jira_issues_comments_path
+  - get_jira_issues_path
+  - get_jira_keys
+  - get_jira_project_key_name
+  - get_mbox_domain
+  - get_mbox_input_file
+  - get_mbox_key_indexes
+  - get_mbox_path
+  - get_nvdfeed_folder_path
+  - get_pattern4_filepath
+  - get_pattern4_folder_path
+  - get_pipermail_domain
+  - get_pipermail_input_file
+  - get_pipermail_path
+  - get_srcml_filepath
+  - get_substring_filepath
+  - get_topics
+  - get_uctags_line_types
+  - get_understand_code_language
+  - get_understand_keep_dependencies_type
+  - get_understand_output_path
+  - get_understand_project_path
+  - get_window_end_commit
+  - get_window_size
+  - get_window_start_commit
