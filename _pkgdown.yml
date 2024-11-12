@@ -135,7 +135,15 @@ reference:
   - github_api_project_issue_events
   - github_parse_project_issue_events
   - github_api_project_issue
+  - github_api_project_issue_refresh
   - github_parse_project_issue
+  - github_api_project_issue_search
+  - github_api_project_issue_by_date
+  - github_api_project_issue_refresh
+  - github_parse_search_issues_refresh
+  - github_api_project_issue_or_pr_comments_by_date
+  - github_api_project_issue_or_pr_comment_refresh
+
 - subtitle: Pull Request
   desc: GitHub's Pull Request
 - contents:
