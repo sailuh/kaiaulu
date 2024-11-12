@@ -50,7 +50,10 @@ perceval_path <- get_tool_project("perceval", tool)
 git_repo_path <- get_git_repo_path(conf)
 git_branch <- get_git_branches(conf)[1]
 
-github_replies_path <- get_github_issue_or_pr_comment_path(conf, "project_key_1")
+issues_json_folder_path <- get_github_issue_path(conf, "project_key_1")
+pull_requests_json_folder_path <- get_github_pull_request_path(conf, "project_key_1")
+comments_json_folder_path <- get_github_issue_or_pr_comment_path(conf, "project_key_1")
+commit_json_folder_path <- get_github_commit_path(conf, "project_key_1")
 
 # Filters
 file_extensions <- get_file_extensions(conf)
@@ -91,7 +94,10 @@ Next, we parse the various communication channels the project use. Similarly to 
 In this Notebook, we only use GitHub replies (issue and pull requests commentary) since Kaiaulu does not use mailing lists. However, download and parser functions for mbox, jira, and bugzilla are available. Refer to the API for details.
 
 ```{r}
-project_github_replies <- parse_github_replies(github_replies_path)  
+project_github_replies <- parse_github_replies(issues_json_folder_path,
+                                                 pull_requests_json_folder_path,
+                                                 comments_json_folder_path,
+                                                 commit_json_folder_path)  
 
 
 # Timezone is not available on GitHub timestamp, all in UTC

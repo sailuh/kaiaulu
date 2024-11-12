@@ -34,7 +34,7 @@ project:
 
 version_control:
   # Where is the git log located locally?
-  log: ../../rawdata/helix/git_repo/.git
+  log: ../../rawdata/helix/git_repo/helix/.git
   # From where the git log was downloaded?
   log_url: https://github.com/apache/helix
   # List of branches used for analysis
@@ -51,14 +51,12 @@ mailing_list:
   mod_mbox:
     project_key_1:
       mailing_list: https://lists.apache.org/list.html?announce@apache.org
-      save_folder_path: ../../rawdata/helix/mod_mbox/save_mbox_mail/
-#       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
-#      mbox_file_path: ../../rawdata/helix/mod_mbox/save_mbox_mail/helix.mbox
-    project_key_2:
-      mailing_list: https://lists.apache.org/list.html?dev@felix.apache.org
-      save_folder_path: ../../rawdata/helix/mod_mbox/save_mbox_mail_2/
-#       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
-#       mbox_file_path: ../../rawdata/kaiaulu/mod_mbox/save_mbox_mail_2/helix.mbox
+      save_folder_path: ../../rawdata/helix/mod_mbox/
+
+#    project_key_2:
+#      mailing_list: https://lists.apache.org/list.html?dev@felix.apache.org
+#      save_folder_path: ../../rawdata/helix/mod_mbox/save_mbox_mail_2/
+
 #   pipermail:
 #     project_key_1:
 #       mailing_list: https://mta.openssl.org/pipermail/openssl-users/
@@ -78,20 +76,20 @@ issue_tracker:
       domain: https://issues.apache.org/jira
       project_key: HELIX
       # Download using `download_jira_data.Rmd`
-      issues: ../../rawdata/helix/jira/issues/helix
-      issue_comments: ../../rawdata/helix/jira/issue_comments/helix
+      issues: ../../rawdata/helix/jira/issues/
+      issue_comments: ../../rawdata/helix/jira/issue_comments/
   github:
     project_key_1:
       # Obtained from the project's GitHub URL
       owner: apache
       repo: helix
       # Download using `download_github_comments.Rmd`
-      issue_or_pr_comment: ../../rawdata/helix/github/issue_or_pr_comment/apache_helix/
-      issue: ../../rawdata/helix/github/issue/apache_helix/
-      issue_search: ../../rawdata/helix/github/issue_search/apache_helix/
-      issue_event: ../../rawdata/helix/github/issue_event/apache_helix/
-      pull_request: ../../rawdata/helix/github/pull_request/apache_helix/
-      commit: ../../rawdata/helix/github/commit/apache_helix/
+      issue_or_pr_comment: ../../rawdata/helix/github/apache_helix/issue_or_pr_comment/
+      issue: ../../rawdata/helix/github/apache_helix/issue/
+      issue_search: ../../rawdata/helix/github/apache_helix/issue_search/
+      issue_event: ../../rawdata/helix/github/apache_helix/issue_event/
+      pull_request: ../../rawdata/helix/github/apache_helix/pull_request/
+      commit: ../../rawdata/helix/github/apache_helix/commit/
   # bugzilla:
   #   project_key_1:
   #     project_key: helix

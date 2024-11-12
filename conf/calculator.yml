@@ -36,7 +36,7 @@ version_control:
   # Where is the git log located locally?
   # This is the path to the .git of the project repository you are analyzing.
   # The .git is hidden, so you can see it using `ls -a`
-  log: ../../rawdata/Calculator/git_repo/.git
+  log: ../../rawdata/Calculator/git_repo/Calculator/.git
   # From where the git log was downloaded?
   log_url: https://github.com/HouariZegai/Calculator
   # List of branches used for analysis

@@ -36,7 +36,7 @@ version_control:
   # Where is the git log located locally?
   # This is the path to the .git of the project repository you are analyzing.
   # The .git is hidden, so you can see it using `ls -a`
-  log: ../../rawdata/apr/git_repo/.git
+  log: ../../rawdata/apr/git_repo/APR/.git
   # From where the git log was downloaded?
   log_url: https://github.com/apache/apr
   # List of branches used for analysis
@@ -45,7 +45,7 @@ version_control:
     - trunk
 
 mailing_list:
-  mod_mbox: 
+  mod_mbox:
     project_key_1:
       mailing_list: http://mail-archives.apache.org/mod_mbox/apr-dev
       save_folder_path: ../../rawdata/apr/mod_mbox/save_mbox_mail/
@@ -106,7 +106,7 @@ issue_tracker:
 #       issues: ../../rawdata/kaiaulu/bugzilla/issues/kaiaulu/
 #       issue_comments: ../../rawdata/kaiaulu/bugzilla/issue_comments/kaiaulu/
 
-      
+
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
