@@ -79,16 +79,10 @@ mailing_list:
     # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
     mbox_file_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail_2/kaiaulu.mbox
 ```
-Explanation:
 
-- mailing_list: The top-level key for mailing list configurations.
-- project_key_1: A unique key for the project. There can be multiple projects in both the pipermail and mod mbox sections.
-- pipermail/ mod_mbox: Indicates whether the setting are for pipermail or mod mbox. Although the parameters are the same, this helps to differentiate between the two types of mailing list archives.
-- mailing_list: The URL of the mailing list archive page. Note that this URL should point to the page containing links to the monthly archives (e.g. https://mta.openssl.org/pipermail/openssl-users/), not the top-level mailing list page that contains all the different types of archives (e.g. https://mta.openssl.org/mailman/listinfo/).
-- start_year_month: The starting date for downloading archives (in YYYYMM format).
-- end_year_month: The ending date for downloading archives (in YYYYMM format).
-- save_folder_path: The local directory where the downloaded archives will be saved (if you run the code in this notebook, the archives will be saved in a folder 'extdata', located in the parent directory of kaiaulu (wherever your kaiaulu folder is kept)).
-- mbox_file_path: The path to the .mbox file used by the parse_mbox() function.
+The most time intensive step you will be required is to locate the URL of the mailing list archive you wish for in the project website. This is specified under `mailing_list`. Note for pipermail this URL should point to the page containing links to the monthly archives (e.g. https://mta.openssl.org/pipermail/openssl-users/), not the top-level mailing list page that contains all the different types of archives (e.g. https://mta.openssl.org/mailman/listinfo/).
+
+
 
 Note: It is important that the paths specified in save_folder_path and mbox_file_path are accurate and do not conflict between projects.
 
