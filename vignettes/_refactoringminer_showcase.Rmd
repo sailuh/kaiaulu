@@ -17,14 +17,12 @@ require(kaiaulu)
 This is a wrapper for [Refactoring Miner](https://github.com/tsantalis/RefactoringMiner#running-refactoringminer-from-the-command-line). See README.md for setup details.
 
 ```{r}
-tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/tomcat.yml")
-rminer_path <- tool[["refactoring_miner"]]
-git_repo_path <- conf[["version_control"]][["log"]]
-start_commit <- conf[["analysis"]][["enumeration"]][["commit"]][1]
-end_commit <- conf[["analysis"]][["enumeration"]][["commit"]][2]
-
-
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/tomcat.yml")
+rminer_path <- get_tool_project("refactoring_miner", tool)
+git_repo_path <- get_git_repo_path(conf)
+start_commit <- get_enumeration_commits(conf)[1]
+end_commit <- get_enumeration_commits(conf)[2]
 ```
 
 A sample of parsed refactorings is shown below in json format:
