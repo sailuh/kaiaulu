@@ -12,7 +12,7 @@ refresh_mod_mbox(
 )
 }
 \arguments{
-\item{mailing_list}{The URL of the mailing list being downloaded (e.g., 'https://lists.apache.org/list.html?announce@apache.org')}
+\item{mailing_list}{The URL of the mailing list being downloaded (e.g., \url{https://lists.apache.org/list.html?announce@apache.org})}
 
 \item{start_year_month}{The year and month of the first file to be downloaded (format: 'YYYYMM').}
 
@@ -25,11 +25,12 @@ Returns `downloaded_files`, a vector of the newly downloaded files in the curren
 }
 \description{
 This function refreshes the mailing list files by checking the contents of a specified folder.
-If the folder is empty, it calls \code{download_mod_mbox} to download all mod_mbox files from start_year_month to the current month.
+If the folder is empty, it calls \code{\link{download_mod_mbox}} to download all mod_mbox files from start_year_month to the current month.
 If the folder contains already-downloaded mbox files, it identifies the most recent month, deletes that file, and redownloads it
 along with all future months up to the current real-life month.
-
-The naming convention of files is kaiaulu_YYYYMM.mbox, and the function uses this pattern to identify the most recent month.
+}
+\details{
+The naming convention of files is `kaiaulu_YYYYMM.mbox`, and the function uses this pattern to identify the most recent month.
 After deleting the most recent file, the function ensures that the month is redownloaded, along with all subsequent months up to the current month.
 Redownloading the most recent file ensures any files added in that month after the latest refresh are included.
 }
