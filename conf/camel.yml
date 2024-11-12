@@ -36,7 +36,7 @@ version_control:
   # Where is the git log located locally?
   # This is the path to the .git of the project repository you are analyzing.
   # The .git is hidden, so you can see it using `ls -a`
-  log: ../../rawdata/git_repo/camel/.git
+  log: ../../rawdata/camel/git_repo/.git
   # From where the git log was downloaded?
   log_url: https://github.com/apache/camel
   # List of branches used for analysis
@@ -46,29 +46,67 @@ version_control:
     - camel-2.11.4
     - camel-3.21.0
 
-#mailing_list:
-  # Where is the mbox located locally?
-#  mbox: ../../rawdata/mbox/apr-dev_2012_2019.mbox
-  # What is the domain of the chosen mailing list archive?
-#  domain: http://mail-archives.apache.org/mod_mbox
-  # Which lists of the domain will be used?
-#  list_key:
-#    - apr-dev
+mailing_list:
+  mod_mbox:
+    project_key_1:
+      mailing_list: http://mail-archives.apache.org/mod_mbox/camel-dev
+      save_folder_path: ../../rawdata/camel/mod_mbox/save_mbox_mail/
+      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+#      mbox_file_path: ../../rawdata/camel/mod_mbox/save_mbox_mail/camel.mbox
+    project_key_2:
+      mailing_list: http://mail-archives.apache.org/mod_mbox/camel-users
+      save_folder_path: ../../rawdata/camel/mod_mbox/save_mbox_mail_2/
+      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+#       mbox_file_path: ../../rawdata/kaiaulu/mod_mbox/save_mbox_mail_2/camel.mbox
+#   pipermail:
+#     project_key_1:
+#       mailing_list: https://mta.openssl.org/pipermail/kaiaulu-dev/
+#       save_folder_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail/
+#       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+#       mbox_file_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail/kaiaulu.mbox
+#     project_key_2:
+#       mailing_list: https://mta.openssl.org/pipermail/kaiaulu-users/
+#       save_folder_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail_2/
+#       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+#       mbox_file_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail_2/kaiaulu.mbox
 
 issue_tracker:
   jira:
-    # Obtained from the project's JIRA URL
-    domain: https://issues.apache.org/jira
-    project_key: CAMEL
-    # Download using `download_jira_data.Rmd`
-    issues: ../../rawdata/issue_tracker/camel/issues/
-    issue_comments: ../../rawdata/issue_tracker/camel/issue_comments/
-#  github:
-    # Obtained from the project's GitHub URL
-#    owner: apache
-#    repo: apr
-    # Download using `download_github_comments.Rmd`
-#    replies: ../../rawdata/github/apr/
+    project_key_1:
+      # Obtained from the project's JIRA URL
+      domain: https://issues.apache.org/jira
+      project_key: CAMEL
+      # Download using `download_jira_data.Rmd`
+      issues: ../../rawdata/camel/jira/issues/
+      issue_comments: ../../rawdata/camel/jira/issue_comments/
+#   github:
+#     project_key_1:
+#       # Obtained from the project's GitHub URL
+#       owner: sailuh
+#       repo: kaiaulu
+#       # Download using `download_github_comments.Rmd`
+#       issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/sailuh_kaiaulu/
+#       issue: ../../rawdata/kaiaulu/github/issue/sailuh_kaiaulu/
+#       issue_search: ../../rawdata/kaiaulu/github/issue_search/sailuh_kaiaulu/
+#       issue_event: ../../rawdata/kaiaulu/github/issue_event/sailuh_kaiaulu/
+#       pull_request: ../../rawdata/kaiaulu/github/pull_request/sailuh_kaiaulu/
+#       commit: ../../rawdata/kaiaulu/github/commit/sailuh_kaiaulu/
+#     project_key_2:
+#       # Obtained from the project's GitHub URL
+#       owner: ssunoo2
+#       repo: kaiaulu
+#       # Download using `download_github_comments.Rmd`
+#       issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/ssunoo2_kaiaulu/
+#       issue: ../../rawdata/kaiaulu/github/issue/ssunoo2_kaiaulu/
+#       issue_search: ../../rawdata/kaiaulu/github/issue_search/ssunoo2_kaiaulu/
+#       issue_event: ../../rawdata/kaiaulu/github/issue_event/ssunoo2_kaiaulu/
+#       pull_request: ../../rawdata/kaiaulu/github/pull_request/ssunoo2_kaiaulu/
+#       commit: ../../rawdata/kaiaulu/github/commit/ssunoo2_kaiaulu/
+#   bugzilla:
+#     project_key_1:
+#       project_key: kaiaulu
+#       issues: ../../rawdata/kaiaulu/bugzilla/issues/kaiaulu/
+#       issue_comments: ../../rawdata/kaiaulu/bugzilla/issue_comments/kaiaulu/
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
@@ -124,7 +162,7 @@ tool:
     # The project folder path to store various intermediate
     # files for DV8 Analysis
     # The folder name will be used in the file names.
-    folder_path: ../../analysis/dv8/camel_1_6
+    folder_path: ../../analysis/camel/dv8/camel_1_6
     # the architectural flaws thresholds that should be used
     architectural_flaws:
       cliqueDepends:
@@ -168,8 +206,35 @@ tool:
   # srcML allow to parse src code as text (e.g. identifiers)
   srcml:
     # The file path to where you wish to store the srcml output of the project
-    srcml_path: ../../analysis/camel/srcml_camel.xml
+    srcml_path: ../../analysis/camel/srcml/srcml_camel.xml
     # Specify which types of Dependencies to keep - see the Depends tool README.md for details.
+  # pattern4:
+  #   # The file path to where you wish to store the classes of the pattern4 analysis
+  #   class_folder_path: ../../rawdata/junit5/pattern4/classes/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
+  #   # The file path to where you wish to store the output of the pattern4 analysis
+  #  output_filepath: ../../analysis/junit5/pattern4/
+  #   compile_note: >
+  #     1. Switch Java version to Java 17:
+  #        https://stackoverflow.com/questions/69875335/macos-how-to-install-java-17
+  #     2. Disable VPN to pull modules from Gradle Plugin Portal.
+  #     3. Use sudo ./gradlew build
+  #     4. After building, locate the engine class files and specify as the class_folder_path:
+  #        in this case they are in: /path/to/junit5/analysis/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
+  # understand:
+  #   # Accepts one language at a time: ada, assembly, c/c++, c#, fortran, java, jovial, delphi/pascal, python, vhdl, basic, javascript
+  #   code_language: java
+  #   # Specify which types of Dependencies to keep
+  #   keep_dependencies_type:
+  #     - Import
+  #     - Call
+  #     - Create
+  #     - Use
+  #     - Type GenericArgument
+  #   # Where the files to analyze should be stored
+  #   project_path: ../../rawdata/kaiaulu/git_repo/understand/
+  #   # Where the output for the understands analysis is stored
+  #   output_path: ../../analysis/kaiaulu/understand/
+
 # Analysis Configuration #
 analysis:
   # A list of topic and keywords (see src_text_showcase.Rmd).
