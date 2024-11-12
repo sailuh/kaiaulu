@@ -29,12 +29,11 @@ require(yaml)
 Load config file.
 
 ```{r}
-tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/helix.yml")
-perceval_path <- tool[["perceval"]]
-
-mbox_path <- conf[["mailing_list"]][["mbox"]]
-jira_issue_comments_path <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/helix.yml")
+perceval_path <- get_tool_project("perceval", tool)
+mbox_path <- get_mbox_path(conf, "project_key_1")
+jira_issue_comments_path <- get_jira_issues_comments_path(conf, "project_key_1")
 ```
 
 
