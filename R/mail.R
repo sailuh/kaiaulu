@@ -30,12 +30,17 @@
 download_pipermail <- function(mailing_list, start_year_month, end_year_month, save_folder_path, verbose = TRUE) {
 
   ########## Download and Parse Mailing List HTML for Links ##########
+
   # Ensure mailing_list url ends with a slash, which is important when constructing links for downloading files,
   # since the extracted links are relative to the base URL.
   # e.g.base url: https://mta.openssl.org/pipermail/openssl-announce/ and extracted link: 2024-June.txt.gz
   if (!stringi::stri_endswith_fixed(mailing_list, "/")) {
     mailing_list <- stringi::stri_c(mailing_list, "/")
   }
+
+  # Archive Index Retrieval
+  # Begins by downloading an HTML page that lists the URLs
+  # for the monthly archives, which are typically available in .txt or .gz formats.
 
   # Sends a GET request to the mailing list’s URL to retrieve contents. This is the main page of the mailing list archive,
   # which contains links to individual month files (in .txt or .gz format).
@@ -111,6 +116,9 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
     txt_url <- stringi::stri_c(mailing_list, gsub("\\.gz$", "", link))
     gz_url <- stringi::stri_c(mailing_list, link)
 
+    # The function attempts to download the .txt file for each month.
+    # If the .txt file is unavailable, it falls back to downloading the
+    # .gz (gzipped) file.
     # Attempt to download the .txt file first
     download_url <- txt_url
     response <- httr::GET(download_url, httr::timeout(60))
@@ -143,6 +151,8 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
       gz_file_path <- file.path(save_folder_path, stringi::stri_c('kaiaulu_', year_month_clean, '.mbox.gz'))
       httr::GET(download_url, httr::write_disk(gz_file_path, overwrite = TRUE), httr::timeout(60))
 
+      # If a .gz file is downloaded, the function unzips it and converts it into an .mbox file.
+      # The original .gz file is deleted after extraction to save space.
       # Unzip the .gz file and save the contents as a .mbox file.
       gz_con <- gzfile(gz_file_path, open = "rb")
       out_con <- file(dest, open = "wb")
@@ -172,6 +182,8 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
   # List the files in the save_folder_path.
   downloaded_files_in_folder <- list.files(save_folder_path, pattern = "kaiaulu_\\d{6}\\.mbox$", full.names = FALSE)
 
+  # The downloaded .mbox files are saved in the specified folder with the
+  # naming convention kaiaulu_YYYYMM.mbox, where YYYYMM represents the year and month.
   # Extract the YYYYMM from the file names.
   downloaded_dates <- as.numeric(sub("kaiaulu_(\\d{6})\\.mbox", "\\1", downloaded_files_in_folder))
 

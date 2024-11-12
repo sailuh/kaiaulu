@@ -20,8 +20,8 @@ Calculates the churn metric for a sequence of commits per commit per file
 
 Other {metrics}: 
 \code{\link{commit_message_id_coverage}()},
-\code{\link{metric_churn}()},
 \code{\link{metric_churn_per_commit_interval}()},
+\code{\link{metric_churn}()},
 \code{\link{metric_file_bug_churn}()},
 \code{\link{metric_file_bug_frequency}()},
 \code{\link{metric_file_churn}()},

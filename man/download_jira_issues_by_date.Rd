@@ -72,13 +72,13 @@ For further details on the `created` JQL Query see [the associated JIRA API docu
 \code{\link{refresh_jira_issues}} to obtain more recent data from any of the downloader functions
 
 Other jira: 
-\code{\link{download_jira_issues}()},
 \code{\link{download_jira_issues_by_issue_key}()},
+\code{\link{download_jira_issues}()},
 \code{\link{refresh_jira_issues}()}
 
 Other downloaders: 
-\code{\link{download_jira_issues}()},
 \code{\link{download_jira_issues_by_issue_key}()},
+\code{\link{download_jira_issues}()},
 \code{\link{refresh_jira_issues}()}
 }
 \concept{downloaders}
