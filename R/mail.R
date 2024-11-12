@@ -228,7 +228,7 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
 
 #' Refresh mbox files downloaded via pipermail
 #'
-#' @description This function refreshes the mailing list files by checking the contents of a specified folder.
+#' This function refreshes the mailing list files by checking the contents of a specified folder.
 #' If the folder is empty, it calls \code{download_pipermail} to download all pipermail files from start_year_month to the current month.
 #' If the folder contains already-downloaded mbox files, it identifies the most recent month, deletes that file, and redownloads it
 #' along with all future months up to the current real-life month.
@@ -294,7 +294,7 @@ refresh_pipermail <- function(mailing_list, start_year_month, save_folder_path, 
 
 #' Process .gz files in a folder and convert them to .mbox
 #'
-#' @description This function scans a specified folder for any .gz files, unzips them,
+#' This function scans a specified folder for any .gz files, unzips them,
 #' and renames them to the .mbox format. After unzipping, the original .gz files are deleted.
 #' If a .mbox file with the same name already exists, it will be overwritten.
 #' This makes sure that all the files in the folder are in .mbox format, ready for parsing.
@@ -504,7 +504,7 @@ download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, sa
 
 #' Refresh mbox files downloaded via mod_mbox
 #'
-#' @description This function refreshes the mailing list files by checking the contents of a specified folder.
+#' This function refreshes the mailing list files by checking the contents of a specified folder.
 #' If the folder is empty, it calls \code{download_mod_mbox} to download all mod_mbox files from start_year_month to the current month.
 #' If the folder contains already-downloaded mbox files, it identifies the most recent month, deletes that file, and redownloads it
 #' along with all future months up to the current real-life month.
@@ -611,7 +611,7 @@ parse_mbox <- function(perceval_path, mbox_file_path){
 
 #' Parse mbox latest date
 #'
-#' @description This function returns the name of the latest mod_mbox file downloaded in the specified folder
+#' This function returns the name of the latest mod_mbox file downloaded in the specified folder
 #' based on the naming convention `kaiaulu_YYYYMM.mbox`. For example: `kaiaulu_202401.mbox`.
 #'
 #' @param save_folder_path path to the folder containing the mbox files
