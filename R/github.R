@@ -385,17 +385,38 @@ github_parse_project_commits <- function(api_responses){
 
 #' Download Discussions
 #'
-#' Download Discussions from GraphQL endpoint.
+#' Download Discussions from GraphQL API endpoint.
+#' Uses a query to only obtain data defined by the user.
+#' GitHub API endpoints return data in pages, each containing by default 100 entries.
+#' This function by default iterates over the next page in order to download all the
+#' project's data available from the endpoint (up to the remaining
+#' available requests in the used user's token).
+#' The user can also define the maximum number of pages to download.
 #'
 #' @param token Your Github API token
 #' @param owner Github's repository owner (e.g. sailuh)
 #' @param repo Github's repository name (e.g. kaiaulu)
+#' @param save_folder_path A folder path to save the downloaded json pages "as-is".
+#' @param prefix Prefix to be added to every json file name
+#' @param max_pages The maximum number of pages to download. MAX = Available token requests left
 #' @export
-github_api_discussions <- function(token, owner, repo){
+github_api_discussions <- function(token, owner, repo, save_folder_path, max_pages = NA){
+  page_number <- 1
+  cursor <- NULL
 
-  query <- paste0('query {
+  if(is.na(max_pages)){
+    max_pages <- github_api_rate_limit(token)$remaining
+  }
+
+  while(page_number < max_pages){
+
+    query <- paste0('query {
       repository (owner:"', owner, '", name:"', repo, '") {
-        discussions (first: 100) {
+        discussions (first: 100', if(!is.null(cursor)) paste0(', after: "', cursor,'"'),') {
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
           edges {
             node {
               title
@@ -405,7 +426,7 @@ github_api_discussions <- function(token, owner, repo){
               category { name }
               id
               answer { id }
-              comments(first: 5) {
+              comments(first: 100) {
                 edges {
                   node {
                     discussion { id }
@@ -420,10 +441,25 @@ github_api_discussions <- function(token, owner, repo){
           }
         }
       }
-    }'
-  )
+    }')
 
-  gh::gh("POST /graphql", query=query, .token=token)
+    gh_response <- gh::gh("POST /graphql", query=query, .token=token)
+
+    write_json(gh_response,paste0(save_folder_path,
+                                  owner, "_", repo, "_discussion_p_", page_number,
+                                  ".json"),
+               pretty=TRUE, auto_unbox=TRUE)
+
+    has_next_page <- gh_response[["data"]][["repository"]][["discussions"]][["pageInfo"]][["hasNextPage"]]
+
+    if (has_next_page){
+      cursor <- gh_response[["data"]][["repository"]][["discussions"]][["pageInfo"]][["endCursor"]]
+      page_number <- page_number + 1
+    }
+    else {
+      break
+    }
+  }
 }
 
 #' Parse Discussions JSON to Table
@@ -576,15 +612,19 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
   }
 
   while(!is.null(gh_response) & page_number < max_pages){
+
     write_json(gh_response,paste0(save_folder_path,
-                                  owner,"_",repo,"_",prefix,"_","p_",page_number,
+                                  owner, "_", repo, "_", prefix, "_", "p_", page_number,
                                   ".json"),
-               pretty=TRUE,auto_unbox=TRUE)
+               pretty=TRUE, auto_unbox=TRUE)
+
     page_number <- page_number + 1
+
     res <- try(
       {
         gh_response <- github_api_page_next(gh_response)
       },silent=TRUE)
+
     if(inherits(res,"try-error")) {
       gh_response <- NULL
     }

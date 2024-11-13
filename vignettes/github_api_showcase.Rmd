@@ -12,7 +12,6 @@ vignette: >
 
 # Introduction
 
-
 Kaiaulu interface to GitHub API heavily relies on [gh](https://github.com/r-lib/gh), a minimalistic client to access GitHub’s REST and GraphQL APIs. In essence, Kaiaulu only defines a few API endpoints of interest where the tool is currently used, and parses the returned JSON output into a table keeping only fields of interest. But more can be added later. Please see Kaiaulu's Docs Function API to see what is currently available. 
 
 In this Vignette, I will show how to replicate [Aleksander Konnerup data acquisition pipeline](https://github.com/AleksanderKonnerup/AleksanderKonnerup_akon223_projectZ).
@@ -23,6 +22,8 @@ GitHub limits the number of API calls per IP to only 60 attempts **every hour** 
 
 If using a personal account token from a free GitHub account, the number of API calls per hour increases to 5000 **per hour**. Therefore, it is recommended you create a personal token by following the [GitHub Documentation instructions](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token#:~:text=Creating%20a%20token.%201%20Verify%20your%20email%20address%2C,able%20to%20see%20the%20token%20again.%20More%20items). The process should not take more than 2 minutes.
 
+The GraphQL API will require a token, and does not allow unauthenticated requests. Fortunately both the Github's REST API and GraphQL API can use the same personal account token, given the token has the needed permissions.
+
 The functions in Kaiaulu will assume you have a token available, which can be passed as parameter. 
 
 ```{r warning=FALSE,message=FALSE}
@@ -31,6 +32,7 @@ require(kaiaulu)
 require(data.table)
 require(jsonlite)
 require(knitr)
+require(gh)
 ```
 
 
@@ -42,7 +44,7 @@ The goal of the following steps is to obtain the data when a project started ass
 
 # Necessary Parameters
 
-To use the pipeline, you must specify the organization and project of interest, and your token.
+To use the pipeline, you must specify the organization and project of interest, and your token.   
 
 ```{r}
 conf <- parse_config("../conf/kaiaulu.yml")
@@ -58,9 +60,18 @@ token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 
 # Collecting Data via GitHub API
 
-In this section we obtain the raw data (.json) containing all information the GitHub API endpoint provides. We parse the information of interest in the subsequent section.  
+In this section we obtain the raw data (.json) containing all information the GitHub API endpoint provides. We parse the information of interest in the subsequent section.
+Each of the downloaders use 2 functions.
+The first function accesses the Github API endpoint using the gh tool.
+However, there are limitations to how much information can be downloaded at once. (Typical default is 100 per page)
+Therefore the second function saves the information retrieved from the first function to a (.json) file and iterates the page to repeat until all information can be retrieved from the endpoint.
 
-## Issue Events
+## Using the Github REST API
+
+The Github REST API has many different endpoints available to use, and each retrieves differing levels of information.
+Unfortunately, these endpoints also retrieve information that is not of interest, heavily necessitating the parsers to only parse a subset of the information retrieved.
+
+### Issue Events
 
 First we obtain all issue events of the project, so we may later subset issue assignments. 
 
@@ -69,7 +80,7 @@ gh_response <- github_api_project_issue_events(owner,repo,token)
 github_api_iterate_pages(token,gh_response,save_path_issue_event,prefix="issue_event")
 ```
 
-## Commits
+### Commits
 
 Next we download commit data from GitHub API. This will be used to know which users in the issue events have or not merge permissions.
 
@@ -78,24 +89,25 @@ gh_response <- github_api_project_commits(owner,repo,token)
 github_api_iterate_pages(token,gh_response,save_path_commit,prefix="commit")
 ```
 
-# Downloading Github Discussions
+## Using the Github GraphQL API
 
-We obtain the raw data from Github Discussions and Discussion Comments using the GraphQL API endpoint.
+The Github GraphQL API only has 1 endpoint. For downloading data, we only use the queries operation of that endpoint.
+To form queries, you need to specify the data you want, which fecthes only the data requested, nothing more.
+If information is insufficient, it is advised to check with the API documentation to see what additional information is available.
+
+### Discussions
+
+We download the discussions by forming a query. The query only obtains the data requested.
+The function by default iterates through all available discussion pages (if user's available tokens allow).
+The user can define the maximum number of pages to download in the function parameter (e.g. max_pages=1)
 
 ```{r Collect Github Discussions, eval = FALSE}
-gh_response <- github_api_discussions(token, owner, repo)
-github_api_iterate_pages(token, gh_response, save_path_discussions, prefix="discussion")
-```
-
-```{r}
-gh_response <- github_api_discussions(token, owner, repo)
-github_parse_discussions(gh_response)
-github_parse_discussion_comments(gh_response)
+gh_response <- github_api_discussions(token, owner, repo, save_path_discussions)
 ```
 
 # Parsing Raw Data to Csv
 
-To parse raw data, we use the associated endpoint parser functions. Keep in mind these functions only parse a subset of all the information in the json ("column wise"). Please consult with the GitHub API or inspect the raw data directly to see all information which is available. 
+To parse raw data, we use the associated endpoint parser functions. Keep in mind these functions only parse a subset of all the information in the json ("column wise"). Please consult with the GitHub API or inspect the raw data directly to see all information that is available. 
 
 ```{r Parse the Github Issue Events}
 all_issue_event <- lapply(list.files(save_path_issue_event,full.names = TRUE),read_json)
@@ -112,6 +124,23 @@ all_commit <- rbindlist(all_commit,fill=TRUE)
 all_commit[,commit_message:=NULL] # removing column just to prevent html rendering error
 
 kable(head(all_commit))
+```
+
+```{r Parse the Github Discussions}
+# Parse the discussions
+all_discussions <- lapply(list.files(save_path_discussions, full.names = TRUE), read_json)
+all_discussions <- lapply(all_discussions, github_parse_discussions)
+all_discussions <- rbindlist(all_discussions, fill = TRUE)
+all_discussions[,all_discussions:=NULL] # removing column just to prevent html rendering error
+
+# Parse the discussion comments
+all_discussion_comments <- lapply(list.files(save_path_discussions, full.names = TRUE), read_json)
+all_discussion_comments <- lapply(all_discussion_comments, github_parse_discussion_comments)
+all_discussion_comments <- rbindlist(all_discussion_comments, fill = TRUE)
+all_discussions[,all_discussion_comments:=NULL] # removing column just to prevent html rendering error
+
+View(all_discussions)
+View(all_discussion_comments)
 ```
 
 # Obtaining Issue Assignments from Non-Committers
