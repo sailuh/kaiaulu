@@ -578,29 +578,36 @@ refresh_mod_mbox <- function(mailing_list, start_year_month, save_folder_path, v
 #' @param mbox_file_path path to mbox archive file (ends in .mbox)
 #' @export
 #' @family parsers
-parse_mbox <- function(perceval_path, mbox_file_path){
-  # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
+#' @param perceval_path path to perceval binary
+#' @param mbox_file_path path to mbox archive file (ends in .mbox)
+#' @export
+#' @family parsers
+parse_mbox <- function(perceval_path, mbox_file_path) {
+  # Expand paths
   perceval_path <- path.expand(perceval_path)
   mbox_file_path <- path.expand(mbox_file_path)
-  # Remove ".mbox"
-  mbox_uri <- stringi::stri_replace_last_regex(mbox_file_path, pattern = "\\.mbox$", replacement = "")
+  mbox_dir <- dirname(mbox_file_path)  # Extract directory path
+  mbox_uri <- mbox_file_path  # URI points to the mbox file
 
-  # Use percerval to parse mbox. --json line is required to be parsed by jsonlite::fromJSON.
+  # Use Perceval to parse the mbox file
   perceval_output <- system2(perceval_path,
-                             args = c('mbox',mbox_uri,mbox_file_path,'--json-line'),
+                             args = c('mbox', mbox_uri, mbox_dir, '--json-line'),
                              stdout = TRUE,
-                             stderr = FALSE)
+                             stderr = TRUE)
 
-  # Parsed JSON output as a data.table.
-  perceval_parsed <- data.table(jsonlite::stream_in(textConnection(perceval_output),verbose=FALSE))
+  # Filter JSON lines from Perceval output
+  json_lines <- perceval_output[grepl("^\\{", perceval_output)]  # Escape the `{` character
 
-  columns_of_interest <- c("data.Message.ID","data.In.Reply.To","data.Date","data.From","data.To","data.Cc","data.Subject","data.body.plain","data.body")
-  columns_rename <- c("reply_id","in_reply_to_id","reply_datetimetz","reply_from","reply_to","reply_cc","reply_subject","reply_body","reply_body")
+  # Parse JSON output as a data.table
+  perceval_parsed <- data.table(jsonlite::stream_in(textConnection(json_lines), verbose = FALSE))
+
+  columns_of_interest <- c("data.Message.ID", "data.In.Reply.To", "data.Date", "data.From", "data.To", "data.Cc", "data.Subject", "data.body.plain", "data.body")
+  columns_rename <- c("reply_id", "in_reply_to_id", "reply_datetimetz", "reply_from", "reply_to", "reply_cc", "reply_subject", "reply_body", "reply_body")
   is_available_column <- columns_of_interest %in% colnames(perceval_parsed)
 
   columns_of_interest <- columns_of_interest[is_available_column]
 
-  perceval_parsed <- perceval_parsed[,..columns_of_interest]
+  perceval_parsed <- perceval_parsed[, ..columns_of_interest]
 
   data.table::setnames(x = perceval_parsed,
                        old = colnames(perceval_parsed),
@@ -716,10 +723,9 @@ make_mbox_mailing_list <- function(replies, folder_path = "/tmp", file_name) {
   # Create a unique filename for the mbox file
   mbox_filepath <- file.path(folder_path, stringi::stri_c(file_name, ".mbox"))
 
- # make the file
-  mbox_body <- stringi::stri_c(replies,collapse = "\n\n")
-  io_make_file(mbox_filepath,mbox_body)
+  # Write the mbox content
+  mbox_body <- stringi::stri_c(replies, collapse = "\n\n")
+  io_make_file(mbox_filepath, mbox_body)
 
-  # Return the path of the created mbox file
   return(mbox_filepath)
 }

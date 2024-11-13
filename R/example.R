@@ -550,7 +550,7 @@ example_jira_issue_comments <- function(folder_path = "/tmp", folder_name) {
 example_mailing_list_two_threads <- function(folder_path = "/tmp", folder_name, file_name) {
 
   # Create folder & repo
-  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
+  folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)
 
   # Step 1: Create fake mbox replies and assign them to variables for easy editing
   thread_1_reply_1 <- make_mbox_reply(mailing_list="test-list",
@@ -584,7 +584,7 @@ example_mailing_list_two_threads <- function(folder_path = "/tmp", folder_name, 
   replies <- c(thread_1_reply_1, thread_1_reply_2, thread_2_reply_1)
 
   # Create mbox file from the list of replies
-  mbox_path <- make_mbox_mailing_list(replies = replies, file_name = file_name)
+  mbox_path <- make_mbox_mailing_list(replies = replies, folder_path = folder_path, file_name = file_name)
 
   return(mbox_path)
 }
