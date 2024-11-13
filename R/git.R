@@ -23,9 +23,18 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA,perl_regex=NA)
   git_uri <-  git_repo_path
   save_path <- ifelse(!is.na(save_path),path.expand(save_path),NA)
 
+  # DEBUG
+  print(paste("Perceval path:", perceval_path))
+  print(paste("Git repo path:", git_repo_path))
+  print(paste("Save path:", save_path))
+  print(paste("Perl regex:", perl_regex))
+
   # Use percerval to parse .git --json line is required to be parsed by jsonlite::fromJSON.
   # The log will be saved to the /tmp/ folder
   gitlog_path <- "/tmp/gitlog.log"
+
+  # DEBUG
+  print(paste("Gitlog path:", gitlog_path))
 
   # Perceval suggested flags
   perceval_flags <-
@@ -62,17 +71,29 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA,perl_regex=NA)
     }
   }
 
+  # DEBUG
+  print("Git log call message:")
+  print(gitlog_call_message)
+
   # Parsed JSON output.
   perceval_output <- system2(perceval_path,
                              args = c('git', '--git-log',gitlog_path,git_uri,'--json-line'),
                              stdout = TRUE,
                              stderr = FALSE)
 
+  # DEBUG
+  print("Perceval Output:")
+  cat(perceval_output, sep = "\n")
+
   perceval_parsed <- data.table(jsonlite::stream_in(textConnection(perceval_output),verbose = FALSE))
 
   if(nrow(perceval_parsed) == 0){
     stop("The repository specified has no commits.")
   }
+
+  # DEBUG
+  print("Parsed data structure:")
+  print(str(perceval_parsed))
 
   # APR very first commit is a weird single case of commit without files. We filter them here.
   is_commit_with_files <- !!sapply(perceval_parsed$data.files,length)
