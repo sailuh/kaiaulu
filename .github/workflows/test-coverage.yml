@@ -13,7 +13,7 @@ jobs:
     runs-on: macOS-13
     strategy:
       matrix:
-        r-version: ['4.1']
+        r-version: ['4.4']
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -59,10 +59,12 @@ jobs:
         run: |
           brew tap homebrew/core
           brew install --HEAD universal-ctags
-          utags_head=$(ls /usr/local/Cellar/universal-ctags | tail -n 1)
-          sed -i -e "s|utags: \/usr\/local\/Cellar\/universal-ctags\/HEAD-62f0144\/bin\/ctags|utags: \/usr\/local\/Cellar\/universal-ctags\/${utags_head}\/bin\/ctags|g" tools.yml
-          sed -i -e "s|utags: \/usr\/local\/Cellar\/universal-ctags\/HEAD-62f0144\/bin\/ctags|utags: \/usr\/local\/Cellar\/universal-ctags\/${utags_head}\/bin\/ctags|g" tests/testthat/testdata/tools.yml
+          brew_prefix=$(brew --prefix)
+          utags_head=$(ls $brew_prefix/Cellar/universal-ctags | tail -n 1)
+          sed -i -e "s|utags: .*|utags: $brew_prefix/Cellar/universal-ctags/${utags_head}/bin/ctags|g" tools.yml
+          sed -i -e "s|utags: .*|utags: $brew_prefix/Cellar/universal-ctags/${utags_head}/bin/ctags|g" tests/testthat/testdata/tools.yml
         shell: bash
+
 
       - name: Test coverage
         run: |
