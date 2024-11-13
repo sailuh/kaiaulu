@@ -30,9 +30,25 @@ test_that("Calling parse_gitlog with correct perceval and correct git log path r
   tools_path <- file.path(tools_path)
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
+
+  # Debugging output
+  print("Debugging parse_gitlog:")
+  print(paste("Tools path:", tools_path))
+  print(paste("Perceval path:", perceval_path))
+
   git_repo_path <- suppressWarnings(git_create_sample_log())
+
+  # Debugging output
+  print(paste("Generated Git repo path:", git_repo_path))
+
   result <- parse_gitlog(perceval_path, git_repo_path)
+
+  # Debugging output
+  print("Result of parse_gitlog:")
+  print(head(result))
+
   expect_is(result, "data.table")
+
   suppressWarnings(git_delete_sample_log(git_repo_path))
 })
 
