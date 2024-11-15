@@ -13,8 +13,6 @@ filter:
     - example
 
 srcml:
-  # path to tool binary (change this location later)
-  # srcml_path: /usr/local/bin/srcml
   # path to the folder to analyze
   src_folder: ../maven/maven-artifact/src/main/java/org/apache/maven/artifact/
   srcml_filepath: ../analysis/maven/srcml_output.xml
