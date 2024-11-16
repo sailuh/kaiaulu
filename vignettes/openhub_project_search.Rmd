@@ -12,21 +12,21 @@ vignette: >
 
 # Introduction
 
+## Motivation
+
+This notebook demonstrates how to use Kaiaulu's OpenHub API interface functions to search for projects based on specific criteria: the organization to which the projects belong and the primary programming language used by the projects.
+
+## Explanation
+
 This notebook explains how to acquire information on a set of projects (e.g. LOC on the current date, number of contributors who made at least one commit in the past 12 months, number of commits in the past 12 months, total commit count on the current date, and total number of contributors on the current date) that reside in [Openhub's open-source project collection](https://openhub.net/explore/projects) based on search parameters under an [organization](https://openhub.net/explore/orgs) using [Ohloh API](https://github.com/blackducksoftware/ohloh_api).
 
 Kaiaulu's interface to Ohloh's API, an API for OpenHub's open-source project collection, relies on [httr](https://httr.r-lib.org) to create http GET requests that interface with Ohloh's API. Ohloh API responds to these requests by returning an XML response file with nested tags.
 
-In essence, Kaiaulu only defines a few API endpoints of interest ([organization-collection](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/organization-collection.md), [portfolio_projects](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/portfolio_projects.md), [project](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/project.md), and [analysis](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/analysis.md)) where the tool is currently used, and parses the returned XML output into a table keeping only fields of interest. More endpoints and/or fields of interest per endpoint can be added in the future.
-
-## Project Labeling Commits with Issue IDs
-
-If you're interested in verifying if a project labels their commits with issue IDs and whether they have unique issue types (i.e. "bug", "feature", "security bug", "refactoring", etc), which is outside of the scope of this notebook, please see [this issue comment](https://github.com/sailuh/kaiaulu/issues/317#issuecomment-2456153693). A summary of the relevant text is shown below:
-
-> To check the issue IDs, it requires you to parse the project's code git log. Then you can use [this function](http://itm0.shidler.hawaii.edu/kaiaulu/reference/commit_message_id_coverage.html) on the resulting table. See [this notebook](http://itm0.shidler.hawaii.edu/kaiaulu/articles/bug_count.html#identifying-issue-ids-in-commit-messages) for example usage. This notebook uses the regex written in the project configuration file, which is a regex. The user will need to manually figure out from the git log if any can be found, to then specify in Kaiaulu config, to then have Kaiaulu calculate the metric. There is no other way to automate that since the conventions used vary across projects, if at all used.
+Kaiaulu only defines a few API endpoints of interest ([organization-collection](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/organization-collection.md), [portfolio_projects](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/portfolio_projects.md), [project](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/project.md), and [analysis](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/analysis.md)) where the tool is currently used, and parses the returned XML output into a table keeping only fields of interest. More endpoints and/or fields of interest per endpoint can be added in the future.
 
 ## Create a Personal API Token
 
-OpenHub has a limit to the number of API calls per token (maximum set to 1000) per day. The current rate for your personal API token and to acquire an API key, they may be found at [its website](https://www.openhub.net/accounts/me/api_keys) and an account is required to acquire your personal API token. The process should not take more than two minutes.
+OpenHub has a limit to the number of API calls per token (maximum set to 1000) per day. The current rate for your personal API token and to acquire an API key, they may be found at [its website](https://www.openhub.net/accounts/me/api_keys) and an account is required to acquire your personal API token. The process, **to create an account and register for an API key is documented on [Ohloh API GitHub Page API Section](https://github.com/blackducksoftware/ohloh_api?tab=readme-ov-file#api-key)**, should not take more than two minutes.
 
 The functions in Kaiaulu will assume you have an OpenHub API token available, which can be passed as parameter. 
 
@@ -98,7 +98,7 @@ openhub_api_parameters[["portfolio_project_site"]] <- openhub_organizations[["ht
 Following the same process as the Organization section, we acquire the portfolio projects for the organization, "Apache Software Foundation", that possess the code language specified by `language`, in this case "java", by acquiring the portfolio projects API requests and parsing these API requests into a data table. Each page for the portfolio_projects collection returns a maximum of 20 items, portfolio projects, and **to not exceed the API token rate limit, we only request the first page (maximum of twenty portfolio projects)**. To grab as many matches as possible or up to a number of pages (if `max_portfolio_project_pages` exceeds the total pages acquired by the API response, it will grab the maximum number of pages possible), `max_portfolio_project_pages` may be removed from `openhub_api_iterate_pages` or `max_portfolio_project_pages` may be set to an arbitrary value, respectively.
 
 ```{r, eval = FALSE}
-max_portfolio_project_pages <- 1
+max_portfolio_project_pages <- 1 # INCREASE THIS VALUE TO INCREASE THE LIMIT OF PAGES TO ACQURIE MORE MATCHING PROJECTS
 portfolio_projects_api_requests <- openhub_api_iterate_pages(token, openhub_api_portfolio_projects, openhub_api_parameters, max_pages=max_portfolio_project_pages)
 ```
 
@@ -193,3 +193,11 @@ We combine the combined portfolio_projects and project data table, `openhub_comb
 openhub_combined_data <- merge(openhub_combined_projects, openhub_analyses, by = "id", all = FALSE)
 kable(openhub_combined_data)
 ```
+
+# Relevant Information
+
+## Commit Issue Coverage
+
+If you're interested in verifying if a project labels their commits with issue IDs and whether they have unique issue types (i.e. "bug", "feature", "security bug", "refactoring", etc), which is outside of the scope of this notebook, please review this short explanation:
+
+To check the issue IDs, it requires you to parse the project's code git log. Then you can use [this function](http://itm0.shidler.hawaii.edu/kaiaulu/reference/commit_message_id_coverage.html) on the resulting table. See [this notebook](http://itm0.shidler.hawaii.edu/kaiaulu/articles/bug_count.html#identifying-issue-ids-in-commit-messages) for example usage. This notebook uses the regex written in the project configuration file, which is a regex. The user will need to manually figure out from the git log if any can be found, to then specify in Kaiaulu configuration file, to then have Kaiaulu calculate the metric. There is no other way to automate that since the conventions used vary across projects, if at all used.
