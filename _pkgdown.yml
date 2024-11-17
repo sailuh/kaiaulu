@@ -91,15 +91,17 @@ reference:
 - title: __Mail__
   desc: >
       Download, parsing and data generation of mailing lists.
-      See the [Download Mbox](../articles/download_mod_mbox.html)
+      See the [Download Mail](../articles/download_mail.html)
       and [Reply](../articles/reply_communication_showcase.html)
       Notebooks for details.
 - contents:
   - download_pipermail
-  - convert_pipermail_to_mbox
+  - refresh_pipermail
   - download_mod_mbox
-  - download_mod_mbox_per_month
+  - refresh_mod_mbox
+  - process_gz_to_mbox_in_folder
   - parse_mbox
+  - parse_mbox_latest_date
   - make_mbox_reply
   - make_mbox_mailing_list
 - title: __JIRA__
