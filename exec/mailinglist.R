@@ -47,7 +47,7 @@ if (arguments[["parse"]] & arguments[["help"]]) {
   tools <- yaml::read_yaml(tools_path)
   conf <- yaml::read_yaml(conf_path)
 
-  perceval_path <- get_tool("perceval", tools)
+  perceval_path <- get_tool_project("perceval", tools)
   mbox_file_path <- get_mbox_input_file(conf, project_key)
 
   parsed_mbox <- parse_mbox(
