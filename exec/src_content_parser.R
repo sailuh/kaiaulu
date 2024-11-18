@@ -8,6 +8,9 @@ require(data.table, quietly = TRUE)
 require(stringi, quietly = TRUE)
 require(XML, quietly = TRUE)
 
+# for use from Python script
+source('../../kaiaulu/R/src.R')
+
 doc <- "
 USAGE:
   src_content_parser.R query <tools.yml> <project_conf.yml> <srcml_filepath> <output_dir> [--namespace | --file-docs | --class-docs | --variables | --packages | --functions | --imports | --class-names]
@@ -87,5 +90,15 @@ if (arguments[["--namespace"]]) {
 }
 
 # Save to file
-write.table(query_result, output_file, row.names = FALSE, col.names = FALSE, sep = ",", quote = FALSE)
+# Save to file with proper quoting
+write.table(
+  query_result,
+  output_file,
+  row.names = FALSE,
+  col.names = FALSE,
+  sep = ",",
+  quote = TRUE,        # Enable quoting of character fields
+  qmethod = "double"   # Use double quotes around fields
+)
+
 cli_alert_success(paste0("Query results saved at: ", output_file))
