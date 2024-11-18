@@ -352,3 +352,19 @@ reference:
   - get_window_end_commit
   - get_window_size
   - get_window_start_commit
+- title: __OpenHub__
+  desc: >
+   Functions to interact and download data from OpenHub's API, Ohloh.
+   See [OpenHub Project Search](../articles/openhub_project_search.html)
+   Notebook for an example.
+- contents:
+  - openhub_api_organizations
+  - openhub_api_portfolio_projects
+  - openhub_api_projects
+  - openhub_api_analyses
+  - openhub_parse_organizations
+  - openhub_parse_portfolio_projects
+  - openhub_parse_projects
+  - openhub_parse_analyses
+  - openhub_api_iterate_pages
+
