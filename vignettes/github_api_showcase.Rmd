@@ -103,6 +103,7 @@ The user can define the maximum number of pages to download in the function para
 
 ```{r Collect Github Discussions, eval = FALSE}
 gh_response <- github_api_discussions(token, owner, repo, save_path_discussions)
+gh_response <- github_api_discussions_refresh(token, owner, repo, save_path_discussions)
 ```
 
 # Parsing Raw Data to Csv
@@ -131,13 +132,11 @@ kable(head(all_commit))
 all_discussions <- lapply(list.files(save_path_discussions, full.names = TRUE), read_json)
 all_discussions <- lapply(all_discussions, github_parse_discussions)
 all_discussions <- rbindlist(all_discussions, fill = TRUE)
-all_discussions[,all_discussions:=NULL] # removing column just to prevent html rendering error
 
 # Parse the discussion comments
 all_discussion_comments <- lapply(list.files(save_path_discussions, full.names = TRUE), read_json)
 all_discussion_comments <- lapply(all_discussion_comments, github_parse_discussion_comments)
 all_discussion_comments <- rbindlist(all_discussion_comments, fill = TRUE)
-all_discussions[,all_discussion_comments:=NULL] # removing column just to prevent html rendering error
 
 View(all_discussions)
 View(all_discussion_comments)

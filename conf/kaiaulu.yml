@@ -82,13 +82,13 @@ issue_tracker:
       owner: sailuh
       repo: kaiaulu
       # Download using `download_github_comments.Rmd`
-      issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/sailuh_kaiaulu/
-      issue: ../../rawdata/kaiaulu/github/issue/sailuh_kaiaulu/
-      issue_search: ../../rawdata/kaiaulu/github/issue_search/sailuh_kaiaulu/
-      issue_event: ../../rawdata/kaiaulu/github/issue_event/sailuh_kaiaulu/
-      pull_request: ../../rawdata/kaiaulu/github/pull_request/sailuh_kaiaulu/
-      commit: ../../rawdata/kaiaulu/github/commit/sailuh_kaiaulu/
-      discussion: ../../rawdata/kaiaulu/github/discussion/sailuh_kaiaulu/
+      issue_or_pr_comment: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_or_pr_comment/
+      issue: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue/
+      issue_search: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_search/
+      issue_event: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_event/
+      pull_request: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/pull_request/
+      commit: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/commit/
+      discussion: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/discussion/
 #     project_key_2:
 #       # Obtained from the project's GitHub URL
 #       owner: ssunoo2

@@ -400,16 +400,17 @@ github_parse_project_commits <- function(api_responses){
 #' @param prefix Prefix to be added to every json file name
 #' @param max_pages The maximum number of pages to download. MAX = Available token requests left
 #' @export
-github_api_discussions <- function(token, owner, repo, save_folder_path, max_pages = NA){
+github_api_discussions <- function(token, owner, repo, save_folder_path, max_pages = NA, verbose = TRUE){
   page_number <- 1
   cursor <- NULL
 
+  # Set the max number of pages to your api limit, unless specified
   if(is.na(max_pages)){
     max_pages <- github_api_rate_limit(token)$remaining
   }
 
   while(page_number < max_pages){
-
+    # Make the GraphQL query
     query <- paste0('query {
       repository (owner:"', owner, '", name:"', repo, '") {
         discussions (first: 100', if(!is.null(cursor)) paste0(', after: "', cursor,'"'),') {
@@ -443,12 +444,161 @@ github_api_discussions <- function(token, owner, repo, save_folder_path, max_pag
       }
     }')
 
+    # Make the request to the GraphQL API
     gh_response <- gh::gh("POST /graphql", query=query, .token=token)
 
-    write_json(gh_response,paste0(save_folder_path,
-                                  owner, "_", repo, "_discussion_p_", page_number,
-                                  ".json"),
-               pretty=TRUE, auto_unbox=TRUE)
+    # Make the list of all created_dates
+    created_dates <- sapply(gh_response[["data"]][["repository"]][["discussions"]][["edges"]],
+                            function(edge) edge[["node"]][["createdAt"]])
+    # Remove NULL entries from created_dates
+    created_dates <- Filter(Negate(is.null), created_dates)
+
+    # Convert to POSIXct date objects
+    date_objects <- as.POSIXct(created_dates, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
+
+    # Find the greatest and smallest date
+    latest_date <- max(date_objects)
+    latest_date_unix <- as.numeric(latest_date)
+    oldest_date <- min(date_objects)
+    oldest_date_unix <- as.numeric(oldest_date)
+
+    # Construct the file_name
+    file_name <- paste0(save_folder_path,
+                        owner, "_", repo, "_", oldest_date_unix, "_", latest_date_unix,
+                        ".json")
+    # Save the json to the folder path
+    write_json(gh_response, file_name, pretty=TRUE, auto_unbox=TRUE)
+
+    if (verbose) {
+      # Print the latest and oldest dates to the file name
+      message("Latest date: ", latest_date_unix)
+      message("Oldest date: ", oldest_date_unix)
+      message("File name: ", file_name)
+      message("Extracted dates for page ", page_number)
+    }
+
+    has_next_page <- gh_response[["data"]][["repository"]][["discussions"]][["pageInfo"]][["hasNextPage"]]
+
+    if (has_next_page){
+      cursor <- gh_response[["data"]][["repository"]][["discussions"]][["pageInfo"]][["endCursor"]]
+      page_number <- page_number + 1
+    }
+    else {
+      break
+    }
+  }
+}
+
+github_api_discussions_refresh <- function(token, owner, repo, save_folder_path, verbose = TRUE) {
+  # List all files and subdirectories in the directory
+  contents <- list.files(save_folder_path, all.files= TRUE)
+
+  # If the file is empty, download all discussions
+  if (length(contents) == 0) {
+    # Run the regular downloader
+    discussions <- github_api_discussions(token, owner, repo, save_folder_path)
+    return (discussions)
+  }
+
+  # Get the name of the file with the most recent date
+  latest_discussion <- contents[which.max(sapply(contents, function (filename) {
+    # Use regex to get timestamp
+    as.numeric(sub(".*_(\\d+)\\.json$", "\\1", basename(filename)))
+  }))]
+
+  # Read the JSON file
+  json_data <- fromJSON(file.path(save_folder_path, latest_discussion), simplifyVector = FALSE)
+  # Get the created_at values
+  created_at <- sapply(json_data[["data"]][["repository"]][["discussions"]][["edges"]],
+                       function (edge) edge[["node"]][["createdAt"]])
+  # Find the latest created_at
+  created_at <- max(created_at)
+  # Convert to a POSIXct object
+  created_at <- as.POSIXct(created_at, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
+  # Add one second
+  created_at <- created_at + 1
+  # Convert back to original
+  created_at <- format(created_at, "%Y-%m-%dT%H:%M:%SZ")
+
+  if (verbose) {
+    message("File name with latest date: ", latest_discussion)
+    message("Latest date: ", created_at)
+  }
+
+  page_number <- 1
+  cursor <- NULL
+  while (TRUE) {
+    # Form a new query
+    query <- paste0('query {
+      repository (owner:"', owner, '", name:"', repo, '") {
+        discussions (first: 100, orderBy: {field: CREATED_AT, direction: ASC}, after: "', created_at, '") {
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+          edges {
+            node {
+              title
+              bodyText
+              author { login }
+              createdAt
+              category { name }
+              id
+              answer { id }
+              comments(first: 100) {
+                edges {
+                  node {
+                    discussion { id }
+                    bodyText
+                    author { login }
+                    id
+                    createdAt
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }')
+    # Make a new API call with the query
+    gh_response <- gh::gh("POST /graphql", query=query, .token=token)
+
+    # Check if response has new discussions
+    if (length(gh_response[["data"]][["repository"]][["discussions"]][["edges"]]) == 0 && verbose) {
+      message("No new discussions")
+      break
+    }
+
+    # Make the list of all created_dates
+    created_dates <- sapply(gh_response[["data"]][["repository"]][["discussions"]][["edges"]],
+                            function(edge) edge[["node"]][["createdAt"]])
+    # Remove NULL entries from created_dates
+    created_dates <- Filter(Negate(is.null), created_dates)
+
+    # Convert to POSIXct date objects
+    date_objects <- as.POSIXct(created_dates, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
+
+    # Find the greatest and smallest date
+    latest_date <- max(date_objects)
+    latest_date_unix <- as.numeric(latest_date)
+    oldest_date <- min(date_objects)
+    oldest_date_unix <- as.numeric(oldest_date)
+
+    # Construct the file_name
+    file_name <- paste0(save_folder_path,
+                        owner, "_", repo, "_", oldest_date_unix, "_", latest_date_unix,
+                        ".json")
+    # Save the json to the folder path
+    write_json(gh_response, file_name, pretty=TRUE, auto_unbox=TRUE)
+
+    if (verbose) {
+      # Print the latest and oldest dates to the file name
+      message("Latest date: ", latest_date_unix)
+      message("Oldest date: ", oldest_date_unix)
+      message("File name: ", file_name)
+      message("Extracted dates for page ", page_number)
+    }
 
     has_next_page <- gh_response[["data"]][["repository"]][["discussions"]][["pageInfo"]][["hasNextPage"]]
 
