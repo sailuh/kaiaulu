@@ -29,17 +29,19 @@ parse_config <- function(config_path) {
   return(conf)
 }
 
-##### File Directory Function
+##### File Directory Function #####
 
 #' Creates file directories needed by the configuration file (.yml).
 #'
 #' @description The input is the parsed config file that the user will be using.
 #' It will take the parsed config to get the filepaths that need to be created to
-#' use the config file.
+#' use the config file. The function relies on the helper function `create_file_directory`
+#' to see if any of the directories already exist, and create those that don't.
 #'
 #' @param config The parsed config file the function is creating the directory for.
 #' @param verbose A boolean variable that prints operational messages when set to TRUE.
 #' Obtained from `parse_config` function.
+#' @export
 create_file_directory <- function(conf, verbose = TRUE) {
   # Create the git_repo folder
   create_file_path(conf$version_control$log)
@@ -106,6 +108,7 @@ create_file_directory <- function(conf, verbose = TRUE) {
         create_file_path(issue_tracker$issue_event)
         create_file_path(issue_tracker$pull_request)
         create_file_path(issue_tracker$commit)
+        create_file_path(issue_tracker$discussion)
       }
     } else {
       if (verbose) {
@@ -178,6 +181,7 @@ create_file_directory <- function(conf, verbose = TRUE) {
 #'
 #' @param filepath The filepath to create.
 #' @param verbose A boolean variable that prints the operational messages when set to TRUE.
+#' @export
 create_file_path <- function(filepath, verbose= TRUE) {
   if (!is.null(filepath)) {
     # Check if the filepath already exists
