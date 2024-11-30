@@ -132,7 +132,7 @@ Now, you can load the configurations in your R script or notebook using the foll
 ```{r}
 # Load tools configuration
 tools <- parse_config("../tools.yml")
-parse_perceval_path <- get_tool("perceval", tools)
+parse_perceval_path <- get_tool_project("perceval", tools)
 
 # Load project configuration
 conf <- parse_config("../conf/helix.yml")

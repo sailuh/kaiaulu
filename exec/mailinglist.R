@@ -15,7 +15,7 @@ require(data.table, quietly = TRUE)
 doc <- "
 USAGE:
   mailinglist.R parse help
-  mailinglist.R parse <tools.yml> <project_conf.yml> <project_key> <save_file_name_path>
+  mailinglist.R parse <tools.yml> <project_conf.yml> <project_key> <save_file_name_path> [<mbox_file_path>]
   mailinglist.R download modmbox help
   mailinglist.R download modmbox <project_conf.yml> <project_key> <start_year_month>
   mailinglist.R download pipermail help
@@ -38,20 +38,21 @@ arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9700')
 if (arguments[["parse"]] & arguments[["help"]]) {
   cli::cli_alert_info("Parses an mbox file using parse_mbox().")
 } else if (arguments[["parse"]]) {
-
   tools_path <- arguments[["<tools.yml>"]]
   conf_path <- arguments[["<project_conf.yml>"]]
   project_key <- arguments[["<project_key>"]]
   save_path <- arguments[["<save_file_name_path>"]]
+  mbox_file_path <- arguments[["<mbox_file_path>"]]
 
   tools <- yaml::read_yaml(tools_path)
   conf <- yaml::read_yaml(conf_path)
 
-  perceval_path <- get_tool_project("perceval", tools)
-  mbox_file_path <- get_mbox_input_file(conf, project_key)
+  if (is.null(mbox_file_path)) {
+    mbox_file_path <- get_mbox_input_file(conf, project_key)
+  }
 
   parsed_mbox <- parse_mbox(
-    perceval_path = perceval_path,
+    perceval_path = get_tool_project("perceval", tools),
     mbox_file_path = mbox_file_path
   )
 

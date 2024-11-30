@@ -589,13 +589,6 @@ parse_mbox <- function(perceval_path, mbox_file_path) {
   mbox_dir <- dirname(mbox_file_path)  # Extract directory path
   mbox_uri <- mbox_file_path  # URI points to the mbox file
 
-
-
-  # Debugging
-  print(paste("Perceval path:", perceval_path))
-  print(paste("Mbox file path:", mbox_file_path))
-  print(paste("Mbox directory path:", mbox_dir))
-
   # Use Perceval to parse the mbox file
   perceval_output <- tryCatch({
     system2(perceval_path,
@@ -607,12 +600,6 @@ parse_mbox <- function(perceval_path, mbox_file_path) {
     print(e$message)
     stop("Perceval execution failed.")
   })
-
-  # Debugging Perceval output
-  print("Perceval Output:")
-  cat(perceval_output, sep = "\n")
-
-
 
 
   # Filter JSON lines from Perceval output
@@ -633,10 +620,6 @@ parse_mbox <- function(perceval_path, mbox_file_path) {
     stop("JSON parsing failed.")
   })
 
-  # Debugging parsed data
-  print("Parsed data structure:")
-  print(str(perceval_parsed))
-
 
   columns_of_interest <- c("data.Message.ID", "data.In.Reply.To", "data.Date", "data.From", "data.To", "data.Cc", "data.Subject", "data.body.plain", "data.body")
   columns_rename <- c("reply_id", "in_reply_to_id", "reply_datetimetz", "reply_from", "reply_to", "reply_cc", "reply_subject", "reply_body", "reply_body")
@@ -649,11 +632,6 @@ parse_mbox <- function(perceval_path, mbox_file_path) {
   data.table::setnames(x = perceval_parsed,
                        old = colnames(perceval_parsed),
                        new = columns_rename[is_available_column])
-
-  # Debugging final parsed data
-  print("Final parsed data:")
-  print(perceval_parsed)
-
 
   return(perceval_parsed)
 }
