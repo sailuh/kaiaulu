@@ -17,8 +17,8 @@
 #'
 #' The downloaded .mbox files are saved in the specified folder following the naming convention kaiaulu_YYYYMM.mbox.
 #' The function only downloads files that fall between the specified start_year_month and end_year_month.
-#' When both formats fail to download, the function issues a warning indimessageing the missing month.
-#' At the end, the function summarizes the downloads, indimessageing the range of dates present and any missing months.
+#' When both formats fail to download, the function issues a warning indicating the missing month.
+#' At the end, the function summarizes the downloads, indicating the range of dates present and any missing months.
 #'
 #' @param mailing_list The name of the mailing list being downloaded e.g. "https://mta.openssl.org/pipermail/openssl-announce/"
 #' @param start_year_month The year and month of the first file to be downloaded format: 'YYYYMM'
@@ -369,7 +369,7 @@ process_gz_to_mbox_in_folder <- function(save_folder_path, verbose = TRUE) {
 #' The function loops through each month in the range specified by `start_year_month` and `end_year_month`,
 #' and constructs the appropriate URL to download each month's data. If any download fails, an warning is issued for the failed months.
 #' This means the file could not be found and that month's data may not exist.
-#' At the end, the function summarizes the downloads, indimessageing the range of dates present and any missing months.
+#' At the end, the function summarizes the downloads, indicating the range of dates present and any missing months.
 #'
 #' @param mailing_list The URL of the Apache Pony Mail list from which mbox files are to be downloaded
 #' (e.g., "https://lists.apache.org/list.html?announce@apache.org").
