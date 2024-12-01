@@ -14,5 +14,5 @@ filter:
 
 srcml:
   # path to the folder to analyze
-  src_folder: ../maven/maven-artifact/src/main/java/org/apache/maven/artifact/
-  srcml_filepath: ../analysis/maven/srcml_output.xml
+  src_folder: ../../maven/
+  srcml_filepath: ../../analysis/maven/srcml_output.xml

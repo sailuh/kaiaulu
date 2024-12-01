@@ -130,7 +130,7 @@ Here’s how you can set up the configuration:
 ```{r eval=FALSE}
 # Load the project configuration
 tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/maven.yml")
+conf <- yaml::read_yaml("../conf/maven_py.yml")
 
 # Paths from config
 srcml_path <- tool[["srcml"]]
