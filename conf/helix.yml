@@ -58,7 +58,7 @@ mailing_list:
       mbox_file_path: ../../rawdata/helix/mod_mbox/save_mbox_mail/kaiaulu_202407.mbox
     project_key_2:
       mailing_list: https://lists.apache.org/list.html?dev@felix.apache.org
-      save_folder_path: ../../helix/kaiaulu/mod_mbox/save_mbox_mail_2
+      save_folder_path: ../../helix/mod_mbox/save_mbox_mail_2
       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
       mbox_file_path: ../../helix/kaiaulu/mod_mbox/save_mbox_mail_2/kaiaulu_202407.mbox
   # If project uses Pipermail
@@ -70,9 +70,9 @@ mailing_list:
       mbox_file_path: ../../rawdata/helix/pipermail/save_mbox_mail/kaiaulu_202407.mbox
     project_key_2:
       mailing_list: https://mta.openssl.org/pipermail/openssl-project/
-      save_folder_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail_2/
+      save_folder_path: ../../rawdata/helix/pipermail/save_mbox_mail_2/
       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
-      mbox_file_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail_2/kaiaulu_202407.mbox
+      mbox_file_path: ../../rawdata/helix/pipermail/save_mbox_mail_2/kaiaulu_202407.mbox
 
 issue_tracker:
   jira:
