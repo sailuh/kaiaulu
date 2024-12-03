@@ -30,7 +30,13 @@
 
 project:
   website: https://helix.apache.org
-  openhub: https://www.openhub.net/p/apachehelix
+
+openhub:
+  website: https://www.openhub.net/p/apachehelix
+  organization_folder_path: ../../rawdata/openhub/organization/
+  portfolio_project_folder_path: ../../rawdata/openhub/portfolio/
+  project_folder_path: ../../rawdata/openhub/project/
+  analysis_folder_path: ../../rawdata/openhub/analysis/
 
 version_control:
   # Where is the git log located locally?

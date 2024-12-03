@@ -30,7 +30,13 @@
 
 project:
   website: https://tomcat.apache.org
-  openhub: https://www.openhub.net/p/tomcat
+
+openhub:
+  website: https://www.openhub.net/p/tomcat
+  organization_folder_path: ../../rawdata/openhub/organization/
+  portfolio_project_folder_path: ../../rawdata/openhub/portfolio/
+  project_folder_path: ../../rawdata/openhub/project/
+  analysis_folder_path: ../../rawdata/openhub/analysis/
 
 version_control:
   # Where is the git log located locally?
@@ -44,7 +50,7 @@ version_control:
     - master
 
 mailing_list:
-  mod_mbox: 
+  mod_mbox:
     project_key_1:
       mailing_list: http://mail-archives.apache.org/mod_mbox/tomcat-dev
       save_folder_path: ../../rawdata/tomcat/mod_mbox/save_mbox_mail/

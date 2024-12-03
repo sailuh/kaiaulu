@@ -30,7 +30,13 @@
 
 project:
   website: http://itm0.shidler.hawaii.edu/kaiaulu
-  openhub: https://www.openhub.net/p/kaiaulu
+
+openhub:
+  website: https://www.openhub.net/p/kaiaulu
+  organization_folder_path: ../../rawdata/openhub/organization/
+  portfolio_project_folder_path: ../../rawdata/openhub/portfolio/
+  project_folder_path: ../../rawdata/openhub/project/
+  analysis_folder_path: ../../rawdata/openhub/analysis/
 
 version_control:
   # Where is the git log located locally?
