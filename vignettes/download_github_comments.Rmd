@@ -43,16 +43,20 @@ Therefore, in this Notebook we have to rely on three endpoints from the GitHub A
 
 To use the pipeline, you must specify the organization and project of interest, and your token. Obtain a github token following the instructions [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
 
-```{r}
+```{r Necessary Parameters}
 conf <- parse_config("../conf/kaiaulu.yml")
+owner <- get_github_owner(conf, "project_key_1") # Has to match github organization (e.g. github.com/sailuh)
+repo <- get_github_repo(conf, "project_key_1") # Has to match github repository (e.g. github.com/sailuh/perceive)
+
+# your file github_token (a text file) contains the GitHub token API
+token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
+
+# The file paths where you want to save the data
 save_path_issue_or_pr_comments <- path.expand(get_github_issue_or_pr_comment_path(conf, "project_key_1"))
 save_path_issue <- get_github_issue_path(conf, "project_key_1")
 save_path_pull_request <- get_github_pull_request_path(conf, "project_key_1")
 save_path_commit <- get_github_commit_path(conf, "project_key_1")
-owner <- get_github_owner(conf, "project_key_1") # Has to match github organization (e.g. github.com/sailuh)
-repo <- get_github_repo(conf, "project_key_1") # Has to match github repository (e.g. github.com/sailuh/perceive)
-# your file github_token (a text file) contains the GitHub token API
-token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
+save_path_discussions <- get_github_discussions_path(conf, "project_key_1")
 ```
 
 # Collecting Data via GitHub API
@@ -158,7 +162,44 @@ head(all_issue_or_pr_comments,2)  %>%
   gt(auto_align = FALSE) 
 ```
 
+## Discussion Posts
 
+In order to download data from Github Discussions, we will need to use the Github GraphQL API instead of the REST API, which was used in the previous downloaders. Documentation on GraphQL can be found here: [About the GraphQL API](https://docs.github.com/en/graphql/overview/about-the-graphql-api)
+
+The Github GraphQL API only has 1 endpoint. For downloading data, we only use the queries operation of that endpoint.
+To form queries, you need to specify the data you want, which fecthes only the data requested, nothing more.
+If information is insufficient, it is advised to check with the API documentation to see what additional information is available. 
+More information about what can be retrieved from discussions is located here: [Using GraphQL API for Discussions](https://docs.github.com/en/graphql/guides/using-the-graphql-api-for-discussions)
+
+As stated previously, we download the discussions by forming a query, which only obtains the data requested.
+The function by default iterates through all available discussion pages (if user's available tokens allow).
+The user can define the maximum number of pages to download in the function parameter (e.g. max_pages=1)
+
+```{r Collect Github Discussions, eval = FALSE, warning=FALSE}
+gh_response <- github_api_discussions_refresh(token, owner, repo, save_path_discussions)
+```
+
+Two separate tables can be created from the api response.
+The first table contains information regarding the initial discussion post.
+The second table contains information on the replies and comments for all discussion posts.
+
+```{r Tabulate the results of the Query}
+# Parse the discussions
+all_discussions <- lapply(list.files(save_path_discussions, full.names = TRUE), read_json)
+all_discussions <- lapply(all_discussions, github_parse_discussions)
+all_discussions <- rbindlist(all_discussions, fill = TRUE)
+
+# Parse the discussion comments
+all_discussion_comments <- lapply(list.files(save_path_discussions, full.names = TRUE), read_json)
+all_discussion_comments <- lapply(all_discussion_comments, github_parse_discussion_comments)
+all_discussion_comments <- rbindlist(all_discussion_comments, fill = TRUE)
+
+# Display the last 2 rows of each table
+tail(all_discussions,2)  %>%
+  gt(auto_align = FALSE)
+tail(all_discussion_comments,2)  %>%
+  gt(auto_align = FALSE)
+```
 
 # Combining Issue and Pull Request communication
 

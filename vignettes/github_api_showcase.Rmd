@@ -22,8 +22,6 @@ GitHub limits the number of API calls per IP to only 60 attempts **every hour** 
 
 If using a personal account token from a free GitHub account, the number of API calls per hour increases to 5000 **per hour**. Therefore, it is recommended you create a personal token by following the [GitHub Documentation instructions](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token#:~:text=Creating%20a%20token.%201%20Verify%20your%20email%20address%2C,able%20to%20see%20the%20token%20again.%20More%20items). The process should not take more than 2 minutes.
 
-The GraphQL API will require a token, and does not allow unauthenticated requests. Fortunately both the Github's REST API and GraphQL API can use the same personal account token, given the token has the needed permissions.
-
 The functions in Kaiaulu will assume you have a token available, which can be passed as parameter. 
 
 ```{r warning=FALSE,message=FALSE}
@@ -33,6 +31,7 @@ require(data.table)
 require(jsonlite)
 require(knitr)
 require(gh)
+require(gt)
 ```
 
 
@@ -53,7 +52,6 @@ repo <- get_github_repo(conf, "project_key_1") # Has to match github repository 
 save_path_issue_or_pr_comments <- path.expand(get_github_issue_or_pr_comment_path(conf, "project_key_1"))
 save_path_issue_event <- get_github_issue_event_path(conf, "project_key_1")
 save_path_commit <- get_github_commit_path(conf, "project_key_1")
-save_path_discussions <- get_github_discussions_path(conf, "project_key_1")
 # your file github_token contains the GitHub token API obtained in the steps above
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 ```
@@ -82,28 +80,11 @@ github_api_iterate_pages(token,gh_response,save_path_issue_event,prefix="issue_e
 
 ### Commits
 
-Next we download commit data from GitHub API. This will be used to know which users in the issue events have or not merge permissions.
+Next we download commit data from GitHub API. This will be used to know which users in the issue events do or do not have merge permissions.
 
 ```{r Collect all project commit messages, eval = FALSE}
 gh_response <- github_api_project_commits(owner,repo,token)
 github_api_iterate_pages(token,gh_response,save_path_commit,prefix="commit")
-```
-
-## Using the Github GraphQL API
-
-The Github GraphQL API only has 1 endpoint. For downloading data, we only use the queries operation of that endpoint.
-To form queries, you need to specify the data you want, which fecthes only the data requested, nothing more.
-If information is insufficient, it is advised to check with the API documentation to see what additional information is available.
-
-### Discussions
-
-We download the discussions by forming a query. The query only obtains the data requested.
-The function by default iterates through all available discussion pages (if user's available tokens allow).
-The user can define the maximum number of pages to download in the function parameter (e.g. max_pages=1)
-
-```{r Collect Github Discussions, eval = FALSE}
-gh_response <- github_api_discussions(token, owner, repo, save_path_discussions)
-gh_response <- github_api_discussions_refresh(token, owner, repo, save_path_discussions)
 ```
 
 # Parsing Raw Data to Csv
@@ -125,21 +106,6 @@ all_commit <- rbindlist(all_commit,fill=TRUE)
 all_commit[,commit_message:=NULL] # removing column just to prevent html rendering error
 
 kable(head(all_commit))
-```
-
-```{r Parse the Github Discussions}
-# Parse the discussions
-all_discussions <- lapply(list.files(save_path_discussions, full.names = TRUE), read_json)
-all_discussions <- lapply(all_discussions, github_parse_discussions)
-all_discussions <- rbindlist(all_discussions, fill = TRUE)
-
-# Parse the discussion comments
-all_discussion_comments <- lapply(list.files(save_path_discussions, full.names = TRUE), read_json)
-all_discussion_comments <- lapply(all_discussion_comments, github_parse_discussion_comments)
-all_discussion_comments <- rbindlist(all_discussion_comments, fill = TRUE)
-
-View(all_discussions)
-View(all_discussion_comments)
 ```
 
 # Obtaining Issue Assignments from Non-Committers
