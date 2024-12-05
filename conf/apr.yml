@@ -101,6 +101,7 @@ issue_tracker:
 #       issue_event: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/issue_event/
 #       pull_request: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/pull_request/
 #       commit: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/commit/
+#       discussion: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/discussion/
 #   bugzilla:
 #     project_key_1:
 #       project_key: kaiaulu

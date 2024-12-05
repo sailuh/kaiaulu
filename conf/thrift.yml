@@ -34,7 +34,7 @@ project:
 
 version_control:
   # Where is the git log located locally?
-  log: ../../rawdata/thrift/git_repo/.git # cloned Apache Thrift repo and put path to its .git file
+  log: ../../rawdata/thrift/git_repo/thrift/.git # cloned Apache Thrift repo and put path to its .git file
   # From where the git log was downloaded?
   log_url: https://github.com/apache/thrift
   # List of branches used for analysis
@@ -72,36 +72,38 @@ issue_tracker:
       domain: https://issues.apache.org/jira
       project_key: THRIFT
       # Download using `download_jira_data.Rmd`
-      issues: ../../rawdata/thrift/jira/issues/thrift/
-      issue_comments: ../../rawdata/thrift/jira/issue_comments/thrift/
+      issues: ../../rawdata/thrift/jira/thrift/issues/
+      issue_comments: ../../rawdata/thrift/jira/thrift/issue_comments/
   github:
     project_key_1:
       # Obtained from the project's GitHub URL
       owner: apache
       repo: thrift
       # Download using `download_github_comments.Rmd`
-      issue_or_pr_comment: ../../rawdata/thrift/github/issue_or_pr_comment/apache_thrift/
-      issue: ../../rawdata/thrift/github/issue/apache_thrift/
-      issue_search: ../../rawdata/thrift/github/issue_search/apache_thrift/
-      issue_event: ../../rawdata/thrift/github/issue_event/apache_thrift/
-      pull_request: ../../rawdata/thrift/github/pull_request/apache_thrift/
-      commit: ../../rawdata/thrift/github/commit/apache_thrift/
+      issue_or_pr_comment: ../../rawdata/thrift/github/apache_thrift/issue_or_pr_comment/
+      issue: ../../rawdata/thrift/github/apache_thrift/issue/
+      issue_search: ../../rawdata/thrift/github/apache_thrift/issue_search/
+      issue_event: ../../rawdata/thrift/github/apache_thrift/issue_event/
+      pull_request: ../../rawdata/thrift/github/apache_thrift/pull_request/
+      commit: ../../rawdata/thrift/github/apache_thrift/commit/
+      discussion: ../../rawdata/thrift/github/apache_thrift/discussion/
 #     project_key_2:
 #       # Obtained from the project's GitHub URL
 #       owner: ssunoo2
 #       repo: kaiaulu
 #       # Download using `download_github_comments.Rmd`
-#       issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/ssunoo2_kaiaulu/
-#       issue: ../../rawdata/kaiaulu/github/issue/ssunoo2_kaiaulu/
-#       issue_search: ../../rawdata/kaiaulu/github/issue_search/ssunoo2_kaiaulu/
-#       issue_event: ../../rawdata/kaiaulu/github/issue_event/ssunoo2_kaiaulu/
-#       pull_request: ../../rawdata/kaiaulu/github/pull_request/ssunoo2_kaiaulu/
-#       commit: ../../rawdata/kaiaulu/github/commit/ssunoo2_kaiaulu/
+#       issue_or_pr_comment: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/issue_or_pr_comment/
+#       issue: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/issue/
+#       issue_search: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/issue_search/
+#       issue_event: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/issue_event/
+#       pull_request: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/pull_request/
+#       commit: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/commit/
+#       discussion: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/discussion/
 #   bugzilla:
 #     project_key_1:
 #       project_key: kaiaulu
-#       issues: ../../rawdata/kaiaulu/bugzilla/issues/kaiaulu/
-#       issue_comments: ../../rawdata/kaiaulu/bugzilla/issue_comments/kaiaulu/
+#       issues: ../../rawdata/kaiaulu/bugzilla/kaiaulu/issues/
+#       issue_comments: ../../rawdata/kaiaulu/bugzilla/kaiaulu/issue_comments/
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
