@@ -44,7 +44,7 @@ parse_config <- function(config_path) {
 #' @export
 create_file_directory <- function(conf, verbose = TRUE) {
   # Create the git_repo folder
-  create_file_path(conf$version_control$log)
+  create_file_path(conf$version_control$log, verbose)
 
   # Create the mailing_list directory, if needed
   if (!is.null(conf$mailing_list)) {
@@ -54,7 +54,7 @@ create_file_directory <- function(conf, verbose = TRUE) {
       project_keys <- names(conf$mailing_list$mod_mbox)
       for (key in project_keys) {
         mailing_list <- conf$mailing_list$mod_mbox[[key]]
-        create_file_path(mailing_list$save_folder_path)
+        create_file_path(mailing_list$save_folder_path, verbose)
       }
     } else {
       if (verbose) {
@@ -67,7 +67,7 @@ create_file_directory <- function(conf, verbose = TRUE) {
       project_keys <- names(conf$mailing_list$pipermail)
       for (key in project_keys) {
         mailing_list <- conf$mailing_list$pipermail[[key]]
-        create_file_path(mailing_list$save_folder_path)
+        create_file_path(mailing_list$save_folder_path, verbose)
       }
     } else {
       if (verbose) {
@@ -88,8 +88,8 @@ create_file_directory <- function(conf, verbose = TRUE) {
       project_keys <- names(conf$issue_tracker$jira)
       for (key in project_keys) {
         issue_tracker <- conf$issue_tracker$jira[[key]]
-        create_file_path(issue_tracker$issues)
-        create_file_path(issue_tracker$issue_comments)
+        create_file_path(issue_tracker$issues, verbose)
+        create_file_path(issue_tracker$issue_comments, verbose)
       }
     } else {
       if (verbose) {
@@ -102,13 +102,14 @@ create_file_directory <- function(conf, verbose = TRUE) {
       project_keys <- names(conf$issue_tracker$github)
       for (key in project_keys) {
         issue_tracker <- conf$issue_tracker$github[[key]]
-        create_file_path(issue_tracker$issue_or_pr_comment)
-        create_file_path(issue_tracker$issue)
-        create_file_path(issue_tracker$issue_search)
-        create_file_path(issue_tracker$issue_event)
-        create_file_path(issue_tracker$pull_request)
-        create_file_path(issue_tracker$commit)
-        create_file_path(issue_tracker$discussion)
+        create_file_path(issue_tracker$issue_or_pr_comment, verbose)
+        create_file_path(issue_tracker$issue, verbose)
+        create_file_path(issue_tracker$issue_search, verbose)
+        create_file_path(issue_tracker$issue_event, verbose)
+        create_file_path(issue_tracker$pull_request, verbose)
+        create_file_path(issue_tracker$pr_comment, verbose)
+        create_file_path(issue_tracker$commit, verbose)
+        create_file_path(issue_tracker$discussion, verbose)
       }
     } else {
       if (verbose) {
@@ -121,8 +122,8 @@ create_file_directory <- function(conf, verbose = TRUE) {
       project_keys <- names(conf$issue_tracker$bugzilla)
       for (key in project_keys) {
         issue_tracker <- conf$issue_tracker$bugzilla[[key]]
-        create_file_path(issue_tracker$issues)
-        create_file_path(issue_tracker$issue_comments)
+        create_file_path(issue_tracker$issues, verbose)
+        create_file_path(issue_tracker$issue_comments, verbose)
       }
     } else {
       if (verbose) {
@@ -139,7 +140,7 @@ create_file_directory <- function(conf, verbose = TRUE) {
   if (!is.null(conf$tool)) {
     # Check for dv8
     if (!is.null(conf$tool$dv8)) {
-      create_file_path(conf$tool$dv8$folder_path)
+      create_file_path(conf$tool$dv8$folder_path, verbose)
     } else {
       if (verbose) {
         message("dv8 is unused")
@@ -147,7 +148,7 @@ create_file_directory <- function(conf, verbose = TRUE) {
     }
     # Check for srcml
     if (!is.null(conf$tool$srcml)) {
-      create_file_path(conf$tool$srcml$srcml_path)
+      create_file_path(conf$tool$srcml$srcml_path, verbose)
     } else {
       if (verbose) {
         message("srcml is unused")
@@ -155,8 +156,8 @@ create_file_directory <- function(conf, verbose = TRUE) {
     }
     # Check for pattern4
     if (!is.null(conf$tool$pattern4)) {
-      create_file_path(conf$tool$pattern4$class_folder_path)
-      create_file_path(conf$tool$pattern4$output_filepath)
+      create_file_path(conf$tool$pattern4$class_folder_path, verbose)
+      create_file_path(conf$tool$pattern4$output_filepath, verbose)
     } else {
       if (verbose) {
         message("pattern4 is unused")
@@ -164,8 +165,8 @@ create_file_directory <- function(conf, verbose = TRUE) {
     }
     # Check for understand
     if (!is.null(conf$tool$understand)) {
-      create_file_path(conf$tool$understand$project_path)
-      create_file_path(conf$tool$understand$output_path)
+      create_file_path(conf$tool$understand$project_path, verbose)
+      create_file_path(conf$tool$understand$output_path, verbose)
     }
   } else {
     if (verbose) {
@@ -702,6 +703,31 @@ get_github_pull_request_path <- function(config_file, project_key_index) {
   }
 
   return(pull_request_path)
+}
+
+#' Returns the local folder path for GitHub Pull Request Review Comments for a specific
+#' project key.
+#'
+#' @description This function returns the local folder path for GitHub Pull
+#' Request Comments for a specific project key, that is specified in the input
+#' parameter `config_file`. The input, `config_file` must be a parsed
+#' configuration file. The function will inform the user if the local folder
+#' path for the pull request comments exists in the parsed configuration file,
+#' `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
+#' @return The local folder path for GitHub pull request review comments for project specified by key `project_key_index`.
+#' @export
+get_github_pr_comments_path <- function(config_file, project_key_index) {
+
+  pr_comments_path <- config_file[["issue_tracker"]][["github"]][[project_key_index]][["pr_comments"]]
+
+  if (is.null(pr_comments_path)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(pr_comments_path)
 }
 
 #' Returns the local folder path for GitHub issue events for a specific project
