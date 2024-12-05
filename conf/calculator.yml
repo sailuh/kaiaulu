@@ -36,7 +36,7 @@ version_control:
   # Where is the git log located locally?
   # This is the path to the .git of the project repository you are analyzing.
   # The .git is hidden, so you can see it using `ls -a`
-  log: ../../rawdata/Calculator/git_repo/.git
+  log: ../../rawdata/Calculator/git_repo/Calculator/.git
   # From where the git log was downloaded?
   log_url: https://github.com/HouariZegai/Calculator
   # List of branches used for analysis
@@ -82,28 +82,30 @@ issue_tracker:
       owner: HouariZegai
       repo: Calculator
       # Download using `download_github_comments.Rmd`
-      issue_or_pr_comment: ../../rawdata/Calculator/github/issue_or_pr_comment/HouariZegai_Calculator/
-      issue: ../../rawdata/Calculator/github/issue/HouariZegai_Calculator/
-      issue_search: ../../rawdata/Calculator/github/issue_search/HouariZegai_Calculator/
-      issue_event: ../../rawdata/Calculator/github/issue_event/HouariZegai_Calculator/
-      pull_request: ../../rawdata/Calculator/github/pull_request/HouariZegai_Calculator/
-      commit: ../../rawdata/Calculator/github/commit/HouariZegai_Calculator/
+      issue_or_pr_comment: ../../rawdata/Calculator/github/HouariZegai_Calculator/issue_or_pr_comment/
+      issue: ../../rawdata/Calculator/github/HouariZegai_Calculator/issue/
+      issue_search: ../../rawdata/Calculator/github/HouariZegai_Calculator/issue_search/
+      issue_event: ../../rawdata/Calculator/github/HouariZegai_Calculator/issue_event/
+      pull_request: ../../rawdata/Calculator/github/HouariZegai_Calculator/pull_request/
+      commit: ../../rawdata/Calculator/github/HouariZegai_Calculator/commit/
+      discussion: ../../rawdata/Calculator/github/HouariZegai_Calculator/discussion/
 #     project_key_2:
 #       # Obtained from the project's GitHub URL
 #       owner: ssunoo2
 #       repo: kaiaulu
 #       # Download using `download_github_comments.Rmd`
-#       issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/ssunoo2_kaiaulu/
-#       issue: ../../rawdata/kaiaulu/github/issue/ssunoo2_kaiaulu/
-#       issue_search: ../../rawdata/kaiaulu/github/issue_search/ssunoo2_kaiaulu/
-#       issue_event: ../../rawdata/kaiaulu/github/issue_event/ssunoo2_kaiaulu/
-#       pull_request: ../../rawdata/kaiaulu/github/pull_request/ssunoo2_kaiaulu/
-#       commit: ../../rawdata/kaiaulu/github/commit/ssunoo2_kaiaulu/
+#       issue_or_pr_comment: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/issue_or_pr_comment/
+#       issue: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/issue/
+#       issue_search: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/issue_search/
+#       issue_event: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/issue_event/
+#       pull_request: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/pull_request/
+#       commit: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/commit/
+#       discussion: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/discussion/
 #   bugzilla:
 #     project_key_1:
 #       project_key: kaiaulu
-#       issues: ../../rawdata/kaiaulu/bugzilla/issues/kaiaulu/
-#       issue_comments: ../../rawdata/kaiaulu/bugzilla/issue_comments/kaiaulu/
+#       issues: ../../rawdata/kaiaulu/bugzilla/kaiaulu/issues/
+#       issue_comments: ../../rawdata/kaiaulu/bugzilla/kaiaulu/issue_comments/
 
 #vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)

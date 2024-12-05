@@ -36,7 +36,7 @@ version_control:
   # Where is the git log located locally?
   # This is the path to the .git of the project repository you are analyzing.
   # The .git is hidden, so you can see it using `ls -a`
-  log: ../../rawdata/kaiaulu/git_repo/.git
+  log: ../../rawdata/kaiaulu/git_repo/kaiaulu/.git
   # From where the git log was downloaded?
   log_url: https://github.com/sailuh/kaiaulu
   # List of branches used for analysis
@@ -74,8 +74,8 @@ issue_tracker:
       domain: https://sailuh.atlassian.net
       project_key: SAILUH
       # Download using `download_jira_data.Rmd`
-      issues: ../../rawdata/kaiaulu/jira/issues/sailuh/
-      issue_comments: ../../rawdata/kaiaulu/jira/issue_comments/sailuh/
+      issues: ../../rawdata/kaiaulu/jira/sailuh/issues/
+      issue_comments: ../../rawdata/kaiaulu/jira/sailuh/issue_comments/
   github:
     project_key_1:
       # Obtained from the project's GitHub URL
@@ -94,17 +94,18 @@ issue_tracker:
 #       owner: ssunoo2
 #       repo: kaiaulu
 #       # Download using `download_github_comments.Rmd`
-#       issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/ssunoo2_kaiaulu/
-#       issue: ../../rawdata/kaiaulu/github/issue/ssunoo2_kaiaulu/
-#       issue_search: ../../rawdata/kaiaulu/github/issue_search/ssunoo2_kaiaulu/
-#       issue_event: ../../rawdata/kaiaulu/github/issue_event/ssunoo2_kaiaulu/
-#       pull_request: ../../rawdata/kaiaulu/github/pull_request/ssunoo2_kaiaulu/
-#       commit: ../../rawdata/kaiaulu/github/commit/ssunoo2_kaiaulu/
+#       issue_or_pr_comment: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/issue_or_pr_comment/
+#       issue: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/issue/
+#       issue_search: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/issue_search/
+#       issue_event: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/issue_event/
+#       pull_request: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/pull_request/
+#       commit: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/commit/
+#       discussion: ../../rawdata/kaiaulu/github/ssunoo2_kaiaulu/discussion/
 #   bugzilla:
 #     project_key_1:
 #       project_key: kaiaulu
-#       issues: ../../rawdata/kaiaulu/bugzilla/issues/kaiaulu/
-#       issue_comments: ../../rawdata/kaiaulu/bugzilla/issue_comments/kaiaulu/
+#       issues: ../../rawdata/kaiaulu/bugzilla/kaiaulu/issues/
+#       issue_comments: ../../rawdata/kaiaulu/bugzilla/kaiaulu/issue_comments/
 
 vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
