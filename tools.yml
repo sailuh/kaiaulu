@@ -1,5 +1,5 @@
 # https://github.com/chaoss/grimoirelab-perceval
-perceval: ~/perceval/bin/perceval
+perceval: /opt/anaconda3/envs/perceval_env/bin/perceval
 # https://github.com/multilang-depends/depends
 depends: ~/depends-0.9.6/depends.jar
 # https://github.com/tsantalis/RefactoringMiner#running-refactoringminer-from-the-command-line

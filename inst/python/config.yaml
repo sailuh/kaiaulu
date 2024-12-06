@@ -1,0 +1,18 @@
+command_template:
+  - "Rscript"
+  - "{exec_script}"
+  - "parse"
+  - "{tools_yml}"
+  - "{conf_yml}"
+  - "{project_key}"
+  - "{output_file}"
+  - "{input_file}"
+exec_script: "../../exec/mailinglist.R"
+tools_yml: "../../tools.yml"
+conf_yml: "../../conf/helix.yml"
+project_key: "project_key_1"
+input_dir: "../../../rawdata/helix/mod_mbox/save_mbox_mail"
+output_dir: "../../../rawdata/helix/mod_mbox/parsed_mbox_mail"
+input_file_extension: ".mbox"
+num_threads: 4
+process_individual_files: true

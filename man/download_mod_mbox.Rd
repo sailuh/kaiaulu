@@ -2,36 +2,39 @@
 % Please edit documentation in R/mail.R
 \name{download_mod_mbox}
 \alias{download_mod_mbox}
-\title{Compose mod_mbox archives (.mbox) into a single mbox file for use with \code{\link{parse_mbox}}}
+\title{Download all mod_mbox files in a mailing list as mbox files}
 \usage{
 download_mod_mbox(
-  base_url,
   mailing_list,
-  from_year,
-  to_year,
-  save_file_path,
-  is_per_month = TRUE,
-  verbose = FALSE
+  start_year_month,
+  end_year_month,
+  save_folder_path,
+  verbose = TRUE
 )
 }
 \arguments{
-\item{base_url}{An url pointing to the mod_mbox directory (e.g. "http://mail-archives.apache.org/mod_mbox") without trailing slashes}
+\item{mailing_list}{The URL of the Apache Pony Mail list from which mbox files are to be downloaded
+(e.g., "https://lists.apache.org/list.html?announce@apache.org").}
 
-\item{mailing_list}{Name of the project mailing list (e.g. apr-dev) in the mod_mbox directory}
+\item{start_year_month}{The year and month of the first file to be downloaded (format: 'YYYYMM').}
 
-\item{from_year}{First year in the range to be downloaded}
+\item{end_year_month}{The year and month of the last file to be downloaded (format: 'YYYYMM').}
 
-\item{to_year}{Last year in the range to be downloaded}
+\item{save_folder_path}{The folder path where all the downloaded mbox files will be stored.}
 
-\item{save_file_path}{the full path, including file name and extension to save the file}
-
-\item{is_per_month}{If TRUE, does not delete monthly files in tmp. (Default = TRUE)}
-
-\item{verbose}{Prints progress during execution}
+\item{verbose}{if TRUE, prints detailed messages during the download process.}
 }
 \value{
-Returns the path of the downloaded mbox file.
+Returns `save_folder_path`, the folder path where the mbox files are stored.
 }
 \description{
-Compose mod_mbox archives (.mbox) into a single mbox file for use with \code{\link{parse_mbox}}
+This function downloads mod_mbox archives from a specified Apache Pony Mail mailing list as .mbox files.
+It constructs the download URLs for each month based on the start and end date range and downloads the mbox files
+in the format "YYYY-MM". The downloaded .mbox files are saved in the specified folder, with a naming convention
+of kaiaulu_YYYYMM.mbox.
+
+The function loops through each month in the range specified by `start_year_month` and `end_year_month`,
+and constructs the appropriate URL to download each month's data. If any download fails, an warning is issued for the failed months.
+This means the file could not be found and that month's data may not exist.
+At the end, the function summarizes the downloads, indimessageing the range of dates present and any missing months.
 }
