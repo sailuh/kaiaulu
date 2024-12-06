@@ -2,7 +2,7 @@ Package: kaiaulu
 Type: Package
 Title: Kaiaulu
 Version: 0.0.0.9700
-Description: Kaiaulu is an R package and common interface that helps with understanding evolving software development communities, and the artifacts (gitlog, mailing list, files, etc.) which developers collaborate and communicate about. See Paradis et al., (2012) <doi:10.1007/978-3-031-15116-3_6>. 
+Description: Kaiaulu is an R package and common interface that helps with understanding evolving software development communities, and the artifacts (gitlog, mailing list, files, etc.) which developers collaborate and communicate about. See Paradis et al., (2012) <doi:10.1007/978-3-031-15116-3_6>.
 Authors@R: c(
     person('Carlos', 'Paradis', role = c('aut', 'cre'),
       email = 'cvas@hawaii.edu',
@@ -21,6 +21,7 @@ Authors@R: c(
     person('Anthony', 'Lau', role = c('ctb')),
     person('Sean', 'Sunoo', role = c('ctb')),
     person('Ian Jaymes', 'Iwata', role= c('ctb')),
+    person('Raven', 'Quiddaoen', role= c('ctb')),
     person('Nicholas', 'Beydler', role = c('ctb')),
     person('Mark', 'Burgess', role = c('ctb'))
     )
