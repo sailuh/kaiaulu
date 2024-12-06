@@ -4,23 +4,22 @@
 \alias{openhub_api_organizations}
 \title{Download a page of Organization XML Response File.}
 \usage{
-openhub_api_organizations(token, openhub_api_parameters, page = 1)
+openhub_api_organizations(token, save_folder_path, html_url_or_name)
 }
 \arguments{
 \item{token}{Your OpenHub API token.}
 
-\item{openhub_api_parameters}{List of parameters; must contain "organization_name" key-value pair (e.g. "Apache Software Foundation").}
+\item{save_folder_path}{A folder path to save the downloaded XML page "as-is".}
 
-\item{page}{The page number to index (Default set to 1) (e.g. 1).}
+\item{html_url_or_name}{Either the URL for the organization page on OpenHub (e.g. "https://openhub.net/orgs/apache") or the short, unique, handle for the organization (e.g. "apache").}
 }
 \value{
-The response XML single page file that contains a list of organization items.
+The response XML single page file that contains a single organization item.
 }
 \description{
 Downloads an XML response file from "organization" collection
-endpoint. The `openhub_api_parameters` list must contain an "organization_name"
-key-value pair to query the organization names. The XML response file will return
-a page of items which can be indexed by the numeric `page` parameter.
+endpoint. The XML response file will return a single page containing the
+organization item.
 }
 \references{
 For organization collection details, see \url{https://github.com/blackducksoftware/ohloh_api/blob/main/reference/organization.md}.

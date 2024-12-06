@@ -8,7 +8,7 @@ openhub_api_iterate_pages(
   token,
   openhub_api_function,
   save_folder_path,
-  openhub_api_parameters,
+  openhub_api_function_parameter,
   max_pages = NULL
 )
 }
@@ -19,7 +19,7 @@ openhub_api_iterate_pages(
 
 \item{save_folder_path}{A folder path to save the downloaded XML pages "as-is".}
 
-\item{openhub_api_parameters}{List of parameters to use in `openhub_api_function` (e.g. `openhub_api_parameters` in \code{\link{openhub_api_organizations}}).}
+\item{openhub_api_function_parameter}{Required unique parameter for use in `openhub_api_function` ("org_name" in \code{\link{openhub_api_portfolio_projects}}).}
 
 \item{max_pages}{The maximum number of pages to download, if NULL, maximum number of pages will be used, and if max_pages exceeds the maximum number of pages, it will use the maximum number of pages (Default set to NULL).}
 }

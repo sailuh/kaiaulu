@@ -10,25 +10,34 @@
 #' Download a page of Organization XML Response File.
 #'
 #' @description Downloads an XML response file from "organization" collection
-#' endpoint. The `openhub_api_parameters` list must contain an "organization_name"
-#' key-value pair to query the organization names. The XML response file will return
-#' a page of items which can be indexed by the numeric `page` parameter.
+#' endpoint. The XML response file will return a single page containing the
+#' organization item.
 #'
 #' @param token Your OpenHub API token.
-#' @param openhub_api_parameters List of parameters; must contain "organization_name" key-value pair (e.g. "Apache Software Foundation").
-#' @param page The page number to index (Default set to 1) (e.g. 1).
-#' @return The response XML single page file that contains a list of organization items.
+#' @param save_folder_path A folder path to save the downloaded XML page "as-is".
+#' @param html_url_or_name Either the URL for the organization page on OpenHub (e.g. "https://openhub.net/orgs/apache") or the short, unique, handle for the organization (e.g. "apache").
+#' @return The response XML single page file that contains a single organization item.
 #' @references For organization collection details, see \url{https://github.com/blackducksoftware/ohloh_api/blob/main/reference/organization.md}.
 #' @export
-openhub_api_organizations <- function(token, openhub_api_parameters, page=1) {
+openhub_api_organizations <- function(token, save_folder_path, html_url_or_name) {
 
-  organization_name <- openhub_api_parameters[["organization_name"]]
+  org_name <- html_url_or_name
 
-  organizations_collection_site = "https://www.openhub.net/orgs.xml"
+  if (stringi::stri_detect_fixed(html_url_or_name, "https")) {
 
-  http_get_request <- paste0(organizations_collection_site, "?api_key=", token, "&query=", URLencode(organization_name), "&page=", page)
+    org_name <- stringi::stri_extract_last_regex(html_url_or_name, "[^/]+$")
+
+  }
+
+  type <- "organization"
+
+  timestamp <- as.integer(as.POSIXct(Sys.time(), tz = "UTC"))
+
+  http_get_request <- paste0("https://openhub.net/orgs/", org_name, ".xml?api_key=", token)
 
   api_response <- httr::GET(http_get_request)
+
+  openhub_download(api_response, save_folder_path, timestamp, type, unique_information=org_name)
 
   return(api_response)
 }
@@ -41,20 +50,35 @@ openhub_api_organizations <- function(token, openhub_api_parameters, page=1) {
 #' of items which can be indexed by the numeric `page` parameter.
 #'
 #' @param token Your OpenHub API token.
-#' @param openhub_api_parameters List of parameters; must contain "portfolio_project_site" key-value pair (e.g. "https://openhub.net/orgs/apache/projects.xml").
+#' @param save_folder_path A folder path to save the downloaded XML page "as-is".
+#' @param org_name The short, unique, handle for the organization taken from the organization's URL (e.g. "apache" from "https://openhub.net/orgs/apache").
+#' @param iterating If TRUE, downloading will disabled and it is assumed to be handled by \code{\link{openhub_api_iterate_pages}} to synchronize timestamps, if FALSE, downloading will occur (Default set to FALSE).
 #' @param page The page number to index (Default set to 1) (e.g. 1).
 #' @return The response XML single page file that contains a list of portfolio project items.
 #' @references For portfolio projects collection details, see \url{https://github.com/blackducksoftware/ohloh_api/blob/main/reference/portfolio_projects.md}.
 #' @export
-openhub_api_portfolio_projects <- function(token, openhub_api_parameters, page=1) {
+openhub_api_portfolio_projects <- function(token, save_folder_path, org_name, iterating=FALSE, page=1) {
 
-  portfolio_project_site <- openhub_api_parameters[["portfolio_project_site"]]
+  type <- "portfolio"
 
-  http_get_request <- paste0(portfolio_project_site, "?api_key=", token, "&page=", page)
+  timestamp <- as.integer(as.POSIXct(Sys.time(), tz = "UTC"))
+
+  http_get_request <- paste0("https://openhub.net/orgs/", org_name, "/projects.xml?api_key=", token, "&page=", page)
 
   api_response <- httr::GET(http_get_request)
 
-  return(api_response)
+  if (iterating) {
+    result <- list()
+    result[["api_response"]] <- api_response
+    result[["type"]] <- type
+    result[["timestamp"]] <- timestamp
+
+    return(result)
+  } else {
+    openhub_download(api_response, save_folder_path, timestamp, type, unique_information=org_name, page=page)
+
+    return(api_response)
+  }
 }
 
 #' Downloads a page of Project XML Response File.
@@ -117,34 +141,25 @@ openhub_api_analyses <- function(token, openhub_api_parameters,  page=1) {
 #'
 #' @description Parses a list of XML responses `api_responses` containing
 #' organization items, extracting relevant tags from the each XML response in
-#' `api_responses`. The `openhub_api_parameters` list must contain an
-#' "organization_name" key-value pair to index the correct organization. This
-#' function returns a parsed version of the XML responses in a table format.
+#' `api_responses`. This function returns a parsed version of the XML responses
+#' in a table format.
 #'
 #' @param api_responses A list of XML responses obtained from \code{\link{openhub_api_organizations}} function.
-#' @param openhub_api_parameters List of parameters; must contain "organization_name" key-value pair (e.g. "Apache Software Foundation").
 #' @return A parsed version of the XML responses into a table with relevant columns.
 #' @export
-openhub_parse_organizations <- function(api_responses, openhub_api_parameters) {
-  organization_name <- openhub_api_parameters[["organization_name"]]
+openhub_parse_organizations <- function(api_responses) {
   parse_response <- function(api_response) {
     xmlDoc <- XML::xmlParse(api_response, validate=F)
     root <- XML::xmlRoot(xmlDoc)
     status <- XML::xmlValue(root[[1]]) # the value of <status>
-    itemsReturned <- XML::xmlValue(root[[2]])
-    itemsAvailable <- XML::xmlValue(root[[3]])
-    returnItems <- root[[5]] # <result>
+    returnItems <- root[[2]] # <result>
     parsed_response <- list()
     if (status == "success") {
-      for (i in 1:itemsReturned) {
-        if (XML::xmlValue(returnItems[[i]][[1]]) == organization_name) {
-          parsed_response[["name"]] <- append(parsed_response[["name"]], XML::xmlValue(returnItems[[i]][[1]])) # means <result><org><name> (i-th org indexed)
-          parsed_response[["html_url_projects"]] <- append(parsed_response[["html_url_projects"]], paste0(XML::xmlValue(returnItems[[i]][[3]]), "/projects.xml")) # grab <result><org><html_url> (i-th org indexed)
-          break
-        }
-      }
+      parsed_response[["name"]] <- append(parsed_response[["name"]], XML::xmlValue(returnItems[[1]][[1]])) # means <result><org><name>
+      parsed_response[["html_url"]] <- append(parsed_response[["html_url"]], XML::xmlValue(returnItems[[1]][[3]])) # grab <result><org><html_url>
+      parsed_response[["portfolio_projects"]] <- append(parsed_response[["portfolio_projects"]], XML::xmlValue(returnItems[[1]][[13]][[4]])) # grab <result><org><infographic_details><portfolio_projects>
     } else {
-      warning(status) # prints the status warning message
+      warning(paste0("openhub_parse_organizations: ", status)) # prints the status warning message
     }
 
     parsed_response <- as.data.table(parsed_response)
@@ -164,11 +179,9 @@ openhub_parse_organizations <- function(api_responses, openhub_api_parameters) {
 #' table format.
 #'
 #' @param api_responses A list of XML responses obtained from \code{\link{openhub_api_portfolio_projects}} function.
-#' @param openhub_api_parameters List of parameters; must contain "language" key-value pair (e.g. "java").
 #' @return A parsed version of the XML responses into a table with relevant columns.
 #' @export
-openhub_parse_portfolio_projects <- function(api_responses, openhub_api_parameters) {
-  language <- openhub_api_parameters[["language"]]
+openhub_parse_portfolio_projects <- function(api_responses) {
   parse_response <- function(api_response) {
     xmlDoc <- XML::xmlParse(api_response, validate=F)
     root <- XML::xmlRoot(xmlDoc)
@@ -180,14 +193,12 @@ openhub_parse_portfolio_projects <- function(api_responses, openhub_api_paramete
     parsed_response <- list()
     if (status == "success") {
       for (i in 1:itemsReturned) {
-        if (stringi::stri_detect_regex(XML::xmlValue(returnItems[[1]][[i]][[3]]), language, case_insensitive = TRUE)) {
-          parsed_response[["name"]] <- append(parsed_response[["name"]], XML::xmlValue(returnItems[[1]][[i]][[1]])) # means <result><portfolio_projects><project><name>
-          parsed_response[["primary_language"]] <- append(parsed_response[["primary_language"]], XML::xmlValue(returnItems[[1]][[i]][[3]])) # means <result><portfolio_projects><project><primary_language>
-          parsed_response[["activity"]] <- append(parsed_response[["activity"]], XML::xmlValue(returnItems[[1]][[i]][[2]])) # means <result><portfolio_projects><project><activity>
-        }
+        parsed_response[["name"]] <- append(parsed_response[["name"]], XML::xmlValue(returnItems[[1]][[i]][[1]])) # means <result><portfolio_projects><project><name>
+        parsed_response[["primary_language"]] <- append(parsed_response[["primary_language"]], XML::xmlValue(returnItems[[1]][[i]][[3]])) # means <result><portfolio_projects><project><primary_language>
+        parsed_response[["activity"]] <- append(parsed_response[["activity"]], XML::xmlValue(returnItems[[1]][[i]][[2]])) # means <result><portfolio_projects><project><activity>
       }
     } else {
-      warning(status) # prints the status warning message
+      warning(paste0("openhub_parse_portfolio_projects: ", status)) # prints the status warning message
     }
 
     parsed_response <- as.data.table(parsed_response)
@@ -246,7 +257,7 @@ openhub_parse_projects <- function(api_responses, openhub_api_parameters) {
         }
       }
     } else {
-      warning(status) # prints the status warning message
+      warning(paste0("openhub_parse_projects: ", status)) # prints the status warning message
     }
 
     parsed_response <- as.data.table(parsed_response)
@@ -293,7 +304,7 @@ openhub_parse_analyses <- function(api_responses) {
       code_languages_data_text <- paste(code_languages_data_text, collapse = ", ")
       parsed_response[["code_languages"]] <- append(parsed_response[["code_languages"]], code_languages_data_text)
     } else {
-      warning(status) # prints the status warning message
+      warning(paste0("openhub_parse_analyses: ", status)) # prints the status warning message
     }
 
     parsed_response <- as.data.table(parsed_response)
@@ -306,20 +317,31 @@ openhub_parse_analyses <- function(api_responses) {
 
 #' OpenHub API Response Downloader
 #'
-#' @description Stores a list of XML response files `api_responses` into a
-#' defined folder path `save_folder_path`.
+#' @description Stores a XML response file `api_response` into a defined folder
+#' path `save_folder_path`.
 #'
-#' @param save_folder_path A folder path to save the downloaded XML pages "as-is".
-#' @param unique_information Identifying information about the type of XML responses.
-#' @param api_responses A list of XML responses obtained from an openhub_api_* function.
+#' @param save_folder_path A folder path to save the downloaded XML response file "as-is".
+#' @param api_response A single XML response file obtained from an openhub_api_* function.
+#' @param type The type of XML response file ("organization", "portfolio", "project", or "analysis").
+#' @param unique_information Identifying information about the type of XML response (Default set to NULL).
+#' @param page The page number of the response file (Default set to NULL).
 #' @export
-openhub_download <- function(save_folder_path, unique_information, api_responses) {
-  for (i in 1:length(api_responses)){ # loop through and save each api response in `api_responses`
-    timestamp <- as.numeric(Sys.time())
-    file_name <- stringi::stri_c('response_', unique_information, '_', timestamp, '.xml')
-    save_file_path <- paste0(save_folder_path, file_name)
-    io_make_file(save_file_path, api_responses[[i]])
+openhub_download <- function(api_response, save_folder_path, timestamp, type, unique_information=NULL, page=NULL) {
+  if (!is.null(page)) {
+    if (!is.null(unique_information)) {
+      file_name <- stringi::stri_c(type, '_', timestamp, '_', unique_information, '_', page, '.xml')
+    } else {
+      file_name <- stringi::stri_c(type, '_', timestamp, '_', page, '.xml')
+    }
+  } else {
+    if (!is.null(unique_information)) {
+      file_name <- stringi::stri_c(type, '_', timestamp, '.xml')
+    } else {
+      file_name <- stringi::stri_c(type, '_', unique_information, '_', timestamp, '.xml')
+    }
   }
+  save_file_path <- paste0(save_folder_path, file_name)
+  io_make_file(save_file_path, api_response)
 }
 
 #' OpenHub Parser Helper
@@ -331,6 +353,8 @@ openhub_download <- function(save_folder_path, unique_information, api_responses
 #' @return A list of XML responses as files stored in `folder_path`.
 #' @export
 openhub_retrieve <- function(folder_path) {
+  folder_path <- stri_replace_last_regex(folder_path, "/$", "") # remove trailing slash because full.names is set to TRUE
+
   api_responses <- list.files(folder_path, full.names = TRUE)
 
   return(api_responses)
@@ -347,12 +371,15 @@ openhub_retrieve <- function(folder_path) {
 #' @param token Your OpenHub API token.
 #' @param openhub_api_function A function that downloads a page of a specific XML Response File (e.g. \code{\link{openhub_api_organizations}}).
 #' @param save_folder_path A folder path to save the downloaded XML pages "as-is".
-#' @param openhub_api_parameters List of parameters to use in `openhub_api_function` (e.g. `openhub_api_parameters` in \code{\link{openhub_api_organizations}}).
+#' @param openhub_api_function_parameter Required unique parameter for use in `openhub_api_function` ("org_name" in \code{\link{openhub_api_portfolio_projects}}).
 #' @param max_pages The maximum number of pages to download, if NULL, maximum number of pages will be used, and if max_pages exceeds the maximum number of pages, it will use the maximum number of pages (Default set to NULL).
 #' @return A list of XML responses obtained from `openhub_api_function` function.
 #' @export
-openhub_api_iterate_pages <- function(token, openhub_api_function, save_folder_path, openhub_api_parameters, max_pages=NULL) {
-  initial_api_response <- openhub_api_function(token, openhub_api_parameters)
+openhub_api_iterate_pages <- function(token, openhub_api_function, save_folder_path, openhub_api_function_parameter, max_pages=NULL) {
+  initial_api_result <- openhub_api_function(token, save_folder_path, openhub_api_function_parameter, iterating=TRUE, page=1)
+  initial_api_response <- initial_api_result[["api_response"]]
+  type <- initial_api_result[["type"]]
+  timestamp <- initial_api_result[["timestamp"]]
   initialXmlDoc <- XML::xmlParse(initial_api_response, validate=F)
   initialRoot <- XML::xmlRoot(initialXmlDoc)
   initialStatus <- XML::xmlValue(initialRoot[[1]]) # the value of <status>
@@ -378,9 +405,11 @@ openhub_api_iterate_pages <- function(token, openhub_api_function, save_folder_p
         }
       }
       api_responses[[1]] <- initial_api_response
+      openhub_download(api_responses[[1]], save_folder_path, timestamp, type, unique_information=openhub_api_function_parameter, page=1)
       if (maxPageCount > 1) {
         for (page in 2:maxPageCount) {
-          api_responses[[page]] <- openhub_api_function(token, openhub_api_parameters, page)
+          api_responses[[page]] <- openhub_api_function(token, save_folder_path, openhub_api_function_parameter, iterating=TRUE, page=page)[["api_response"]]
+          openhub_download(api_responses[[page]], save_folder_path, timestamp, type, unique_information=openhub_api_function_parameter, page=page)
         }
       }
     } else {
@@ -389,8 +418,6 @@ openhub_api_iterate_pages <- function(token, openhub_api_function, save_folder_p
   } else {
     warning(initialStatus) # prints the status warning message
   }
-
-  openhub_download(save_folder_path, "TODO", api_responses)
 }
 
 ########## Configuration File Parser Functions ##########

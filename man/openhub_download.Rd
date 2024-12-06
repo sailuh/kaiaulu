@@ -4,16 +4,27 @@
 \alias{openhub_download}
 \title{OpenHub API Response Downloader}
 \usage{
-openhub_download(save_folder_path, unique_information, api_responses)
+openhub_download(
+  api_response,
+  save_folder_path,
+  timestamp,
+  type,
+  unique_information = NULL,
+  page = NULL
+)
 }
 \arguments{
-\item{save_folder_path}{A folder path to save the downloaded XML pages "as-is".}
+\item{api_response}{A single XML response file obtained from an openhub_api_* function.}
 
-\item{unique_information}{Identifying information about the type of XML responses.}
+\item{save_folder_path}{A folder path to save the downloaded XML response file "as-is".}
 
-\item{api_responses}{A list of XML responses obtained from an openhub_api_* function.}
+\item{type}{The type of XML response file ("organization", "portfolio", "project", or "analysis").}
+
+\item{unique_information}{Identifying information about the type of XML response (Default set to NULL).}
+
+\item{page}{The page number of the response file (Default set to NULL).}
 }
 \description{
-Stores a list of XML response files `api_responses` into a
-defined folder path `save_folder_path`.
+Stores a XML response file `api_response` into a defined folder
+path `save_folder_path`.
 }

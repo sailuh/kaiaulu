@@ -4,12 +4,10 @@
 \alias{openhub_parse_organizations}
 \title{Parses Organization XML Responses to Table.}
 \usage{
-openhub_parse_organizations(api_responses, openhub_api_parameters)
+openhub_parse_organizations(api_responses)
 }
 \arguments{
 \item{api_responses}{A list of XML responses obtained from \code{\link{openhub_api_organizations}} function.}
-
-\item{openhub_api_parameters}{List of parameters; must contain "organization_name" key-value pair (e.g. "Apache Software Foundation").}
 }
 \value{
 A parsed version of the XML responses into a table with relevant columns.
@@ -17,7 +15,6 @@ A parsed version of the XML responses into a table with relevant columns.
 \description{
 Parses a list of XML responses `api_responses` containing
 organization items, extracting relevant tags from the each XML response in
-`api_responses`. The `openhub_api_parameters` list must contain an
-"organization_name" key-value pair to index the correct organization. This
-function returns a parsed version of the XML responses in a table format.
+`api_responses`. This function returns a parsed version of the XML responses
+in a table format.
 }

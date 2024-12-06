@@ -4,12 +4,22 @@
 \alias{openhub_api_portfolio_projects}
 \title{Downloads a page of Portfolio Projects XML Response File.}
 \usage{
-openhub_api_portfolio_projects(token, openhub_api_parameters, page = 1)
+openhub_api_portfolio_projects(
+  token,
+  save_folder_path,
+  org_name,
+  iterating = FALSE,
+  page = 1
+)
 }
 \arguments{
 \item{token}{Your OpenHub API token.}
 
-\item{openhub_api_parameters}{List of parameters; must contain "portfolio_project_site" key-value pair (e.g. "https://openhub.net/orgs/apache/projects.xml").}
+\item{save_folder_path}{A folder path to save the downloaded XML page "as-is".}
+
+\item{org_name}{The short, unique, handle for the organization taken from the organization's URL (e.g. "apache" from "https://openhub.net/orgs/apache").}
+
+\item{iterating}{If TRUE, downloading will disabled and it is assumed to be handled by \code{\link{openhub_api_iterate_pages}} to synchronize timestamps, if FALSE, downloading will occur (Default set to FALSE).}
 
 \item{page}{The page number to index (Default set to 1) (e.g. 1).}
 }

@@ -4,12 +4,10 @@
 \alias{openhub_parse_portfolio_projects}
 \title{Parses Portfolio Projects XML Responses to Table.}
 \usage{
-openhub_parse_portfolio_projects(api_responses, openhub_api_parameters)
+openhub_parse_portfolio_projects(api_responses)
 }
 \arguments{
 \item{api_responses}{A list of XML responses obtained from \code{\link{openhub_api_portfolio_projects}} function.}
-
-\item{openhub_api_parameters}{List of parameters; must contain "language" key-value pair (e.g. "java").}
 }
 \value{
 A parsed version of the XML responses into a table with relevant columns.
