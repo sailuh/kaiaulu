@@ -15,11 +15,11 @@ require(data.table, quietly = TRUE)
 doc <- "
 USAGE:
   mailinglist.R parse help
-  mailinglist.R parse <tools.yml> <project_conf.yml> <project_key> <save_file_name_path> [<mbox_file_path>]
-  mailinglist.R download modmbox help
-  mailinglist.R download modmbox <project_conf.yml> <project_key> <start_year_month>
-  mailinglist.R download pipermail help
-  mailinglist.R download pipermail <project_conf.yml> <project_key> <start_year_month> <end_year_month>
+  mailinglist.R parse <tools.yml> <project_conf.yml> <project_key> <save_file_name_path>
+  mailinglist.R refresh modmbox help
+  mailinglist.R refresh modmbox <project_conf.yml> <project_key> <start_year_month>
+  mailinglist.R refresh pipermail help
+  mailinglist.R refresh pipermail <project_conf.yml> <project_key> <start_year_month> <end_year_month>
   mailinglist.R (-h | --help)
   mailinglist.R --version
 
@@ -38,31 +38,30 @@ arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9700')
 if (arguments[["parse"]] & arguments[["help"]]) {
   cli::cli_alert_info("Parses an mbox file using parse_mbox().")
 } else if (arguments[["parse"]]) {
+
   tools_path <- arguments[["<tools.yml>"]]
   conf_path <- arguments[["<project_conf.yml>"]]
   project_key <- arguments[["<project_key>"]]
   save_path <- arguments[["<save_file_name_path>"]]
-  mbox_file_path <- arguments[["<mbox_file_path>"]]
 
   tools <- yaml::read_yaml(tools_path)
   conf <- yaml::read_yaml(conf_path)
 
-  if (is.null(mbox_file_path)) {
-    mbox_file_path <- get_mbox_input_file(conf, project_key)
-  }
+  perceval_path <- get_tool("perceval", tools)
+  mbox_file_path <- get_mbox_input_file(conf, project_key)
 
   parsed_mbox <- parse_mbox(
-    perceval_path = get_tool_project("perceval", tools),
+    perceval_path = perceval_path,
     mbox_file_path = mbox_file_path
   )
 
   data.table::fwrite(parsed_mbox, save_path)
   cli::cli_alert_success(paste0("Parsed mbox file was saved at: ", save_path))
 
-} else if (arguments[["download"]] & arguments[["modmbox"]] & arguments[["help"]]) {
-  cli::cli_alert_info("Downloads mailing list archives from mod_mbox using download_mod_mbox().")
+} else if (arguments[["refresh"]] & arguments[["modmbox"]] & arguments[["help"]]) {
+  cli::cli_alert_info("Refreshes mailing list archives from mod_mbox using refresh_mod_mbox().")
 
-} else if (arguments[["download"]] & arguments[["modmbox"]]) {
+} else if (arguments[["refresh"]] & arguments[["modmbox"]]) {
 
   conf_path <- arguments[["<project_conf.yml>"]]
   project_key <- arguments[["<project_key>"]]
@@ -79,11 +78,11 @@ if (arguments[["parse"]] & arguments[["help"]]) {
     verbose = TRUE
   )
 
-  cli::cli_alert_success(paste0("Downloaded mailing list archives were saved at: ", save_folder_path))
+  cli::cli_alert_success(paste0("Refreshed mailing list archives were saved at: ", save_folder_path))
 
-} else if (arguments[["download"]] & arguments[["pipermail"]] & arguments[["help"]]) {
-  cli::cli_alert_info("Downloads mailing list archives from pipermail using download_pipermail().")
-} else if (arguments[["download"]] & arguments[["pipermail"]]) {
+} else if (arguments[["refresh"]] & arguments[["pipermail"]] & arguments[["help"]]) {
+  cli::cli_alert_info("Refreshes mailing list archives from pipermail using refresh_pipermail().")
+} else if (arguments[["refresh"]] & arguments[["pipermail"]]) {
 
   conf_path <- arguments[["<project_conf.yml>"]]
   project_key <- arguments[["<project_key>"]]
@@ -100,7 +99,7 @@ if (arguments[["parse"]] & arguments[["help"]]) {
     verbose = TRUE
   )
 
-  cli::cli_alert_success(paste0("Downloaded mailing list archives were saved at: ", save_folder_path))
+  cli::cli_alert_success(paste0("Refreshed mailing list archives were saved at: ", save_folder_path))
 
 } else if (arguments[["-h"]] || arguments[["--help"]]) {
   cli::cli_alert_info(doc)
