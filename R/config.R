@@ -128,8 +128,6 @@ openhub_api_analyses <- function(token, openhub_api_parameters,  page=1) {
 openhub_parse_organizations <- function(api_responses, openhub_api_parameters) {
   organization_name <- openhub_api_parameters[["organization_name"]]
   parse_response <- function(api_response) {
-    #pages <- NULL # maybe have openhub_api_iterate_pages() handle this
-    #matchFound <- FALSE # maybe have openhub_api_iterate_pages() handle this
     xmlDoc <- XML::xmlParse(api_response, validate=F)
     root <- XML::xmlRoot(xmlDoc)
     status <- XML::xmlValue(root[[1]]) # the value of <status>
@@ -306,6 +304,38 @@ openhub_parse_analyses <- function(api_responses) {
   return(rbindlist(lapply(api_responses,parse_response),fill=TRUE))
 }
 
+#' OpenHub API Response Downloader
+#'
+#' @description Stores a list of XML response files `api_responses` into a
+#' defined folder path `save_folder_path`.
+#'
+#' @param save_folder_path A folder path to save the downloaded XML pages "as-is".
+#' @param unique_information Identifying information about the type of XML responses.
+#' @param api_responses A list of XML responses obtained from an openhub_api_* function.
+#' @export
+openhub_download <- function(save_folder_path, unique_information, api_responses) {
+  for (i in 1:length(api_responses)){ # loop through and save each api response in `api_responses`
+    timestamp <- as.numeric(Sys.time())
+    file_name <- stringi::stri_c('response_', unique_information, '_', timestamp, '.xml')
+    save_file_path <- paste0(save_folder_path, file_name)
+    io_make_file(save_file_path, api_responses[[i]])
+  }
+}
+
+#' OpenHub Parser Helper
+#'
+#' @description A helper function for `openhub_parse_*` functions to retrieve
+#' XML responses as files from a specified folder path `folder_path`.
+#'
+#' @param folder_path A folder path to retrieve XML files.
+#' @return A list of XML responses as files stored in `folder_path`.
+#' @export
+openhub_retrieve <- function(folder_path) {
+  api_responses <- list.files(folder_path, full.names = TRUE)
+
+  return(api_responses)
+}
+
 #' OpenHub Page Iterator
 #'
 #' @description Ohloh API endpoints return data in pages, each containing a
@@ -316,11 +346,12 @@ openhub_parse_analyses <- function(api_responses) {
 #'
 #' @param token Your OpenHub API token.
 #' @param openhub_api_function A function that downloads a page of a specific XML Response File (e.g. \code{\link{openhub_api_organizations}}).
+#' @param save_folder_path A folder path to save the downloaded XML pages "as-is".
 #' @param openhub_api_parameters List of parameters to use in `openhub_api_function` (e.g. `openhub_api_parameters` in \code{\link{openhub_api_organizations}}).
 #' @param max_pages The maximum number of pages to download, if NULL, maximum number of pages will be used, and if max_pages exceeds the maximum number of pages, it will use the maximum number of pages (Default set to NULL).
 #' @return A list of XML responses obtained from `openhub_api_function` function.
 #' @export
-openhub_api_iterate_pages <- function(token, openhub_api_function, openhub_api_parameters, max_pages=NULL) {
+openhub_api_iterate_pages <- function(token, openhub_api_function, save_folder_path, openhub_api_parameters, max_pages=NULL) {
   initial_api_response <- openhub_api_function(token, openhub_api_parameters)
   initialXmlDoc <- XML::xmlParse(initial_api_response, validate=F)
   initialRoot <- XML::xmlRoot(initialXmlDoc)
@@ -330,8 +361,8 @@ openhub_api_iterate_pages <- function(token, openhub_api_function, openhub_api_p
 
   if (initialStatus == "success") {
     maxPageCount <- 1
-    initialItemsReturned <- XML::xmlValue(initialRoot[[2]])
-    initialItemsAvailable <- XML::xmlValue(initialRoot[[3]])
+    initialItemsReturned <- XML::xmlValue(initialRoot[[2]]) # the value of <items_returned>
+    initialItemsAvailable <- XML::xmlValue(initialRoot[[3]]) # the value of <items_available>
     if (!is.na(initialItemsAvailable)) {
       #print(paste0("Items per page / Available Items: ", initialItemsAvailable, " / ", initialItemsReturned))
       maxPageCount <- ceiling(as.numeric(initialItemsAvailable)/as.numeric(initialItemsReturned)) # If the requested XML file returned successfully, but is only one page with one item, then its maxPageCount is set to 1.
@@ -349,7 +380,7 @@ openhub_api_iterate_pages <- function(token, openhub_api_function, openhub_api_p
       api_responses[[1]] <- initial_api_response
       if (maxPageCount > 1) {
         for (page in 2:maxPageCount) {
-          api_responses[[page]] <- openhub_api_function(token, openhub_api_parameters, page) # gets http request for each response and puts into list
+          api_responses[[page]] <- openhub_api_function(token, openhub_api_parameters, page)
         }
       }
     } else {
@@ -359,7 +390,7 @@ openhub_api_iterate_pages <- function(token, openhub_api_function, openhub_api_p
     warning(initialStatus) # prints the status warning message
   }
 
-  return(api_responses)
+  openhub_download(save_folder_path, "TODO", api_responses)
 }
 
 ########## Configuration File Parser Functions ##########
