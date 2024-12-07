@@ -4,14 +4,16 @@
 \alias{openhub_api_analyses}
 \title{Downloads a page of Analysis XML Response File.}
 \usage{
-openhub_api_analyses(token, openhub_api_parameters, page = 1)
+openhub_api_analyses(token, save_folder_path, project_id, project_name)
 }
 \arguments{
 \item{token}{Your OpenHub API token.}
 
-\item{openhub_api_parameters}{List of parameters; must contain "project_id" key-value pair (e.g. "3562").}
+\item{save_folder_path}{A folder path to save the downloaded XML page "as-is".}
 
-\item{page}{The page number to index (Default set to 1) (e.g. 1).}
+\item{project_id}{The unique ID of the project (e.g. 3562).}
+
+\item{project_name}{The unique name of the project (e.g. "Apache Tomcat").}
 }
 \value{
 The response XML single page file that contains an analysis item.
@@ -20,9 +22,7 @@ The response XML single page file that contains an analysis item.
 Downloads an XML response file from the "analysis" collection endpoint.
 The `openhub_api_parameters` list must contain a "project_id" key-value pair
 for use in the URL for the project's id. The XML response file will return
-a single page containing the analysis item. The `page` parameter serves no
-current function besides conforming to the function signature
-in \code{\link{openhub_api_iterate_pages}}.
+a single page containing the analysis item.
 }
 \references{
 For analysis collection details, see \url{https://github.com/blackducksoftware/ohloh_api/blob/main/reference/analysis.md}.

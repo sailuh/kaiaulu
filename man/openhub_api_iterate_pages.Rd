@@ -19,12 +19,9 @@ openhub_api_iterate_pages(
 
 \item{save_folder_path}{A folder path to save the downloaded XML pages "as-is".}
 
-\item{openhub_api_function_parameter}{Required unique parameter for use in `openhub_api_function` ("org_name" in \code{\link{openhub_api_portfolio_projects}}).}
+\item{openhub_api_function_parameter}{Required unique parameter for use in `openhub_api_function` (`org_name` in \code{\link{openhub_api_portfolio_projects}} or `project_name` in \code{\link{openhub_api_projects}}).}
 
 \item{max_pages}{The maximum number of pages to download, if NULL, maximum number of pages will be used, and if max_pages exceeds the maximum number of pages, it will use the maximum number of pages (Default set to NULL).}
-}
-\value{
-A list of XML responses obtained from `openhub_api_function` function.
 }
 \description{
 Ohloh API endpoints return data in pages, each containing a
