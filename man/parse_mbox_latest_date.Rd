@@ -2,7 +2,7 @@
 % Please edit documentation in R/mail.R
 \name{parse_mbox_latest_date}
 \alias{parse_mbox_latest_date}
-\title{Parse mbox latest date}
+\title{Parse Latest Mbox}
 \usage{
 parse_mbox_latest_date(save_folder_path)
 }
@@ -14,7 +14,7 @@ parse_mbox_latest_date(save_folder_path)
 }
 \description{
 This function returns the name of the latest mod_mbox file downloaded in the specified folder
-based on the naming convention `kaiaulu_YYYYMM.mbox`. For example: `kaiaulu_202401.mbox`.
+based on the naming convention `YYYYMM.mbox`. For example: `202401.mbox`.
 }
 \seealso{
 Other parsers: 

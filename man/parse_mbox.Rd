@@ -2,7 +2,7 @@
 % Please edit documentation in R/mail.R
 \name{parse_mbox}
 \alias{parse_mbox}
-\title{Parse mbox from Perceval}
+\title{Parse Mbox}
 \usage{
 parse_mbox(perceval_path, mbox_file_path)
 }

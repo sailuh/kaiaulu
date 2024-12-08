@@ -2,7 +2,7 @@
 % Please edit documentation in R/mail.R
 \name{download_pipermail}
 \alias{download_pipermail}
-\title{Download all pipermail files in an archive as mbox files}
+\title{Pipermail Downloader}
 \usage{
 download_pipermail(
   mailing_list,
@@ -30,11 +30,12 @@ Returns `downloaded_files`, a vector of the downloaded files in the current work
 This function downloads pipermail archives from a specified pipermail mailing list as .mbox files.
 It begins by downloading an .html file that contains the URLs for monthly archives in .txt or .gz formats.
 The function first attempts to download the .txt file, and if unavailable, it falls back to downloading the .gz file.
-
+}
+\details{
 When a .gz file is downloaded, the function automatically unzips and converts it into an .mbox file,
 overwriting any existing file with the same name. The original .gz file is deleted after extraction.
 
-The downloaded .mbox files are saved in the specified folder following the naming convention kaiaulu_YYYYMM.mbox.
+The downloaded .mbox files are saved in the specified folder following the naming convention YYYYMM.mbox.
 The function only downloads files that fall between the specified start_year_month and end_year_month.
 When both formats fail to download, the function issues a warning indicating the missing month.
 At the end, the function summarizes the downloads, indicating the range of dates present and any missing months.

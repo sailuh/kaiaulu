@@ -11,19 +11,19 @@ vignette: >
 ---
 
 
-```{r eval=FALSE}
+```{r warning = FALSE, message = FALSE}
 rm(list = ls())
 seed <- 1
 set.seed(seed)
 
 # Load libraries
-  require(kaiaulu)
-  require(data.table)
-  require(yaml)
-  require(stringi)
-  require(XML)
-  require(httr)
-  require(gt)
+require(kaiaulu)
+require(data.table)
+require(yaml)
+require(stringi)
+require(XML)
+require(httr)
+require(gt)
 ```
 
 
@@ -31,7 +31,7 @@ set.seed(seed)
 
 Open source projects require a means for developers to communicate. These may include mailing lists, issue trackers, discord, etc. This notebooks showcases how to download data from mailing list archives. Two often used archive types are [mod_mbox](https://httpd.apache.org/mod_mbox/) and [pipermail](https://en.wikipedia.org/wiki/GNU_Mailman#cite_note-9), which Kaiaulu offer functions to download data from. The former is commonly used by the Apache Software Foundation projects. The latter, is more commonly use in GNU related projects, but this can vary. 
 
-Each mailing list maintains archives of past messages, often organized by month and year. These archives can be accessed and downloaded for analysis. However, it is important to note that mailing list archives may be split into multiple formats or locations, and not all archives contain the same information. Different archives can differ in completeness, date ranges, and the data they contain. Some archives might lack important fields like "In-Reply-To," which is important for reconstructing message threads. It is, therefore, important the archive being used is carefully selected, since this effects the quality and completeness of analysis.
+Each mailing list maintains archives of past messages, often organized by month and year. These archives can be accessed and downloaded for analysis. However, it is important to note that mailing list archives may be split into multiple formats or locations, and not all archives contain the same information. Different archives can differ in completeness, date ranges, and the data they contain. Some archives might lack important fields like "In-Reply-To," which is important for reconstructing message threads. It is, therefore, important the archive being used is carefully inspected, since this effects the quality and completeness of analysis.
 
 # Mailing List Organization
 
@@ -64,40 +64,30 @@ mailing_list:
     project_key_1:
       mailing_list: https://mta.openssl.org/pipermail/openssl-users/
       save_folder_path: ../../rawdata/helix/pipermail/save_mbox_mail
-      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
-      mbox_file_path: ../../rawdata/helix/pipermail/save_mbox_mail/kaiaulu_202407.mbox
   # for mod mbox
   mod_mbox:
     project_key_1:
       mailing_list: https://lists.apache.org/list.html?announce@apache.org
       save_folder_path: ../../rawdata/helix/mod_mbox/save_mbox_mail
-      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
-      mbox_file_path: ../../rawdata/helix/mod_mbox/save_mbox_mail/kaiaulu_202407.mbox
 ```
 
-The most time intensive step you will be required is to locate the URL of the mailing list archive you wish for in the project website. This is specified under `mailing_list`. Note for pipermail this URL should point to the page containing links to the monthly archives (e.g. https://mta.openssl.org/pipermail/openssl-users/), not the top-level mailing list page that contains all the different types of archives (e.g. https://mta.openssl.org/mailman/listinfo/).
+The most manual time intensive step you will be required is to locate the URL of the mailing list archive you wish for in the project website. This is specified under `mailing_list`. Note for pipermail this URL should point to the page containing links to the monthly archives (e.g. https://mta.openssl.org/pipermail/openssl-users/), not the top-level mailing list page that contains all the different types of archives (e.g. https://mta.openssl.org/mailman/listinfo/).
 
 
-Note: It is important that the paths specified in save_folder_path and mbox_file_path are accurate and do not conflict between projects.
-
-By organizing the configuration in this way, you can manage multiple projects and mailing lists easily. The notebook reads these parameters and uses them to download and process the archives.
-
-Regardless of which mail archive you choose, the downloaders will store the mail data in monthly files, in a `.mbox` format. This is a simple text file that contains some markings to identify the header of the e-mail containing title, authors, etc. You can open any of the .mbox downloaded files with any text editor. 
+Regardless of which mail archive you choose, the downloaders will store the mail data in monthly files, in a `.mbox` format. This is a simple text file that contains some markings to identify the header of the e-mail containing title, authors, etc. While you can open any of the .mbox downloaded files with any text editor, Kaiaulu parsers will format them into tables, as demonstrated below. 
 
 ## Tools Configuration
 
 In addition to the mailing list configurations, you need to specify the path to the [Perceval](https://github.com/chaoss/grimoirelab-perceval) binary in tools.yml. See the wiki for further details on how to setup third party tools. 
 
-Now, you can load the configurations in your R script or notebook using the following code:
-
-```{r eval=FALSE}
+```{r}
 # Load tools configuration
 tools <- parse_config("../tools.yml")
 parse_perceval_path <- get_tool_project("perceval", tools)
 
 # Load project configuration
 conf <- parse_config("../conf/helix.yml")
-mbox_file_path <- get_mbox_input_file(conf, "project_key_1")
+mbox_file_path <- get_mbox_path(conf, "project_key_1")
 ```
 
 # Downloaders and Refreshers
@@ -113,7 +103,7 @@ For Pipermail, we need to specify the project key, which is used to retrieve the
 Now, we can use the getter functions to retrieve the configuration parameters for the specified project key.
 
 ```{r eval=FALSE}
-conf <- parse_config("../conf/helix.yml")
+conf <- parse_config("../conf/openssl.yml")
 pipermail_mailing_list <- get_pipermail_domain(conf, "project_key_1")
 pipermail_save_folder_path <- get_pipermail_path(conf, "project_key_1")
 
@@ -121,8 +111,6 @@ pipermail_save_folder_path <- get_pipermail_path(conf, "project_key_1")
 pipermail_start_year_month <- 202310
 pipermail_end_year_month <- 202405
 ```
-
-Note that the date range is not set with a getter. The range for downloads changes often, and should be set manually using the YYYYMM format.
 
 With our configurations loaded, we can proceed to downloading the mailing list archives.
 
@@ -138,15 +126,23 @@ download_pipermail(
 
 ```
 
-After running this function, the .mbox files will be saved in the specified directory with filenames like kaiaulu_202310.mbox, kaiaulu_202311.mbox, etc.
+After running this function, the .mbox files will be saved in the specified directory with filenames like 202310.mbox, 202311.mbox, etc, which can be parsed in a table:
+
+```{r}
+parsed_mail <- parse_mbox(
+  perceval_path = parse_perceval_path,
+  mbox_file_path = mbox_file_path
+)
+
+parsed_mail %>%
+  head(10) %>%
+  gt()
+```
+
 
 ### Mod Mbox Downloader
 
-The download_mod_mbox() function downloads Mod Mbox archives from a specified Apache Pony Mail mailing list over a given date range. The download_mod_mbox() function downloads Mod Mbox archives by constructing URLs based on the mailing list and date range, saving them as .mbox files named kaiaulu_YYYYMM.mbox.
-
-Similarly to Pipermail, we need to specify the project key for Mod Mbox. The project key is used to retrieve the configuration parameters for the specific project.
-
-Use the getters to extract the parameters:
+The download_mod_mbox() function downloads Mod Mbox archives from a specified Apache Pony Mail mailing list over a given date range. We obtain the required parameters from the project configuration file, as done before:
 
 ```{r eval=FALSE}
 conf <- parse_config("../conf/helix.yml")
@@ -176,20 +172,23 @@ download_mod_mbox(
 After running the function, it constructs URLs like: https://lists.apache.org/api/mbox.lua?list=announce@apache.org&date=2024-01
 and saves the files in the specified folder.
 
+```{r}
+parsed_mail <- parse_mbox(
+  perceval_path = parse_perceval_path,
+  mbox_file_path = mbox_file_path
+)
+
+parsed_mail %>%
+  head(10) %>%
+  gt()
+```
+
+
 ## Refreshers
 
-Mailing lists are dynamic, with new emails being added regularly. If you're conducting ongoing analysis or need the most recent data, it's important to refresh your downloaded archives. Manually re-downloading all archives can be time-consuming and inefficient. The refresher functions automate this process by updating only the necessary parts of your archives, saving time and ensuring data completeness. These functions will update your archives by downloading new messages without re-downloading all existing data.
+Kaiaulu offers convenient function to add new e-mails since the last execution of the downloaders. These are defined as "refresh_*" functions. The most recent file timestamp, which captures the latest month, is used as a starting date to download new files. The most recent file is deleted and re-downloaded to ensure all e-mails of the last month were downloaded, and subsequent files are then downloaded.
 
 ### Pipermail Refresher
-
-The refresh_pipermail function is designed to keep your local archives up-to-date with the latest messages from the mailing list. Here's how it works:
-
-First, it checks the save_folder_path to see if there are any existing files. If the folder is empty, it means you have not downloaded any archives yet. In this case, the function will download all available archives from your specified start_year_month up to the current month, so that you have a complete dataset to work with.
-
-If there are already files in the directory, the function takes a smart approach to updating them. It identifies the most recent archive file based on the filenames (which include the date, like kaiaulu_202311.mbox). It then deletes this most recent file because new messages might have been added to that month since your last download. After deleting it, the function re-downloads this file along with any newer archives that have been added to the mailing list. This way, you don't have to re-download all the archives.
-
-By operating on the directory specified in save_folder_path, the refresh_pipermail function efficiently updates all relevant files, keeping your local archives current without unnecessary downloads.
-
 
 ```{r eval=FALSE}
 # Refresh archives
@@ -199,54 +198,18 @@ refresh_pipermail(
   save_folder_path = pipermail_save_folder_path,
   verbose = TRUE
 )
-
 ```
-
-This function will ensure that the most recent archives are always up-to-date by redownloading the current month's archive and adding any new months that have been added to the mailing list.
 
 ### Mod Mbox Refresher
 
-The behavior is similar to the Pipermail refresher, and makes sure that your Mod Mbox archives are up-to-date.
+A similar function is also available for mod_mbox:
 
 ```{r eval=FALSE}
 refresh_mod_mbox(
   mailing_list = mbox_mailing_list,
-  start_year_month = mbox_start_year_month,
+  #start_year_month = mbox_start_year_month,
   save_folder_path= mbox_save_folder_path,
   verbose = TRUE
 )
 ```
 
-
-# Parsers
-
-After downloading the mailing list archives as .mbox files, the next step is to parse these files to extract meaningful information for analysis. The parse_mbox() function utilizes the Perceval library to parse .mbox files and convert them into structured data tables. This enables easier manipulation and analysis of mailing list data.
-
-## How parse_mbox() Works
-
-The parse_mbox function makes it easy to transform .mbox files into structured data that you can analyze.
-
-The function uses the Perceval library to process .mbox files. Mailing list archives often have variations in their structure—different email headers, missing fields, or inconsistent formats. The parser is designed to handle these variations, so you do not have to worry about cleaning up the data.
-
-As it processes the files, the parser extracts key details from each email, such as the content, sender, recipients and dates. These elements are crucial for understanding communication patterns and building insights.
-
-Finally, to keep things consistent, the function standardizes the column names in the output. Even if the raw data varies from one archive to another, the resulting table will always have predictable and labeled columns, making it easy to work with.
-
-```{r eval=FALSE}
-parsed_mail <- parse_mbox(
-  perceval_path = parse_perceval_path,
-  mbox_file_path = mbox_file_path
-)
-```
-
-This will store the parsed data into the parsed_mail variable. You can use the gt package to display the parsed data in a readable format:
-
-```{r eval=FALSE}
-# Display the first 10 rows of the parsed data using gt
-# Refer to the gt documentation for more options on displaying tables
-parsed_mail %>%
-  head(10) %>%
-  gt()
-```
-
-Note: Displaying the entire dataset may not be practical if it's large. Showing a sample provides a glimpse of the structure.
