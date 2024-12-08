@@ -29,6 +29,181 @@ parse_config <- function(config_path) {
   return(conf)
 }
 
+##### File Directory Function #####
+
+#' Creates file directories needed by the configuration file (.yml).
+#'
+#' @description The input is the parsed config file that the user will be using.
+#' It will take the parsed config to get the filepaths that need to be created to
+#' use the config file. The function relies on the helper function `create_file_directory`
+#' to see if any of the directories already exist, and create those that don't.
+#'
+#' @param config The parsed config file the function is creating the directory for.
+#' @param verbose A boolean variable that prints operational messages when set to TRUE.
+#' Obtained from `parse_config` function.
+#' @export
+create_file_directory <- function(conf, verbose = TRUE) {
+  # Create the git_repo folder
+  create_file_path(conf$version_control$log, verbose)
+
+  # Create the mailing_list directory, if needed
+  if (!is.null(conf$mailing_list)) {
+    # Check if there is mod_mbox
+    if (!is.null(conf$mailing_list$mod_mbox)) {
+      # Create for each project key
+      project_keys <- names(conf$mailing_list$mod_mbox)
+      for (key in project_keys) {
+        mailing_list <- conf$mailing_list$mod_mbox[[key]]
+        create_file_path(mailing_list$save_folder_path, verbose)
+      }
+    } else {
+      if (verbose) {
+        message("No mod_mbox found")
+      }
+    }
+    # Check if there is pipermail
+    if (!is.null(conf$mailing_list$pipermail)) {
+      # Create for each project key
+      project_keys <- names(conf$mailing_list$pipermail)
+      for (key in project_keys) {
+        mailing_list <- conf$mailing_list$pipermail[[key]]
+        create_file_path(mailing_list$save_folder_path, verbose)
+      }
+    } else {
+      if (verbose) {
+        message("No pipermail found")
+      }
+    }
+  } else {
+    if (verbose) {
+      message("No mailing_list found")
+    }
+  }
+
+  # Create the issue_tracker directory, if needed
+  if (!is.null(conf$issue_tracker)) {
+    # Check for jira
+    if (!is.null(conf$issue_tracker$jira)) {
+      # Create for each project key
+      project_keys <- names(conf$issue_tracker$jira)
+      for (key in project_keys) {
+        issue_tracker <- conf$issue_tracker$jira[[key]]
+        create_file_path(issue_tracker$issues, verbose)
+        create_file_path(issue_tracker$issue_comments, verbose)
+      }
+    } else {
+      if (verbose) {
+        message("No jira found")
+      }
+    }
+    # Check for github
+    if (!is.null(conf$issue_tracker$github)) {
+      # Create for each project key
+      project_keys <- names(conf$issue_tracker$github)
+      for (key in project_keys) {
+        issue_tracker <- conf$issue_tracker$github[[key]]
+        create_file_path(issue_tracker$issue_or_pr_comment, verbose)
+        create_file_path(issue_tracker$issue, verbose)
+        create_file_path(issue_tracker$issue_search, verbose)
+        create_file_path(issue_tracker$issue_event, verbose)
+        create_file_path(issue_tracker$pull_request, verbose)
+        create_file_path(issue_tracker$pr_comment, verbose)
+        create_file_path(issue_tracker$commit, verbose)
+        create_file_path(issue_tracker$discussion, verbose)
+      }
+    } else {
+      if (verbose) {
+        message("No github found")
+      }
+    }
+    # Check for bugzilla
+    if (!is.null(conf$issue_tracker$bugzilla)) {
+      # Create for each project key
+      project_keys <- names(conf$issue_tracker$bugzilla)
+      for (key in project_keys) {
+        issue_tracker <- conf$issue_tracker$bugzilla[[key]]
+        create_file_path(issue_tracker$issues, verbose)
+        create_file_path(issue_tracker$issue_comments, verbose)
+      }
+    } else {
+      if (verbose) {
+        message("No bugzilla found")
+      }
+    }
+  } else {
+    if (verbose) {
+      message("No issue_tracker found")
+    }
+  }
+
+  # Create the tools directory, if needed
+  if (!is.null(conf$tool)) {
+    # Check for dv8
+    if (!is.null(conf$tool$dv8)) {
+      create_file_path(conf$tool$dv8$folder_path, verbose)
+    } else {
+      if (verbose) {
+        message("dv8 is unused")
+      }
+    }
+    # Check for srcml
+    if (!is.null(conf$tool$srcml)) {
+      create_file_path(conf$tool$srcml$srcml_path, verbose)
+    } else {
+      if (verbose) {
+        message("srcml is unused")
+      }
+    }
+    # Check for pattern4
+    if (!is.null(conf$tool$pattern4)) {
+      create_file_path(conf$tool$pattern4$class_folder_path, verbose)
+      create_file_path(conf$tool$pattern4$output_filepath, verbose)
+    } else {
+      if (verbose) {
+        message("pattern4 is unused")
+      }
+    }
+    # Check for understand
+    if (!is.null(conf$tool$understand)) {
+      create_file_path(conf$tool$understand$project_path, verbose)
+      create_file_path(conf$tool$understand$output_path, verbose)
+    }
+  } else {
+    if (verbose) {
+      message("no tools used")
+    }
+  }
+}
+
+#' A helper function for `create_file_directory`.
+#'
+#' @description The function checks if a filepath exists on the local device.
+#' If the filepath does not exist, then the function creates it.
+#'
+#' @param filepath The filepath to create.
+#' @param verbose A boolean variable that prints the operational messages when set to TRUE.
+#' @export
+create_file_path <- function(filepath, verbose= TRUE) {
+  if (!is.null(filepath)) {
+    # Check if the filepath already exists
+    if (dir.exists(filepath)) {
+      if (verbose) {
+        message("Filepath: ", filepath, " already exists.")
+      }
+    } else {
+      # Create the filepath
+      dir.create(filepath, recursive= TRUE)
+      if (verbose) {
+        message("Created filepath: ", filepath)
+      }
+    }
+  } else {
+    if (verbose) {
+      message("Invalid filepath: ", filepath)
+    }
+  }
+}
+
 ##### Git Getter Functions #####
 
 #' Returns the path to the .git of the project repository that is being analyzed.
@@ -528,6 +703,31 @@ get_github_pull_request_path <- function(config_file, project_key_index) {
   }
 
   return(pull_request_path)
+}
+
+#' Returns the local folder path for GitHub Pull Request Review Comments for a specific
+#' project key.
+#'
+#' @description This function returns the local folder path for GitHub Pull
+#' Request Comments for a specific project key, that is specified in the input
+#' parameter `config_file`. The input, `config_file` must be a parsed
+#' configuration file. The function will inform the user if the local folder
+#' path for the pull request comments exists in the parsed configuration file,
+#' `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
+#' @return The local folder path for GitHub pull request review comments for project specified by key `project_key_index`.
+#' @export
+get_github_pr_comments_path <- function(config_file, project_key_index) {
+
+  pr_comments_path <- config_file[["issue_tracker"]][["github"]][[project_key_index]][["pr_comments"]]
+
+  if (is.null(pr_comments_path)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(pr_comments_path)
 }
 
 #' Returns the local folder path for GitHub issue events for a specific project
