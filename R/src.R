@@ -8,11 +8,10 @@
 
 #' Build Understand DB
 #'
-#' This function builds the data files for Understand from the project_path folder,
-#' reading from files that are written in the target language into output_dir
+#' Uses Scitools Understand to create a source code project Und Database.
 #'
 #' @param scitools_path path to the scitools binary `und`
-#' @param project_path path to the project folder to analyze
+#' @param project_path path to the project source code folder to create the Understand DB.
 #' @param language the primary language of the project (language must be supported by Understand)
 #' @param output_dir path to output directory (formatted output_path/)
 #'
@@ -43,13 +42,13 @@ build_understand_project <- function(scitools_path, project_path, language, outp
 
 #' Extract Understand Dependencies
 #'
-#' Extract XML dependency files for either class or file granularity from
+#' Extract the XML dependency file for either class or file granularity from
 #' an understand DB.
 #'
 #' @param scitools_path path to the scitools binary `und`
 #' @param db_path path to the scitools DB (see \code{\link{build_understand_project}})
 #' @param parse_type Type of dependencies to generate into xml (either "file" or "class")
-#' @param output_filepath path to output XML filepath of dependencies
+#' @param output_filepath path to the output XML filepath of dependencies
 #'
 #' @return The output directory where the db will be created, i.e. output_dir parameter.
 #' @references See pg. 352 in https://documentation.scitools.com/pdf/understand.pdf Sept. 2024 Edition
@@ -101,10 +100,9 @@ export_understand_dependencies <- function(scitools_path, db_filepath, parse_typ
 
 ############## Parsers ##############
 
-#' Parse XML from Understand DB
+#' Parse Scitools Understand Dependencies XML
 #'
-#' This function parses the data in the Understand build folder
-#' to export the parse_type dependencies into a network
+#' Parses either a file or class scitools understand dependency XML to table.
 #'
 #' @param dependencies_path path to the exported Understand dependencies file (see \code{\link{export_understand_dependencies}}).
 #' @export

@@ -9,7 +9,7 @@ build_understand_project(scitools_path, project_path, language, output_dir)
 \arguments{
 \item{scitools_path}{path to the scitools binary `und`}
 
-\item{project_path}{path to the project folder to analyze}
+\item{project_path}{path to the project source code folder to create the Understand DB.}
 
 \item{language}{the primary language of the project (language must be supported by Understand)}
 
@@ -19,8 +19,7 @@ build_understand_project(scitools_path, project_path, language, output_dir)
 The created Scitools Understand DB path
 }
 \description{
-This function builds the data files for Understand from the project_path folder,
-reading from files that are written in the target language into output_dir
+Uses Scitools Understand to create a source code project Und Database.
 }
 \references{
 See pg. 352 in https://documentation.scitools.com/pdf/understand.pdf Sept. 2024 Edition

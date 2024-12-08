@@ -16,7 +16,7 @@ export_understand_dependencies(
 
 \item{parse_type}{Type of dependencies to generate into xml (either "file" or "class")}
 
-\item{output_filepath}{path to output XML filepath of dependencies}
+\item{output_filepath}{path to the output XML filepath of dependencies}
 
 \item{db_path}{path to the scitools DB (see \code{\link{build_understand_project}})}
 }
@@ -24,7 +24,7 @@ export_understand_dependencies(
 The output directory where the db will be created, i.e. output_dir parameter.
 }
 \description{
-Extract XML dependency files for either class or file granularity from
+Extract the XML dependency file for either class or file granularity from
 an understand DB.
 }
 \references{

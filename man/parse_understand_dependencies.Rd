@@ -2,17 +2,15 @@
 % Please edit documentation in R/src.R
 \name{parse_understand_dependencies}
 \alias{parse_understand_dependencies}
-\title{Parse XML from Understand DB}
+\title{Parse Scitools Understand Dependencies XML}
 \usage{
-parse_understand_dependencies(scitools_path, understand_dir)
+parse_understand_dependencies(dependencies_path)
 }
 \arguments{
-\item{scitools_path}{path to the scitools binary `und`}
-
-\item{understand_dir}{path to the built Understand project folder used in \code{\link{build_understand_project}}}
+\item{dependencies_path}{path to the exported Understand dependencies file (see \code{\link{export_understand_dependencies}}).}
 }
 \description{
-This function parses the data in the Understand build folder to export the parse_type dependencies into a network
+Parses either a file or class scitools understand dependency XML to table.
 }
 \seealso{
 Other parsers: 
