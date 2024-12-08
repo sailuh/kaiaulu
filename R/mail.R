@@ -583,18 +583,19 @@ refresh_mod_mbox <- function(mailing_list, start_year_month, save_folder_path, v
 #' @export
 #' @family parsers
 parse_mbox <- function(perceval_path, mbox_file_path) {
-  # Expand paths
+  # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   perceval_path <- path.expand(perceval_path)
   mbox_file_path <- path.expand(mbox_file_path)
-  mbox_dir <- dirname(mbox_file_path)  # Extract directory path
-  mbox_uri <- mbox_file_path  # URI points to the mbox file
 
-  # Use Perceval to parse the mbox file
+  # Remove ".mbox"
+  mbox_uri <- stri_replace_last(mbox_file_path,replacement="",regex=".mbox")
+
+  # Use percerval to parse mbox_path. --json line is required to be parsed by jsonlite::fromJSON.
   perceval_output <- tryCatch({
     system2(perceval_path,
-            args = c('mbox', mbox_uri, mbox_dir, '--json-line'),
+            args = c('mbox', mbox_uri, mbox_file_path, '--json-line'),
             stdout = TRUE,
-            stderr = TRUE)
+            stderr = FALSE)
   }, error = function(e) {
     #print("Error running Perceval:")
     #print(e$message)
@@ -609,10 +610,10 @@ parse_mbox <- function(perceval_path, mbox_file_path) {
     stop("No valid JSON lines found in Perceval output. Check the mbox file or Perceval configuration.")
   }
 
-
   # Parse JSON output as a data.table
   perceval_parsed <- tryCatch({
-    data.table(jsonlite::stream_in(textConnection(json_lines), verbose = FALSE))
+    # Parsed JSON output as a data.table.
+    data.table(jsonlite::stream_in(textConnection(perceval_output),verbose=FALSE))
   }, error = function(e) {
     #print(e$message)
     stop("JSON parsing failed.")
