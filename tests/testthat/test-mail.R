@@ -21,25 +21,13 @@ test_that("Calling parse_mbox with correct perceval and mbox path returns a data
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
 
-  # Debugging output
-  print("Debugging parse_mbox:")
-  print(paste("Tools path:", tools_path))
-  print(paste("Perceval path:", perceval_path))
-
   mbox_path <- example_mailing_list_two_threads(
     folder_path = "/tmp",
     folder_name = "example_two_threads_mailing_list",
     file_name = "two_thread_mailing_list"
   )
 
-  # Debugging output
-  print(paste("Generated Mbox path:", mbox_path))
-
   result <- parse_mbox(perceval_path, mbox_path)
-
-  # Debugging output
-  print("Result of parse_mbox:")
-  print(head(result))
 
   io_delete_folder(folder_path = "/tmp", folder_name = "example_two_threads_mailing_list")
 
