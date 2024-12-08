@@ -219,7 +219,20 @@ tool:
   #   project_path: ../../rawdata/kaiaulu/git_repo/understand/
   #   # Where the output for the understands analysis is stored
   #   output_path: ../../analysis/kaiaulu/understand/
-
+  understand:
+    # Accepts one language at a time: ada, assembly, c/c++, c#, fortran, java, jovial, delphi/pascal, python, vhdl, basic, javascript
+    code_language: java
+    # Specify which types of Dependencies to keep
+    keep_dependencies_type:
+      - Import
+      - Call
+      - Create
+      - Use
+      - Type GenericArgument
+    # Where the files to analyze should be stored
+    project_path: ../../rawdata/helix/git_repo/helix/
+    # Where the output for the understands analysis is stored
+    output_path: ../../analysis/helix/understand/
 # Analysis Configuration #
 analysis:
   # You can specify the intervals in 2 ways: window, or enumeration
