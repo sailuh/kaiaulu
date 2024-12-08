@@ -36,5 +36,5 @@ of kaiaulu_YYYYMM.mbox.
 The function loops through each month in the range specified by `start_year_month` and `end_year_month`,
 and constructs the appropriate URL to download each month's data. If any download fails, an warning is issued for the failed months.
 This means the file could not be found and that month's data may not exist.
-At the end, the function summarizes the downloads, indimessageing the range of dates present and any missing months.
+At the end, the function summarizes the downloads, indicating the range of dates present and any missing months.
 }
