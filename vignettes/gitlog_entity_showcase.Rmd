@@ -32,22 +32,22 @@ require(knitr)
 # Project Configuration File
 
 ```{r}
-tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/kaiaulu.yml")
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/kaiaulu.yml")
 
 # 3rd Party Tools
-perceval_path <- tool[["perceval"]]
-utags_path <- tool[["utags"]]
+perceval_path <- get_tool_project("perceval", tool)
+utags_path <- get_tool_project("utags", tool)
 
 # Ctags Line Types
-kinds <- conf[["tool"]][["uctags"]][["keep_lines_type"]]
+kinds <- get_uctags_line_types(conf)
 
 # Local Git Repo Folder Path
-git_repo_path <- conf[["version_control"]][["log"]]
+git_repo_path <- get_git_repo_path(conf)
 
 # File Filters
-file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
-substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+file_extensions <- get_file_extensions(conf)
+substring_filepath <- get_substring_filepath(conf)
 ```
 
 # Construct Collaboration Network
@@ -108,7 +108,7 @@ id_project_git <- project_log[["project_git"]]
 
 Author-Entity Network
 
-```{r}
+```{r , out.width="800px" , out.height="800px"}
 project_collaboration_network <- transform_gitlog_to_entity_bipartite_network(last(id_project_git,
                                                                                    1000),
                                                                               mode = "author-entity")

@@ -38,26 +38,26 @@ Kaiaulu re-implementation is easy to extend, and allow for any combination of mo
 We demonstrate here both the triangle and square motif as originally defined in our paper, which leverages all 3 types of the networks. The project of analysis is Kaiaulu itself, however, this can be applied to other open source projects!
 
 ```{r}
-tools_path <- "../tools.yml"
-conf_path <- "../conf/kaiaulu.yml"
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/kaiaulu.yml")
 
-tool <- yaml::read_yaml(tools_path)
-scc_path <- tool[["scc"]]
+scc_path <- get_tool_project("scc", tool)
 
-oslom_dir_path <- tool[["oslom_dir"]]
-oslom_undir_path <- tool[["oslom_undir"]]
+oslom_dir_path <- get_tool_project("oslom_dir", tool)
+oslom_undir_path <- get_tool_project("oslom_undir", tool)
 
-conf <- yaml::read_yaml(conf_path)
+perceval_path <- get_tool_project("perceval", tool)
+git_repo_path <- get_git_repo_path(conf)
+git_branch <- get_git_branches(conf)[1]
 
-perceval_path <- tool[["perceval"]]
-git_repo_path <- conf[["version_control"]][["log"]]
-git_branch <- conf[["version_control"]][["branch"]][1]
-
-github_replies_path <- conf[["issue_tracker"]][["github"]][["replies"]]
+issues_json_folder_path <- get_github_issue_path(conf, "project_key_1")
+pull_requests_json_folder_path <- get_github_pull_request_path(conf, "project_key_1")
+comments_json_folder_path <- get_github_issue_or_pr_comment_path(conf, "project_key_1")
+commit_json_folder_path <- get_github_commit_path(conf, "project_key_1")
 
 # Filters
-file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
-substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+file_extensions <- get_file_extensions(conf)
+substring_filepath <- get_substring_filepath(conf)
 ```
 
 ## Parse Gitlog
@@ -94,7 +94,10 @@ Next, we parse the various communication channels the project use. Similarly to 
 In this Notebook, we only use GitHub replies (issue and pull requests commentary) since Kaiaulu does not use mailing lists. However, download and parser functions for mbox, jira, and bugzilla are available. Refer to the API for details.
 
 ```{r}
-project_github_replies <- parse_github_replies(github_replies_path)  
+project_github_replies <- parse_github_replies(issues_json_folder_path,
+                                                 pull_requests_json_folder_path,
+                                                 comments_json_folder_path,
+                                                 commit_json_folder_path)  
 
 
 # Timezone is not available on GitHub timestamp, all in UTC
