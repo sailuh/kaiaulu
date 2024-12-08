@@ -396,6 +396,14 @@ transform_understand_dependencies_to_network <- function(parsed, weight_types) {
   nodes <- parsed[["node_list"]]
   edges <- parsed[["edge_list"]]
 
+  # Create an ID column, as the file name in a label may occur
+  # again in other parts of the code.
+
+  nodes$node_label <- stringi::stri_c(nodes$node_label,"|",nodes$id)
+
+  edges$label_from <- stringi::stri_c(edges$label_from,"|",edges$id_from)
+  edges$label_to <- stringi::stri_c(edges$label_to,"|",edges$id_to)
+
   # Filter out by weights if vector provided
   if (length(weight_types) > 0) {
     edges <- edges[dependency_kind %in% weight_types]

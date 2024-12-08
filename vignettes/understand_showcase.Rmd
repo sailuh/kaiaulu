@@ -79,9 +79,12 @@ To generate a list containing the node and edge data.tables containing the file 
 
 Note the format of the generated data.tables after running the below code.
 
-```{r}
+```{r eval = FALSE}
 file_dependencies_path <- export_understand_dependencies(scitools_path = scitools_path, db_filepath = db_path, parse_type = "file", output_filepath = file_dependencies_path)
+```
 
+
+```{r}
 file_dependencies <- parse_understand_dependencies(dependencies_path = file_dependencies_path)
 
 head(file_dependencies[["node_list"]])  %>%
@@ -100,10 +103,12 @@ Near-identical to parsing for file dependencies, class dependencies only require
 
 The generated data is in the same format, however note the different types of dependency types in the edge_table.
 
-```{r}
-
+```{r eval = FALSE}
 class_dependencies_path <- export_understand_dependencies(scitools_path = scitools_path, db_filepath = db_path, parse_type = "file", output_filepath = class_dependencies_path)
+```
 
+
+```{r}
 class_dependencies <- parse_understand_dependencies(dependencies_path = class_dependencies_path)
                                                    
 head(class_dependencies[["node_list"]])  %>%
@@ -136,7 +141,8 @@ Apart from having a filtered edge_table, this data can also be used for inputtin
 
 ```{r}
 file_graph <- transform_understand_dependencies_to_network(parsed = file_dependencies, weight_types = c(keep_dependencies_type[2], keep_dependencies_type[5]))
-head(file_graph)
+
+
 project_function_network <- igraph::graph_from_data_frame(d=file_graph[["edge_list"]], 
                       directed = TRUE,
                       vertices = file_graph[["node_list"]])
@@ -150,7 +156,7 @@ The same applies to outputting our class_dependencies, but we can visualize what
 
 ```{r}
 class_graph <- transform_understand_dependencies_to_network(parsed = class_dependencies, weight_types = c(keep_dependencies_type[2], keep_dependencies_type[5]))
-head(class_graph)
+
 project_function_network <- igraph::graph_from_data_frame(d=class_graph[["edge_list"]], 
                       directed = TRUE,
                       vertices = class_graph[["node_list"]])
