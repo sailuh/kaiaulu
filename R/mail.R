@@ -240,15 +240,20 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
 #' @param verbose if TRUE, prints diagnostic messages.
 #' @return Returns `downloaded_files`, a vector of the newly downloaded files in the current working directory.
 #' @export
-refresh_pipermail <- function(mailing_list, start_year_month, save_folder_path, verbose = TRUE) {
+refresh_pipermail <- function(mailing_list, start_year_month = NULL, save_folder_path, verbose = TRUE) {
 
   ## Check if Folder is Empty
   # Check the contents of the folder to see if any .mbox files are already present
   # The function looks for files that match the naming pattern 'YYYYMM.mbox'
   files_in_folder <- list.files(save_folder_path, pattern = "\\d{6}\\.mbox$")
 
+  # If the folder is empty
   if (length(files_in_folder) == 0) {
-    # If the folder is empty, download all pipermail files starting from the start_year_month
+    # If start_year_month is not specified, issue an error
+    if (is.null(start_year_month)) {
+      stop("No existing data found. Please specify a start_year_month.")
+    }
+    # Otherwise, download all pipermail files starting from the start_year_month
     # The end date is set to the current month based on the system date
     end_year_month <- format(Sys.Date(), "%Y%m")
     if (verbose) message("Folder is empty. Downloading from", start_year_month, "to", end_year_month, "\n")
@@ -513,15 +518,20 @@ download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, sa
 #' @param verbose if TRUE, prints diagnostic messages.
 #' @return Returns `downloaded_files`, a vector of the newly downloaded files in the current working directory.
 #' @export
-refresh_mod_mbox <- function(mailing_list, start_year_month, save_folder_path, verbose = TRUE) {
+refresh_mod_mbox <- function(mailing_list, start_year_month = NULL, save_folder_path, verbose = TRUE) {
 
   ## Check if Folder is Empty ##
   # Check the contents of the folder to see if any .mbox files are already present.
   # The function looks for files that match the naming pattern 'YYYYMM.mbox'
   files_in_folder <- list.files(save_folder_path, pattern = "\\d{6}\\.mbox$")
 
+  # If the folder is empty
   if (length(files_in_folder) == 0) {
-    # If the folder is empty, download all mod_mbox files starting from start_year_month
+    # If start_year_month is not specified, issue an error
+        if (is.null(start_year_month)) {
+      stop("No existing data found. Please specify a start_year_month.")
+    }
+    # Otherwise, download all mod_mbox files starting from start_year_month
     # The end date is set to the current month based on the system date
     end_year_month <- format(Sys.Date(), "%Y%m")
     if (verbose) message("Folder is empty. Downloading from", start_year_month, "to", end_year_month, "\n")
