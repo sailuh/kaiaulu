@@ -207,8 +207,8 @@ A similar function is also available for mod_mbox:
 ```{r eval=FALSE}
 refresh_mod_mbox(
   mailing_list = mbox_mailing_list,
-  #start_year_month = mbox_start_year_month,
-  save_folder_path= mbox_save_folder_path,
+  # start_year_month = mbox_start_year_month,
+  save_folder_path = mbox_save_folder_path,
   verbose = TRUE
 )
 ```
