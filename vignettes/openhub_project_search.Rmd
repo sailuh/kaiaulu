@@ -54,7 +54,7 @@ To start the project selection process, we may want to restrict ourselves to foc
 
 Below are a set of required variables for the `openhub_*` functions.
 
-```{r}
+```{r, eval = FALSE}
 study_name <- "placeholder"
 html_url_or_name <- "https://openhub.net/orgs/apache"
 language <- "java"
@@ -72,7 +72,7 @@ Explanation:
 
 A hardcoded function for folder creation to store the API responses from each endpoint:
 
-```{r}
+```{r, eval = FALSE}
 openhub_folder_create <- function(folder_path, folder_name) {
   folder <- file.path(folder_path, folder_name)
   if (!dir.exists(folder)) {
@@ -123,7 +123,7 @@ org_name <- stringi::stri_extract_last_regex(org_html_url, "[^/]+$")
 
 ## Portfolio Projects
 
-Following a similar process as the Organization section, we acquire the portfolio projects for the organization, "Apache Software Foundation", that possess the code language specified by `language`, in this case Java, by acquiring the portfolio projects API response files and parsing these API requests into a data table. This endpoint, portfolio projects, is iterable by pages, so we may use `openhub_api_iterate_pages` on `openhub_api_portfolio_projects` to acquire each page, storing these API responses in the folder path `portfolio_project_folder_path`. Currently, **each page for the portfolio_projects collection returns a maximum of 20 items**, portfolio projects. To grab as many matches as possible or up to a number of pages (if `max_pages` exceeds the total pages available by the API response, it will grab the maximum number of pages possible), the `max_pages` may be removed from `openhub_api_iterate_pages` or set to a desired value (e.g. "max_pages=1" returning up to 20 portfolio project items and "max_pages=16" returning up to 320 portfolio project items), respectively.
+Following a similar process as the Organization section, we acquire the portfolio projects for the organization, "Apache Software Foundation", that possess the code language specified by `language`, in this case Java, by acquiring the portfolio projects API response files and parsing these API requests into a data table. This endpoint, portfolio projects, is iterable by pages, so we may use `openhub_api_iterate_pages` on `openhub_api_portfolio_projects` to acquire each page, storing these API responses in the folder path `portfolio_project_folder_path`. Currently, **each page for the portfolio_projects collection returns a maximum of 20 items**, portfolio projects. To extract as many matches as possible or up to a number of pages (if `max_pages` exceeds the total pages available by the API response, it will extract the maximum number of pages possible), the `max_pages` may be removed from `openhub_api_iterate_pages` or set to a desired value (e.g. "max_pages=1" returning up to 20 portfolio project items and "max_pages=16" returning up to 320 portfolio project items), respectively.
 
 ```{r, eval = FALSE}
 openhub_api_iterate_pages(token, openhub_api_portfolio_projects, portfolio_project_folder_path, org_name, max_pages=NULL)
@@ -158,7 +158,7 @@ With the project API responses saved, we may parse these responses with its corr
 * name: The name of the project.
 * id: The project's unique ID.
 * html_url: The project's url to the current Project's details page on OpenHub.
-* mailing_list: The project's mailing list url link (if "N/A", please check the project's url (html_url) and verify under the links section to verify that the project doesn't have a mailing list to be certain. The parser, `openhub_parse_projects`, is overloaded to read each link and uses a regular expression pattern to decipher the links to acquire the mailing list).
+* project_links: The project's links separated by commas (category and URL link). If no project links are found, "N/A" is returned.
 
 ```{r, eval = FALSE}
 projects_api_requests <- openhub_retrieve(project_folder_path)

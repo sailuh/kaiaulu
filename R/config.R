@@ -294,20 +294,22 @@ openhub_parse_projects <- function(api_responses) {
         parsed_response[["id"]] <- append(parsed_response[["id"]], XML::xmlValue(returnItems[[i]][[1]])) # <result><project><id>
         parsed_response[["html_url"]] <- append(parsed_response[["html_url"]], XML::xmlValue(returnItems[[i]][[4]])) # <result><project><html_url>
         links_tag <- returnItems[[i]][[23]] # <links> tag (sometimes present in a project's api response)
-        mailing_list <- "N/A"
+        links_data_text <- list()
         if (!is.null(links_tag)) {
           links <- XML::xmlChildren(links_tag)
           for (i in seq_along(links)) {
             link <- links[[i]] # i-th <link> tag in <links>
-            link_title <- stringi::stri_detect_regex(XML::xmlValue(link[[1]]), "Mailing List", case_insensitive = TRUE) # checks <title> in specific the <link> to see if "Mailing List" is contained, case insensitive
-            link_category <- stringi::stri_detect_regex(XML::xmlValue(link[[3]]), "Mailing List", case_insensitive = TRUE) # checks <category> in specific the <link> to see if "Mailing List" is contained, case insensitive
-            if (link_title || link_category) {
-              mailing_list <- XML::xmlValue(link[[2]]) # <url> in the specific <link> tag
-              break
-            }
+            link_url <- as.character(XML::xmlValue(link[[2]])) # <url> in the specific <link>
+            link_category <- XML::xmlValue(link[[3]]) # <category> in specific the <link>
+            links_data_text[[i]] <- paste(link_category, link_url)
           }
         }
-        parsed_response[["mailing_list"]] <- append(parsed_response[["mailing_list"]], mailing_list) # <result><project><links><link><url> specific link that has a mailing list or not found ("N/A")
+        if (length(links_data_text) == 0) {
+          links_data_text <- "N/A" # no project links available
+        } else {
+          links_data_text <- paste(links_data_text, collapse = ", ")
+        }
+        parsed_response[["project_links"]] <- append(parsed_response[["project_links"]], links_data_text)
       }
     } else {
       stop(paste0("openhub_parse_projects: ", status)) # prints the status warning message
@@ -351,7 +353,7 @@ openhub_parse_analyses <- function(api_responses) {
       for (i in seq_along(languages)) {
         language <- languages[[i]]
         code_language_percentage <- paste0(XML::xmlGetAttr(language, "percentage"), "%") # adds a percentage symbol to the end of the percentage value for the code language
-        code_language <- stringi::stri_trim_both(stringi::stri_replace_all_fixed(XML::xmlValue(language), "\n", "")) # grabs code language text, then removes spaces and new line characters
+        code_language <- stringi::stri_trim_both(stringi::stri_replace_all_fixed(XML::xmlValue(language), "\n", "")) # extracts code language text, then removes spaces and new line characters
         code_languages_data_text[[i]] <- paste(code_language_percentage, code_language)
       }
       code_languages_data_text <- paste(code_languages_data_text, collapse = ", ")
