@@ -28,7 +28,7 @@ I also recommend you download the repo to have some example project configuratio
 
  1. Clone this repo 
  2. Open `kaiaulu.Rproj` using RStudio
- 3. Run the unit tests `devtools::test()`. If any fail, and you are not clear why, feel free to [ask in Discussions](https://github.com/sailuh/kaiaulu/discussions)
+ 3. Run the unit tests `devtools::test()`. If any fail and you are not clear why, feel free to [ask in Discussions](https://github.com/sailuh/kaiaulu/discussions)
  4. Build the documentation `devtools::document(roclets = c('rd', 'collate', 'namespace'))`.
  5. Build Kaiaulu (Top right pane in RStudio -> Build tab -> Install and Restart)
  6. Run `vignettes/kaiaulu_architecture.Rmd` 
