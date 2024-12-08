@@ -2,14 +2,14 @@
 % Please edit documentation in R/src.R
 \name{parse_understand_dependencies}
 \alias{parse_understand_dependencies}
-\title{Parse Built Folder to Network}
+\title{Parse XML from Understand DB}
 \usage{
-parse_understand_dependencies(understand_dir, parse_type = c("file", "class"))
+parse_understand_dependencies(scitools_path, understand_dir)
 }
 \arguments{
-\item{understand_dir}{path to the built Understand project folder used in \code{\link{build_understand_project}}}
+\item{scitools_path}{path to the scitools binary `und`}
 
-\item{parse_type}{Type of dependencies to generate into xml (either "file" or "class")}
+\item{understand_dir}{path to the built Understand project folder used in \code{\link{build_understand_project}}}
 }
 \description{
 This function parses the data in the Understand build folder to export the parse_type dependencies into a network
@@ -17,18 +17,19 @@ This function parses the data in the Understand build folder to export the parse
 \seealso{
 Other parsers: 
 \code{\link{build_understand_project}()},
+\code{\link{export_understand_dependencies}()},
 \code{\link{parse_bugzilla_perceval_rest_issue_comments}()},
 \code{\link{parse_bugzilla_perceval_traditional_issue_comments}()},
 \code{\link{parse_bugzilla_rest_comments}()},
-\code{\link{parse_bugzilla_rest_issues}()},
 \code{\link{parse_bugzilla_rest_issues_comments}()},
+\code{\link{parse_bugzilla_rest_issues}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
 \code{\link{parse_dv8_clusters}()},
 \code{\link{parse_gitlog}()},
-\code{\link{parse_jira}()},
 \code{\link{parse_jira_latest_date}()},
 \code{\link{parse_jira_rss_xml}()},
+\code{\link{parse_jira}()},
 \code{\link{parse_mbox}()},
 \code{\link{parse_nvdfeed}()}
 }

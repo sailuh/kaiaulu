@@ -46,8 +46,15 @@ scitools_path <- get_tool_project("scitools", tool)
 conf <- parse_config("../conf/helix.yml")
 keep_dependencies_type <- get_understand_keep_dependencies_type(conf)
 project_path <- get_understand_project_path(conf)
+
+# Scitools
 understand_folder <- get_understand_output_path(conf)
 code_language <- get_understand_code_language(conf)
+
+db_path <- stringi::stri_c(understand_folder,"Understand.und")
+
+file_dependencies_path <- stringi::stri_c(understand_folder,"file_dependencies.xml")
+class_dependencies_path <- stringi::stri_c(understand_folder,"class_dependencies.xml")
 ```
 
 ## Parse a sample project folder
@@ -61,23 +68,26 @@ Before asking for the generation of data or parsing through it, we must first bu
 Please remember/save where the folder is generated as it is necessary for understand_parse_dependencies, but for the purpose of this notebook- we will save this output at ../../analysis/kaiaulu/understand
 
 ```{r eval = FALSE}
-build_understand_project(scitools_path = scitools_path, project_path = project_path, language = code_language, output_dir = understand_folder)
+db_path <- build_understand_project(scitools_path = scitools_path, project_path = project_path, language = code_language, output_dir = understand_folder)
 ```
 
-
 # Generate Dependencies Network
-## For Files
+
+## Files
 
 To generate a list containing the node and edge data.tables containing the file dependencies of the project, we will provide it the file path to the built Understand project folder and the parse_type. In this case, we will tell Understand to build the "file" dependencies for us. Once again, providing understand_folder as the value for understand_dir.
 
 Note the format of the generated data.tables after running the below code.
 
 ```{r}
-file_dependencies <- parse_understand_dependencies(scitools_path = scitools_path, understand_dir = understand_folder, parse_type = "file")
+file_dependencies_path <- export_understand_dependencies(scitools_path = scitools_path, db_filepath = db_path, parse_type = "file", output_filepath = file_dependencies_path)
+
+file_dependencies <- parse_understand_dependencies(dependencies_path = file_dependencies_path)
 
 head(file_dependencies[["node_list"]])  %>%
   gt(auto_align = FALSE)
 ```
+
 ```{r}
 head(file_dependencies[["edge_list"]])  %>%
   gt(auto_align = FALSE)
@@ -91,8 +101,11 @@ Near-identical to parsing for file dependencies, class dependencies only require
 The generated data is in the same format, however note the different types of dependency types in the edge_table.
 
 ```{r}
-class_dependencies <- parse_understand_dependencies(scitools_path = scitools_path, understand_dir = understand_folder, parse_type = "class")
 
+class_dependencies_path <- export_understand_dependencies(scitools_path = scitools_path, db_filepath = db_path, parse_type = "file", output_filepath = class_dependencies_path)
+
+class_dependencies <- parse_understand_dependencies(dependencies_path = class_dependencies_path)
+                                                   
 head(class_dependencies[["node_list"]])  %>%
   gt(auto_align = FALSE)
 ```
