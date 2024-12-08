@@ -42,7 +42,7 @@ parse_config <- function(config_path) {
 #' @param verbose A boolean variable that prints operational messages when set to TRUE.
 #' Obtained from `parse_config` function.
 #' @export
-create_file_directory <- function(conf, verbose = TRUE) {
+create_file_directory <- function(conf, verbose= FALSE) {
   # Create the git_repo folder
   create_file_path(conf$version_control$log)
 

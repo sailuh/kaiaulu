@@ -413,6 +413,7 @@ github_parse_project_commits <- function(api_responses){
 #' project's data available from the endpoint (up to the remaining
 #' available requests in the used user's token).
 #' The user can also define the maximum number of pages to download.
+#' Downloaded JSON files use POSIXct format (%Y-%m-%dT%H:%M:%SZ, UTC)
 #'
 #' @param token Your Github API token
 #' @param owner Github's repository owner (e.g. sailuh)
@@ -420,8 +421,9 @@ github_parse_project_commits <- function(api_responses){
 #' @param save_folder_path A folder path to save the downloaded json pages "as-is".
 #' @param prefix Prefix to be added to every json file name
 #' @param max_pages The maximum number of pages to download. MAX = Available token requests left
+#' @references For details, see \url{https://docs.github.com/en/graphql/guides/using-the-graphql-api-for-discussions}
 #' @export
-github_api_discussions <- function(token, owner, repo, save_folder_path, max_pages = NA, verbose = TRUE){
+github_api_discussions <- function(token, owner, repo, save_folder_path, max_pages = NA){
   page_number <- 1
   cursor <- NULL
 
@@ -490,14 +492,6 @@ github_api_discussions <- function(token, owner, repo, save_folder_path, max_pag
     # Save the json to the folder path
     write_json(gh_response, file_name, pretty=TRUE, auto_unbox=TRUE)
 
-    if (verbose) {
-      # Print the latest and oldest dates to the file name
-      message("Latest date: ", latest_date_unix)
-      message("Oldest date: ", oldest_date_unix)
-      message("File name: ", file_name)
-      message("Extracted dates for page ", page_number)
-    }
-
     has_next_page <- gh_response[["data"]][["repository"]][["discussions"]][["pageInfo"]][["hasNextPage"]]
 
     if (has_next_page){
@@ -510,12 +504,37 @@ github_api_discussions <- function(token, owner, repo, save_folder_path, max_pag
   }
 }
 
-github_api_discussions_refresh <- function(token, owner, repo, save_folder_path, verbose = TRUE) {
-  # List all files and subdirectories in the directory
-  contents <- list.files(save_folder_path, all.files= TRUE)
+#' Refresh for Github Discussions downloader
+#'
+#' Download Discussions from GraphQL API endpoint.
+#' Uses a query to only obtain data defined by the user.
+#' Checks if the folder to download is empty, and calls the regular downloader it it is.
+#' It then checks the downloaded JSON filenames to compare with the most recent discussion createdAt dates,
+#' formatted as POSIXct (%Y-%m-%dT%H:%M:%SZ, UTC).
+#' GitHub API endpoints return data in pages, each containing by default 100 entries.
+#' This function by default iterates over the next page in order to download all the
+#' project's data available from the endpoint (up to the remaining
+#' available requests in the used user's token).
+#' The user can also define the maximum number of pages to download.
+#'
+#' @param token Your Github API token
+#' @param owner Github's repository owner (e.g. sailuh)
+#' @param repo Github's repository name (e.g. kaiaulu)
+#' @param save_folder_path A folder path to save the downloaded json pages "as-is".
+#' @references For details, see \url{https://docs.github.com/en/graphql/guides/using-the-graphql-api-for-discussions}
+#' @export
+github_api_discussions_refresh <- function(token, owner, repo, save_folder_path) {
+  # List all json files within the save_path_folder
+  print("List files in save_folder_path: ", list.files(save_folder_path))
+  print(save_folder_path)
+  json_contents <- list.files(save_folder_path, pattern= "\\.json$", full.names = TRUE, recursive= TRUE)
+  contents <- list.files(save_folder_path, all.files = TRUE)
+  print(json_contents)
+  print(contents)
+  print(length(contents)==0)
 
-  # If the file is empty, download all discussions
-  if (length(contents) == 0) {
+  # If there are no json files, download all discussions
+  if (length(contents) == 0 ) {
     # Run the regular downloader
     discussions <- github_api_discussions(token, owner, repo, save_folder_path)
     return (discussions)
@@ -540,11 +559,6 @@ github_api_discussions_refresh <- function(token, owner, repo, save_folder_path,
   created_at <- created_at + 1
   # Convert back to original
   created_at <- format(created_at, "%Y-%m-%dT%H:%M:%SZ")
-
-  if (verbose) {
-    message("File name with latest date: ", latest_discussion)
-    message("Latest date: ", created_at)
-  }
 
   page_number <- 1
   cursor <- NULL
@@ -612,14 +626,6 @@ github_api_discussions_refresh <- function(token, owner, repo, save_folder_path,
                         ".json")
     # Save the json to the folder path
     write_json(gh_response, file_name, pretty=TRUE, auto_unbox=TRUE)
-
-    if (verbose) {
-      # Print the latest and oldest dates to the file name
-      message("Latest date: ", latest_date_unix)
-      message("Oldest date: ", oldest_date_unix)
-      message("File name: ", file_name)
-      message("Extracted dates for page ", page_number)
-    }
 
     has_next_page <- gh_response[["data"]][["repository"]][["discussions"]][["pageInfo"]][["hasNextPage"]]
 
