@@ -30,6 +30,7 @@ require(XML)
 require(stringi)
 require(igraph)
 require(data.table)
+require(gt)
 ```
 
 # Project Configuration File
@@ -39,7 +40,10 @@ For our variables we will be grabbing them from our configuration file kaiaulu.y
 - And our code_language. Although self-explanatory, Understand supports [many languages](https://support.scitools.com/support/solutions/articles/70000582794-supported-languages)- but for today we will be analyzing a Java project.
 
 ```{r}
-conf <- parse_config("../conf/kaiaulu.yml")
+tool <- parse_config("../tools.yml")
+scitools_path <- get_tool_project("scitools", tool)
+
+conf <- parse_config("../conf/helix.yml")
 keep_dependencies_type <- get_understand_keep_dependencies_type(conf)
 project_path <- get_understand_project_path(conf)
 understand_folder <- get_understand_output_path(conf)
@@ -56,8 +60,8 @@ Before asking for the generation of data or parsing through it, we must first bu
 
 Please remember/save where the folder is generated as it is necessary for understand_parse_dependencies, but for the purpose of this notebook- we will save this output at ../../analysis/kaiaulu/understand
 
-```{r}
-build_understand_project(project_path = project_path, language = code_language, output_dir = understand_folder)
+```{r eval = FALSE}
+build_understand_project(scitools_path = scitools_path, project_path = project_path, language = code_language, output_dir = understand_folder)
 ```
 
 
@@ -69,9 +73,14 @@ To generate a list containing the node and edge data.tables containing the file 
 Note the format of the generated data.tables after running the below code.
 
 ```{r}
-file_dependencies <- parse_understand_dependencies(understand_dir = understand_folder, parse_type = "file")
-head(file_dependencies[["node_list"]])
-head(file_dependencies[["edge_list"]])
+file_dependencies <- parse_understand_dependencies(scitools_path = scitools_path, understand_dir = understand_folder, parse_type = "file")
+
+head(file_dependencies[["node_list"]])  %>%
+  gt(auto_align = FALSE)
+```
+```{r}
+head(file_dependencies[["edge_list"]])  %>%
+  gt(auto_align = FALSE)
 ```
 
 
@@ -82,9 +91,15 @@ Near-identical to parsing for file dependencies, class dependencies only require
 The generated data is in the same format, however note the different types of dependency types in the edge_table.
 
 ```{r}
-class_dependencies <- parse_understand_dependencies(understand_dir = understand_folder, parse_type = "class")
-head(class_dependencies[["node_list"]])
-head(class_dependencies[["edge_list"]])
+class_dependencies <- parse_understand_dependencies(scitools_path = scitools_path, understand_dir = understand_folder, parse_type = "class")
+
+head(class_dependencies[["node_list"]])  %>%
+  gt(auto_align = FALSE)
+```
+
+```{r}
+head(class_dependencies[["edge_list"]])  %>%
+  gt(auto_align = FALSE)
 ```
 
 
