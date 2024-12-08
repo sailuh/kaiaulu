@@ -601,11 +601,6 @@ parse_mbox <- function(perceval_path, mbox_file_path) {
     stop("Perceval execution failed.")
   })
 
-  cat(perceval_output, sep = "\n")
-
-
-
-
   # Filter JSON lines from Perceval output
   json_lines <- perceval_output[grepl("^\\{", perceval_output)]  # Escape the `{` character
 
@@ -619,8 +614,7 @@ parse_mbox <- function(perceval_path, mbox_file_path) {
   perceval_parsed <- tryCatch({
     data.table(jsonlite::stream_in(textConnection(json_lines), verbose = FALSE))
   }, error = function(e) {
-    print("Error parsing JSON lines:")
-    print(e$message)
+    #print(e$message)
     stop("JSON parsing failed.")
   })
 
