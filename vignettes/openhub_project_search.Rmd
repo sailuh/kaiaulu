@@ -16,13 +16,15 @@ vignette: >
 
 This notebook showcases how to use Kaiaulu's OpenHub API interface functions to facilitate selecting open-source projects for studies. These OpenHub API interfacing functions return data tables that contain project information such as total contributor count, total lines of code, percentage breakdown of code languages, number of contributors who made at least one commit in the past year, the number of commits in the past year, etc. The current search criteria: the organization to which the projects belong and the primary programming language used by the projects.
 
+The notebook is unique among its peers in that it concerns itself not with one project, but their selection, and thus it does not need to use the project configuration file architecture nor the project initialization.
+
 ## Purpose
 
 This notebook explains how to acquire information on a set of projects (e.g. LOC on the current date, number of contributors who made at least one commit in the past 12 months, number of commits in the past 12 months, total commit count on the current date, and total number of contributors on the current date) that reside in [Openhub's open-source project collection](https://openhub.net/explore/projects) based on search parameters under an [organization](https://openhub.net/explore/orgs) using [Ohloh API](https://github.com/blackducksoftware/ohloh_api).
 
 Kaiaulu's interface to Ohloh's API, an API for OpenHub's open-source project collection, relies on [httr](https://httr.r-lib.org) to create http GET requests that interface with Ohloh's API. Ohloh API responds to these requests by returning an XML response file with nested tags.
 
-Kaiaulu only defines a few API endpoints of interest ([organization-collection](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/organization-collection.md), [portfolio_projects](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/portfolio_projects.md), [project](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/project.md), and [analysis](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/analysis.md)) where the tool is currently used, and parses the returned XML output into a table keeping only fields of interest. More endpoints and/or fields of interest per endpoint can be added in the future.
+Kaiaulu only defines a few API endpoints of interest ([organization](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/organization.md), [portfolio_projects](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/portfolio_projects.md), [project](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/project.md), and [analysis](https://github.com/blackducksoftware/ohloh_api/blob/main/reference/analysis.md)) where the tool is currently used, and parses the returned XML output into a table keeping only fields of interest. More endpoints and/or fields of interest per endpoint can be added in the future.
 
 ## Create a Personal API Token
 
@@ -46,6 +48,10 @@ require(gt)
 
 # Configuration Section
 
+## Selecting an OpenHub Organization
+
+To start the project selection process, we may want to restrict ourselves to focusing on projects under a specific organization. The [list of organizations are found on the OpenHub website](https://openhub.net/explore/orgs). For this notebook, we will focus on searching for projects with their primary language as Java under the ["Apache Software Foundation"](https://openhub.net/orgs/apache).
+
 Below are a set of required variables for the `openhub_*` functions.
 
 ```{r}
@@ -57,13 +63,14 @@ token <- scan("~/.ssh/openhub_token",what="character",quiet=TRUE)
 
 Explanation:
 
-* openhub_api_parameters: A list containing key-value pairs of parameters to pass into the `openhub_*` functions. The following key names are valid and are required for proper execution (`openhub_*` functions possess documentation that detail the key-value pairs required for proper execution): organization_name, language, portfolio_project_site, project_name, project_id
 * study_name: The name of the study for project selection that will be used to create a folder system to store API responses.
-* organization_name: The name of the organization (case sensitive).
-* language: The code language to filter for projects only containing the specified code language (case insensitive).
+* html_url_or_name: Either the URL for the organization page on OpenHub (e.g. "https://openhub.net/orgs/apache") or the short, unique, handle for the organization (e.g. "apache").
+* language: The code language to filter for projects only containing the specified code language (e.g. "java").
 * token: The file named "openhub_token" containing the OpenHub API Token.
 
-A hardcoded function for folder creation to store the API responses:
+## API Response Folder Storage
+
+A hardcoded function for folder creation to store the API responses from each endpoint:
 
 ```{r}
 openhub_folder_create <- function(folder_path, folder_name) {
@@ -89,17 +96,17 @@ In this section, for each endpoint, we collect the data through a series of Ohlo
 
 ## Organizations
 
-We call `openhub_api_iterate_pages` to collect the API responses from a `openhub_api_*` function, `openhub_api_organizations`, ensuring that `openhub_api_parameters` contains the "organization_name" key-value pair, and setting the maximum number of pages to iterate to 1 to iterate through the paginated API responses returned from `openhub_api_organizations`. We set the maximum pages to iterate over in `openhub_api_iterate_pages` to 1 because `openhub_api_organizations` employs the "query" collection request parameter, a filter that searches every tag for a matching part to the query string. For example, the query string "Apache Software Foundation", `organization_name`, will return every organization containing the "Apache", "Software", "Foundation", and/or a combination of these strings, so the query collection request parameter is essentially a "ctrl+f" search that helps to narrow down a list of potential matches.
+We call `openhub_api_organizations` to acquire the organization API response of our selected organization specified by `html_url_or_name`. This function downloads the API response file into the folder specified by `organization_folder_path`.
 
 ```{r, eval = FALSE}
 openhub_api_organizations(token, organization_folder_path, html_url_or_name)
 ```
 
-With the organization API response (only one page), we may parse this response with its corresponding parser function, `openhub_parse_organizations`, to acquire a data table with columns representing the tags for each organization listed:
+With the organization API response (only one page), we may parse this response with its corresponding parser function, `openhub_parse_organizations`, to acquire a data table with columns representing the tags for the organization listed:
 
 * name: The name of the organization.
-* html_url_projects: The URL to the XML file on the OpenHub website corresponding to a list of portfolio projects for the organization.
-
+* html_url_projects: The URL to the organization on OpenHub's website corresponding to a list of portfolio projects for the organization.
+* portfolio_projects: The number of portfolio projects under the organization.
 
 ```{r, eval = FALSE}
 openhub_organization_api_requests <- openhub_retrieve(organization_folder_path)
@@ -107,7 +114,7 @@ openhub_organizations <- openhub_parse_organizations(openhub_organization_api_re
 gt(openhub_organizations)
 ```
 
-We then acquire the first organization's "html_url_projects" column value and place it as the value for the `openhub_api_parameters` "portfolio_project_site" key.
+We then select the first organization's "html_url" column value (e.g. "https://openhub.net/orgs/apache") and filter to extract the short, unique handler for the organization (e.g. "apache"). 
 
 ```{r, eval = FALSE}
 org_html_url <- openhub_organizations[["html_url"]][[1]]
@@ -116,14 +123,13 @@ org_name <- stringi::stri_extract_last_regex(org_html_url, "[^/]+$")
 
 ## Portfolio Projects
 
-Following the same process as the Organization section, we acquire the portfolio projects for the organization, "Apache Software Foundation", that possess the code language specified by `language`, in this case "java", by acquiring the portfolio projects API requests and parsing these API requests into a data table. Each page for the portfolio_projects collection returns a maximum of 20 items, portfolio projects, and **to not exceed the API token rate limit, we only request the first page (maximum of twenty portfolio projects)**. To grab as many matches as possible or up to a number of pages (if `max_portfolio_project_pages` exceeds the total pages acquired by the API response, it will grab the maximum number of pages possible), `max_portfolio_project_pages` may be removed from `openhub_api_iterate_pages` or `max_portfolio_project_pages` may be set to an arbitrary value, respectively.
+Following a similar process as the Organization section, we acquire the portfolio projects for the organization, "Apache Software Foundation", that possess the code language specified by `language`, in this case Java, by acquiring the portfolio projects API response files and parsing these API requests into a data table. This endpoint, portfolio projects, is iterable by pages, so we may use `openhub_api_iterate_pages` on `openhub_api_portfolio_projects` to acquire each page, storing these API responses in the folder path `portfolio_project_folder_path`. Currently, **each page for the portfolio_projects collection returns a maximum of 20 items**, portfolio projects. To grab as many matches as possible or up to a number of pages (if `max_pages` exceeds the total pages available by the API response, it will grab the maximum number of pages possible), the `max_pages` may be removed from `openhub_api_iterate_pages` or set to a desired value (e.g. "max_pages=1" returning up to 20 portfolio project items and "max_pages=16" returning up to 320 portfolio project items), respectively.
 
 ```{r, eval = FALSE}
-max_portfolio_project_pages <- 2
-openhub_api_iterate_pages(token, openhub_api_portfolio_projects, portfolio_project_folder_path, org_name, max_pages=max_portfolio_project_pages)
+openhub_api_iterate_pages(token, openhub_api_portfolio_projects, portfolio_project_folder_path, org_name, max_pages=NULL)
 ```
 
-We ensure that `openhub_api_parameters` possesses the "language" key-value pair and pass the portfolio_projects API requests into its corresponding parser function to acquire a data table with columns representing the tags for each portfolio project listed:
+With the portfolio project API responses saved, we may parse these responses with its corresponding parser function, `openhub_parse_portfolio_projects`, to acquire a data table with columns representing the tags for each portfolio project listed. To narrow down the list of projects that the next endpoint will require (to save on API requests), we filter the data table of portfolio projects to show only projects that have Java, specified by `language`, as their primary code language.
 
 * name: The name of the portfolio project.
 * primary_language: The primary code language used by the portfolio project.
@@ -132,18 +138,13 @@ We ensure that `openhub_api_parameters` possesses the "language" key-value pair 
 ```{r, eval = FALSE}
 portfolio_projects_api_requests <- openhub_retrieve(portfolio_project_folder_path)
 openhub_portfolio_projects <- openhub_parse_portfolio_projects(portfolio_projects_api_requests)
-openhub_portfolio_projects <- openhub_portfolio_projects[primary_language == "java"]
+openhub_portfolio_projects <- openhub_portfolio_projects[primary_language == language]
 gt(openhub_portfolio_projects)
 ```
 
 ## Projects
 
-To acquire more information about a portfolio project, we need to access it in the project collection, and the link between the portfolio_projects endpoint and project endpoint is the "name" tag (e.g. "Apache Tomcat"). Following a similar style of acquiring the project API responses and parsing them with its corresponding parser function, we loop through each "name" in the portfolio projects' data table `openhub_portfolio_projects`. For each project name, "name", acquired, we append an API request containing the page where the project with the name, "project_name" (e.g. "Apache Tomcat") attached as a key-value pair to `openhub_api_parameters`, exists to the `projects_api_requests` list with the aid of the collection request query command (Using this query command, the first API requested page will contain a project with a matching "name" tag, thus there is no need to waste API calls to search through the other pages for the project, so `max_pages` is set to 1). 
-
-```{r, eval = FALSE}
-#kaiaulu_name <- "Kaiaulu"
-#openhub_api_projects(token, project_folder_path, kaiaulu_name)
-```
+To acquire more specific information about a portfolio project, we need to access it in the project collection, and the link between the portfolio_project endpoint and project endpoint is the "name" tag (e.g. "Apache Tomcat"). Project names on OpenHub are unique. Following a similar style of acquiring the project API responses and parsing them with its corresponding parser function, we loop through each "name" column in the portfolio projects' data table `openhub_portfolio_projects`. For each project name, `project_name`, we gather its API responses by using `openhub_api_iterate_pages` on `openhub_api_projects`, storing these API response files in the folder path `project_folder_path`, and specifying `max_pages` to 1 (Using the API's collection request query command, the first API requested page will contain a project with a matching "name" tag, thus there is no need to waste API calls to search through the other pages for the project, so `max_pages` is set to 1). The collection request query command may return, in a single project API response file page, multiple project items, this is due to the limitation of OpenHub's API query command, which performs a type of "ctrl+F" find search across all tags, instead of allowing users to specifically query a tag for an exact match.
 
 ```{r, eval = FALSE}
 for (i in 1:nrow(openhub_portfolio_projects)) {
@@ -152,12 +153,12 @@ for (i in 1:nrow(openhub_portfolio_projects)) {
 }
 ```
 
-With the list of project API requests, we perform another for loop to parse these responses, which also requires the project names, "name" in `openhub_portfolio_projects`, to acquire a data table with columns representing the tags for each project listed:
+With the project API responses saved, we may parse these responses with its corresponding parser function, `openhub_parse_projects`, to acquire a data table with columns representing the tags for each project listed.
 
 * name: The name of the project.
 * id: The project's unique ID.
 * html_url: The project's url to the current Project's details page on OpenHub.
-* mailing_list: The project's mailing list url link (if "N/A", please check the project's url (html_url) and verify under the links section to verify that the project doesn't have a mailing list to be certain).
+* mailing_list: The project's mailing list url link (if "N/A", please check the project's url (html_url) and verify under the links section to verify that the project doesn't have a mailing list to be certain. The parser, `openhub_parse_projects`, is overloaded to read each link and uses a regular expression pattern to decipher the links to acquire the mailing list).
 
 ```{r, eval = FALSE}
 projects_api_requests <- openhub_retrieve(project_folder_path)
@@ -165,7 +166,7 @@ openhub_projects <- openhub_parse_projects(projects_api_requests)
 gt(openhub_projects)
 ```
 
-We combine the portfolio_projects and project data tables into one data table, `openhub_combined_projects`, by performing an inner-join by "name" column.
+We combine the portfolio_projects and project data tables into one data table, `openhub_combined_projects`, by performing an inner-join by "name" column. We add an additional filter, unique by "id" column, to ensure no duplication due to the projects endpoint possibly returning duplicated project items from the OpenHub API's collection request query command.
 
 ```{r, eval = FALSE}
 openhub_combined_projects <- unique(merge(openhub_projects, openhub_portfolio_projects, by = "name", all = FALSE), by = "id")
@@ -174,7 +175,7 @@ gt(openhub_combined_projects)
 
 ## Analyses
 
-The previously acquired "id" tag (represented as a column) for each project allows us to acquire the latest analysis collection for a project, containing a multitude of important metrics. Following the same logic as the Projects section, looping through each project in `openhub_combined_projects`, we acquire the analysis endpoint for each project using its "id", specified as "project_id" as a key-value pair in `openhub_api_parameters`. The analysis API requests only return a maximum of one page, thus max_pages is not specified.
+The previously acquired "id" tag (represented as a column) for each project allows us to acquire the latest analysis collection for a project, containing a multitude of important metrics. Following the same logic as the Projects section, looping through each project in `openhub_combined_projects`, we call `openhub_api_analyses` to acquire the analysis API response of our selected project specified by `project_id`. This function downloads the API response file into the folder specified by `analysis_folder_path`. In addition, we pass the name of the project to `openhub_api_analyses` for use in the file name of the stored API response file. **The attached timestamp in the file's name for the analysis API response files are NOT timestamps for when the API response file was requested, but rather they correspond to the timestamp on OpenHub's database for when the analysis collection was last calculated for that specific project**.
 
 ```{r, eval = FALSE}
 for (i in 1:nrow(openhub_combined_projects)) {
@@ -184,7 +185,7 @@ for (i in 1:nrow(openhub_combined_projects)) {
 }
 ```
 
-With the list of analysis API requests, we perform another for loop to parse these responses to acquire a data table with columns representing the tags for each analysis listed:
+With the analysis API response (only one page), we may parse this response with its corresponding parser function, `openhub_parse_analyses`, to acquire a data table with columns representing the tags for each analysis listed.
 
 * id: The project's unique ID.
 * min_month: OpenHub's first recorded year and month of the project's data (typically the date of the project's first commit, YYYY-MM format).
@@ -193,18 +194,18 @@ With the list of analysis API requests, we perform another for loop to parse the
 * twelve_month_commit_count: The total number of commits to the project source code in the past twelve months.
 * total_commit_count: The total number of commits to the project source code since the project's inception.
 * total_code_lines: The most recent total count of all source code lines.
-* code_languages: A language breakdown with percentages for each substantial (as determined by OpenHub, less contributing languages are grouped and renamed as "Other") contributing language in the project's source code.
+* code_languages: A language breakdown with percentages for each substantial (as determined by OpenHub, less contributing languages are grouped and renamed as "Other") contributing language in the project's source code (The parser, `openhub_parse_analyses`, is overloaded to read each coding language and uses stringi to combine these percentages of code languages for the project).
 
 ```{r, eval = FALSE}
 analyses_api_requests <- openhub_retrieve(analysis_folder_path)
 openhub_analyses <- openhub_parse_analyses(analyses_api_requests)
-openhub_analyses <- unique(openhub_analyses, by = "id")
+#openhub_analyses <- unique(openhub_analyses, by = "id")
 gt(openhub_analyses)
 ```
 
 ## Combining the Data
 
-We combine the combined portfolio_projects and project data table, `openhub_combined_projects`, with the analysis data table, `openhub_analyses`, into one data table, `openhub_combined_data`, by performing an inner-join by "id" column.
+Lastly, we combine the combined portfolio_projects and project data table, `openhub_combined_projects`, with the analysis data table, `openhub_analyses`, into one data table, `openhub_combined_data`, by performing an inner-join by "id" column.
 
 ```{r, eval = FALSE}
 openhub_combined_data <- merge(openhub_combined_projects, openhub_analyses, by = "id", all = FALSE)

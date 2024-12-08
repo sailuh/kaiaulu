@@ -15,7 +15,7 @@ openhub_api_iterate_pages(
 \arguments{
 \item{token}{Your OpenHub API token.}
 
-\item{openhub_api_function}{A function that downloads a page of a specific XML Response File (e.g. \code{\link{openhub_api_organizations}}).}
+\item{openhub_api_function}{A function that downloads a page of a specific XML response file (e.g. \code{\link{openhub_api_portfolio_projects}}).}
 
 \item{save_folder_path}{A folder path to save the downloaded XML pages "as-is".}
 

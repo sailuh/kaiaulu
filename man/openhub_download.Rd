@@ -26,5 +26,11 @@ openhub_download(
 }
 \description{
 Stores a XML response file `api_response` into a defined folder
-path `save_folder_path`.
+path `save_folder_path`. This function sanitizes the `unique_information`
+parameter, if not NULL, (`html_url_or_name` in
+\code{\link{openhub_api_organizations}}, `org_name` in
+\code{\link{openhub_api_portfolio_projects}}, `project_name` in
+\code{\link{openhub_api_projects}}, and `project_name` in
+\code{\link{openhub_api_analyses}}) for use in the file name
+(e.g. "Apache (Java_Test)" becomes "apachejavatest").
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/config.R
 \name{openhub_api_analyses}
 \alias{openhub_api_analyses}
-\title{Downloads a page of Analysis XML Response File.}
+\title{Downloads a single page of Analysis XML Response File.}
 \usage{
 openhub_api_analyses(token, save_folder_path, project_id, project_name)
 }
@@ -16,13 +16,18 @@ openhub_api_analyses(token, save_folder_path, project_id, project_name)
 \item{project_name}{The unique name of the project (e.g. "Apache Tomcat").}
 }
 \value{
-The response XML single page file that contains an analysis item.
+The single page XML response file that contains a single analysis item.
 }
 \description{
-Downloads an XML response file from the "analysis" collection endpoint.
-The `openhub_api_parameters` list must contain a "project_id" key-value pair
-for use in the URL for the project's id. The XML response file will return
-a single page containing the analysis item.
+Downloads an XML response file from the "analysis" collection
+endpoint. The XML response file will return a single page containing the
+single analysis item. The XML response file is saved to disk using the
+function \code{\link{openhub_download}} with the file name
+"analysis_projectname_unixtimestamp.xml", where "projectname" is the
+sanitized version of the name of the project from `project_name`, and
+"unixtimestamp" is the integer unix timestamp derived from the most recent
+time this analysis collection was updated for the project ("updated_at"
+field in the analysis collection).
 }
 \references{
 For analysis collection details, see \url{https://github.com/blackducksoftware/ohloh_api/blob/main/reference/analysis.md}.

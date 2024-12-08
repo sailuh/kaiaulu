@@ -2,7 +2,7 @@
 % Please edit documentation in R/config.R
 \name{openhub_api_projects}
 \alias{openhub_api_projects}
-\title{Downloads a page of Project XML Response File.}
+\title{Downloads a single page of Project XML Response File.}
 \usage{
 openhub_api_projects(
   token,
@@ -19,18 +19,30 @@ openhub_api_projects(
 
 \item{project_name}{The unique name of the project (e.g. "Apache Tomcat").}
 
-\item{iterating}{If TRUE, downloading will disabled and it is assumed to be handled by \code{\link{openhub_api_iterate_pages}} to synchronize timestamps, if FALSE, downloading will occur (Default set to FALSE).}
+\item{iterating}{If TRUE, downloading will be disabled and it is assumed to be handled by \code{\link{openhub_api_iterate_pages}} to synchronize timestamps, if FALSE, downloading will occur (Default set to FALSE).}
 
 \item{page}{The page number to index (Default set to 1) (e.g. 1).}
 }
 \value{
-The response XML single page file that contains a list of project items.
+The single page XML response file that contains a list of project items.
 }
 \description{
-Downloads an XML response file from the "project" collection endpoint.
-The `openhub_api_parameters` list must contain a "project_name" key-value pair
-to query the project's name. The XML response file will return a page
-of items which can be indexed by the numeric `page` parameter.
+Downloads an XML response file from the "project" collection
+endpoint. The XML response file will return a single page containing a list
+of project items that are queried (collection request parameter from the
+"project" collection endpoint that returns all projects that contain the
+`project_name` text, akin to a "ctrl+F" search rather than a standard query)
+from the global list of projects using `project_name` to a specify the
+desired project. The XML response file is saved to disk using the
+function \code{\link{openhub_download}} with the file name
+"project_unixtimestamp_projectname_pagenumber.xml", where "unixtimestamp" is
+the integer unix timestamp, "projectname" is the sanitized version of the
+name of the project from `project_name`, and "pagenumber" is the current
+indexed page from `page`. This function returns a response file that is
+iterable (by pages), the function \code{\link{openhub_api_iterate_pages}}
+may iterate and download each page from this endpoint unifying the
+"unixtimestamp" value for the file name to be consistent across the pages
+(ensure `iterating` is set appropriately).
 }
 \references{
 For project collection details, see \url{https://github.com/blackducksoftware/ohloh_api/blob/main/reference/project.md}.

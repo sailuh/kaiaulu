@@ -15,7 +15,6 @@ A parsed version of the XML responses into a table with relevant columns.
 \description{
 Parses a list of XML responses `api_responses` containing
 project items, extracting relevant tags from each XML response in
-`api_responses`. The `openhub_api_parameters` list must contain a
-"project_name" key-value pair to index the correct project. This function
-returns a parsed version of the XML responses in a table format.
+`api_responses`. This function returns a parsed version of the XML responses
+in a table format.
 }

@@ -15,8 +15,6 @@ A parsed version of the XML responses into a table with relevant columns.
 \description{
 Parses a list of XML responses `api_responses` containing
 portfolio project items, extracting relevant tags from each XML response in
-`api_responses`. The `openhub_api_parameters` list must contain a "language"
-key-value pair to filter portfolio projects using the specified code
-language. This function returns a parsed version of the XML responses in a
+`api_responses`. This function returns a parsed version of the XML responses in a
 table format.
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/config.R
 \name{openhub_api_organizations}
 \alias{openhub_api_organizations}
-\title{Download a page of Organization XML Response File.}
+\title{Download a single page of Organization XML Response File.}
 \usage{
 openhub_api_organizations(token, save_folder_path, html_url_or_name)
 }
@@ -14,12 +14,16 @@ openhub_api_organizations(token, save_folder_path, html_url_or_name)
 \item{html_url_or_name}{Either the URL for the organization page on OpenHub (e.g. "https://openhub.net/orgs/apache") or the short, unique, handle for the organization (e.g. "apache").}
 }
 \value{
-The response XML single page file that contains a single organization item.
+The single page XML response file that contains a single organization item.
 }
 \description{
 Downloads an XML response file from "organization" collection
 endpoint. The XML response file will return a single page containing the
-organization item.
+single organization item. The XML response file is saved to disk using the
+function \code{\link{openhub_download}} with the file name
+"organization_orgname_unixtimestamp.xml", where "orgname" is the short,
+unique, handle for the organization from `html_url_or_name`, and
+"unixtimestamp" is the integer unix timestamp.
 }
 \references{
 For organization collection details, see \url{https://github.com/blackducksoftware/ohloh_api/blob/main/reference/organization.md}.

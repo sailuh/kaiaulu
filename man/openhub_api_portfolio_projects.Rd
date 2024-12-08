@@ -2,7 +2,7 @@
 % Please edit documentation in R/config.R
 \name{openhub_api_portfolio_projects}
 \alias{openhub_api_portfolio_projects}
-\title{Downloads a page of Portfolio Projects XML Response File.}
+\title{Downloads a single page of Portfolio Projects XML Response File.}
 \usage{
 openhub_api_portfolio_projects(
   token,
@@ -19,18 +19,27 @@ openhub_api_portfolio_projects(
 
 \item{org_name}{The short, unique, handle for the organization taken from the organization's URL (e.g. "apache" from "https://openhub.net/orgs/apache").}
 
-\item{iterating}{If TRUE, downloading will disabled and it is assumed to be handled by \code{\link{openhub_api_iterate_pages}} to synchronize timestamps, if FALSE, downloading will occur (Default set to FALSE).}
+\item{iterating}{If TRUE, downloading will be disabled and it is assumed to be handled by \code{\link{openhub_api_iterate_pages}} to synchronize timestamps, if FALSE, downloading will occur (Default set to FALSE).}
 
 \item{page}{The page number to index (Default set to 1) (e.g. 1).}
 }
 \value{
-The response XML single page file that contains a list of portfolio project items.
+The single page XML response file that contains a list of portfolio project items.
 }
 \description{
 Downloads an XML response file from the "portfolio_projects" collection
-endpoint. The `openhub_api_parameters` list must contain a "portfolio_project_site"
-key-value pair for use as part of the URL. The XML response file will return a page
-of items which can be indexed by the numeric `page` parameter.
+endpoint. The XML response file will return a single page containing a list
+of portfolio project items belonging to a specific organization specified
+by `org_name`. The XML response file is saved to disk using the
+function \code{\link{openhub_download}} with the file name
+"portfolio_unixtimestamp_orgname_pagenumber.xml", where "unixtimestamp" is
+the integer unix timestamp, "orgname" is the short, unique, handle for the
+organization from `org_name`, and "pagenumber" is the current indexed page
+from `page`. This function returns a response file that is iterable (by
+pages), the function \code{\link{openhub_api_iterate_pages}} may iterate
+and download each page from this endpoint unifying the "unixtimestamp" value
+for the file name to be consistent across the pages (ensure `iterating` is set
+appropriately).
 }
 \references{
 For portfolio projects collection details, see \url{https://github.com/blackducksoftware/ohloh_api/blob/main/reference/portfolio_projects.md}.
