@@ -156,7 +156,7 @@ head(query_table)  %>%
 We can see that both the file name and class name were output here. To perform keyword matching, we must now split the class name identifiers into tokens. This is where the Spiral Python library comes in. First, we load the `Ronin` method in R, via the `reticulate` library:
 
 ```{r}
-reticulate::use_python("/Users/dao/anaconda3/bin/python")
+reticulate::use_python("/usr/local/bin/python3")
 spiral_library <-reticulate::import("spiral.ronin", convert = TRUE)
 collections_library <-reticulate::import("collections", convert = TRUE) 
 
