@@ -102,7 +102,7 @@ For Pipermail, we need to specify the project key, which is used to retrieve the
 
 Now, we can use the getter functions to retrieve the configuration parameters for the specified project key.
 
-```{r eval=FALSE}
+```{r}
 conf <- parse_config("../conf/openssl.yml")
 pipermail_mailing_list <- get_pipermail_domain(conf, "project_key_1")
 pipermail_save_folder_path <- get_pipermail_path(conf, "project_key_1")
