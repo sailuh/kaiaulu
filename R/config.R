@@ -965,6 +965,28 @@ get_srcml_filepath <- function(config_file) {
   return(srcml_filepath)
 }
 
+#' Returns the The path to the source code zip, folder or file of to be annotated with srcML
+#'
+#' @description This function returns the file path to the
+#' project to be annotated with srcML that is specified in the
+#' input parameter `config_file`. The input, `config_file` must be a parsed
+#' configuration file. The function will inform the user if the file path
+#' exists in the parsed configuration file, `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @return The file path for the project to be annotated by srcML.
+#' @export
+get_src_folder <- function(config_file) {
+
+  src_folder <- config_file[["tool"]][["srcml"]][["src_folder"]]
+
+  if (is.null(src_folder)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(src_folder)
+}
+
 #' Returns the folder path for class pattern4 analysis.
 #'
 #' @description This function returns the folder path used to store the classes
