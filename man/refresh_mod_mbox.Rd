@@ -6,7 +6,7 @@
 \usage{
 refresh_mod_mbox(
   mailing_list,
-  start_year_month,
+  start_year_month = NULL,
   save_folder_path,
   verbose = TRUE
 )
