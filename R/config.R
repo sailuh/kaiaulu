@@ -956,7 +956,7 @@ get_uctags_line_types <- function(config_file) {
 #' @export
 get_srcml_filepath <- function(config_file) {
 
-  srcml_filepath <- config_file[["tool"]][["srcml"]][["srcml_path"]]
+  srcml_filepath <- config_file[["tool"]][["srcml"]][["srcml_filepath"]]
 
   if (is.null(srcml_filepath)) {
     warning("Attribute does not exist in the configuration file.")

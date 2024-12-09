@@ -34,15 +34,10 @@ arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9600')
 tools_conf <- parse_config(arguments[["<tools.yml>"]])
 project_conf <- parse_config(arguments[["<project_conf.yml>"]])
 
-srcml_path <- tools_conf[["tool"]][["srcml"]][["srcml_path"]]
+srcml_path <- get_tool_project("srcml", tools_conf)
 src_folder <- get_src_folder(project_conf)
 srcml_filepath <- arguments[["<srcml_filepath>"]]
 output_dir <- arguments[["<output_dir>"]]
-
-srcml_path <- path.expand(srcml_path)
-src_folder <- path.expand(src_folder)
-srcml_filepath <- path.expand(srcml_filepath)
-output_dir <- path.expand(output_dir)
 
 # Set output folder path
 output_folder <- output_dir

@@ -18,4 +18,4 @@ tool:
     # srcml_path: /usr/local/bin/srcml
     # path to the folder to analyze
     src_folder: ../../maven/maven-artifact/src/main/java/org/apache/maven/artifact/
-    srcml_path: ../../analysis/maven/srcml_output.xml
+    srcml_filepath: ../../analysis/maven/srcml_output.xml
