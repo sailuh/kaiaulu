@@ -739,6 +739,7 @@ github_parse_project_pull_request <- function(api_responses){
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
 #' @param since Optional parameter to specify pulling only comments updated after this date
+#' @references For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}
 #' @export
 github_api_project_pr_comments <- function(owner, repo, token, since=NULL) {
   if (!is.null(since)) {
@@ -765,7 +766,26 @@ github_api_project_pr_comments <- function(owner, repo, token, since=NULL) {
 #' Note not all columns available in the downloaded json are parsed.
 #' Note this is different from the `github_parse_project_issue_or_pr_comments` function.
 #' This function only parses for the in-line code and comments made on the pull request.
-#'
+#' `file_path` A string containing the filepath of the file the review comment is made on.
+#' `start_line` An integer value of the first line number if multiple lines are selected when
+#' making the comment, or null if only 1 line is selected. Will also return null if line is deleted
+#' in later commits.
+#' `line` An integer value of the last line number if multiple lines are selected when
+#' making the comment, or the the line number when only 1 line is selected. Will return
+#' 1 if no lines are selected when making the comment or null if the line is deleted
+#' in later commits.
+#' `original_start_line` An integer value of the first line number if multiple lines are selected when
+#' making the comment, or null if only 1 line is selected. The line number integer will match the line
+#' number at the time the review comment is made, regardless if a later commit changes the line number.
+#' `original_line` An integer value of the last line number if multiple lines are selected when
+#' making the comment, or the the line number when only 1 line is selected. Will return
+#' 1 if no lines are selected when making the comment. The line number integer will match the line
+#' number at the time the review comment is made, regardless if a later commit changes the line number.
+#' `diff_hunk` A string containing the code hunk the review comment is referencing.
+#' It will contain the lines from the start of the (+/-) hunk until the line
+#' associated by the review comment. Will return null if the review comment is not
+#' tied to a specific line.
+#' `body` A string containing main text of the review comment.
 #' @param api_responses API response obtained from github_api_* function.
 #' @export
 github_parse_project_pr_comments <- function(api_responses) {
@@ -816,7 +836,7 @@ github_parse_project_pr_comments <- function(api_responses) {
 #' @param verbose boolean value. When set to true, it prints operational messages including
 #' greatest dates and the file name that contains the greatest date.
 #' @export
-#' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
+#' @references For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.
 #' @seealso  \code{link{github_api_project_pr_comments}} to download all pull request comment data
 #' @seealso  \code{link{format_created_at_from_file}} for function that iterates through
 #' a .json file and returns the greatest 'created_at' value

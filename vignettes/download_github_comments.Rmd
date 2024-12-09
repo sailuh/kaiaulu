@@ -22,6 +22,8 @@ GitHub limits the number of API calls per IP to only 60 attempts **every hour** 
 
 If using a personal account token from a free GitHub account, the number of API calls per hour increases to 5000 **per hour**. Therefore, it is recommended you create a personal token by following the [GitHub Documentation instructions](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token#:~:text=Creating%20a%20token.%201%20Verify%20your%20email%20address%2C,able%20to%20see%20the%20token%20again.%20More%20items). The process should not take more than 2 minutes.
 
+The token should then be copied and pasted into `../.ssh/github_token`. Both the `.ssh` folder and `github_token` file may need to be created manually. Check for hidden folders before creating the `.ssh` folder. The `github_token` file should not have any file extensions.
+
 ## Libraries
 
 To use the notebook, you will need to ensure you have the required R packages installed.
