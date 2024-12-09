@@ -13,10 +13,8 @@ def run_r_parse_mbox(input_file_rel):
     cmd = [arg.format(
         exec_script=exec_script,
         tools_yml=tools_yml,
-        conf_yml=conf_yml,
-        project_key=project_key,
-        output_file=output_file_rel,
         input_file=input_file_rel,
+        output_file=output_file_rel,
     ) for arg in command_template]
     
     try:
@@ -26,7 +24,7 @@ def run_r_parse_mbox(input_file_rel):
         print(f"✘ Failed to parse {input_file_rel}: {e}")
 
 def main():
-    global config, exec_script, tools_yml, conf_yml, project_key, command_template, input_dir, output_dir
+    global exec_script, tools_yml, command_template, input_dir, output_dir
 
     # Load configuration
     config_file = "config.yaml"
@@ -40,8 +38,6 @@ def main():
     command_template = config["command_template"]
     exec_script = config["exec_script"]
     tools_yml = config["tools_yml"]
-    conf_yml = config["conf_yml"]
-    project_key = config["project_key"]
     input_dir = config["input_dir"]
     output_dir = config["output_dir"]
     num_threads = config.get("num_threads", 4)
