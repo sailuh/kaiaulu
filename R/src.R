@@ -501,9 +501,9 @@ annotate_src_text <- function(srcml_path,src_folder,srcml_filepath){
   srcml_filepath <- path.expand(srcml_filepath)
 
   srcml_output <- system2(srcml_path,
-                          args = c(src_folder, '--output',srcml_filepath),
-                          stdout = FALSE,
-                          stderr = FALSE)
+                          args = c(src_folder, '--output', srcml_filepath),
+                          stdout = TRUE,
+                          stderr = TRUE)
 
   return(srcml_filepath)
 }
@@ -538,9 +538,8 @@ query_src_text <- function(srcml_path,xpath_query,srcml_filepath){
                                    srcml_filepath),
                           stdout = TRUE,
                           stderr = FALSE)
-
-  return(srcml_output)
 }
+
 
 #' Query srcML Class Names
 #'
@@ -584,6 +583,7 @@ query_src_text_class_names <- function(srcml_path,srcml_filepath){
   return(dt_filepath_classname)
 
 }
+
 
 #' Query srcML Namespace
 #'
@@ -637,6 +637,386 @@ query_src_text_namespace <- function(srcml_path,srcml_filepath){
 
   return(dt_filepath_classname)
 }
+
+
+#' Query srcML File-Level Documentation Comments
+#'
+#' This is a convenience function to parse file-level documentation comments, excluding the license block.
+#'
+#' @param srcml_path The path to the srcML binary.
+#' @param srcml_filepath The path to the srcML file to be queried.
+#' @param exclude_license If TRUE, excludes license-related comments. Defaults to TRUE.
+#'
+#' @return A data.table containing the file path and the file-level documentation comment.
+#' @export
+query_src_text_file_docs <- function(srcml_path, srcml_filepath, exclude_license = TRUE) {
+  # Expand the paths
+  srcml_path <- path.expand(srcml_path)
+  srcml_filepath <- path.expand(srcml_filepath)
+
+  # Define the XPath query to select file-level comments
+  if (exclude_license) {
+    # Exclude comments containing 'Licensed' or 'license'
+    xpath_query <- "//src:unit/src:comment[not(contains(., 'Licensed')) and not(contains(., 'license'))]"
+  } else {
+    # Include all file-level comments
+    xpath_query <- "//src:unit/src:comment"
+  }
+
+  # Run the XPath query using the srcML binary
+  srcml_output <- query_src_text(srcml_path, xpath_query, srcml_filepath)
+
+  # Parse the XML output
+  srcml_output <- XML::xmlTreeParse(srcml_output)
+  srcml_root <- XML::xmlRoot(srcml_output)
+
+  # The children of the root node are comment nodes
+  srcml_comments <- XML::xmlChildren(srcml_root)
+
+  # Define a function to parse each comment node
+  parse_filepath_and_file_docs <- function(unit) {
+    # Extract the comment text
+    comment_text <- XML::xmlValue(unit)
+    # Get the filepath from the 'filename' attribute
+    filepath <- XML::xmlGetAttr(unit, "filename")
+    # Return a data.table with filepath and file_docs
+    return(data.table(filepath = filepath, file_docs = comment_text))
+  }
+
+  # Apply the parsing function to each comment node
+  dt_filepath_file_docs <- rbindlist(lapply(srcml_comments, parse_filepath_and_file_docs))
+
+  # Return the final data.table
+  return(dt_filepath_file_docs)
+}
+
+
+#' Query srcML Class Documentation Comments
+#'
+#' This is a convenience function to parse class-level Javadoc comments immediately preceding class definitions, excluding the license block.
+#'
+#' @param srcml_path The path to the srcML binary.
+#' @param srcml_filepath The path to the srcML file to be queried.
+#' @param exclude_license If TRUE, excludes license-related comments. Defaults to TRUE.
+#'
+#' @return A data.table containing the file path and the class-level documentation comment.
+#' @export
+query_src_text_class_docs <- function(srcml_path, srcml_filepath, exclude_license = TRUE) {
+  # Expand the paths
+  srcml_path <- path.expand(srcml_path)
+  srcml_filepath <- path.expand(srcml_filepath)
+
+  # Define the XPath query to select class-level Javadoc comments
+  if (exclude_license) {
+    # Exclude comments containing 'Licensed'
+    xpath_query <- "//src:class[preceding-sibling::src:comment[@format='javadoc' and not(contains(., 'Licensed'))]]/preceding-sibling::src:comment[@format='javadoc'][1]"
+  } else {
+    # Include all class-level Javadoc comments
+    xpath_query <- "//src:class[preceding-sibling::src:comment[@format='javadoc']]/preceding-sibling::src:comment[@format='javadoc'][1]"
+  }
+
+  # Run the XPath query using the srcML binary
+  srcml_output <- query_src_text(srcml_path, xpath_query, srcml_filepath)
+
+  # Parse the XML output
+  srcml_output <- XML::xmlTreeParse(srcml_output)
+  srcml_root <- XML::xmlRoot(srcml_output)
+
+  # The children of the root node are comment nodes
+  srcml_class_docs <- XML::xmlChildren(srcml_root)
+
+  # Define a function to parse each comment node
+  parse_filepath_and_class_docs <- function(unit) {
+    # Extract the comment text
+    comment_text <- XML::xmlValue(unit)
+    # Get the filepath from the 'filename' attribute
+    filepath <- XML::xmlGetAttr(unit, "filename")
+    # Return a data.table with filepath and class_docs
+    return(data.table(filepath = filepath, class_docs = comment_text))
+  }
+
+  # Apply the parsing function to each comment node
+  dt_filepath_class_docs <- rbindlist(lapply(srcml_class_docs, parse_filepath_and_class_docs))
+
+  # Return the final data.table
+  return(dt_filepath_class_docs)
+}
+
+
+#' Query srcML Variable Declarations
+#'
+#' This function extracts variable names and their types from the srcML XML file.
+#'
+#' @param srcml_path The path to the srcML binary.
+#' @param srcml_filepath The path to the srcML file to be queried (see \code{\link{annotate_src_text}}).
+#' @param var_type If TRUE, includes variable types. Defaults to TRUE.
+#'
+#' @return A data.table containing filepath, variable_name, and optionally variable_type.
+#' @export
+query_src_text_variables <- function(srcml_path, srcml_filepath, var_type = TRUE) {
+  # Expand paths
+  srcml_path <- path.expand(srcml_path)
+  srcml_filepath <- path.expand(srcml_filepath)
+
+  # Define the XPath query to select variable declarations
+  xpath_query <- "//src:decl_stmt/src:decl"
+
+  # Run the XPath query using the query_src_text function
+  srcml_output <- query_src_text(srcml_path, xpath_query, srcml_filepath)
+
+  # Parse the XML output
+  srcml_output <- XML::xmlTreeParse(paste(srcml_output, collapse = "\n"), useInternalNodes = TRUE)
+  srcml_root <- XML::xmlRoot(srcml_output)
+
+  # Get the list of unit nodes (each unit node corresponds to a variable declaration)
+  srcml_variable_nodes <- XML::xmlChildren(srcml_root)
+
+  # Function to parse each unit node and extract variable information
+  parse_variable_info <- function(unit) {
+    # Get the filepath from the 'filename' attribute
+    filepath <- XML::xmlGetAttr(unit, "filename")
+
+    # Extract the variable name
+    # We use XPath to select the <name> element that is not within a <type> element
+    var_name_node <- XML::getNodeSet(unit, ".//src:name[not(ancestor::src:type)]", namespaces = c(src = "http://www.srcML.org/srcML/src"))[[1]]
+    variable_name <- XML::xmlValue(var_name_node)
+
+    if (var_type) {
+      # Extract the variable type
+      var_type_nodes <- XML::getNodeSet(unit, ".//src:type//src:name", namespaces = c(src = "http://www.srcML.org/srcML/src"))
+      # Concatenate type names if there are multiple parts (e.g., generics)
+      if (length(var_type_nodes) > 0) {
+        variable_type <- paste(sapply(var_type_nodes, XML::xmlValue), collapse = "")
+      } else {
+        variable_type <- NA
+      }
+      # Return a data.table with filepath, variable_name, and variable_type
+      return(data.table(filepath = filepath, variable_name = variable_name, variable_type = variable_type))
+    } else {
+      # Return a data.table with filepath and variable_name
+      return(data.table(filepath = filepath, variable_name = variable_name))
+    }
+  }
+
+  # Apply the parsing function to each unit node
+  dt_variables <- rbindlist(lapply(srcml_variable_nodes, parse_variable_info))
+
+  return(dt_variables)
+}
+
+
+#' Query srcML Package Names
+#'
+#' This function extracts package names from the srcML XML file.
+#'
+#' @param srcml_path The path to the srcML binary.
+#' @param srcml_filepath The path to the srcML file to be queried.
+#'
+#' @return A data.table containing filepath and package names.
+#' @export
+query_src_text_packages <- function(srcml_path, srcml_filepath) {
+  # Expand the paths
+  srcml_path <- path.expand(srcml_path)
+  srcml_filepath <- path.expand(srcml_filepath)
+
+  # Define the XPath query to select all unit nodes
+  xpath_query <- "//src:unit"
+
+  # Run the XPath query using the srcML binary
+  srcml_output <- query_src_text(srcml_path, xpath_query, srcml_filepath)
+
+  # Parse the XML output with internal nodes
+  srcml_output <- XML::xmlTreeParse(srcml_output, useInternalNodes = TRUE)
+  srcml_root <- XML::xmlRoot(srcml_output)
+
+  # Define the srcML namespace (src)
+  namespaces <- c(src = "http://www.srcML.org/srcML/src")
+
+  # Find all <unit> nodes to get filenames and associated packages
+  unit_nodes <- XML::getNodeSet(srcml_root, "//src:unit", namespaces = namespaces)
+
+  # Define a function to parse each unit node
+  parse_unit_packages <- function(unit) {
+    # Extract the filepath from the 'filename' attribute in <unit>
+    filepath <- XML::xmlGetAttr(unit, "filename", default = NA)
+
+    # Find the first package node within this unit
+    package_node <- XML::getNodeSet(unit, ".//src:package", namespaces = namespaces)[[1]]
+
+    # If a package node exists, extract its name
+    if (!is.null(package_node)) {
+      # Get all <name> elements within <package>
+      package_name_nodes <- XML::getNodeSet(package_node, ".//src:name", namespaces = namespaces)
+      package_path <- paste(sapply(package_name_nodes, XML::xmlValue), collapse = ".")
+    } else {
+      package_path <- NA
+    }
+
+    # Return a single row data.table with filepath and package path
+    data.table(filepath = filepath, package = package_path)
+  }
+
+  # Apply the parsing function to each unit node and bind results together
+  dt_packages <- rbindlist(lapply(unit_nodes, parse_unit_packages), fill = TRUE)
+
+  # Return the final data.table
+  return(dt_packages)
+}
+
+#' Query srcML Function Declarations
+#'
+#' This function extracts function names and optionally their parameters from the srcML XML file.
+#'
+#' @param srcml_path The path to the srcML binary.
+#' @param srcml_filepath The path to the srcML file to be queried (see \code{\link{annotate_src_text}}).
+#' @param include_parameters If TRUE, includes function parameters. Defaults to TRUE.
+#'
+#' @return A data.table containing filepath, function_name, and optionally parameters.
+#' @export
+query_src_text_functions <- function(srcml_path, srcml_filepath, include_parameters = TRUE) {
+  # Expand paths
+  srcml_filepath <- path.expand(srcml_filepath)
+
+  # Define the namespace mapping
+  ns <- c(src = "http://www.srcML.org/srcML/src")
+
+  # Parse the XML file
+  srcml_doc <- XML::xmlParse(srcml_filepath)
+  srcml_root <- XML::xmlRoot(srcml_doc)
+
+  # Get the list of function_decl nodes
+  function_nodes <- XML::getNodeSet(srcml_root, "//src:function_decl", namespaces = ns)
+
+  # Function to parse each function_decl node and extract information
+  parse_function_info <- function(unit) {
+    # Get the filepath from the nearest ancestor unit node
+    unit_ancestor <- XML::xpathApply(unit, "ancestor::src:unit[1]", namespaces = ns)[[1]]
+    filepath <- XML::xmlGetAttr(unit_ancestor, "filename")
+
+    # Extract the function name
+    function_name_node_list <- XML::getNodeSet(unit, "./src:name", namespaces = ns)
+    if (length(function_name_node_list) > 0) {
+      function_name <- XML::xmlValue(function_name_node_list[[1]])
+    } else {
+      function_name <- NA
+    }
+
+    if (include_parameters) {
+      # Extract parameters
+      param_nodes <- XML::getNodeSet(unit, "./src:parameter_list/src:parameter/src:decl", namespaces = ns)
+      if (length(param_nodes) > 0) {
+        # For each parameter, extract type and name
+        parameters <- sapply(param_nodes, function(param_node) {
+          # Get parameter type
+          type_nodes <- XML::getNodeSet(param_node, ".//src:type", namespaces = ns)
+          if (length(type_nodes) > 0) {
+            # Extract all name elements within type, including complex types
+            type_name_nodes <- XML::getNodeSet(type_nodes[[1]], ".//src:name", namespaces = ns)
+            param_type <- paste(sapply(type_name_nodes, XML::xmlValue), collapse = "")
+          } else {
+            param_type <- ""
+          }
+
+          # Get parameter name
+          name_node <- XML::getNodeSet(param_node, "./src:name", namespaces = ns)
+          param_name <- if (length(name_node) > 0) {
+            XML::xmlValue(name_node[[1]])
+          } else {
+            ""
+          }
+
+          # Combine type and name
+          paste(param_type, param_name)
+        })
+        # Combine all parameters into a single string
+        parameters <- paste(parameters, collapse = ", ")
+      } else {
+        parameters <- ""
+      }
+
+      # Return a data.table with parameters
+      return(data.table(
+        filepath = filepath,
+        function_name = function_name,
+        parameters = parameters
+      ))
+    } else {
+      # Return a data.table without parameters
+      return(data.table(
+        filepath = filepath,
+        function_name = function_name
+      ))
+    }
+  }
+
+  # Apply the parsing function to each function_decl node
+  dt_functions <- rbindlist(lapply(function_nodes, parse_function_info))
+
+  return(dt_functions)
+}
+
+
+#' Query srcML Imports
+#'
+#' This function extracts import statements and their associated file paths from the srcML XML file.
+#'
+#' @param srcml_path The path to the srcML binary.
+#' @param srcml_filepath The path to the srcML file to be queried (see \code{\link{annotate_src_text}}).
+#'
+#' @return A data.table containing filepath and imports.
+#' @export
+query_src_text_imports <- function(srcml_path, srcml_filepath) {
+  # Expand the paths
+  srcml_path <- path.expand(srcml_path)
+  srcml_filepath <- path.expand(srcml_filepath)
+
+  # Define the XPath query
+  xpath_query <- "//src:import"
+
+  # Run the XPath query using the srcML binary
+  srcml_output <- query_src_text(srcml_path, xpath_query, srcml_filepath)
+
+  # Parse the XML output with internal nodes
+  srcml_output <- XML::xmlTreeParse(srcml_output, useInternalNodes = TRUE)
+  srcml_root <- XML::xmlRoot(srcml_output)
+
+  # Define the srcML namespace (src)
+  namespaces <- c(src = "http://www.srcML.org/srcML/src")
+
+  # Find all import nodes using the namespace
+  import_nodes <- XML::getNodeSet(srcml_root, "//src:import", namespaces = namespaces)
+
+  # <import> does not have a filename attribute
+  # filename is found at a higher. lever in <unit>
+  # Find the parent <unit> element (it typically contains the filename)
+  unit_nodes <- XML::getNodeSet(srcml_root, "//src:unit", namespaces = namespaces)
+
+  # Retrieve the filename from the <unit> element
+  filenames <- sapply(unit_nodes, function(unit) {
+    XML::xmlGetAttr(unit, "filename", default = NA)
+  })
+
+  # Assume all imports in one unit share the same filename
+  parse_import_info <- function(unit, filename) {
+    # Extract the import path
+    import_name_nodes <- XML::getNodeSet(unit, ".//src:name", namespaces = namespaces)
+    import_path <- paste(sapply(import_name_nodes, XML::xmlValue), collapse = ".")
+
+    # Return a data.table with filepath and import path
+    return(data.table(filepath = filename, import = import_path))
+  }
+
+  # Build the final data.table by associating each import with its filename
+  dt_imports <- rbindlist(lapply(seq_along(import_nodes), function(i) {
+    # Use the filename from the corresponding <unit>
+    filename <- filenames[[i]]
+    parse_import_info(import_nodes[[i]], filename)
+  }))
+
+  # Return the final data.table
+  return(dt_imports)
+}
+
 
 ############## GoF Detection ##############
 
@@ -803,4 +1183,3 @@ utils::globalVariables(c("."))
 #' @importFrom data.table setnames
 #' @importFrom data.table last
 NULL
-
