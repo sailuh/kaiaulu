@@ -131,14 +131,13 @@ After running this function, the .mbox files will be saved in the specified dire
 ```{r}
 parsed_mail <- parse_mbox(
   perceval_path = parse_perceval_path,
-  mbox_file_path = mbox_file_path
+  mbox_file_path = pipermail_save_folder_path
 )
 
 parsed_mail %>%
   head(10) %>%
   gt()
 ```
-
 
 ### Mod Mbox Downloader
 
@@ -182,7 +181,6 @@ parsed_mail %>%
   head(10) %>%
   gt()
 ```
-
 
 ## Refreshers
 
