@@ -298,7 +298,8 @@ openhub_parse_projects <- function(api_responses) {
             link_title <- as.character(XML::xmlValue(link[[1]])) # <title> in the specific <link>
             link_url <- as.character(XML::xmlValue(link[[2]])) # <url> in the specific <link>
             link_category <- XML::xmlValue(link[[3]]) # <category> in specific the <link>
-            project_links[["name"]] <- append(project_links[["name"]], XML::xmlValue(returnItems[[i]][[2]]))
+            project_links[["name"]] <- append(project_links[["name"]], XML::xmlValue(returnItems[[i]][[2]])) # <result><project><name>
+            project_links[["id"]] <- append(project_links[["id"]], XML::xmlValue(returnItems[[i]][[1]])) # <result><project><id>
             project_links[["project_link_title"]] <- append(project_links[["project_link_title"]], link_title)
             project_links[["project_link_category"]] <- append(project_links[["project_link_category"]], link_category)
             project_links[["project_link_url"]] <- append(project_links[["project_link_url"]], link_url)

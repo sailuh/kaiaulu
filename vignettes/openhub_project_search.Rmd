@@ -162,6 +162,7 @@ With the project API responses saved, we may parse these responses with its corr
 The second data table, `project_links` has the columns for each project listed (if a project doesn't have any external links listed in its database, it will not appear in this data table):
 
 * name: The name of the project.
+* id: The project's unique ID.
 * project_link_title: The title description of the specific external link associated with the project.
 * project_link_category: The category description of the specific external link associated with the project.
 * project_link_url: The URL of the specific external link associated with the project.
