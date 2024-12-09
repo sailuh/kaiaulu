@@ -13,7 +13,7 @@ source('../../kaiaulu/R/src.R')
 
 doc <- "
 USAGE:
-  src_content_parser.R query <tools.yml> <project_conf.yml> <srcml_filepath> <output_dir> [--namespace | --file-docs | --class-docs | --variables | --packages | --functions | --imports | --class-names]
+  src_content_parser.R query <tools.yml> <project_conf.yml> <output_dir> [--namespace | --file-docs | --class-docs | --variables | --packages | --functions | --imports | --class-names]
 
 DESCRIPTION:
   Uses srcML to parse a source code folder, as specified on the project configuration file, to parse selected content and generate structured tables (e.g., classes, functions, variables) as CSV files. Each query option produces a table with a specific structure. See OPTIONS for details.
@@ -29,21 +29,15 @@ OPTIONS:
   --class-names    Returns a 2-column table (filepath, classname) where each row is defined by a class name.
 "
 
-arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9600')
+arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9700')
 
 tools_conf <- parse_config(arguments[["<tools.yml>"]])
 project_conf <- parse_config(arguments[["<project_conf.yml>"]])
 
 srcml_path <- get_tool_project("srcml", tools_conf)
 src_folder <- get_src_folder(project_conf)
-srcml_filepath <- arguments[["<srcml_filepath>"]]
-output_dir <- arguments[["<output_dir>"]]
-
-# Set output folder path
-output_folder <- output_dir
-if (!dir.exists(output_folder)) {
-  dir.create(output_folder, recursive = TRUE)
-}
+srcml_filepath <- get_srcml_filepath(project_conf)
+output_folder <- arguments[["<output_dir>"]]
 
 # Determine which query to run and save output
 if (arguments[["--namespace"]]) {

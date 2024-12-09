@@ -19,7 +19,7 @@ require(gt,quietly=TRUE)
 doc <- "
 USAGE:
   annotate.R annotate help
-  annotate.R annotate <tools.yml> <maven.yml> <srcml_filepath>
+  annotate.R annotate <tools.yml> <project_conf.yml>
   annotate.R (-h | --help)
   annotate.R --version
 
@@ -27,7 +27,7 @@ DESCRIPTION:
   Provides a function to interact with Kaiaulu's Syntax Extractor,
   to generate an annotated XML file. Please see
   Kaiaulu's README.md for instructions on how to create <tool.yml>
-  and <maven.yml>.
+  and <project_conf.yml>.
 
 
 OPTIONS:
@@ -35,25 +35,24 @@ OPTIONS:
   --version     Show version.
 "
 
-arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9600')
+arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9700')
 if(arguments[["annotate"]] & arguments[["help"]]){
   cli_alert_info("Annotates source code using srcML.")
 }else if(arguments[["annotate"]]){
 
   tools_path <- arguments[["<tools.yml>"]]
-  conf_path <- arguments[["<maven.yml>"]]
-  srcml_filepath <- arguments[["<srcml_filepath>"]]
+  conf_path <- arguments[["<project_conf.yml>"]]
 
   tool_conf <- parse_config(tools_path)
-  maven_conf <- parse_config(conf_path)
+  project_conf <- parse_config(conf_path)
 
   srcml_path <- get_tool_project("srcml", tool_conf)
-  src_folder <- get_src_folder(maven_conf)
-  srcml_output_path <- get_srcml_filepath(maven_conf)
+  src_folder <- get_src_folder(project_conf)
+  srcml_filepath <- get_srcml_filepath(project_conf)
 
   srcml_path <- path.expand(srcml_path)
   src_folder <- path.expand(src_folder)
-  srcml_output_path <- path.expand(srcml_output_path)
+  srcml_filepath <- path.expand(srcml_filepath)
 
   annotated_file <- annotate_src_text(
     srcml_path = srcml_path,
