@@ -504,7 +504,6 @@ annotate_src_text <- function(srcml_path,src_folder,srcml_filepath){
                           args = c(src_folder, '--output', srcml_filepath),
                           stdout = TRUE,
                           stderr = TRUE)
-  print(srcml_output)
 
   return(srcml_filepath)
 }

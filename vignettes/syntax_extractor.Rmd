@@ -13,7 +13,7 @@ editor_options:
     wrap: 72
 ---
 
-```{r eval=FALSE}
+```{r warning = FALSE, message = FALSE}
 rm(list = ls())
 seed <- 1
 set.seed(seed)
@@ -127,7 +127,7 @@ repository as our example project.
 
 Here’s how you can set up the configuration:
 
-```{r eval=FALSE}
+```{r}
 # Load the project configuration
 tools <- parse_config("../tools.yml")
 srcml_path <- get_tool_project("srcml", tools)
@@ -173,7 +173,7 @@ The annotate_src_text() function:
 -   Runs the srcML command with these inputs and outputs the XML file.
     Here’s how you might use it:
 
-```{r eval=FALSE}
+```{r}
 # Creating annotated XML from source code
 annotated_file <- annotate_src_text(
   srcml_path = srcml_path,
@@ -257,7 +257,7 @@ The following sections demonstrate each extraction function. Each function runs 
 
 Retrieves class names and file paths:
 
-```{r eval=FALSE}
+```{r}
 # Extracting class names from the XML
 class_names <- query_src_text_class_names(
   srcml_path = srcml_path,
@@ -266,6 +266,7 @@ class_names <- query_src_text_class_names(
 
 # Display the result as a table
 class_names %>%
+  head(10) %>%
   gt()
 ```
 
@@ -275,7 +276,7 @@ This function uses XPath to retrieve all classes by finding <class> tags. This i
 
 Retrieves namespaces (or packages) from the XML, helping organize and locate code sections based on their namespaces:
 
-```{r eval=FALSE}
+```{r}
 # Extracting namespaces from the XML
 namespaces <- query_src_text_namespace(
   srcml_path = srcml_path,
@@ -284,6 +285,7 @@ namespaces <- query_src_text_namespace(
 
 # Display the namespaces
 namespaces %>%
+  head(10) %>%
   gt()
 ```
 
@@ -293,7 +295,7 @@ The function looks for <package> tags to identify namespaces, which is particula
 
 Retrieves file-level documentation, optionally excluding license headers:
 
-```{r eval=FALSE}
+```{r}
 file_docs <- query_src_text_file_docs(
   srcml_path = srcml_path,
   srcml_filepath = srcml_filepath,
@@ -302,6 +304,7 @@ file_docs <- query_src_text_file_docs(
 
 # Display the file-level documentation
 file_docs %>%
+  head(10) %>%
   gt()
 ```
 
@@ -314,7 +317,7 @@ to alter the output with the stringi library. For example, the output
 contains empty comments /\*\* \*/. We can remove these and get the table
 with empty comments filtered out:
 
-```{r eval=FALSE}
+```{r}
 dt_file_docs <- file_docs
 
 # Define a function to check if a comment is empty
@@ -339,13 +342,14 @@ dt_file_docs <- dt_file_docs[!empty_comments, ]
 
 # Display the filtered data
 dt_file_docs %>%
+  head(10) %>%
   gt()
 ```
 
 Another example is removing the comment delimiters, leaving just the
 plain text:
 
-```{r eval=FALSE}
+```{r}
 # Define a function to clean the comment text
 clean_comment <- function(comment_text) {
   # Remove the starting /** and ending */
@@ -372,6 +376,7 @@ dt_file_docs[, file_docs := sapply(file_docs, clean_comment)]
 
 # Display the cleaned data
 dt_file_docs %>%
+  head(10) %>%
   gt()
 ```
 
@@ -379,7 +384,7 @@ dt_file_docs %>%
 
 Retrieves documentation comments directly preceding class definitions:
 
-```{r eval=FALSE}
+```{r}
 class_docs <- query_src_text_class_docs(
   srcml_path = srcml_path,
   srcml_filepath = srcml_filepath,
@@ -388,6 +393,7 @@ class_docs <- query_src_text_class_docs(
 
 # Display the class-level documentation
 class_docs %>%
+  head(10) %>%
   gt()
 ```
 
@@ -399,7 +405,7 @@ Class-specific documentation is useful for providing insight into the purpose or
 
 Retrieves variables, optionally including variable types:
 
-```{r eval=FALSE}
+```{r}
 # Extract variables with types
 variables_with_types <- query_src_text_variables(
   srcml_path = srcml_path,
@@ -409,6 +415,7 @@ variables_with_types <- query_src_text_variables(
 
 # Display the result
 variables_with_types %>%
+  head(10) %>%
   gt()
 ```
 
@@ -420,7 +427,7 @@ Retrieves variable names, and optionally types, which can be helpful for analyzi
 
 Retrieves function names and optionally includes parameters:
 
-```{r eval=FALSE}
+```{r}
 # Extract functions with parameters
 functions_with_params <- query_src_text_functions(
   srcml_path = srcml_path,
@@ -430,6 +437,7 @@ functions_with_params <- query_src_text_functions(
 
 # Display the result
 functions_with_params %>%
+  head(10) %>%
   gt()
 
 ```
@@ -442,7 +450,7 @@ Useful for identifying function definitions and their expected inputs, helping w
 
 Extracts all import statements, indicating dependencies or external packages used by the project:
 
-```{r eval=FALSE}
+```{r}
 # Extract functions without parameters
 imports <- query_src_text_imports(
   srcml_path = srcml_path,
@@ -451,6 +459,7 @@ imports <- query_src_text_imports(
 
 # Display the result
 imports %>%
+  head(10) %>%
   gt()
 ```
 
@@ -460,7 +469,7 @@ Lists all imported libraries or packages, showing a clear view of dependencies o
 
 Retrieves package names and their associated file paths:
 
-```{r eval=FALSE}
+```{r}
   
 packages <- query_src_text_packages(
   srcml_path = srcml_path,
@@ -469,6 +478,7 @@ packages <- query_src_text_packages(
 
 # Display the result
 packages %>%
+  head(10) %>%
   gt()  
 ```
 
@@ -478,7 +488,7 @@ Shows the package structure, which aids with understanding how code is modulariz
 
 You can combine queries, such as file and class-level documentation, into one table for easier comparison:
 
-```{r eval=FALSE}
+```{r}
 # Extract file-level comments
 file_docs <- query_src_text_file_docs(
   srcml_path = srcml_path,
@@ -501,5 +511,6 @@ comments_combined <- merge(
 
 # Display the combined table with gt for better formatting
 comments_combined %>%
+  head(10) %>%
   gt()
 ```
