@@ -129,21 +129,13 @@ Here’s how you can set up the configuration:
 
 ```{r eval=FALSE}
 # Load the project configuration
-tool <- yaml::read_yaml("../tools.yml")
-conf <- yaml::read_yaml("../conf/maven_py.yml")
+tools <- parse_config("../tools.yml")
+srcml_path <- get_tool_project("srcml", tools)
 
-# Paths from config
-srcml_path <- tool[["srcml"]]
-src_folder <- conf[["srcml"]][["src_folder"]]
-# srcml_output_path <- conf[["tool"]][["srcml_output_path"]]
-srcml_filepath <- conf[["srcml"]][["srcml_filepath"]]
+conf <- parse_config("../conf/maven.yml")
 
-
-# Filters
-file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
-exclude_paths <- conf[["filter"]][["remove_filepaths_containing"]]
-
-
+src_folder <- get_src_folder(conf)
+srcml_filepath <- get_srcml_filepath(conf)
 ```
 
 # Running the Syntax Extractor
