@@ -2,29 +2,29 @@ tools_path <- test_path("testdata", "tools.yml")
 conf_path <- test_path("testdata", "thrift.yml")
 
 test_that("Incorrect perceval path fails parse_mbox", {
-  conf <- yaml::read_yaml(conf_path)
-  mbox_path <- conf[["mailing_list"]][["mbox"]]
+
+  conf <- parse_config(conf_path)
+  key_1_name <- names(get_mbox_key_indexes(conf))[1]
+  mbox_path <- get_mbox_path(conf,key_1_name)
+
   incorrect_perceval_path <- "/incorrect/path/to/perceval"
-  expect_error(parse_mbox(incorrect_perceval_path, mbox_path), "error in running command")
+  expect_error(parse_mbox(incorrect_perceval_path, mbox_path), "Perceval execution failed.")
 })
 test_that("Incorrect mbox path to parse_mbox returns empty table", {
-  tool <- yaml::read_yaml(tools_path)
-  perceval_path <- tool[["perceval"]]
+
+  tool <- parse_config(tools_path)
+  perceval_path <- get_tool_project("perceval",tool)
   perceval_path <- path.expand(perceval_path)
   incorrect_mbox_path <- "/incorrect/path/to/mbox"
-  output <- parse_mbox(perceval_path, incorrect_mbox_path)
-  expect_equal(nrow(output), 0)
+  expect_error(parse_mbox(perceval_path, incorrect_mbox_path), "No valid JSON lines found in Perceval output. Check the mbox file or Perceval configuration.")
 })
 
 test_that("Calling parse_mbox with correct perceval and mbox path returns a data table with correct raw data", {
   tools_path <- file.path(tools_path)
-  tool <- yaml::read_yaml(tools_path)
-  perceval_path <- tool[["perceval"]]
 
-  # Debugging output
-  print("Debugging parse_mbox:")
-  print(paste("Tools path:", tools_path))
-  print(paste("Perceval path:", perceval_path))
+
+  tool <- parse_config(tools_path)
+  perceval_path <- get_tool_project("perceval",tool)
 
   mbox_path <- example_mailing_list_two_threads(
     folder_path = "/tmp",
@@ -32,14 +32,7 @@ test_that("Calling parse_mbox with correct perceval and mbox path returns a data
     file_name = "two_thread_mailing_list"
   )
 
-  # Debugging output
-  print(paste("Generated Mbox path:", mbox_path))
-
   result <- parse_mbox(perceval_path, mbox_path)
-
-  # Debugging output
-  print("Result of parse_mbox:")
-  print(head(result))
 
   io_delete_folder(folder_path = "/tmp", folder_name = "example_two_threads_mailing_list")
 

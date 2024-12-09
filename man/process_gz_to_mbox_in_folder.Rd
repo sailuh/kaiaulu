@@ -2,7 +2,7 @@
 % Please edit documentation in R/mail.R
 \name{process_gz_to_mbox_in_folder}
 \alias{process_gz_to_mbox_in_folder}
-\title{Process .gz files in a folder and convert them to .mbox}
+\title{Gz to Mbox Converter}
 \usage{
 process_gz_to_mbox_in_folder(save_folder_path, verbose = TRUE)
 }

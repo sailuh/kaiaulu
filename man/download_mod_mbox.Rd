@@ -2,7 +2,7 @@
 % Please edit documentation in R/mail.R
 \name{download_mod_mbox}
 \alias{download_mod_mbox}
-\title{Download all mod_mbox files in a mailing list as mbox files}
+\title{Download Mod_Mbox}
 \usage{
 download_mod_mbox(
   mailing_list,
@@ -31,10 +31,11 @@ Returns `save_folder_path`, the folder path where the mbox files are stored.
 This function downloads mod_mbox archives from a specified Apache Pony Mail mailing list as .mbox files.
 It constructs the download URLs for each month based on the start and end date range and downloads the mbox files
 in the format "YYYY-MM". The downloaded .mbox files are saved in the specified folder, with a naming convention
-of kaiaulu_YYYYMM.mbox.
-
+of YYYYMM.mbox.
+}
+\details{
 The function loops through each month in the range specified by `start_year_month` and `end_year_month`,
 and constructs the appropriate URL to download each month's data. If any download fails, an warning is issued for the failed months.
 This means the file could not be found and that month's data may not exist.
-At the end, the function summarizes the downloads, indimessageing the range of dates present and any missing months.
+At the end, the function summarizes the downloads, indicating the range of dates present and any missing months.
 }

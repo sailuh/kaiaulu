@@ -55,24 +55,20 @@ mailing_list:
       mailing_list: https://lists.apache.org/list.html?announce@apache.org
       save_folder_path: ../../rawdata/helix/mod_mbox/save_mbox_mail
       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
-      mbox_file_path: ../../rawdata/helix/mod_mbox/save_mbox_mail/kaiaulu_202407.mbox
     project_key_2:
       mailing_list: https://lists.apache.org/list.html?dev@felix.apache.org
-      save_folder_path: ../../helix/kaiaulu/mod_mbox/save_mbox_mail_2
+      save_folder_path: ../../helix/mod_mbox/save_mbox_mail_2
       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
-      mbox_file_path: ../../helix/kaiaulu/mod_mbox/save_mbox_mail_2/kaiaulu_202407.mbox
   # If project uses Pipermail
-  pipermail:
-    project_key_1:
-      mailing_list: https://mta.openssl.org/pipermail/openssl-users/
-      save_folder_path: ../../rawdata/helix/pipermail/save_mbox_mail
+#  pipermail:
+#    project_key_1:
+#      mailing_list: https://mta.openssl.org/pipermail/openssl-users/
+#      save_folder_path: ../../rawdata/helix/pipermail/save_mbox_mail
       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
-      mbox_file_path: ../../rawdata/helix/pipermail/save_mbox_mail/kaiaulu_202407.mbox
-    project_key_2:
-      mailing_list: https://mta.openssl.org/pipermail/openssl-project/
-      save_folder_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail_2/
+#    project_key_2:
+#      mailing_list: https://mta.openssl.org/pipermail/openssl-project/
+#      save_folder_path: ../../rawdata/helix/pipermail/save_mbox_mail_2/
       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
-      mbox_file_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail_2/kaiaulu_202407.mbox
 
 issue_tracker:
   jira:

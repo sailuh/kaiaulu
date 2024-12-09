@@ -2,7 +2,7 @@
 % Please edit documentation in R/mail.R
 \name{refresh_mod_mbox}
 \alias{refresh_mod_mbox}
-\title{Refresh mbox files downloaded via mod_mbox}
+\title{Refresh Mod_Mbox}
 \usage{
 refresh_mod_mbox(
   mailing_list,
@@ -30,7 +30,7 @@ If the folder contains already-downloaded mbox files, it identifies the most rec
 along with all future months up to the current real-life month.
 }
 \details{
-The naming convention of files is `kaiaulu_YYYYMM.mbox`, and the function uses this pattern to identify the most recent month.
+The naming convention of files is `YYYYMM.mbox`, and the function uses this pattern to identify the most recent month.
 After deleting the most recent file, the function ensures that the month is redownloaded, along with all subsequent months up to the current month.
 Redownloading the most recent file ensures any files added in that month after the latest refresh are included.
 }

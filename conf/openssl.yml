@@ -46,10 +46,9 @@ version_control:
 
 mailing_list:
   pipermail:
-    mail_key_1:
-      archive_url: https://mta.openssl.org/pipermail/openssl-dev
-      pipermail: ../../rawdata/openssl/pipermail/openssl-dev/
-      mailing_list: openssl-dev
+    project_key_1:
+      mailing_list: https://mta.openssl.org/pipermail/openssl-users/
+      save_folder_path: ../../rawdata/openssl/pipermail/save_mbox_users
 
 # issue_tracker:
 #   jira:

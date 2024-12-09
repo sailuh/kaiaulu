@@ -4,21 +4,21 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-############## Pipermail Downloader ##############
+############## Downloader Pipermail ##############
 
-#' Download all pipermail files in an archive as mbox files
+#' Pipermail Downloader
 #'
-#' @description This function downloads pipermail archives from a specified pipermail mailing list as .mbox files.
+#' This function downloads pipermail archives from a specified pipermail mailing list as .mbox files.
 #' It begins by downloading an .html file that contains the URLs for monthly archives in .txt or .gz formats.
 #' The function first attempts to download the .txt file, and if unavailable, it falls back to downloading the .gz file.
 #'
 #' When a .gz file is downloaded, the function automatically unzips and converts it into an .mbox file,
 #' overwriting any existing file with the same name. The original .gz file is deleted after extraction.
 #'
-#' The downloaded .mbox files are saved in the specified folder following the naming convention kaiaulu_YYYYMM.mbox.
+#' The downloaded .mbox files are saved in the specified folder following the naming convention YYYYMM.mbox.
 #' The function only downloads files that fall between the specified start_year_month and end_year_month.
-#' When both formats fail to download, the function issues a warning indimessageing the missing month.
-#' At the end, the function summarizes the downloads, indimessageing the range of dates present and any missing months.
+#' When both formats fail to download, the function issues a warning indicating the missing month.
+#' At the end, the function summarizes the downloads, indicating the range of dates present and any missing months.
 #'
 #' @param mailing_list The name of the mailing list being downloaded e.g. "https://mta.openssl.org/pipermail/openssl-announce/"
 #' @param start_year_month The year and month of the first file to be downloaded format: 'YYYYMM'
@@ -29,8 +29,7 @@
 #' @export
 download_pipermail <- function(mailing_list, start_year_month, end_year_month, save_folder_path, verbose = TRUE) {
 
-  ########## Download and Parse Mailing List HTML for Links ##########
-
+  ## Download and Parse Mailing List HTML for Links
   # Ensure mailing_list url ends with a slash, which is important when constructing links for downloading files,
   # since the extracted links are relative to the base URL.
   # e.g.base url: https://mta.openssl.org/pipermail/openssl-announce/ and extracted link: 2024-June.txt.gz
@@ -60,7 +59,7 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
   # Create an empty vector for storing the links that will be extracted.
   links <- c()
 
-  ########## Extract Date and Links ##########
+  ## Extract Date and Links
   # Loop through the data rows and extract the date and link from each row.
   # The date is in the first column, and the link is in the third column.
   for (row in data_rows) {
@@ -91,10 +90,10 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
     }
   }
 
-  ########## Initialize Vector for Failed Months ##########
+  ## Initialize Vector for Failed Months
   failed_months <- character()
 
-  ########## Use Links to Download Individual Files ##########
+  ## Use Links to Download Individual Files
   # Initialize a vector for storing the paths of the downloaded files.
   downloaded_files <- c()
   for (i in seq_along(links)) {
@@ -136,9 +135,9 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
     }
 
     # Define the destination file name and path where the downloaded content will be saved as a .mbox file.
-    dest <- file.path(save_folder_path, stringi::stri_c('kaiaulu_', year_month_clean, '.mbox'))
+    dest <- file.path(save_folder_path, stringi::stri_c(year_month_clean, '.mbox'))
 
-  ########## Write Downloaded File to Disk ##########
+  ## Write Downloaded File to Disk
     # Print diagnostic info if verbose is TRUE
     if (verbose) {
       message("Downloading: ", download_url, "\n")
@@ -148,7 +147,7 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
     # Write the downloaded file to disk. If the file is a .gz file, it needs to be unzipped and converted to .mbox format.
     if (grepl("\\.gz$", download_url)) {
       # Download the .gz file to a temporary lomessageion.
-      gz_file_path <- file.path(save_folder_path, stringi::stri_c('kaiaulu_', year_month_clean, '.mbox.gz'))
+      gz_file_path <- file.path(save_folder_path, stringi::stri_c(year_month_clean, '.mbox.gz'))
       httr::GET(download_url, httr::write_disk(gz_file_path, overwrite = TRUE), httr::timeout(60))
 
       # If a .gz file is downloaded, the function unzips it and converts it into an .mbox file.
@@ -175,17 +174,17 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
     downloaded_files <- c(downloaded_files, dest)
   }
 
-  ########## Summary of Downloads ##########
+  ## Summary of Downloads
   if (length(failed_months) > 0) {
     warning("The following months could not be downloaded (no data available or other error):\n", paste(failed_months, collapse = ", "))
   }
   # List the files in the save_folder_path.
-  downloaded_files_in_folder <- list.files(save_folder_path, pattern = "kaiaulu_\\d{6}\\.mbox$", full.names = FALSE)
+  downloaded_files_in_folder <- list.files(save_folder_path, pattern = "\\d{6}\\.mbox$", full.names = FALSE)
 
   # The downloaded .mbox files are saved in the specified folder with the
-  # naming convention kaiaulu_YYYYMM.mbox, where YYYYMM represents the year and month.
+  # naming convention YYYYMM.mbox, where YYYYMM represents the year and month.
   # Extract the YYYYMM from the file names.
-  downloaded_dates <- as.numeric(sub("kaiaulu_(\\d{6})\\.mbox", "\\1", downloaded_files_in_folder))
+  downloaded_dates <- as.numeric(sub("(\\d{6})\\.mbox", "\\1", downloaded_files_in_folder))
 
   # Create the expected list of YYYYMM between start_year_month and end_year_month.
   start_date <- as.Date(paste0(start_year_month, "01"), format = "%Y%m%d")
@@ -219,21 +218,19 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
     warning("Months missing in the date range: ", paste(missing_months, collapse = ", "), "\n")
   }
 
-  ########## Return List of Downloaded Files ##########
+  ## Return List of Downloaded Files
   # Return the list of downloaded .mbox files
   return(downloaded_files)
 }
 
-############## Pipermail Refresher ##############
-
-#' Refresh mbox files downloaded via pipermail
+#' Refresh Pipermail
 #'
 #' This function refreshes the mailing list files by checking the contents of a specified folder.
 #' If the folder is empty, it calls \code{\link{download_pipermail}} to download all pipermail files from start_year_month to the current month.
 #' If the folder contains already-downloaded mbox files, it identifies the most recent month, deletes that file, and redownloads it
 #' along with all future months up to the current real-life month.
 #'
-#' The naming convention of files is `kaiaulu_YYYYMM.mbox`, and the function uses this pattern to identify the most recent month.
+#' The naming convention of files is `YYYYMM.mbox`, and the function uses this pattern to identify the most recent month.
 #' After deleting the most recent file, the function ensures that the month is redownloaded, along with all subsequent months up to the current month.
 #' Redownloading the most recent file makes sure that any files added in that month after the latest refresh are included.
 #'
@@ -243,15 +240,20 @@ download_pipermail <- function(mailing_list, start_year_month, end_year_month, s
 #' @param verbose if TRUE, prints diagnostic messages.
 #' @return Returns `downloaded_files`, a vector of the newly downloaded files in the current working directory.
 #' @export
-refresh_pipermail <- function(mailing_list, start_year_month, save_folder_path, verbose = TRUE) {
+refresh_pipermail <- function(mailing_list, start_year_month = NULL, save_folder_path, verbose = TRUE) {
 
-  ########## Check if Folder is Empty ##########
+  ## Check if Folder is Empty
   # Check the contents of the folder to see if any .mbox files are already present
-  # The function looks for files that match the naming pattern 'kaiaulu_YYYYMM.mbox'
-  files_in_folder <- list.files(save_folder_path, pattern = "kaiaulu_\\d{6}\\.mbox$")
+  # The function looks for files that match the naming pattern 'YYYYMM.mbox'
+  files_in_folder <- list.files(save_folder_path, pattern = "\\d{6}\\.mbox$")
 
+  # If the folder is empty
   if (length(files_in_folder) == 0) {
-    # If the folder is empty, download all pipermail files starting from the start_year_month
+    # If start_year_month is not specified, issue an error
+    if (is.null(start_year_month)) {
+      stop("No existing data found. Please specify a start_year_month.")
+    }
+    # Otherwise, download all pipermail files starting from the start_year_month
     # The end date is set to the current month based on the system date
     end_year_month <- format(Sys.Date(), "%Y%m")
     if (verbose) message("Folder is empty. Downloading from", start_year_month, "to", end_year_month, "\n")
@@ -259,23 +261,23 @@ refresh_pipermail <- function(mailing_list, start_year_month, save_folder_path, 
     # Call the download_pipermail function to download files from start_year_month to end_year_month
     download_pipermail(mailing_list, start_year_month, end_year_month, save_folder_path)
   }
-  ########## Identify the Most Recent Month ##########
+  ## Identify the Most Recent Month ##
   else {
     # If the folder is not empty, identify the most recent month based on the filenames
-    # The filenames follow the pattern 'kaiaulu_YYYYMM.mbox', so we extract the YYYYMM part of the filenames
-    year_months <- gsub("kaiaulu_(\\d{6})\\.mbox$", "\\1", files_in_folder)
+    # The filenames follow the pattern 'YYYYMM.mbox', so we extract the YYYYMM part of the filenames
+    year_months <- gsub("(\\d{6})\\.mbox$", "\\1", files_in_folder)
 
     # Find the most recent month by taking the maximum of the extracted YYYYMM values
     recent_month <- max(year_months)
 
     # Delete the most recent file before redownloading it
-    recent_file <- file.path(save_folder_path, stringi::stri_c("kaiaulu_", recent_month, ".mbox"))
+    recent_file <- file.path(save_folder_path, stringi::stri_c(recent_month, ".mbox"))
     if (file.exists(recent_file)) {
       file.remove(recent_file)
       if (verbose) message("Deleted the most recent file:", recent_file, "\n")
     }
 
-  ########## Redownload from the Most Recent Month ##########
+  ## Redownload from the Most Recent Month ##
     # Set the end_year_month to the current month (based on the system date)
     end_year_month <- format(Sys.Date(), "%Y%m")
 
@@ -285,14 +287,14 @@ refresh_pipermail <- function(mailing_list, start_year_month, save_folder_path, 
     # Call the download_pipermail function to redownload the deleted month and all subsequent months up to the current month
     download_pipermail(mailing_list, recent_month, end_year_month, save_folder_path)
   }
-  ########## Process .gz Files After Refresh ##########
+  ## Process .gz Files After Refresh ##
   # Call process_gz_to_mbox_in_folder to ensure all .gz files are converted to .mbox after the refresh
   if (verbose) message("Processing .gz files in the folder (if any) to convert them to .mbox format...\n")
   process_gz_to_mbox_in_folder(save_folder_path = save_folder_path, verbose = verbose)
 }
 
 
-#' Process .gz files in a folder and convert them to .mbox
+#' Gz to Mbox Converter
 #'
 #' This function scans a specified folder for any .gz files, unzips them,
 #' and renames them to the .mbox format. After unzipping, the original .gz files are deleted.
@@ -320,7 +322,7 @@ process_gz_to_mbox_in_folder <- function(save_folder_path, verbose = TRUE) {
   # Create a vector to store the names of the converted .mbox files
   converted_mbox_files <- c()
 
-  ########## Process Each .gz File ##########
+  ## Process Each .gz File ##
   # Iterate over each .gz file, unzip it, and convert it to .mbox
   for (gz_file in gz_files) {
     # Define the corresponding .mbox file path by replacing .gz with .mbox in the file name
@@ -357,19 +359,19 @@ process_gz_to_mbox_in_folder <- function(save_folder_path, verbose = TRUE) {
 }
 
 
-############## Mod Mbox Downloader ##############
+############## Downloader Mod Mbox ##############
 
-#' Download all mod_mbox files in a mailing list as mbox files
+#' Download Mod_Mbox
 #'
-#' @description This function downloads mod_mbox archives from a specified Apache Pony Mail mailing list as .mbox files.
+#' This function downloads mod_mbox archives from a specified Apache Pony Mail mailing list as .mbox files.
 #' It constructs the download URLs for each month based on the start and end date range and downloads the mbox files
 #' in the format "YYYY-MM". The downloaded .mbox files are saved in the specified folder, with a naming convention
-#' of kaiaulu_YYYYMM.mbox.
+#' of YYYYMM.mbox.
 #'
 #' The function loops through each month in the range specified by `start_year_month` and `end_year_month`,
 #' and constructs the appropriate URL to download each month's data. If any download fails, an warning is issued for the failed months.
 #' This means the file could not be found and that month's data may not exist.
-#' At the end, the function summarizes the downloads, indimessageing the range of dates present and any missing months.
+#' At the end, the function summarizes the downloads, indicating the range of dates present and any missing months.
 #'
 #' @param mailing_list The URL of the Apache Pony Mail list from which mbox files are to be downloaded
 #' (e.g., "https://lists.apache.org/list.html?announce@apache.org").
@@ -381,14 +383,14 @@ process_gz_to_mbox_in_folder <- function(save_folder_path, verbose = TRUE) {
 #' @export
 download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, save_folder_path, verbose = TRUE) {
 
-  ########## Extract Mailing List Name ##########
+  ## Extract Mailing List Name ##
   # Extract the mailing list name from the given URL. This is because the actual list name is
   # embedded within the URL (after the 'list.html?').
   # We are using 'sub()' to perform a simple string replacement, extracting everything after 'list.html?'.
   mailing_list_name <- sub(".*list.html\\?(.+)", "\\1", mailing_list)
   if (verbose) message("Base list extracted:", mailing_list_name, "\n")
 
-  ########## Prepare Year and Month ##########
+  ## Prepare Year and Month ##
   # The start_year_month and end_year_month are in the format "YYYYMM".
   # Split them into year and month for easier looping.
   # Extract first 4 digits as start year, and last 2 digits as start month.
@@ -398,11 +400,11 @@ download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, sa
   end_year <- as.numeric(substr(end_year_month, 1, 4))
   end_month <- as.numeric(substr(end_year_month, 5, 6))
 
-  ########## Initialize Vectors for Failed Months ##########
+  ## Initialize Vectors for Failed Months ##
   # Vectors to track failed downloads.
   failed_months <- character()
 
-  ########## Download Loop ##########
+  ## Download Loop ##
   # Iterate over the years and months from start_year/month to end_year/month.
   # This is done by looping over the years, and for each year, looping over the 12 months.
   for (year in start_year:end_year) {
@@ -411,7 +413,7 @@ download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, sa
       if (year == start_year && month < start_month) next
       if (year == end_year && month > end_month) break
 
-      ######### Construct URL and Save Path ##########
+      ######### Construct URL and Save Path ##
       # Construct the month string (e.g., '2023-04') and the full download URL.
       # Make sure the month has two digits.
       month_str <- sprintf("%02d", month)
@@ -421,8 +423,8 @@ download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, sa
       # The format for the URL is fixed by Apache's Pony Mail service.
       download_url <- stringi::stri_c("https://lists.apache.org/api/mbox.lua?list=", mailing_list_name, "&date=", year_month_str)
 
-      # Create the file name where the mbox will be saved locally, in the format ''kaiaulu_'YYYYMM.mbox'.
-      file_name <- stringi::stri_c("kaiaulu_", year, month_str, ".mbox")
+      # Create the file name where the mbox will be saved locally, in the format 'YYYYMM.mbox'.
+      file_name <- stringi::stri_c(year, month_str, ".mbox")
       file_path <- file.path(save_folder_path, file_name)
 
       if (verbose) {
@@ -430,7 +432,7 @@ download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, sa
         message("Saving to file:", file_path, "\n")
       }
 
-      ########## Download Mbox File ##########
+      ## Download Mbox File ##
       # Download the file using httr::GET, saving it directly to the destination file path.
       response <- httr::GET(download_url, httr::write_disk(file_path, overwrite = TRUE))
       # Get the status code to see if the download succeeded.
@@ -451,16 +453,16 @@ download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, sa
     }
   }
 
-  ########## Summary of Failed Downloads ##########
+  ## Summary of Failed Downloads ##
   if (length(failed_months) > 0) {
     warning("The following months could not be downloaded (no data available or other error):\n", paste(failed_months, collapse = ", "))
   }
 
   # List the files in the save_folder_path
-  downloaded_files <- list.files(save_folder_path, pattern = "kaiaulu_\\d{6}\\.mbox$", full.names = FALSE)
+  downloaded_files <- list.files(save_folder_path, pattern = "\\d{6}\\.mbox$", full.names = FALSE)
 
   # Extract the YYYYMM from the file names
-  downloaded_dates <- as.numeric(sub("kaiaulu_(\\d{6})\\.mbox", "\\1", downloaded_files))
+  downloaded_dates <- as.numeric(sub("(\\d{6})\\.mbox", "\\1", downloaded_files))
 
   # Find the expected list of YYYYMM between start_year_month and end_year_month
   start_date <- as.Date(paste0(start_year_month, "01"), format = "%Y%m%d")
@@ -494,22 +496,19 @@ download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, sa
     warning("Months missing in the date range:", paste(missing_months, collapse = ", "), "\n")
   }
 
-  ########## Return Save Path ##########
+  ## Return Save Path ##
   # Return the folder path where all mbox files were saved.
   return(save_folder_path)
 }
 
-
-############## Mod Mbox Refresher ##############
-
-#' Refresh mbox files downloaded via mod_mbox
+#' Refresh Mod_Mbox
 #'
 #' This function refreshes the mailing list files by checking the contents of a specified folder.
 #' If the folder is empty, it calls \code{\link{download_mod_mbox}} to download all mod_mbox files from start_year_month to the current month.
 #' If the folder contains already-downloaded mbox files, it identifies the most recent month, deletes that file, and redownloads it
 #' along with all future months up to the current real-life month.
 #'
-#' The naming convention of files is `kaiaulu_YYYYMM.mbox`, and the function uses this pattern to identify the most recent month.
+#' The naming convention of files is `YYYYMM.mbox`, and the function uses this pattern to identify the most recent month.
 #' After deleting the most recent file, the function ensures that the month is redownloaded, along with all subsequent months up to the current month.
 #' Redownloading the most recent file ensures any files added in that month after the latest refresh are included.
 #'
@@ -519,15 +518,20 @@ download_mod_mbox <- function(mailing_list, start_year_month, end_year_month, sa
 #' @param verbose if TRUE, prints diagnostic messages.
 #' @return Returns `downloaded_files`, a vector of the newly downloaded files in the current working directory.
 #' @export
-refresh_mod_mbox <- function(mailing_list, start_year_month, save_folder_path, verbose = TRUE) {
+refresh_mod_mbox <- function(mailing_list, start_year_month = NULL, save_folder_path, verbose = TRUE) {
 
-  ########## Check if Folder is Empty ##########
+  ## Check if Folder is Empty ##
   # Check the contents of the folder to see if any .mbox files are already present.
-  # The function looks for files that match the naming pattern 'kaiaulu_YYYYMM.mbox'
-  files_in_folder <- list.files(save_folder_path, pattern = "kaiaulu_\\d{6}\\.mbox$")
+  # The function looks for files that match the naming pattern 'YYYYMM.mbox'
+  files_in_folder <- list.files(save_folder_path, pattern = "\\d{6}\\.mbox$")
 
+  # If the folder is empty
   if (length(files_in_folder) == 0) {
-    # If the folder is empty, download all mod_mbox files starting from start_year_month
+    # If start_year_month is not specified, issue an error
+        if (is.null(start_year_month)) {
+      stop("No existing data found. Please specify a start_year_month.")
+    }
+    # Otherwise, download all mod_mbox files starting from start_year_month
     # The end date is set to the current month based on the system date
     end_year_month <- format(Sys.Date(), "%Y%m")
     if (verbose) message("Folder is empty. Downloading from", start_year_month, "to", end_year_month, "\n")
@@ -535,23 +539,23 @@ refresh_mod_mbox <- function(mailing_list, start_year_month, save_folder_path, v
     # Call the download_mod_mbox function to download files from start_year_month to end_year_month
     download_mod_mbox(mailing_list, start_year_month, end_year_month, save_folder_path, verbose = verbose)
   }
-  ########## Identify the Most Recent Month ##########
+  ## Identify the Most Recent Month ##
   else {
     # If the folder is not empty, identify the most recent month based on the filenames
-    # The filenames follow the pattern 'kaiaulu_YYYYMM.mbox', so we extract the YYYYMM part of the filenames
-    year_months <- gsub("kaiaulu_(\\d{6})\\.mbox$", "\\1", files_in_folder)
+    # The filenames follow the pattern 'YYYYMM.mbox', so we extract the YYYYMM part of the filenames
+    year_months <- gsub("(\\d{6})\\.mbox$", "\\1", files_in_folder)
 
     # Find the most recent month by taking the maximum of the extracted YYYYMM values
     recent_month <- max(year_months)
 
     # Delete the most recent file before redownloading it
-    recent_file <- file.path(save_folder_path, stringi::stri_c("kaiaulu_", recent_month, ".mbox"))
+    recent_file <- file.path(save_folder_path, stringi::stri_c(recent_month, ".mbox"))
     if (file.exists(recent_file)) {
       file.remove(recent_file)
       if (verbose) message("Deleted the most recent file:", recent_file, "\n")
     }
 
-    ########## Redownload from the Most Recent Month ##########
+    ## Redownload from the Most Recent Month ##
     # Set the end_year_month to the current month (based on the system date)
     end_year_month <- format(Sys.Date(), "%Y%m")
 
@@ -566,7 +570,7 @@ refresh_mod_mbox <- function(mailing_list, start_year_month, save_folder_path, v
 
 ############## Parsers ##############
 
-#' Parse mbox from Perceval
+#' Parse Mbox
 #'
 #' Parses an mbox file, which consists of emails in a mailbox, using the Perceval library.
 #' Note .mbox files do not have a consistent number of fields (e.g. Reply Cc.). Due to that,
@@ -583,24 +587,24 @@ refresh_mod_mbox <- function(mailing_list, start_year_month, save_folder_path, v
 #' @export
 #' @family parsers
 parse_mbox <- function(perceval_path, mbox_file_path) {
-  # Expand paths
+  # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   perceval_path <- path.expand(perceval_path)
   mbox_file_path <- path.expand(mbox_file_path)
-  mbox_dir <- dirname(mbox_file_path)  # Extract directory path
-  mbox_uri <- mbox_file_path  # URI points to the mbox file
 
-  # Use Perceval to parse the mbox file
+  # Remove ".mbox"
+  mbox_uri <- stri_replace_last(mbox_file_path,replacement="",regex=".mbox")
+
+  # Use percerval to parse mbox_path. --json line is required to be parsed by jsonlite::fromJSON.
   perceval_output <- tryCatch({
     system2(perceval_path,
-            args = c('mbox', mbox_uri, mbox_dir, '--json-line'),
+            args = c('mbox', mbox_uri, mbox_file_path, '--json-line'),
             stdout = TRUE,
-            stderr = TRUE)
+            stderr = FALSE)
   }, error = function(e) {
-    print("Error running Perceval:")
-    print(e$message)
+    #print("Error running Perceval:")
+    #print(e$message)
     stop("Perceval execution failed.")
   })
-
 
   # Filter JSON lines from Perceval output
   json_lines <- perceval_output[grepl("^\\{", perceval_output)]  # Escape the `{` character
@@ -610,13 +614,12 @@ parse_mbox <- function(perceval_path, mbox_file_path) {
     stop("No valid JSON lines found in Perceval output. Check the mbox file or Perceval configuration.")
   }
 
-
   # Parse JSON output as a data.table
   perceval_parsed <- tryCatch({
-    data.table(jsonlite::stream_in(textConnection(json_lines), verbose = FALSE))
+    # Parsed JSON output as a data.table.
+    data.table(jsonlite::stream_in(textConnection(perceval_output),verbose=FALSE))
   }, error = function(e) {
-    print("Error parsing JSON lines:")
-    print(e$message)
+    #print(e$message)
     stop("JSON parsing failed.")
   })
 
@@ -636,10 +639,10 @@ parse_mbox <- function(perceval_path, mbox_file_path) {
   return(perceval_parsed)
 }
 
-#' Parse mbox latest date
+#' Parse Latest Mbox
 #'
 #' This function returns the name of the latest mod_mbox file downloaded in the specified folder
-#' based on the naming convention `kaiaulu_YYYYMM.mbox`. For example: `kaiaulu_202401.mbox`.
+#' based on the naming convention `YYYYMM.mbox`. For example: `202401.mbox`.
 #'
 #' @param save_folder_path path to the folder containing the mbox files
 #' @return `latest_mbox_file` the name of the latest mod_mbox file
@@ -647,7 +650,7 @@ parse_mbox <- function(perceval_path, mbox_file_path) {
 #' @family parsers
 parse_mbox_latest_date <- function(save_folder_path) {
   # List all .mbox files in the folder with the expected naming pattern
-  file_list <- list.files(save_folder_path, pattern = "kaiaulu_\\d{6}\\.mbox$")
+  file_list <- list.files(save_folder_path, pattern = "\\d{6}\\.mbox$")
 
   if (length(file_list) == 0) {
     warning("No .mbox files found in the folder.")
@@ -655,7 +658,7 @@ parse_mbox_latest_date <- function(save_folder_path) {
   }
 
   # Extract the dates from the filenames
-  date_list <- sub("kaiaulu_(\\d{6})\\.mbox$", "\\1", file_list)
+  date_list <- sub("(\\d{6})\\.mbox$", "\\1", file_list)
 
   # Convert dates to numeric for comparison
   date_numeric <- as.numeric(date_list)
