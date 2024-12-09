@@ -132,10 +132,14 @@ project_mbox <- NULL
 project_jira <- NULL
 project_github_replies <- NULL
 
-
-
+project_mbox <- data.table()
 if(!is.null(mbox_path)){
-  project_mbox <- parse_mbox(perceval_path,mbox_path)  
+  for(mbox_file_path in list.files(mbox_path,full.names=TRUE)){
+    #print(mbox_file_path)
+    project_mbox <- rbind(project_mbox,parse_mbox(perceval_path,mbox_file_path),fill=TRUE)
+  }
+  
+  #project_mbox <- parse_mbox(perceval_path,mbox_path)  
   
   project_mbox$reply_tz <- sapply(stringi::stri_split(project_git$reply_datetimetz,
                                                             regex=" "),"[[",6)

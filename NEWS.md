@@ -3,6 +3,11 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ * Refactor of all R/mail.R mailing list functions for downloading and refreshing both pipermail and mod mbox archives. [#284](https://github.com/sailuh/kaiaulu/issues/284)
+ * `refresh_mod_mbox()` and `refresh_pipermail()` has been added. They are both functions that downloads mbox issues that are not already downloaded up until the current year and month. [#284](https://github.com/sailuh/kaiaulu/issues/284)
+ * `parse_mbox_latest_date()` has been added. This function returns the file name of the downloaded mbox file containing the latest date for use by `download_mbox_per_month()` and `download_pipermail` to implement a refresh capability. [#284](https://github.com/sailuh/kaiaulu/issues/284)
+ * `refresh_jira_issues()` had been added. It is a wrapper function for the previous downloader and downloads only issues greater than the greatest key already downloaded.
+ * `download_jira_issues()`, `download_jira_issues_by_issue_key()`, and `download_jira_issues_by_date()` has been added. This allows for downloading of Jira issues without the use of JirAgileR [#275](https://github.com/sailuh/kaiaulu/issues/275) and specification of issue Id and created ranges. It also interacts with `parse_jira_latest_date` to implement a refresh capability.
  * `build`, `export` `parse` and `transform` functions for Scitools Understand have been added. [#308](https://github.com/sailuh/kaiaulu/issues/308)
  * The GitHUB API has been expanded to use refresh, along with other functions. `github_api_project_issue_search` has been added that makes the search/issues endpoint API calls. `github_api_project_issue_or_pr_comments_by_date` and `github_api_project_issue_by_date` have been added to download issue data and comments by date ranges. `github_parse_search_issues_refresh` has been added that parses the issue data downloaded from the search endpoint in the refresh_issues folder. `github_api_project_issue_refresh` and `github_api_project_issue_or_pr_comment_refresh` were added to download issue data or comments respectively that have not already been downloaded. `format_created_at_from_file` was added to retrieve the greatest date from a JSON file. See the Reference Docs on GitHub section for more details. [#282](https://github.com/sailuh/kaiaulu/issues/282)
  * `config.R` now contains a set of getter functions used to centralize the gathering of configuration data and these getter functions are used to refactor configuration file information gathering. For example, loading configuration file information with variable assignment is as follows `git_repo_path <- config_file[["version_control"]][["log"]]` but refactoring with a config.R getter function becomes `git_repo_path <- get_git_repo_path(config_file)`.  [#230](https://github.com/sailuh/kaiaulu/issues/230)
@@ -31,7 +36,9 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### MINOR IMPROVEMENTS
 
- * Issue #275, when introducing the concept of refresh on JIRA, affected some notebooks that still relied on data in that format. This issue change either notebook or config file to conform to the new JIRA downloader [#312](https://github.com/sailuh/kaiaulu/issues/312)
+ * `parse_mbox_latest_date()` now uses the new mbox naming convention for the latest date. [#284](https://github.com/sailuh/kaiaulu/issues/284)
+ * All mailing list documentation can now be found in `download_mail.Rmd`. [#284](https://github.com/sailuh/kaiaulu/issues/284)
+ * `download_pipermail()` now downloads all the txt and txt.gz files in the accessed pipermail archive as mbox files. [#284](https://github.com/sailuh/kaiaulu/issues/284)
  * The line metrics notebook now provides further guidance on adjusting the snapshot and filtering.
  * The R File and R Function parser can now properly parse R folders which contain folders within (not following R package structure). Both `.r` and `.R` files are also now captured (previously only one of the two were specified, but R accepts both). [#235](https://github.com/sailuh/kaiaulu/issues/235)
  * Refactor GoF Notebook in Graph GoF and Text GoF Notebooks [#224](https://github.com/sailuh/kaiaulu/issues/224)
