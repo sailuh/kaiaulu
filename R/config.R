@@ -245,8 +245,6 @@ openhub_parse_portfolio_projects <- function(api_responses) {
     xmlDoc <- XML::xmlParse(api_response, validate=F)
     root <- XML::xmlRoot(xmlDoc)
     itemsReturned <- XML::xmlValue(root[[2]]) # <items_returned>
-    itemsAvailable <- XML::xmlValue(root[[3]]) # <items_available>
-    itemsFirstPosition <- XML::xmlValue(root[[4]]) # <first_item_position>
     status <- XML::xmlValue(root[[1]]) # <status>
     returnItems <- root[[5]] # <result>
     parsed_response <- list()
@@ -276,51 +274,57 @@ openhub_parse_portfolio_projects <- function(api_responses) {
 #' in a table format.
 #'
 #' @param api_responses A list of XML responses obtained from \code{\link{openhub_api_projects}} function.
-#' @return A parsed version of the XML responses into a table with relevant columns.
+#' @return A parsed version of the XML responses into two tables with relevant columns.
 #' @export
 openhub_parse_projects <- function(api_responses) {
   parse_response <- function(api_response) {
     xmlDoc <- XML::xmlParse(api_response, validate=F)
     root <- XML::xmlRoot(xmlDoc)
     itemsReturned <- XML::xmlValue(root[[2]]) # <items_returned>
-    itemsAvailable <- XML::xmlValue(root[[3]]) # <items_available>
-    itemsFirstPosition <- XML::xmlValue(root[[4]]) # <first_item_position>
     status <- XML::xmlValue(root[[1]]) # <status>
     returnItems <- root[[5]] # <result>
-    parsed_response <- list()
+    project_data <- list()
+    project_links <- list()
     if (status == "success") {
       for (i in 1:itemsReturned) {
-        parsed_response[["name"]] <- append(parsed_response[["name"]], XML::xmlValue(returnItems[[i]][[2]])) # <result><project><name>
-        parsed_response[["id"]] <- append(parsed_response[["id"]], XML::xmlValue(returnItems[[i]][[1]])) # <result><project><id>
-        parsed_response[["html_url"]] <- append(parsed_response[["html_url"]], XML::xmlValue(returnItems[[i]][[4]])) # <result><project><html_url>
+        project_data[["name"]] <- append(project_data[["name"]], XML::xmlValue(returnItems[[i]][[2]])) # <result><project><name>
+        project_data[["id"]] <- append(project_data[["id"]], XML::xmlValue(returnItems[[i]][[1]])) # <result><project><id>
+        project_data[["html_url"]] <- append(project_data[["html_url"]], XML::xmlValue(returnItems[[i]][[4]])) # <result><project><html_url>
         links_tag <- returnItems[[i]][[23]] # <links> tag (sometimes present in a project's api response)
-        links_data_text <- list()
         if (!is.null(links_tag)) {
           links <- XML::xmlChildren(links_tag)
-          for (i in seq_along(links)) {
-            link <- links[[i]] # i-th <link> tag in <links>
+          for (j in seq_along(links)) {
+            link <- links[[j]] # j-th <link> tag in <links>
+            link_title <- as.character(XML::xmlValue(link[[1]])) # <title> in the specific <link>
             link_url <- as.character(XML::xmlValue(link[[2]])) # <url> in the specific <link>
             link_category <- XML::xmlValue(link[[3]]) # <category> in specific the <link>
-            links_data_text[[i]] <- paste(link_category, link_url)
+            project_links[["name"]] <- append(project_links[["name"]], XML::xmlValue(returnItems[[i]][[2]]))
+            project_links[["project_link_title"]] <- append(project_links[["project_link_title"]], link_title)
+            project_links[["project_link_category"]] <- append(project_links[["project_link_category"]], link_category)
+            project_links[["project_link_url"]] <- append(project_links[["project_link_url"]], link_url)
           }
         }
-        if (length(links_data_text) == 0) {
-          links_data_text <- "N/A" # no project links available
-        } else {
-          links_data_text <- paste(links_data_text, collapse = ", ")
-        }
-        parsed_response[["project_links"]] <- append(parsed_response[["project_links"]], links_data_text)
       }
     } else {
       stop(paste0("openhub_parse_projects: ", status)) # prints the status warning message
     }
 
-    parsed_response <- as.data.table(parsed_response)
+    project_data <- as.data.table(project_data)
+    project_links <- as.data.table(project_links)
 
-    return(parsed_response)
+    return(list("project_data" = project_data, "project_links" = project_links))
   }
 
-  return(rbindlist(lapply(api_responses,parse_response),fill=TRUE))
+  parsed_responses <- lapply(api_responses,parse_response)
+
+  project_data <- lapply(parsed_responses, function(x) x[["project_data"]])
+
+  project_links <- lapply(parsed_responses, function(x) x[["project_links"]])
+
+  double_data_tables_list <- list(rbindlist(project_data,fill=TRUE),
+                             rbindlist(project_links,fill=TRUE))
+
+  return(double_data_tables_list)
 }
 
 #' Parses Analysis XML Responses to Table.

@@ -10,7 +10,7 @@ openhub_parse_projects(api_responses)
 \item{api_responses}{A list of XML responses obtained from \code{\link{openhub_api_projects}} function.}
 }
 \value{
-A parsed version of the XML responses into a table with relevant columns.
+A parsed version of the XML responses into two tables with relevant columns.
 }
 \description{
 Parses a list of XML responses `api_responses` containing

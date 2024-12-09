@@ -153,17 +153,26 @@ for (i in 1:nrow(openhub_portfolio_projects)) {
 }
 ```
 
-With the project API responses saved, we may parse these responses with its corresponding parser function, `openhub_parse_projects`, to acquire a data table with columns representing the tags for each project listed.
+With the project API responses saved, we may parse these responses with its corresponding parser function, `openhub_parse_projects`, to acquire two data tables with columns representing the tags for each project listed. The first data table, `project_data` has the columns:
 
 * name: The name of the project.
 * id: The project's unique ID.
 * html_url: The project's url to the current Project's details page on OpenHub.
-* project_links: The project's links separated by commas (category and URL link). If no project links are found, "N/A" is returned.
+
+The second data table, `project_links` has the columns for each project listed (if a project doesn't have any external links listed in its database, it will not appear in this data table):
+
+* name: The name of the project.
+* project_link_title: The title description of the specific external link associated with the project.
+* project_link_category: The category description of the specific external link associated with the project.
+* project_link_url: The URL of the specific external link associated with the project.
 
 ```{r, eval = FALSE}
 projects_api_requests <- openhub_retrieve(project_folder_path)
 openhub_projects <- openhub_parse_projects(projects_api_requests)
-gt(openhub_projects)
+project_data <- openhub_projects[[1]]
+project_links <- openhub_projects[[2]]
+gt(project_data)
+gt(project_links)
 ```
 
 We combine the portfolio_projects and project data tables into one data table, `openhub_combined_projects`, by performing an inner-join by "name" column. We add an additional filter, unique by "id" column, to ensure no duplication due to the projects endpoint possibly returning duplicated project items from the OpenHub API's collection request query command.
