@@ -178,7 +178,7 @@ gt(project_links)
 We combine the portfolio_projects and project data tables into one data table, `openhub_combined_projects`, by performing an inner-join by "name" column. We add an additional filter, unique by "id" column, to ensure no duplication due to the projects endpoint possibly returning duplicated project items from the OpenHub API's collection request query command.
 
 ```{r, eval = FALSE}
-openhub_combined_projects <- unique(merge(openhub_projects, openhub_portfolio_projects, by = "name", all = FALSE), by = "id")
+openhub_combined_projects <- unique(merge(project_data, openhub_portfolio_projects, by = "name", all = FALSE), by = "id")
 gt(openhub_combined_projects)
 ```
 
@@ -208,7 +208,6 @@ With the analysis API response (only one page), we may parse this response with 
 ```{r, eval = FALSE}
 analyses_api_requests <- openhub_retrieve(analysis_folder_path)
 openhub_analyses <- openhub_parse_analyses(analyses_api_requests)
-#openhub_analyses <- unique(openhub_analyses, by = "id")
 gt(openhub_analyses)
 ```
 
