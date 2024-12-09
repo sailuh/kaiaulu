@@ -15,9 +15,6 @@ openhub_api_analyses(token, save_folder_path, project_id, project_name)
 
 \item{project_name}{The unique name of the project (e.g. "Apache Tomcat").}
 }
-\value{
-The single page XML response file that contains a single analysis item.
-}
 \description{
 Downloads an XML response file from the "analysis" collection
 endpoint. The XML response file will return a single page containing the

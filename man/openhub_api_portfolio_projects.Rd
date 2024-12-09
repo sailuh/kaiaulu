@@ -24,7 +24,7 @@ openhub_api_portfolio_projects(
 \item{page}{The page number to index (Default set to 1) (e.g. 1).}
 }
 \value{
-The single page XML response file that contains a list of portfolio project items.
+The single page XML response file that contains a list of portfolio project items to the \code{\link{openhub_api_iterate_pages}} if `iterating` is TRUE.
 }
 \description{
 Downloads an XML response file from the "portfolio_projects" collection

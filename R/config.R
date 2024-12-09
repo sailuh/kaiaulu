@@ -9,7 +9,7 @@
 
 #' Download a single page of Organization XML Response File.
 #'
-#' @description Downloads an XML response file from "organization" collection
+#' Downloads an XML response file from "organization" collection
 #' endpoint. The XML response file will return a single page containing the
 #' single organization item. The XML response file is saved to disk using the
 #' function \code{\link{openhub_download}} with the file name
@@ -20,7 +20,6 @@
 #' @param token Your OpenHub API token.
 #' @param save_folder_path A folder path to save the downloaded XML page "as-is".
 #' @param html_url_or_name Either the URL for the organization page on OpenHub (e.g. "https://openhub.net/orgs/apache") or the short, unique, handle for the organization (e.g. "apache").
-#' @return The single page XML response file that contains a single organization item.
 #' @references For organization collection details, see \url{https://github.com/blackducksoftware/ohloh_api/blob/main/reference/organization.md}.
 #' @export
 openhub_api_organizations <- function(token, save_folder_path, html_url_or_name) {
@@ -42,13 +41,11 @@ openhub_api_organizations <- function(token, save_folder_path, html_url_or_name)
   api_response <- httr::GET(http_get_request)
 
   openhub_download(api_response, save_folder_path, timestamp, type, unique_information=org_name)
-
-  invisible(api_response)
 }
 
 #' Downloads a single page of Portfolio Projects XML Response File.
 #'
-#' @description Downloads an XML response file from the "portfolio_projects" collection
+#' Downloads an XML response file from the "portfolio_projects" collection
 #' endpoint. The XML response file will return a single page containing a list
 #' of portfolio project items belonging to a specific organization specified
 #' by `org_name`. The XML response file is saved to disk using the
@@ -67,7 +64,7 @@ openhub_api_organizations <- function(token, save_folder_path, html_url_or_name)
 #' @param org_name The short, unique, handle for the organization taken from the organization's URL (e.g. "apache" from "https://openhub.net/orgs/apache").
 #' @param iterating If TRUE, downloading will be disabled and it is assumed to be handled by \code{\link{openhub_api_iterate_pages}} to synchronize timestamps, if FALSE, downloading will occur (Default set to FALSE).
 #' @param page The page number to index (Default set to 1) (e.g. 1).
-#' @return The single page XML response file that contains a list of portfolio project items.
+#' @return The single page XML response file that contains a list of portfolio project items to the \code{\link{openhub_api_iterate_pages}} if `iterating` is TRUE.
 #' @references For portfolio projects collection details, see \url{https://github.com/blackducksoftware/ohloh_api/blob/main/reference/portfolio_projects.md}.
 #' @export
 openhub_api_portfolio_projects <- function(token, save_folder_path, org_name, iterating=FALSE, page=1) {
@@ -86,17 +83,15 @@ openhub_api_portfolio_projects <- function(token, save_folder_path, org_name, it
     result[["type"]] <- type
     result[["timestamp"]] <- timestamp
 
-    invisible(result)
+    return(result)
   } else {
     openhub_download(api_response, save_folder_path, timestamp, type, unique_information=org_name, page=page)
-
-    invisible(api_response)
   }
 }
 
 #' Downloads a single page of Project XML Response File.
 #'
-#' @description Downloads an XML response file from the "project" collection
+#' Downloads an XML response file from the "project" collection
 #' endpoint. The XML response file will return a single page containing a list
 #' of project items that are queried (collection request parameter from the
 #' "project" collection endpoint that returns all projects that contain the
@@ -118,7 +113,7 @@ openhub_api_portfolio_projects <- function(token, save_folder_path, org_name, it
 #' @param project_name The unique name of the project (e.g. "Apache Tomcat").
 #' @param iterating If TRUE, downloading will be disabled and it is assumed to be handled by \code{\link{openhub_api_iterate_pages}} to synchronize timestamps, if FALSE, downloading will occur (Default set to FALSE).
 #' @param page The page number to index (Default set to 1) (e.g. 1).
-#' @return The single page XML response file that contains a list of project items.
+#' @return The single page XML response file that contains a list of project items to the \code{\link{openhub_api_iterate_pages}} if `iterating` is TRUE.
 #' @references For project collection details, see \url{https://github.com/blackducksoftware/ohloh_api/blob/main/reference/project.md}.
 #' @export
 openhub_api_projects <- function(token, save_folder_path, project_name, iterating=FALSE, page=1) {
@@ -137,17 +132,15 @@ openhub_api_projects <- function(token, save_folder_path, project_name, iteratin
     result[["type"]] <- type
     result[["timestamp"]] <- timestamp
 
-    invisible(result)
+    return(result)
   } else {
     openhub_download(api_response, save_folder_path, timestamp, type, unique_information=project_name, page=page)
-
-    invisible(api_response)
   }
 }
 
 #' Downloads a single page of Analysis XML Response File.
 #'
-#' @description Downloads an XML response file from the "analysis" collection
+#' Downloads an XML response file from the "analysis" collection
 #' endpoint. The XML response file will return a single page containing the
 #' single analysis item. The XML response file is saved to disk using the
 #' function \code{\link{openhub_download}} with the file name
@@ -161,7 +154,6 @@ openhub_api_projects <- function(token, save_folder_path, project_name, iteratin
 #' @param save_folder_path A folder path to save the downloaded XML page "as-is".
 #' @param project_id The unique ID of the project (e.g. 3562).
 #' @param project_name The unique name of the project (e.g. "Apache Tomcat").
-#' @return The single page XML response file that contains a single analysis item.
 #' @references For analysis collection details, see \url{https://github.com/blackducksoftware/ohloh_api/blob/main/reference/analysis.md}.
 #' @export
 openhub_api_analyses <- function(token, save_folder_path, project_id, project_name) {
@@ -194,13 +186,11 @@ openhub_api_analyses <- function(token, save_folder_path, project_id, project_na
   if (!is.null(timestamp)) {
     openhub_download(api_response, save_folder_path, timestamp, type, unique_information=project_name)
   }
-
-  invisible(api_response)
 }
 
 #' Parses Organization XML Responses to Table.
 #'
-#' @description Parses a list of XML responses `api_responses` containing
+#' Parses a list of XML responses `api_responses` containing
 #' organization items, extracting relevant tags from the each XML response in
 #' `api_responses`. This function returns a parsed version of the XML responses
 #' in a table format.
@@ -232,7 +222,7 @@ openhub_parse_organizations <- function(api_responses) {
 
 #' Parses Portfolio Projects XML Responses to Table.
 #'
-#' @description Parses a list of XML responses `api_responses` containing
+#' Parses a list of XML responses `api_responses` containing
 #' portfolio project items, extracting relevant tags from each XML response in
 #' `api_responses`. This function returns a parsed version of the XML responses in a
 #' table format.
@@ -268,7 +258,7 @@ openhub_parse_portfolio_projects <- function(api_responses) {
 
 #' Parses Project XML Responses to Table.
 #'
-#' @description Parses a list of XML responses `api_responses` containing
+#' Parses a list of XML responses `api_responses` containing
 #' project items, extracting relevant tags from each XML response in
 #' `api_responses`. This function returns a parsed version of the XML responses
 #' in a table format.
@@ -330,7 +320,7 @@ openhub_parse_projects <- function(api_responses) {
 
 #' Parses Analysis XML Responses to Table.
 #'
-#' @description Parses a list of XML responses `api_responses` containing
+#' Parses a list of XML responses `api_responses` containing
 #' analysis items, extracting relevant tags from each XML response in
 #' `api_responses`. This function returns a parsed version of the XML responses
 #' in a table format.
@@ -377,7 +367,7 @@ openhub_parse_analyses <- function(api_responses) {
 
 #' OpenHub API Response Downloader
 #'
-#' @description Stores a XML response file `api_response` into a defined folder
+#' Stores a XML response file `api_response` into a defined folder
 #' path `save_folder_path`. This function sanitizes the `unique_information`
 #' parameter, if not NULL, (`html_url_or_name` in
 #' \code{\link{openhub_api_organizations}}, `org_name` in
@@ -421,7 +411,7 @@ openhub_download <- function(api_response, save_folder_path, timestamp, type, un
 
 #' OpenHub Parser Helper
 #'
-#' @description A helper function for `openhub_parse_*` functions to retrieve
+#' A helper function for `openhub_parse_*` functions to retrieve
 #' XML responses as files from a specified folder path `folder_path`.
 #'
 #' @param folder_path A folder path to retrieve XML files.
@@ -437,7 +427,7 @@ openhub_retrieve <- function(folder_path) {
 
 #' OpenHub Page Iterator
 #'
-#' @description Ohloh API endpoints return data in pages, each containing a
+#' Ohloh API endpoints return data in pages, each containing a
 #' set number of items. This iterator can be used to iterate over the pages in
 #' the collection that corresponds to `openhub_api_function`. `max_pages` can
 #' be used to define the maximum number of pages to iterate through, otherwise,
@@ -498,7 +488,7 @@ openhub_api_iterate_pages <- function(token, openhub_api_function, save_folder_p
 
 #' Returns the parsed configuration file (.yml).
 #'
-#' @description The input file is expected to be in the .yml format.
+#' The input file is expected to be in the .yml format.
 #' The function returns a parsed version of the input .yml file, and it will
 #' inform the user if the input .yml file path does not exist. The contents
 #' of the input .yml file may contain machine-dependent paths that may need to
@@ -522,7 +512,7 @@ parse_config <- function(config_path) {
 
 #' Returns the path to the .git of the project repository that is being analyzed.
 #'
-#' @description This function returns the specific path to the .git of the
+#' This function returns the specific path to the .git of the
 #' project repository that is being analyzed specified in the input parameter
 #' `config_file`. The input, `config_file` must be a parsed configuration file.
 #' The function will inform the user if the .git path of the project repository
@@ -544,7 +534,7 @@ get_git_repo_path <- function(config_file) {
 
 #' Returns the list of git branches used for analysis in the current project.
 #'
-#' @description This function returns a list of the git branches used for
+#' This function returns a list of the git branches used for
 #' analysis in the current project specified in the input parameter
 #' `config_file`. The input, `config_file` must be a parsed configuration file.
 #' The function will inform the user if the list of branches to be analyzed
@@ -570,7 +560,7 @@ get_git_branches <- function(config_file) {
 
 #' Returns the list of mailing list mod mbox project keys.
 #'
-#' @description This function returns the list of mailing list mod mbox project
+#' This function returns the list of mailing list mod mbox project
 #' keys, that is specified in the input parameter `config_file`. The input,
 #' `config_file` must be a parsed configuration file. The function will inform
 #' the user if the project keys exist in the parsed configuration
@@ -592,7 +582,7 @@ get_mbox_key_indexes <- function(config_file) {
 
 #' Returns the URL to the archives for mbox for a specific project key.
 #'
-#' @description This function returns the URL to the archives for a specific
+#' This function returns the URL to the archives for a specific
 #' project key, `project_key_index`, that is specified in the input parameter
 #' `config_file`. The input, `config_file` must be a parsed configuration file.
 #' The function will inform the user if the specific URL to the archives for
@@ -615,7 +605,7 @@ get_mbox_domain <- function(config_file, project_key_index) {
 
 #' Returns the local folder path to store mbox data for a specific project key.
 #'
-#' @description This function returns the local folder path used to store
+#' This function returns the local folder path used to store
 #' mbox data for a specific project key, `project_key_index`, that is specified
 #' in the input parameter `config_file`. The input, `config_file` must be a
 #' parsed configuration file. The function will inform the user if the specific
@@ -639,7 +629,7 @@ get_mbox_path <- function(config_file, project_key_index) {
 
 #' Returns the local input file for mbox for a specific project key.
 #'
-#' @description This function returns the local file used for input for
+#' This function returns the local file used for input for
 #' mbox for a specific project key, `project_key_index`, that is specified
 #' in the input parameter `config_file`. The input, `config_file` must be a
 #' parsed configuration file. The function will inform the user if the specific
@@ -663,7 +653,7 @@ get_mbox_input_file <- function(config_file, project_key_index) {
 
 #' Returns the URL to the archives for pipermail for a specific project key.
 #'
-#' @description This function returns the URL to the archives for a specific
+#' This function returns the URL to the archives for a specific
 #' project key, `project_key_index`, that is specified in the input parameter
 #' `config_file`. The input, `config_file` must be a parsed configuration file.
 #' The function will inform the user if the specific URL to the archives for
@@ -686,7 +676,7 @@ get_pipermail_domain <- function(config_file, project_key_index) {
 
 #' Returns the local folder path to store pipermail data for a specific project key.
 #'
-#' @description This function returns the local folder path used to store
+#' This function returns the local folder path used to store
 #' pipermail data for a specific project key, `project_key_index`, that is specified
 #' in the input parameter `config_file`. The input, `config_file` must be a
 #' parsed configuration file. The function will inform the user if the specific
@@ -710,7 +700,7 @@ get_pipermail_path <- function(config_file, project_key_index) {
 
 #' Returns the local input file for pipermail for a specific project key.
 #'
-#' @description This function returns the local file used for input for
+#' This function returns the local file used for input for
 #' pipermail for a specific project key, `project_key_index`, that is specified
 #' in the input parameter `config_file`. The input, `config_file` must be a
 #' parsed configuration file. The function will inform the user if the specific
@@ -740,7 +730,7 @@ get_pipermail_input_file <- function(config_file, project_key_index) {
 
 #' Returns the list of Jira issue tracker project keys.
 #'
-#' @description This function returns the list of Jira issue tracker project
+#' This function returns the list of Jira issue tracker project
 #' keys, that is specified in the input parameter `config_file`. The input,
 #' `config_file` must be a parsed configuration file. The function will inform
 #' the user if the project keys exist in the parsed configuration
@@ -762,7 +752,7 @@ get_jira_keys <- function(config_file) {
 
 #' Returns the Jira project domain for a specific project key.
 #'
-#' @description This function returns the Jira project domain for a specific
+#' This function returns the Jira project domain for a specific
 #' project key, that is specified in the input parameter `config_file`.
 #' The input, `config_file` must be a parsed configuration file. The function
 #' will inform the user if the domain exists in the parsed configuration file,
@@ -785,7 +775,7 @@ get_jira_domain <- function(config_file, project_key_index) {
 
 #' Returns the name of the Jira project key for a specific project key.
 #'
-#' @description This function returns the Jira project key name for a specific
+#' This function returns the Jira project key name for a specific
 #' project key, that is specified in the input parameter `config_file`.
 #' The input, `config_file` must be a parsed configuration file. The function
 #' will inform the user if the project key name exists in the parsed
@@ -808,7 +798,7 @@ get_jira_project_key_name <- function(config_file, project_key_index) {
 
 #' Returns the local folder path for Jira issues for a specific project key.
 #'
-#' @description This function returns the folder path for Jira issues for a
+#' This function returns the folder path for Jira issues for a
 #' specific project key, that is specified in the input parameter `config_file`.
 #' The input, `config_file` must be a parsed configuration file. The function
 #' will inform the user if the folder path for Jira issues exists in the parsed
@@ -832,7 +822,7 @@ get_jira_issues_path <- function(config_file, project_key_index) {
 #' Returns the local folder path for Jira issue comments for a specific
 #' project key.
 #'
-#' @description This function returns the local folder path for Jira issue
+#' This function returns the local folder path for Jira issue
 #' comments for a specific project key, that is specified in the input
 #' parameter `config_file`. The input, `config_file` must be a parsed
 #' configuration file. The function will inform the user if the local folder
@@ -857,7 +847,7 @@ get_jira_issues_comments_path <- function(config_file, project_key_index) {
 
 #' Returns the list of GitHub issue tracker project keys.
 #'
-#' @description This function returns the list of GitHub issue tracker project
+#' This function returns the list of GitHub issue tracker project
 #' keys, that is specified in the input parameter `config_file`. The input,
 #' `config_file` must be a parsed configuration file. The function will inform
 #' the user if the project keys exist in the parsed configuration
@@ -879,7 +869,7 @@ get_github_keys <- function(config_file) {
 
 #' Returns the owner for a GitHub repository for a specific project key.
 #'
-#' @description This function returns the owner for a GitHub repository for a
+#' This function returns the owner for a GitHub repository for a
 #' specific project key, that is specified in the input parameter `config_file`.
 #' The input, `config_file` must be a parsed configuration file. The function
 #' will inform the user if the owner for the GitHub repository exists in the
@@ -902,7 +892,7 @@ get_github_owner <- function(config_file, project_key_index) {
 
 #' Returns the name of the GitHub repository for a specific project key.
 #'
-#' @description This function returns the name of the GitHub repository for a
+#' This function returns the name of the GitHub repository for a
 #' specific project key, that is specified in the input parameter `config_file`.
 #' The input, `config_file` must be a parsed configuration file. The function
 #' will inform the user if the name of the GitHub repository exists in the
@@ -925,7 +915,7 @@ get_github_repo <- function(config_file, project_key_index) {
 
 #' Returns the local folder path for GitHub issues for a specific project key.
 #'
-#' @description This function returns the local folder path for GitHub issues
+#' This function returns the local folder path for GitHub issues
 #' for a specific project key, that is specified in the input parameter
 #' `config_file`. The input, `config_file` must be a parsed configuration file.
 #' The function will inform the user if the folder path for GitHub issues exists
@@ -949,7 +939,7 @@ get_github_issue_path <- function(config_file, project_key_index) {
 #' Returns the local folder path for GitHub Issue or Pull Request comments for
 #' a specific project key.
 #'
-#' @description This function returns the local folder path for GitHub Issue or
+#' This function returns the local folder path for GitHub Issue or
 #' Pull Request comments for a specific project key, that is specified in the
 #' input parameter `config_file`. The input, `config_file` must be a parsed
 #' configuration file. The function will inform the user if the local folder
@@ -973,7 +963,7 @@ get_github_issue_or_pr_comment_path <- function(config_file, project_key_index) 
 #' Returns the local folder path for GitHub Issue Searches for a specific
 #' project key.
 #'
-#' @description This function returns the local folder path for GitHub Issue
+#' This function returns the local folder path for GitHub Issue
 #' Searches for a specific project key, that is specified in the input parameter
 #' `config_file`. The input, `config_file` must be a parsed configuration file.
 #' The function will inform the user if the local folder path for the issue
@@ -997,7 +987,7 @@ get_github_issue_search_path <- function(config_file, project_key_index) {
 #' Returns the local folder path for GitHub Pull Requests for a specific
 #' project key.
 #'
-#' @description This function returns the local folder path for GitHub Pull
+#' This function returns the local folder path for GitHub Pull
 #' Requests for a specific project key, that is specified in the input
 #' parameter `config_file`. The input, `config_file` must be a parsed
 #' configuration file. The function will inform the user if the local folder
@@ -1022,7 +1012,7 @@ get_github_pull_request_path <- function(config_file, project_key_index) {
 #' Returns the local folder path for GitHub issue events for a specific project
 #' key.
 #'
-#' @description This function returns the local folder path for GitHub issue
+#' This function returns the local folder path for GitHub issue
 #' events for a specific project key, that is specified in the input
 #' parameter `config_file`. The input, `config_file` must be a parsed
 #' configuration file. The function will inform the user if the local folder
@@ -1046,7 +1036,7 @@ get_github_issue_event_path <- function(config_file, project_key_index) {
 
 #' Returns the local folder path for GitHub commits for a specific project key.
 #'
-#' @description This function returns the local folder path for GitHub commits
+#' This function returns the local folder path for GitHub commits
 #' for a specific project key, that is specified in the input
 #' parameter `config_file`. The input, `config_file` must be a parsed
 #' configuration file. The function will inform the user if the local folder
@@ -1072,7 +1062,7 @@ get_github_commit_path <- function(config_file, project_key_index) {
 
 #' Returns the name of the Bugzilla project key for a specific project key index.
 #'
-#' @description This function returns the name of the Bugzilla project key for
+#' This function returns the name of the Bugzilla project key for
 #' a specific project key, that is specified in the input parameter
 #' `config_file`. The input, `config_file` must be a parsed configuration file.
 #' The function will inform the user if the name of the Bugzilla project key
@@ -1095,7 +1085,7 @@ get_bugzilla_project_key <- function(config_file, project_key_index) {
 
 #' Returns the local folder path for Bugzilla issues for a specific project key.
 #'
-#' @description This function returns the local folder path for Bugzilla issues
+#' This function returns the local folder path for Bugzilla issues
 #' for a specific project key, that is specified in the input parameter
 #' `config_file`. The input, `config_file` must be a parsed configuration file.
 #' The function will inform the user if the folder path for Bugzilla issues
@@ -1118,7 +1108,7 @@ get_bugzilla_issue_path <- function(config_file, project_key_index) {
 
 #' Returns the local folder path for Bugzilla issue comments for a specific project key.
 #'
-#' @description This function returns the local folder path for Bugzilla issue
+#' This function returns the local folder path for Bugzilla issue
 #' comments for a specific project key, that is specified in the input parameter
 #' `config_file`. The input, `config_file` must be a parsed configuration file.
 #' The function will inform the user if the folder path for Bugzilla issue
@@ -1148,7 +1138,7 @@ get_bugzilla_issue_comment_path <- function(config_file, project_key_index) {
 #' Returns the local folder path that contains the nvd (National Vulnerability
 #' Database) feeds.
 #'
-#' @description This function returns the local folder path for nvd feeds,
+#' This function returns the local folder path for nvd feeds,
 #' that is specified in the input parameter `config_file`. The input,
 #' `config_file` must be a parsed configuration file. The function will inform
 #' the user if the local folder path for the nvd feeds exists in the parsed
@@ -1176,7 +1166,7 @@ get_nvdfeed_folder_path <- function(config_file) {
 
 #' Returns the issue Id regular expression for commit messages.
 #'
-#' @description This function returns the issue Id regular expression for commit
+#' This function returns the issue Id regular expression for commit
 #' messages, that is specified in the input parameter `config_file`. The input,
 #' `config_file` must be a parsed configuration file. The function will inform
 #' the user if the issue Id regular expression for commit messages exists in the
@@ -1199,7 +1189,7 @@ get_issue_id_regex <- function(config_file) {
 #' Returns the cve (Common Vulnerabilities and Exposures) regular expression
 #' for commit messages.
 #'
-#' @description This function returns the cve regular expression for commit
+#' This function returns the cve regular expression for commit
 #' messages, that is specified in the input parameter `config_file`. The input,
 #' `config_file` must be a parsed configuration file. The function will inform
 #' the user if the cve regular expression for commit messages exists in the
@@ -1227,7 +1217,7 @@ get_cveid_regex <- function(config_file) {
 
 #' Returns the list of file extensions used for filtering files to keep.
 #'
-#' @description This function returns the list of file extensions that will be
+#' This function returns the list of file extensions that will be
 #' used for filtering files specified in the input parameter `config_file`. The
 #' input, `config_file` must be a parsed configuration file. The function will
 #' inform the user if the list of file extensions exists in the parsed
@@ -1249,7 +1239,7 @@ get_file_extensions <- function(config_file) {
 
 #' Returns the list of file extensions used for filtering files to remove.
 #'
-#' @description This function returns the list of file extensions that will be
+#' This function returns the list of file extensions that will be
 #' used for filtering files specified in the input parameter `config_file`. The
 #' input, `config_file` must be a parsed configuration file. The function will
 #' inform the user if the list of file extensions exists in the parsed
@@ -1271,7 +1261,7 @@ get_substring_filepath <- function(config_file) {
 
 #' Returns the commit size threshold to remove file paths.
 #'
-#' @description This function returns an integer number that represents the
+#' This function returns an integer number that represents the
 #' threshold for a commit size to remove file paths specified in the input
 #' parameter `config_file`. The input, `config_file` must be a parsed
 #' configuration file. The function will inform the user if the commit size
@@ -1299,7 +1289,7 @@ get_filter_commit_size <- function(config_file) {
 
 #' Returns the specified tool project from a parsed tool configuration file.
 #'
-#' @description This function returns a path to a specified tool from a
+#' This function returns a path to a specified tool from a
 #' specified parsed tool configuration file. The function takes the input
 #' `tool_name` and uses it to index a specific tool project in a parsed
 #' tool configuration file, `config_file`, where it then returns the specified
@@ -1323,7 +1313,7 @@ get_tool_project <- function(tool_name, config_file) {
 
 #' Returns the depends code language for analysis.
 #'
-#' @description This function returns the specified code language that should
+#' This function returns the specified code language that should
 #' be used to parse file-file static dependencies with the depends tool, that
 #' is specified in the input parameter `config_file`. The input, `config_file`
 #' must be a parsed configuration file. The function will inform the user if
@@ -1345,7 +1335,7 @@ get_depends_code_language <- function(config_file) {
 
 #' Returns a list of the types of dependencies to keep for analysis.
 #'
-#' @description This function returns the specified types of dependencies to
+#' This function returns the specified types of dependencies to
 #' keep for analysis with the depends tool, that is specified in the input
 #' parameter `config_file`. The input, `config_file` must be a parsed
 #' configuration file. The function will inform the user if the list of the
@@ -1367,7 +1357,7 @@ get_depends_keep_dependencies_type <- function(config_file) {
 
 #' Returns the path to the folder used to store files for DV8 analysis.
 #'
-#' @description This function returns the path to the folder that will be
+#' This function returns the path to the folder that will be
 #' used to store various intermediate files for DV8 analysis, that is specified
 #' in the input parameter `config_file`. The input, `config_file` must be a
 #' parsed configuration file. The function will inform the user if the path
@@ -1390,7 +1380,7 @@ get_dv8_folder_path <- function(config_file) {
 
 #' Returns the list of architectural flaws thresholds for DV8 analysis.
 #'
-#' @description This function returns the list of architectural flaws thresholds
+#' This function returns the list of architectural flaws thresholds
 #' for DV8 analysis, that is specified in the input parameter `config_file`.
 #' The input, `config_file` must be a parsed configuration file. The function
 #' will inform the user if the list of architectural flaws thresholds
@@ -1412,7 +1402,7 @@ get_dv8_flaws_params <- function(config_file) {
 
 #' Returns the types to keep to to be considered for analysis.
 #'
-#' @description This function returns the types of file-file dependencies that
+#' This function returns the types of file-file dependencies that
 #' should be considered, that are specified in the input parameter
 #' `config_file`. The input, `config_file` must be a parsed configuration file.
 #' The function will inform the user if the lines type to keep exists in the
@@ -1434,7 +1424,7 @@ get_uctags_line_types <- function(config_file) {
 
 #' Returns the file path for the output of the srcML analysis for the project.
 #'
-#' @description This function returns the file path to be used to store the
+#' This function returns the file path to be used to store the
 #' output of the srcML analysis for the project, that is specified in the
 #' input parameter `config_file`. The input, `config_file` must be a parsed
 #' configuration file. The function will inform the user if the file path
@@ -1456,7 +1446,7 @@ get_srcml_filepath <- function(config_file) {
 
 #' Returns the folder path for class pattern4 analysis.
 #'
-#' @description This function returns the folder path used to store the classes
+#' This function returns the folder path used to store the classes
 #' for the pattern4 analysis for the project, that is specified in the input
 #' parameter `config_file`. The input, `config_file` must be a parsed
 #' configuration file. The function will inform the user if the folder path
@@ -1478,7 +1468,7 @@ get_pattern4_folder_path <- function(config_file) {
 
 #' Returns the folder path for the output of the pattern4 analysis.
 #'
-#' @description This function returns the folder path that contains the
+#' This function returns the folder path that contains the
 #' output of the pattern4 analysis for the project, that is specified in the
 #' input parameter `config_file`. The input, `config_file` must be a parsed
 #' configuration file. The function will inform the user if the folder path
@@ -1500,7 +1490,7 @@ get_pattern4_filepath <- function(config_file) {
 
 #' Returns the understand code language for analysis.
 #'
-#' @description This function returns the specified code language that should
+#' This function returns the specified code language that should
 #' be used to parse dependencies with the understand tool, that
 #' is specified in the input parameter `config_file`. The input, `config_file`
 #' must be a parsed configuration file. The function will inform the user if
@@ -1522,7 +1512,7 @@ get_understand_code_language <- function(config_file) {
 
 #' Returns a list of the types of understand dependencies to keep for analysis.
 #'
-#' @description This function returns the specified types of dependencies to
+#' This function returns the specified types of dependencies to
 #' keep for analysis with the understand tool, that is specified in the input
 #' parameter `config_file`. The input, `config_file` must be a parsed
 #' configuration file. The function will inform the user if the list of the
@@ -1544,7 +1534,7 @@ get_understand_keep_dependencies_type <- function(config_file) {
 
 #' Returns the folder path for the input of the understand analysis.
 #'
-#' @description This function returns the folder path that contains the
+#' This function returns the folder path that contains the
 #' input of the understand analysis for the project, that is specified in the
 #' input parameter `config_file`. The input, `config_file` must be a parsed
 #' configuration file. The function will inform the user if the folder path
@@ -1566,7 +1556,7 @@ get_understand_project_path <- function(config_file) {
 
 #' Returns the folder path for the output of the understand analysis.
 #'
-#' @description This function returns the folder path that contains the
+#' This function returns the folder path that contains the
 #' output of the understand analysis for the project, that is specified in the
 #' input parameter `config_file`. The input, `config_file` must be a parsed
 #' configuration file. The function will inform the user if the folder path
@@ -1594,7 +1584,7 @@ get_understand_output_path <- function(config_file) {
 
 #' Returns the list of topics and keywords for analysis.
 #'
-#' @description This function returns the list of keywords and topics for
+#' This function returns the list of keywords and topics for
 #' analysis, that is specified in the input parameter `config_file`. The
 #' input, `config_file` must be a parsed configuration file. The function will
 #' inform the user if the list of keywords and topics exists in the parsed
@@ -1616,7 +1606,7 @@ get_topics <- function(config_file) {
 
 #' Returns the starting commit for a window for analysis.
 #'
-#' @description This function returns the starting commit for a window of time
+#' This function returns the starting commit for a window of time
 #' for analysis (the time stamp is inferred from gitlog), that is specified in
 #' the input parameter `config_file`. The input, `config_file` must be a parsed
 #' configuration file. The function will inform the user if the start commit
@@ -1638,7 +1628,7 @@ get_window_start_commit <- function(config_file) {
 
 #' Returns the ending commit for a window for analysis.
 #'
-#' @description This function returns the ending commit for a window of time
+#' This function returns the ending commit for a window of time
 #' for analysis (the time stamp is inferred from gitlog), that is specified in
 #' the input parameter `config_file`. The input, `config_file` must be a parsed
 #' configuration file. The function will inform the user if the end commit
@@ -1660,7 +1650,7 @@ get_window_end_commit <- function(config_file) {
 
 #' Returns the size of a window for analysis.
 #'
-#' @description This function returns the size of a window, that is
+#' This function returns the size of a window, that is
 #' specified in the input parameter `config_file`. The input, `config_file`
 #' must be a parsed configuration file. The function will inform the user if
 #' the window size exists in the parsed configuration file, `config_file`.
@@ -1681,7 +1671,7 @@ get_window_size <- function(config_file) {
 
 #' Returns the list of enumerated commit intervals for analysis.
 #'
-#' @description This function returns a list of enumerated commit intervals,
+#' This function returns a list of enumerated commit intervals,
 #' that is specified in the input parameter `config_file`. The input,
 #' `config_file` must be a parsed configuration file. The function will inform
 #' the user if the list of enumerated commit intervals exists in the parsed

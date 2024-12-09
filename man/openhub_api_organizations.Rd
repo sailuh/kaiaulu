@@ -13,9 +13,6 @@ openhub_api_organizations(token, save_folder_path, html_url_or_name)
 
 \item{html_url_or_name}{Either the URL for the organization page on OpenHub (e.g. "https://openhub.net/orgs/apache") or the short, unique, handle for the organization (e.g. "apache").}
 }
-\value{
-The single page XML response file that contains a single organization item.
-}
 \description{
 Downloads an XML response file from "organization" collection
 endpoint. The XML response file will return a single page containing the

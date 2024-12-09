@@ -54,7 +54,7 @@ To start the project selection process, we may want to restrict ourselves to foc
 
 Below are a set of required variables for the `openhub_*` functions.
 
-```{r, eval = FALSE}
+```{r}
 study_name <- "placeholder"
 html_url_or_name <- "https://openhub.net/orgs/apache"
 language <- "java"
@@ -72,7 +72,7 @@ Explanation:
 
 A hardcoded function for folder creation to store the API responses from each endpoint:
 
-```{r, eval = FALSE}
+```{r}
 openhub_folder_create <- function(folder_path, folder_name) {
   folder <- file.path(folder_path, folder_name)
   if (!dir.exists(folder)) {
@@ -108,15 +108,16 @@ With the organization API response (only one page), we may parse this response w
 * html_url_projects: The URL to the organization on OpenHub's website corresponding to a list of portfolio projects for the organization.
 * portfolio_projects: The number of portfolio projects under the organization.
 
-```{r, eval = FALSE}
+```{r}
 openhub_organization_api_requests <- openhub_retrieve(organization_folder_path)
 openhub_organizations <- openhub_parse_organizations(openhub_organization_api_requests)
-gt(openhub_organizations)
+head(openhub_organizations) %>%
+  gt()
 ```
 
 We then select the first organization's "html_url" column value (e.g. "https://openhub.net/orgs/apache") and filter to extract the short, unique handler for the organization (e.g. "apache"). 
 
-```{r, eval = FALSE}
+```{r}
 org_html_url <- openhub_organizations[["html_url"]][[1]]
 org_name <- stringi::stri_extract_last_regex(org_html_url, "[^/]+$")
 ```
@@ -135,11 +136,12 @@ With the portfolio project API responses saved, we may parse these responses wit
 * primary_language: The primary code language used by the portfolio project.
 * activity: The portfolio project's activity level (Very Low, Low, Moderate, High, and Very High).
 
-```{r, eval = FALSE}
+```{r}
 portfolio_projects_api_requests <- openhub_retrieve(portfolio_project_folder_path)
 openhub_portfolio_projects <- openhub_parse_portfolio_projects(portfolio_projects_api_requests)
 openhub_portfolio_projects <- openhub_portfolio_projects[primary_language == language]
-gt(openhub_portfolio_projects)
+head(openhub_portfolio_projects) %>%
+  gt()
 ```
 
 ## Projects
@@ -159,6 +161,15 @@ With the project API responses saved, we may parse these responses with its corr
 * id: The project's unique ID.
 * html_url: The project's url to the current Project's details page on OpenHub.
 
+```{r}
+projects_api_requests <- openhub_retrieve(project_folder_path)
+openhub_projects <- openhub_parse_projects(projects_api_requests)
+project_data <- openhub_projects[[1]]
+
+head(project_data) %>%
+  gt()
+```
+
 The second data table, `project_links` has the columns for each project listed (if a project doesn't have any external links listed in its database, it will not appear in this data table):
 
 * name: The name of the project.
@@ -167,20 +178,19 @@ The second data table, `project_links` has the columns for each project listed (
 * project_link_category: The category description of the specific external link associated with the project.
 * project_link_url: The URL of the specific external link associated with the project.
 
-```{r, eval = FALSE}
-projects_api_requests <- openhub_retrieve(project_folder_path)
-openhub_projects <- openhub_parse_projects(projects_api_requests)
-project_data <- openhub_projects[[1]]
+```{r}
 project_links <- openhub_projects[[2]]
-gt(project_data)
-gt(project_links)
+
+head(project_links) %>%
+  gt()
 ```
 
 We combine the portfolio_projects and project data tables into one data table, `openhub_combined_projects`, by performing an inner-join by "name" column. We add an additional filter, unique by "id" column, to ensure no duplication due to the projects endpoint possibly returning duplicated project items from the OpenHub API's collection request query command.
 
-```{r, eval = FALSE}
+```{r}
 openhub_combined_projects <- unique(merge(project_data, openhub_portfolio_projects, by = "name", all = FALSE), by = "id")
-gt(openhub_combined_projects)
+head(openhub_combined_projects) %>%
+  gt()
 ```
 
 ## Analyses
@@ -206,19 +216,21 @@ With the analysis API response (only one page), we may parse this response with 
 * total_code_lines: The most recent total count of all source code lines.
 * code_languages: A language breakdown with percentages for each substantial (as determined by OpenHub, less contributing languages are grouped and renamed as "Other") contributing language in the project's source code (The parser, `openhub_parse_analyses`, is overloaded to read each coding language and uses stringi to combine these percentages of code languages for the project).
 
-```{r, eval = FALSE}
+```{r}
 analyses_api_requests <- openhub_retrieve(analysis_folder_path)
 openhub_analyses <- openhub_parse_analyses(analyses_api_requests)
-gt(openhub_analyses)
+head(openhub_analyses) %>%
+  gt()
 ```
 
 ## Combining the Data
 
 Lastly, we combine the combined portfolio_projects and project data table, `openhub_combined_projects`, with the analysis data table, `openhub_analyses`, into one data table, `openhub_combined_data`, by performing an inner-join by "id" column.
 
-```{r, eval = FALSE}
+```{r}
 openhub_combined_data <- merge(openhub_combined_projects, openhub_analyses, by = "id", all = FALSE)
-gt(openhub_combined_data)
+head(openhub_combined_data) %>%
+  gt()
 ```
 
 # Relevant Information
