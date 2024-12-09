@@ -44,12 +44,16 @@ if(arguments[["annotate"]] & arguments[["help"]]){
   conf_path <- arguments[["<maven.yml>"]]
   srcml_filepath <- arguments[["<srcml_filepath>"]]
 
-  tool <- yaml::read_yaml(tools_path)
-  conf <- yaml::read_yaml(conf_path)
+  tool_conf <- parse_config(tools_path)
+  maven_conf <- parse_config(conf_path)
 
-  srcml_path <- path.expand(tool[["srcml"]])
-  src_folder <- path.expand(conf[["srcml"]][["src_folder"]])
-  srcml_filepath <- path.expand(conf[["srcml"]][["srcml_filepath"]])
+  srcml_path <- get_tool_project("srcml", tool_conf)
+  src_folder <- get_src_folder(maven_conf)
+  srcml_output_path <- get_srcml_filepath(maven_conf)
+
+  srcml_path <- path.expand(srcml_path)
+  src_folder <- path.expand(src_folder)
+  srcml_output_path <- path.expand(srcml_output_path)
 
   annotated_file <- annotate_src_text(
     srcml_path = srcml_path,

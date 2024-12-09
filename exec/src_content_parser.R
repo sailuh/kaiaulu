@@ -31,28 +31,18 @@ OPTIONS:
 
 arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9600')
 
-tools_path <- path.expand(arguments[["<tools.yml>"]])
-conf_path <- path.expand(arguments[["<project_conf.yml>"]])
-srcml_filepath <- path.expand(arguments[["<srcml_filepath>"]])
-output_dir <- path.expand(arguments[["<output_dir>"]])
+tools_conf <- parse_config(arguments[["<tools.yml>"]])
+project_conf <- parse_config(arguments[["<project_conf.yml>"]])
 
-# Read configuration
-tool <- yaml::read_yaml(tools_path)
-conf <- yaml::read_yaml(conf_path)
+srcml_path <- tools_conf[["tool"]][["srcml"]][["srcml_path"]]
+src_folder <- get_src_folder(project_conf)
+srcml_filepath <- arguments[["<srcml_filepath>"]]
+output_dir <- arguments[["<output_dir>"]]
 
-# Get the directory of the conf file
-conf_dir <- dirname(conf_path)
-
-# Resolve src_folder relative to conf_dir
-src_folder <- path.expand(file.path(conf_dir, conf[["srcml"]][["src_folder"]]))
-
-srcml_path <- path.expand(tool[["srcml"]])
-
-# Check if srcml_filepath exists; if not, generate it
-if (!file.exists(srcml_filepath)) {
-  cli_alert_info(paste0("srcml_filepath does not exist. Generating srcML XML at: ", srcml_filepath))
-  annotate_src_text(srcml_path, src_folder, srcml_filepath)
-}
+srcml_path <- path.expand(srcml_path)
+src_folder <- path.expand(src_folder)
+srcml_filepath <- path.expand(srcml_filepath)
+output_dir <- path.expand(output_dir)
 
 # Set output folder path
 output_folder <- output_dir
@@ -90,7 +80,6 @@ if (arguments[["--namespace"]]) {
 }
 
 # Save to file
-# Save to file with proper quoting
 write.table(
   query_result,
   output_file,
