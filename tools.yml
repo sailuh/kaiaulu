@@ -17,3 +17,5 @@ oslom_undir: ~/OSLOM2/oslom_undir
 srcml: /usr/local/bin/srcml
 # pattern4: https://users.encs.concordia.ca/~nikolaos/pattern_detection.html
 pattern4: ~/Desktop/kaiaulu/tools/pattern4.jar
+# Scitools Understand: https://scitools.com/
+scitools: /Applications/Understand.app/Contents/MacOS/und
