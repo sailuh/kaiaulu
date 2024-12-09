@@ -101,12 +101,6 @@ srcml:
   srcml_filepath: ../../analysis/maven/srcml_output.xml
 ```
 
-The path to the srcML binary should be defined in tools.yml:
-
-```         
-srcml: /usr/local/bin/srcml
-```
-
 ### Explanation
 
 -   website: URL to the project repository, helpful for reference or project metadata.
@@ -130,12 +124,18 @@ Here’s how you can set up the configuration:
 ```{r}
 # Load the project configuration
 tools <- parse_config("../tools.yml")
-srcml_path <- get_tool_project("srcml", tools)
-
 conf <- parse_config("../conf/maven.yml")
 
+# srcML binary
+srcml_path <- get_tool_project("srcml", tools)
+# source code for annotation
 src_folder <- get_src_folder(conf)
+# output path for XML file
 srcml_filepath <- get_srcml_filepath(conf)
+
+# Filters
+get_file_extensions(conf)
+get_substring_filepath(conf)
 ```
 
 # Running the Syntax Extractor
