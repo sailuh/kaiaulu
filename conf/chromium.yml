@@ -30,7 +30,7 @@
 
 project:
   website: https://www.chromium.org/
-  #openhub: https://www.openhub.net/p/chrome/
+  openhub: https://www.openhub.net/p/chrome/
 
 version_control:
   # Where is the git log located locally?
