@@ -1,0 +1,137 @@
+---
+title: "Understand Showcase"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Understand Showcase}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+# Introduction
+
+Within a project, we might want to see the in-between file or in-between class dependencies. This notebook showcases how to obtain either dependencies using [Scitool's Understand](https://scitools.com)). Note you will need a license from Scitools to use this Notebook.
+
+
+```{r warning = FALSE, message = FALSE}
+rm(list = ls())
+require(kaiaulu)
+require(visNetwork)
+require(XML)
+require(stringi)
+require(igraph)
+require(data.table)
+require(gt)
+```
+
+# Project Configuration File
+
+For this notebook, we will use Apache Helix as an example. Refer to Helix project configuration file under the conf/ folder, in particular the `understand` section. For supported languages, see [scitools documentation](https://support.scitools.com/support/solutions/articles/70000582794-supported-languages).
+
+```{r}
+tool <- parse_config("../tools.yml")
+scitools_path <- get_tool_project("scitools", tool)
+
+conf <- parse_config("../conf/helix.yml")
+keep_dependencies_type <- get_understand_keep_dependencies_type(conf)
+project_path <- get_understand_project_path(conf)
+
+# Scitools
+understand_folder <- get_understand_output_path(conf)
+code_language <- get_understand_code_language(conf)
+
+db_path <- stringi::stri_c(understand_folder,"Understand.und")
+
+file_dependencies_path <- stringi::stri_c(understand_folder,"file_dependencies.xml")
+class_dependencies_path <- stringi::stri_c(understand_folder,"class_dependencies.xml")
+```
+
+
+# Build Understand DB
+
+To export dependencies, scitools require a `und` database to be created:
+
+```{r eval = FALSE}
+db_path <- build_understand_project(scitools_path = scitools_path, project_path = project_path, language = code_language, output_dir = understand_folder)
+```
+
+# Export Dependencies
+
+Subsequently, we can make our dependencies export out of the database. We can either export XML files or class dependencies.
+
+## File Dependencies
+
+```{r eval = FALSE}
+file_dependencies_path <- export_understand_dependencies(scitools_path = scitools_path, db_filepath = db_path, parse_type = "file", output_filepath = file_dependencies_path)
+```
+
+The XML files can then be parsed into tables for manipulation in Kaiaulu:
+
+```{r}
+file_dependencies <- parse_understand_dependencies(dependencies_path = file_dependencies_path)
+
+head(file_dependencies[["node_list"]])  %>%
+  gt(auto_align = FALSE)
+```
+
+```{r}
+head(file_dependencies[["edge_list"]])  %>%
+  gt(auto_align = FALSE)
+```
+
+
+## Class Dependencies
+
+The process to export and parse class dependencies is identical, save for specifying the `parse_type` to "class":
+
+```{r eval = FALSE}
+class_dependencies_path <- export_understand_dependencies(scitools_path = scitools_path, db_filepath = db_path, parse_type = "class", output_filepath = class_dependencies_path)
+```
+
+
+```{r}
+class_dependencies <- parse_understand_dependencies(dependencies_path = class_dependencies_path)
+                                                   
+head(class_dependencies[["node_list"]])  %>%
+  gt(auto_align = FALSE)
+```
+
+```{r}
+head(class_dependencies[["edge_list"]])  %>%
+  gt(auto_align = FALSE)
+```
+
+
+# Network Visualization
+
+We can display the parsed dependencies as a network. You can use the dependency_kind parameter to subset the dependencies used. Refer to [Kaiaulu wiki](https://github.com/sailuh/kaiaulu/wiki/Scitools) for the types of dependencies Scitools support.
+
+## File Network
+
+```{r}
+file_graph <- transform_understand_dependencies_to_network(parsed = file_dependencies, weight_types = c(keep_dependencies_type[2], keep_dependencies_type[5]))
+
+
+project_function_network <- igraph::graph_from_data_frame(d=file_graph[["edge_list"]], 
+                      directed = TRUE,
+                      vertices = file_graph[["node_list"]])
+visIgraph(project_function_network,randomSeed = 1)
+```
+
+
+## Class Network
+
+The same applies to outputting our class_dependencies, but we can visualize what our class dependency data is using the same parameters sans the parsed data table.
+
+```{r}
+class_graph <- transform_understand_dependencies_to_network(parsed = class_dependencies, weight_types = c(keep_dependencies_type[2], keep_dependencies_type[5]))
+
+project_function_network <- igraph::graph_from_data_frame(d=class_graph[["edge_list"]], 
+                      directed = TRUE,
+                      vertices = class_graph[["node_list"]])
+visIgraph(project_function_network,randomSeed = 1)
+```
+
