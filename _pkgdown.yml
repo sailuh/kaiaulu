@@ -95,14 +95,14 @@ reference:
 - title: __Mail__
   desc: >
       Download, parsing and data generation of mailing lists.
-      See the [Download Mbox](../articles/download_mod_mbox.html)
+      See the [Download Mail](../articles/download_mail.html)
       and [Reply](../articles/reply_communication_showcase.html)
       Notebooks for details.
 - contents:
   - download_pipermail
-  - convert_pipermail_to_mbox
+  - refresh_pipermail
   - download_mod_mbox
-  - download_mod_mbox_per_month
+  - refresh_mod_mbox
   - parse_mbox
   - make_mbox_reply
   - make_mbox_mailing_list
@@ -204,11 +204,6 @@ reference:
   - is_same_identity
   - assign_exact_identity
   - identity_match
-- title: __Interval__
-  desc:  Provides different types of interval windows (e.g. release) for metric functions.
-- contents:
-  - interval_commit_metric
-  - get_date_from_commit_hash
 - title: __Metrics__
   desc: >
       Various metrics used to estimate code quality,
@@ -356,3 +351,10 @@ reference:
   - get_window_end_commit
   - get_window_size
   - get_window_start_commit
+- title: __Interval__
+  desc:  Provides different types of interval windows (e.g. release) for metric functions.
+- contents:
+  - interval_commit_metric
+  - get_date_from_commit_hash
+  - process_gz_to_mbox_in_folder
+  - parse_mbox_latest_date

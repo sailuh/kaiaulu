@@ -2,14 +2,14 @@
 % Please edit documentation in R/mail.R
 \name{parse_mbox}
 \alias{parse_mbox}
-\title{Parse mbox from Perceval}
+\title{Parse Mbox}
 \usage{
-parse_mbox(perceval_path, mbox_path)
+parse_mbox(perceval_path, mbox_file_path)
 }
 \arguments{
 \item{perceval_path}{path to perceval binary}
 
-\item{mbox_path}{path to mbox archive file (ends in .mbox)}
+\item{mbox_file_path}{path to mbox archive file (ends in .mbox)}
 }
 \description{
 Parses an mbox file, which consists of emails in a mailbox, using the Perceval library.
@@ -25,15 +25,35 @@ Other parsers:
 \code{\link{parse_bugzilla_perceval_rest_issue_comments}()},
 \code{\link{parse_bugzilla_perceval_traditional_issue_comments}()},
 \code{\link{parse_bugzilla_rest_comments}()},
-\code{\link{parse_bugzilla_rest_issues_comments}()},
 \code{\link{parse_bugzilla_rest_issues}()},
+\code{\link{parse_bugzilla_rest_issues_comments}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
 \code{\link{parse_dv8_clusters}()},
 \code{\link{parse_gitlog}()},
+\code{\link{parse_jira}()},
 \code{\link{parse_jira_latest_date}()},
 \code{\link{parse_jira_rss_xml}()},
+\code{\link{parse_mbox_latest_date}()},
+\code{\link{parse_nvdfeed}()},
+\code{\link{parse_understand_dependencies}()}
+
+Other parsers: 
+\code{\link{build_understand_project}()},
+\code{\link{export_understand_dependencies}()},
+\code{\link{parse_bugzilla_perceval_rest_issue_comments}()},
+\code{\link{parse_bugzilla_perceval_traditional_issue_comments}()},
+\code{\link{parse_bugzilla_rest_comments}()},
+\code{\link{parse_bugzilla_rest_issues}()},
+\code{\link{parse_bugzilla_rest_issues_comments}()},
+\code{\link{parse_commit_message_id}()},
+\code{\link{parse_dependencies}()},
+\code{\link{parse_dv8_clusters}()},
+\code{\link{parse_gitlog}()},
 \code{\link{parse_jira}()},
+\code{\link{parse_jira_latest_date}()},
+\code{\link{parse_jira_rss_xml}()},
+\code{\link{parse_mbox_latest_date}()},
 \code{\link{parse_nvdfeed}()},
 \code{\link{parse_understand_dependencies}()}
 }
