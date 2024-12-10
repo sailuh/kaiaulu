@@ -22,10 +22,10 @@ require(gt,quietly=TRUE)
 
 doc <- "
 USAGE:
+  github parse help
+  github parse <project_conf.yml> <save_file_name_path> [--issues | --comments | --pr]
   github refresh help
-  github refresh issues <project_conf.yml> <save_file_name_path>
-  github refresh comments <project_conf.yml> <save_file_name_path>
-  github download Github help
+  github refresh <project_conf.yml> <project_key> [--issues | --comments | --pr]
   github (-h | --help)
   github --version
 
@@ -37,62 +37,106 @@ DESCRIPTION:
 OPTIONS:
   -h --help     Show this screen.
   --version     Show version.
+  --issues      Refreshes/Parses issues
+  --comments    Refreshes/Parses comments
+  --pr          Refreshes/Parses Pull Requests
 "
 
+arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9700')
 
+if(arguments[["refresh"]] & arguments[["help"]]) {
+  cli_alert_info("Downloads new data (whose type is specified by flags) from Github Rest API")
+} else if(arguments[["refresh"]]) {
 
-arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9600')
-if(arguments[["refresh"]] & arguments[["help"]]){
-  cli_alert_info("Downloads new data from Github Rest API")
-}else if(arguments[["refresh"]] & arguments [["issues"]]){
+  conf_path <- arguments[["<project_conf.yml>"]]
+  project_key <- arguments[["<project_key>"]]
 
+  conf <- yaml::read_yaml(conf_path)
+  # Path you wish to save all raw data. A folder with the repo name and sub-folders will be created.
+  owner <- get_github_owner(conf, "project_key_1") # Has to match github organization (e.g. github.com/sailuh)
+  repo <- get_github_repo(conf, "project_key_1") # Has to match github repository (e.g. github.com/sailuh/perceive)
+  # your file github_token (a text file) contains the GitHub token API
+  token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
+
+  if (arguments[["--issues"]]) {
+    save_path_issue <- get_github_issue_path(conf, project_key)
+
+    gh_response <- github_api_project_issue(owner,repo,token)
+    dir.create(save_path_issue)
+    github_api_iterate_pages(token,gh_response,
+                             save_path_issue,
+                             prefix="issue",
+                             verbose = TRUE)
+
+    cli_alert_success(paste0("Downloaded new Github issues saved at: ", save_path_issue))
+  } else if(arguments [["--pr"]]){
+    save_path_pull_request <- get_github_pull_request_path(conf, project_key)
+
+    gh_response <- github_api_project_pull_request(owner,repo,token)
+    dir.create(save_path_pull_request)
+    github_api_iterate_pages(token,gh_response,
+                             save_path_pull_request,
+                             prefix="pull_request",
+                             verbose = TRUE)
+
+    cli_alert_success(paste0("Downloaded new Github Pull Requests saved at: ", save_path_pull_request))
+  } else if(arguments [["--comments"]]){
+    save_path_issue_or_pr_comments <- path.expand(get_github_issue_or_pr_comment_path(conf, project_key))
+
+    dir.create(save_path_issue_or_pr_comments)
+    github_api_iterate_pages(token,gh_response,
+                             save_path_issue_or_pr_comments,
+                             prefix="issue_or_pr_comment",
+                             verbose= TRUE)
+
+    cli_alert_success(paste0("Downloaded new Github issue or PR comments saved at: ", save_path_issue_or_pr_comments))
+  }
+} else if(arguments[["parse"]] & arguments[["help"]]) {
+  cli_alert_info("Parses downloaded data (whose type is specified by flags) and saves into a csv denoted by <save_file_name_path>")
+} else if(arguments[["parse"]]) {
   conf_path <- arguments[["<project_conf.yml>"]]
   save_path <- arguments[["<save_file_name_path>"]]
 
-  conf <- yaml::read_yaml(conf_path)
+  if (arguments[["--issues"]]) {
+    save_path_issue <- get_github_issue_path(conf, project_key)
 
-  save_path <- path.expand(conf[["issue_tracker"]][["github"]][["replies"]])
-  save_path_issue_refresh <- paste0(save_path,"/issue_search/")
-  save_path_issue <- paste0(save_path,"/issue/")
-  save_path_issue_or_pr_comments <- paste0(save_path,"/issue_or_pr_comment/")
-  # Path you wish to save all raw data. A folder with the repo name and sub-folders will be created.
-  owner <- conf[["issue_tracker"]][["github"]][["owner"]] # Has to match github organization (e.g. github.com/sailuh)
-  repo <- conf[["issue_tracker"]][["github"]][["repo"]] # Has to match github repository (e.g. github.com/sailuh/perceive)
-  # your file github_token (a text file) contains the GitHub token API
-  token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
+    all_issue <- lapply(list.files(save_path_issue,
+                                   full.names = TRUE),read_json)
+    all_issue <- lapply(all_issue,
+                        github_parse_project_issue)
+    all_issue <- rbindlist(all_issue,fill=TRUE)
 
-  gh_response <- github_api_project_issue_refresh(owner,
-                                                  repo,
-                                                  token,
-                                                  save_path_issue_refresh,
-                                                  verbose=TRUE)
-  github_api_iterate_pages(token,gh_response,
-                           save_path_issue_refresh,
-                           prefix="issue",
-                           verbose=TRUE)
+    data.table::fwrite(all_issue, save_path)
+    cli::cli_alert_success(paste0("Dependencies table was saved at: ", save_path))
+  } else if(arguments [["--pr"]]){
+    save_path_pull_request <- get_github_pull_request_path(conf, project_key)
 
-  cli_alert_success(paste0("Downloaded new Github issues saved at: ",save_path_issue_refresh))
-}else if(arguments[["refresh"]] & arguments [["comments"]]){
+    all_pr <- lapply(list.files(save_path_pull_request,
+                                full.names = TRUE),read_json)
+    all_pr <- lapply(all_pr,
+                     github_parse_project_pull_request)
+    all_pr <- rbindlist(all_pr,fill=TRUE)
 
-  conf <- yaml::read_yaml("../conf/kaiaulu.yml")
-  save_path <- path.expand(conf[["issue_tracker"]][["github"]][["replies"]])
-  save_path_issue_or_pr_comments <- paste0(save_path,"/issue_or_pr_comment/")
-  # Path you wish to save all raw data. A folder with the repo name and sub-folders will be created.
-  owner <- conf[["issue_tracker"]][["github"]][["owner"]] # Has to match github organization (e.g. github.com/sailuh)
-  repo <- conf[["issue_tracker"]][["github"]][["repo"]] # Has to match github repository (e.g. github.com/sailuh/perceive)
-  # your file github_token (a text file) contains the GitHub token API
-  token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
+    data.table::fwrite(all_pr, save_path)
+    cli::cli_alert_success(paste0("Dependencies table was saved at: ", save_path))
+  } else if(arguments [["--comments"]]){
+    save_path_issue_or_pr_comments <- path.expand(get_github_issue_or_pr_comment_path(conf, project_key))
 
-  gh_response_issue_or_pr_comment <- github_api_project_issue_or_pr_comment_refresh(owner,
-                                                                                    repo,
-                                                                                    token, save_path_issue_or_pr_comments, verbose=TRUE)
+    all_issue_or_pr_comments <- lapply(list.files(save_path_issue_or_pr_comments,
+                                                  full.names = TRUE),read_json)
+    all_issue_or_pr_comments <- lapply(all_issue_or_pr_comments,
+                                       github_parse_project_issue_or_pr_comments)
+    all_issue_or_pr_comments <- rbindlist(all_issue_or_pr_comments,fill=TRUE)
 
-  # create directory and iterate over data
-  #dir.create(save_path_issue_or_pr_comments)
-  github_api_iterate_pages(token,gh_response_issue_or_pr_comment,
-                           save_path_issue_or_pr_comments,
-                           prefix="issue_or_pr_comment",
-                           verbose=TRUE)
+    data.table::fwrite(all_issue_or_pr_comments, save_path)
+    cli::cli_alert_success(paste0("Dependencies table was saved at: ", save_path))
+  }
+} else if (arguments[["-h"]] || arguments[["--help"]]) {
+  cli::cli_alert_info(doc)
+} else if (arguments[["--version"]]) {
+  cli::cli_alert_info('Kaiaulu 0.0.0.9700')
+} else {
+  stop("No/invalid option(s) provided.")
 }
 
 
