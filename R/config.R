@@ -186,11 +186,7 @@ create_file_directory <- function(conf, verbose = TRUE) {
 create_file_path <- function(filepath, verbose= TRUE) {
   if (!is.null(filepath)) {
     # Check if the filepath already exists
-    if (dir.exists(filepath)) {
-      if (verbose) {
-        message("Filepath: ", filepath, " already exists.")
-      }
-    } else {
+    if (!dir.exists(filepath)) {
       # Create the filepath
       dir.create(filepath, recursive= TRUE)
       if (verbose) {

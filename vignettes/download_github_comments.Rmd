@@ -374,6 +374,8 @@ tail(all_pr,1)  %>%
 ## Pull Request Review Comments Endpoint
 
 Other information we can obtain is the review comments from Pull Requests that contain the inline code blocks.
+The review comments include the diff_hunk field, which is a string that contains the in-line code reviewers may comment on the pull request. The particular line numbers the comment is referencing is specified by the review comment. More information on the fields can be seen on the function definition for `github_parse_project_pr_comments`.
+These fields of data can greatly contribute to finding and analyzing patterns in collaboration between developers.
 
 ```{r Collect Review Comments from Pull Requests}
 gh_response <- github_api_project_pr_comments_refresh(owner, repo, token)

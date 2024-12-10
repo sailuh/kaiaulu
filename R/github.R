@@ -239,7 +239,7 @@ github_parse_project_issue_events <- function(api_responses){
 #' @param query Optional query to append to search api
 #' @param issue_or_pr This specifies whether issues or pull requests are being searched for.
 #' Acceptable inputs are "is:issue" or "is:pull-request".
-#' @param verbose Prints operational messages when se to true such as stating the search query.
+#' @param verbose Prints operational messages when set to true such as stating the search query.
 #' @references For details, see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}.
 #' @references For details on timestampes, se \url{https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated}
 #' @export
@@ -845,19 +845,24 @@ github_parse_project_pr_comments <- function(api_responses) {
 github_api_project_pr_comments_refresh <- function(owner,repo,token,file_save_path=save_path_pr_comments,verbose=TRUE){
   # Check if the file is empty by checking its size
   # List all files and subdirectories in the directory
-  contents <- list.files(path = save_path_pr_comments)
-
+  contents <- list.files(path = file_save_path)
   # If the file is empty, download all pr comments
   if(length(contents) == 0) {
+    if (verbose) {
+      message(file_save_path, " filepath is empty, running regular downloader.")
+    }
     # Run regular downloader
     pr_comments <- github_api_project_pr_comments(owner,repo,token)
     return (pr_comments)
   } else {
     # Get the name of the file with the most recent date
-    latest_updated_pr_comments <- paste0(file_save_path, parse_jira_latest_date(save_path_pr_comments))
+    latest_updated_pr_comments <- paste0(file_save_path, parse_jira_latest_date(file_save_path))
     latest_updated_pr_comments <- (head(latest_updated_pr_comments,1))
+
+    if (verbose) {
+      message("File with most recent date: ", latest_updated_pr_comments)
+    }
     # get the created_at value
-    message("got file", latest_updated_pr_comments)
     created <- format_created_at_from_file(latest_updated_pr_comments, item="")
 
     # Convert the string to a POSIXct object
