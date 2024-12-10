@@ -11,24 +11,24 @@ USAGE:
   understand.R (-h | -help)
   understand.R --version
   understand.R build help
-  understand.R build <config_filepath>
+  understand.R build <config_filepath.yml>
   understand.R parse help
-  understand.R parse <config_filepath> <save_path> [--class | --file]
+  understand.R parse <config_filepath.yml> <save_path> [--class | --file]
 
 DESCRIPTION:
   Builds then analyzes a project using Scitool's Understand for dependencies between either classes or files.
 
 OPTIONS:
-  --class   parses class-level dependencies
-  --file    parses file-level dependencies
+  -h --help     Show this screen.
+  --version     Show version.
+  --class       parses class-level dependencies
+  --file        parses file-level dependencies
 "
 
 arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9700')
 
-# Currently unsure how variables would work
-
 if (!arguments[["help"]]) {
-  conf <- parse_config(arguments[["<config_filepath>"]])
+  conf <- parse_config(arguments[["<config_filepath.yml>"]])
   project_path <- get_understand_project_path(conf)
   understand_folder <- get_understand_output_path(conf)
   code_language <- get_understand_code_language(conf)
@@ -44,7 +44,7 @@ if (!dir.exists(understand_folder) & (arguments[["build"]] | arguments[["parse"]
 
 # Determine which function to run and save output
 if (arguments[["build"]] & arguments[["help"]]) {
-  cli::cli_alert_info("Builds an analysis of the project in the designated project_path set in the <config_filepath> using build_understand_project()")
+  cli::cli_alert_info("Builds an analysis of the project in the designated project_path set in the <config_filepath.yml> using build_understand_project()")
 } else if (arguments[["parse"]] & arguments[["help"]]) {
   cli::cli_alert_info("From the built analysis, parses the dependency types of either files or classes (dependening on supplied flag) using parse_understand_dependencies() and saves two tables at the specified folder: <save_path>")
 } else if (arguments[["build"]]) {
