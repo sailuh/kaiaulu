@@ -13,14 +13,8 @@ vignette: >
 
 # Introduction
 
-Within a project, we might want to see the dependencies of files and classes between themselves respectively. parse_r_dependencies and parse_dependencies uses in-house or Depends software respectively to analyze projects. parse_dependencies only provides file dependencies, while parse_r_dependencies provides file and function dependencies for a set of R files. Having Understand installed, we can analyze projects for both file and class dependencies in multiple languages like Java, PHP, HTML, C/C++, Python, Assembly, Ada, etc.
+Within a project, we might want to see the in-between file or in-between class dependencies. This notebook showcases how to obtain either dependencies using [Scitool's Understand](https://scitools.com)). Note you will need a license from Scitools to use this Notebook.
 
-Here is more information on [Scitool's Understand](https://scitools.com)).
-
-This notebook demonstrates a sample use case of the two functions that generates tables from the dependency data Understand outputs without opening Understand.
-
-
-# Required libraries
 
 ```{r warning = FALSE, message = FALSE}
 rm(list = ls())
@@ -30,85 +24,97 @@ require(XML)
 require(stringi)
 require(igraph)
 require(data.table)
+require(gt)
 ```
 
 # Project Configuration File
-For our variables we will be grabbing them from our configuration file kaiaulu.yml. We will provide a short insight into what we're doing throughout the notebook, but to summarize:
-- Our folder and path will be saved into the rawdata and analysis folders respectively
-- Within the configuration file, keep_dependencies_type is a list of dependency types that Understand finds for analysis
-- And our code_language. Although self-explanatory, Understand supports [many languages](https://support.scitools.com/support/solutions/articles/70000582794-supported-languages)- but for today we will be analyzing a Java project.
+
+For this notebook, we will use Apache Helix as an example. Refer to Helix project configuration file under the conf/ folder, in particular the `understand` section. For supported languages, see [scitools documentation](https://support.scitools.com/support/solutions/articles/70000582794-supported-languages).
 
 ```{r}
-conf <- parse_config("../conf/kaiaulu.yml")
+tool <- parse_config("../tools.yml")
+scitools_path <- get_tool_project("scitools", tool)
+
+conf <- parse_config("../conf/helix.yml")
 keep_dependencies_type <- get_understand_keep_dependencies_type(conf)
 project_path <- get_understand_project_path(conf)
+
+# Scitools
 understand_folder <- get_understand_output_path(conf)
 code_language <- get_understand_code_language(conf)
+
+db_path <- stringi::stri_c(understand_folder,"Understand.und")
+
+file_dependencies_path <- stringi::stri_c(understand_folder,"file_dependencies.xml")
+class_dependencies_path <- stringi::stri_c(understand_folder,"class_dependencies.xml")
 ```
 
-## Parse a sample project folder
 
-For sample purposes, we will use the project from [Houari Zegai's Calculator](https://github.com/HouariZegai/Calculator) saved into the folder ../../rawdata/kaiaulu/git_rep/understand/ This folder contains all the .java files that the project uses and the ones we will be analyzing. The directory where we will build the understand analysis base will be saved in a folder called understand
+# Build Understand DB
 
-# Build the Understand project
+To export dependencies, scitools require a `und` database to be created:
 
-Before asking for the generation of data or parsing through it, we must first build the Understand project data. Firstly, provide the project_path and the primary project language, which in this case is Java. There is a third parameter named output_dir where the project will be built at, so we will give it understand_folder. After building once, you do not need to call this function again unless you have changed files within the project that would need to be re-analyzed.
+```{r eval = FALSE}
+db_path <- build_understand_project(scitools_path = scitools_path, project_path = project_path, language = code_language, output_dir = understand_folder)
+```
 
-Please remember/save where the folder is generated as it is necessary for understand_parse_dependencies, but for the purpose of this notebook- we will save this output at ../../analysis/kaiaulu/understand
+# Export Dependencies
+
+Subsequently, we can make our dependencies export out of the database. We can either export XML files or class dependencies.
+
+## File Dependencies
+
+```{r eval = FALSE}
+file_dependencies_path <- export_understand_dependencies(scitools_path = scitools_path, db_filepath = db_path, parse_type = "file", output_filepath = file_dependencies_path)
+```
+
+The XML files can then be parsed into tables for manipulation in Kaiaulu:
 
 ```{r}
-build_understand_project(project_path = project_path, language = code_language, output_dir = understand_folder)
+file_dependencies <- parse_understand_dependencies(dependencies_path = file_dependencies_path)
+
+head(file_dependencies[["node_list"]])  %>%
+  gt(auto_align = FALSE)
 ```
-
-
-# Generate Dependencies Network
-## For Files
-
-To generate a list containing the node and edge data.tables containing the file dependencies of the project, we will provide it the file path to the built Understand project folder and the parse_type. In this case, we will tell Understand to build the "file" dependencies for us. Once again, providing understand_folder as the value for understand_dir.
-
-Note the format of the generated data.tables after running the below code.
 
 ```{r}
-file_dependencies <- parse_understand_dependencies(understand_dir = understand_folder, parse_type = "file")
-head(file_dependencies[["node_list"]])
-head(file_dependencies[["edge_list"]])
+head(file_dependencies[["edge_list"]])  %>%
+  gt(auto_align = FALSE)
 ```
 
 
-## For Classes
+## Class Dependencies
 
-Near-identical to parsing for file dependencies, class dependencies only requires us change the parse_type to "class". In the output folder, this .xml will be separate from the one generated for file dependencies: fileDependencies.xml and classDependencies.xml respectively.
+The process to export and parse class dependencies is identical, save for specifying the `parse_type` to "class":
 
-The generated data is in the same format, however note the different types of dependency types in the edge_table.
+```{r eval = FALSE}
+class_dependencies_path <- export_understand_dependencies(scitools_path = scitools_path, db_filepath = db_path, parse_type = "class", output_filepath = class_dependencies_path)
+```
+
 
 ```{r}
-class_dependencies <- parse_understand_dependencies(understand_dir = understand_folder, parse_type = "class")
-head(class_dependencies[["node_list"]])
-head(class_dependencies[["edge_list"]])
+class_dependencies <- parse_understand_dependencies(dependencies_path = class_dependencies_path)
+                                                   
+head(class_dependencies[["node_list"]])  %>%
+  gt(auto_align = FALSE)
+```
+
+```{r}
+head(class_dependencies[["edge_list"]])  %>%
+  gt(auto_align = FALSE)
 ```
 
 
-# Transforming to Network
-## For Files
+# Network Visualization
 
-To filter out edges by their dependency_kind we can call transform_und_dependencies_to_network. Although this function performs as a simple sub-setter (filters for the provided dependency types), as the parsed data is a valid network, this function is kept for consistency across our parser functions.
+We can display the parsed dependencies as a network. You can use the dependency_kind parameter to subset the dependencies used. Refer to [Kaiaulu wiki](https://github.com/sailuh/kaiaulu/wiki/Scitools) for the types of dependencies Scitools support.
 
-Back to the function, all we need to do is provide the generated data into parsed and the vector containing the filter weights into weight_types.
-
-Some valid weight_types that are included are:
-- Import (1)
-- Call (2)
-- Create (3)
-- Use (4)
-- Type GenericArgument (5)
-
-NOTE: These weight_types are listed in the same order saved into our keep_dependencies_type variable pulled from kaiaulu.yml, and are a list (note the index numbers provided next to each itemized list). Here is a [good place to start](https://documentation.scitools.com/pdf/understand.pdf) for reading on dependencies generated from Understand.
- 
-Apart from having a filtered edge_table, this data can also be used for inputting into graph_from_data_frame and visIgraph to visualize the table as a graph, as shown below where we filter by Call and Type GenericArgument.
+## File Network
 
 ```{r}
 file_graph <- transform_understand_dependencies_to_network(parsed = file_dependencies, weight_types = c(keep_dependencies_type[2], keep_dependencies_type[5]))
-head(file_graph)
+
+
 project_function_network <- igraph::graph_from_data_frame(d=file_graph[["edge_list"]], 
                       directed = TRUE,
                       vertices = file_graph[["node_list"]])
@@ -116,13 +122,13 @@ visIgraph(project_function_network,randomSeed = 1)
 ```
 
 
-## For Classes
+## Class Network
 
 The same applies to outputting our class_dependencies, but we can visualize what our class dependency data is using the same parameters sans the parsed data table.
 
 ```{r}
 class_graph <- transform_understand_dependencies_to_network(parsed = class_dependencies, weight_types = c(keep_dependencies_type[2], keep_dependencies_type[5]))
-head(class_graph)
+
 project_function_network <- igraph::graph_from_data_frame(d=class_graph[["edge_list"]], 
                       directed = TRUE,
                       vertices = class_graph[["node_list"]])

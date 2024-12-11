@@ -5,54 +5,74 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 ############## Understand Project Builder ##############
-#' Build Understand Analysis Folder
+
+#' Build Understand DB
 #'
-#' @description This function builds the data files for Understand from the project_path folder, reading from files that are written in the target language into output_dir
+#' Uses Scitools Understand to create a source code project Und Database.
 #'
-#' @param project_path path to the project folder to analyze
+#' @param scitools_path path to the scitools binary `und`
+#' @param project_path path to the project source code folder to create the Understand DB.
 #' @param language the primary language of the project (language must be supported by Understand)
 #' @param output_dir path to output directory (formatted output_path/)
+#'
+#' @return The created Scitools Understand DB path
+#' @references See pg. 352 in https://documentation.scitools.com/pdf/understand.pdf Sept. 2024 Edition
 #' @export
 #' @family parsers
-build_understand_project <- function(project_path, language, output_dir){
+build_understand_project <- function(scitools_path, project_path, language, output_dir){
+
+  scitools_path <- path.expand(scitools_path)
+
   # Create variables for command line
-  command <- "und"
+  command <- scitools_path
   project_path <- shQuote(project_path) # Quoting the project path
   db_dir <- file.path(output_dir, "Understand.und")
   args <- c("create", "-db", db_dir, "-languages", language)
 
   # Build the Understand project by parsing through using Understand's und command
-  # Derived from pg. 352 in https://documentation.scitools.com/pdf/understand.pdf Sept. 2024 Edition
-  system2(command, args)
+  build_output <- system2(command, args)
   args <- c("-db", db_dir, "add", project_path)
-  system2(command, args)
-  args <- c("analyze", db_dir)
-  system2(command, args)
+  db_output <- system2(command, args)
+  analyze_output <- args <- c("analyze", db_dir)
+  output <- system2(command, args)
+
+  return(db_dir)
 
 }
 
-############## Parsers ##############
-#' Parse Built Folder to Network
+#' Extract Understand Dependencies
 #'
-#' @description This function parses the data in the Understand build folder to export the parse_type dependencies into a network
+#' Extract the XML dependency file for either class or file granularity from
+#' an understand DB.
 #'
-#' @param understand_dir path to the built Understand project folder used in \code{\link{build_understand_project}}
+#' @param scitools_path path to the scitools binary `und`
+#' @param db_path path to the scitools DB (see \code{\link{build_understand_project}})
 #' @param parse_type Type of dependencies to generate into xml (either "file" or "class")
+#' @param output_filepath path to the output XML filepath of dependencies
+#'
+#' @return The output directory where the db will be created, i.e. output_dir parameter.
+#' @references See pg. 352 in https://documentation.scitools.com/pdf/understand.pdf Sept. 2024 Edition
 #' @export
 #' @family parsers
-parse_understand_dependencies <- function(understand_dir, parse_type = c("file", "class")) {
+export_understand_dependencies <- function(scitools_path, db_filepath, parse_type = c("file", "class"), output_filepath){
+
+  scitools_path <- path.expand(scitools_path)
+
   # Before running, check if parse_type is correct
   parse_type <- match.arg(parse_type)
 
   # Create the variables used in command lines
-  db_dir <- file.path(understand_dir, "Understand.und")
-  file_name <- paste0(parse_type, "Dependencies.xml")
-  xml_dir <- file.path(db_dir, file_name)
+  #db_dir <- file.path(understand_dir, "Understand.und")
+
+  #file_name <- paste0(parse_type, "Dependencies.xml")
+  #xml_dir <- file.path(db_dir, file_name)
 
   # Generate the XML file
   # Derived from pg. 352 in https://documentation.scitools.com/pdf/understand.pdf Sept. 2024 Edition
-  args <- c("export", "-dependencies", parse_type, "cytoscape", xml_dir, db_dir)
-  system2("und", args)
+  args <- c("export", "-dependencies", parse_type, "cytoscape", output_filepath, db_filepath)
+  output <- system2(scitools_path, args)
+
+  return(output_filepath)
 
   # Generated XML file is assumed to be in this approximate format (regardless of parse_type) using Understand Build 1202
   # <graph ...>
@@ -76,8 +96,21 @@ parse_understand_dependencies <- function(understand_dir, parse_type = c("file",
   #   ... [Other edges sharing the format]
 
 
+}
+
+############## Parsers ##############
+
+#' Parse Scitools Understand Dependencies XML
+#'
+#' Parses either a file or class scitools understand dependency XML to table.
+#'
+#' @param dependencies_path path to the exported Understand dependencies file (see \code{\link{export_understand_dependencies}}).
+#' @export
+#' @family parsers
+parse_understand_dependencies <- function(dependencies_path) {
+
   # Parse the XML file
-  xml_data <- xmlParse(xml_dir)  # Creates pointer to file
+  xml_data <- xmlParse(dependencies_path)  # Creates pointer to file
   xml_nodes <- xmlRoot(xml_data)  # Finds the head: graph
   xml_nodes <- xmlChildren(xml_nodes)
   # xml_nodes now contains the nodes and edges (which were children of graph) and also graph's atts
@@ -347,6 +380,7 @@ parse_r_dependencies <- function(folder_path){
 }
 
 ############## Network Transform ##############
+
 #' Transform Understand Dependencies
 #'
 #' @description This function subsets a parsed table from parse_understand_dependencies
@@ -359,6 +393,14 @@ transform_understand_dependencies_to_network <- function(parsed, weight_types) {
 
   nodes <- parsed[["node_list"]]
   edges <- parsed[["edge_list"]]
+
+  # Create an ID column, as the file name in a label may occur
+  # again in other parts of the code.
+
+  nodes$node_label <- stringi::stri_c(nodes$node_label,"|",nodes$id)
+
+  edges$label_from <- stringi::stri_c(edges$label_from,"|",edges$id_from)
+  edges$label_to <- stringi::stri_c(edges$label_to,"|",edges$id_to)
 
   # Filter out by weights if vector provided
   if (length(weight_types) > 0) {
