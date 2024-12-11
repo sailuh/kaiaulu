@@ -42,7 +42,7 @@ version_control:
     - master
 
 mailing_list:
-  mod_mbox: 
+  mod_mbox:
     project_key_1:
       mailing_list: http://mail-archives.apache.org/mod_mbox/spark-dev
       save_folder_path: ../../rawdata/spark/mod_mbox/save_mbox_mail/

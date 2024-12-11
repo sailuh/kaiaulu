@@ -30,7 +30,7 @@
 
 project:
   website: https://github.com/apache/camel
-  #openhub: https://www.openhub.net/p/apache_portable_runtime
+  openhub: https://www.openhub.net/p/apache_portable_runtime
 
 version_control:
   # Where is the git log located locally?
