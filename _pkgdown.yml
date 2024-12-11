@@ -371,4 +371,6 @@ reference:
   - openhub_parse_projects
   - openhub_parse_analyses
   - openhub_api_iterate_pages
+  - openhub_download
+  - openhub_retrieve
 

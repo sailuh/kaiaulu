@@ -376,8 +376,9 @@ openhub_parse_analyses <- function(api_responses) {
 #' \code{\link{openhub_api_analyses}}) for use in the file name
 #' (e.g. "Apache (Java_Test)" becomes "apachejavatest").
 #'
-#' @param save_folder_path A folder path to save the downloaded XML response file "as-is".
 #' @param api_response A single XML response file obtained from an openhub_api_* function.
+#' @param save_folder_path A folder path to save the downloaded XML response file "as-is".
+#' @param timestamp The integer UNIX time stamp.
 #' @param type The type of XML response file ("organization", "portfolio", "project", or "analysis").
 #' @param unique_information Identifying information about the type of XML response (Default set to NULL).
 #' @param page The page number of the response file (Default set to NULL).
@@ -447,7 +448,6 @@ openhub_api_iterate_pages <- function(token, openhub_api_function, save_folder_p
   initialXmlDoc <- XML::xmlParse(initial_api_response, validate=F)
   initialRoot <- XML::xmlRoot(initialXmlDoc)
   initialStatus <- XML::xmlValue(initialRoot[[1]]) # <status>
-  #print(paste0("Status: ", initialStatus))
   api_responses <- list()
 
   if (initialStatus == "success") {
@@ -455,10 +455,8 @@ openhub_api_iterate_pages <- function(token, openhub_api_function, save_folder_p
     initialItemsReturned <- XML::xmlValue(initialRoot[[2]]) # <items_returned>
     initialItemsAvailable <- XML::xmlValue(initialRoot[[3]]) # <items_available>
     if (!is.na(initialItemsAvailable)) {
-      #print(paste0("Items per page / Available Items: ", initialItemsAvailable, " / ", initialItemsReturned))
       maxPageCount <- ceiling(as.numeric(initialItemsAvailable)/as.numeric(initialItemsReturned)) # If the requested XML response file returned successfully, but is only one page with one item, then its maxPageCount is set to 1.
     }
-    #print(paste0("maxPageCount is: ", maxPageCount))
 
     if (!is.nan(maxPageCount)){
       if (!is.null(max_pages)) {

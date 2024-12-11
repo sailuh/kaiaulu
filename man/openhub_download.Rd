@@ -18,6 +18,8 @@ openhub_download(
 
 \item{save_folder_path}{A folder path to save the downloaded XML response file "as-is".}
 
+\item{timestamp}{The integer UNIX time stamp.}
+
 \item{type}{The type of XML response file ("organization", "portfolio", "project", or "analysis").}
 
 \item{unique_information}{Identifying information about the type of XML response (Default set to NULL).}
