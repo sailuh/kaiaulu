@@ -504,141 +504,6 @@ github_api_discussions <- function(token, owner, repo, save_folder_path, max_pag
   }
 }
 
-#' Refresh for Github Discussions downloader
-#'
-#' Download Discussions from GraphQL API endpoint.
-#' Uses a query to only obtain data defined by the user.
-#' Checks if the folder to download is empty, and calls the regular downloader it it is.
-#' It then checks the downloaded JSON filenames to compare with the most recent discussion createdAt dates,
-#' formatted as POSIXct (%Y-%m-%dT%H:%M:%SZ, UTC).
-#' GitHub API endpoints return data in pages, each containing by default 100 entries.
-#' This function by default iterates over the next page in order to download all the
-#' project's data available from the endpoint (up to the remaining
-#' available requests in the used user's token).
-#' The user can also define the maximum number of pages to download.
-#'
-#' @param token Your Github API token
-#' @param owner Github's repository owner (e.g. sailuh)
-#' @param repo Github's repository name (e.g. kaiaulu)
-#' @param save_folder_path A folder path to save the downloaded json pages "as-is".
-#' @references For details, see \url{https://docs.github.com/en/graphql/guides/using-the-graphql-api-for-discussions}
-#' @export
-github_api_discussions_refresh <- function(token, owner, repo, save_folder_path) {
-  # List all json files within the save_path_folder
-  print("List files in save_folder_path: ", list.files(save_folder_path))
-  print(save_folder_path)
-  json_contents <- list.files(save_folder_path, pattern= "\\.json$", full.names = TRUE, recursive= TRUE)
-  contents <- list.files(save_folder_path, all.files = TRUE)
-  print(json_contents)
-  print(contents)
-  print(length(contents)==0)
-
-  # If there are no json files, download all discussions
-  if (length(contents) == 0 ) {
-    # Run the regular downloader
-    discussions <- github_api_discussions(token, owner, repo, save_folder_path)
-    return (discussions)
-  }
-
-  # Get the name of the file with the most recent date
-  latest_discussion <- contents[which.max(sapply(contents, function (filename) {
-    # Use regex to get timestamp
-    as.numeric(sub(".*_(\\d+)\\.json$", "\\1", basename(filename)))
-  }))]
-
-  # Read the JSON file
-  json_data <- fromJSON(file.path(save_folder_path, latest_discussion), simplifyVector = FALSE)
-  # Get the created_at values
-  created_at <- sapply(json_data[["data"]][["repository"]][["discussions"]][["edges"]],
-                       function (edge) edge[["node"]][["createdAt"]])
-  # Find the latest created_at
-  created_at <- max(created_at)
-  # Convert to a POSIXct object
-  created_at <- as.POSIXct(created_at, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
-  # Add one second
-  created_at <- created_at + 1
-  # Convert back to original
-  created_at <- format(created_at, "%Y-%m-%dT%H:%M:%SZ")
-
-  page_number <- 1
-  cursor <- NULL
-  while (TRUE) {
-    # Form a new query
-    query <- paste0('query {
-      repository (owner:"', owner, '", name:"', repo, '") {
-        discussions (first: 100, orderBy: {field: CREATED_AT, direction: ASC}, after: "', created_at, '") {
-          pageInfo {
-            hasNextPage
-            endCursor
-          }
-          edges {
-            node {
-              title
-              bodyText
-              author { login }
-              createdAt
-              category { name }
-              id
-              answer { id }
-              comments(first: 100) {
-                edges {
-                  node {
-                    discussion { id }
-                    bodyText
-                    author { login }
-                    id
-                    createdAt
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }')
-    # Make a new API call with the query
-    gh_response <- gh::gh("POST /graphql", query=query, .token=token)
-
-    # Check if response has new discussions
-    if (length(gh_response[["data"]][["repository"]][["discussions"]][["edges"]]) == 0 && verbose) {
-      message("No new discussions")
-      break
-    }
-
-    # Make the list of all created_dates
-    created_dates <- sapply(gh_response[["data"]][["repository"]][["discussions"]][["edges"]],
-                            function(edge) edge[["node"]][["createdAt"]])
-    # Remove NULL entries from created_dates
-    created_dates <- Filter(Negate(is.null), created_dates)
-
-    # Convert to POSIXct date objects
-    date_objects <- as.POSIXct(created_dates, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
-
-    # Find the greatest and smallest date
-    latest_date <- max(date_objects)
-    latest_date_unix <- as.numeric(latest_date)
-    oldest_date <- min(date_objects)
-    oldest_date_unix <- as.numeric(oldest_date)
-
-    # Construct the file_name
-    file_name <- paste0(save_folder_path,
-                        owner, "_", repo, "_", oldest_date_unix, "_", latest_date_unix,
-                        ".json")
-    # Save the json to the folder path
-    write_json(gh_response, file_name, pretty=TRUE, auto_unbox=TRUE)
-
-    has_next_page <- gh_response[["data"]][["repository"]][["discussions"]][["pageInfo"]][["hasNextPage"]]
-
-    if (has_next_page){
-      cursor <- gh_response[["data"]][["repository"]][["discussions"]][["pageInfo"]][["endCursor"]]
-      page_number <- page_number + 1
-    }
-    else {
-      break
-    }
-  }
-}
-
 #' Parse Discussions JSON to Table
 #'
 #' @description This function parses through the JSON of Github Discussions
@@ -676,6 +541,9 @@ github_parse_discussions <- function(api_response) {
 #' downloaded from the `github_api_discussions` function, and turns it into
 #' a table. This function only parses through the Discussion comments within
 #' the JSON, and does not parse the discussion themselves.
+#' `parent_discussion_id` is a string value that will match with a `discussion_id`
+#' from the `github_parse_discussions` function, indicating which discussion the comment
+#' is a response to.
 #'
 #' @param api_response API response obtained from `github_api_discussions` function.
 #' @return The parsed table of Discussion Comments.

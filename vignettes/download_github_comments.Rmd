@@ -47,13 +47,13 @@ This can be done manually, or they can be obtained from the parsed configuration
 Naturally, the file paths used for the downloaders must also exist on your local device.
 
 ```{r warning=FALSE}
+# Parsed configuration file for required information
+conf <- parse_config("../conf/kaiaulu.yml")
+
 owner <- get_github_owner(conf, "project_key_1") # Has to match github organization (e.g. github.com/sailuh)
 repo <- get_github_repo(conf, "project_key_1") # Has to match github repository (e.g. github.com/sailuh/perceive)
 # your file github_token (a text file) contains the GitHub token API
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
-
-# Parsed configuration file for required information
-conf <- parse_config("../conf/kaiaulu.yml")
 
 # Path you wish to save all raw data.
 save_path_issue_refresh <- get_github_issue_search_path(conf, "project_key_1")
