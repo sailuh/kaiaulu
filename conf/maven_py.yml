@@ -12,7 +12,8 @@ filter:
     - test
     - example
 
-srcml:
+tool:
   # path to the folder to analyze
-  src_folder: ../../maven/
-  srcml_filepath: ../../analysis/maven/srcml_output.xml
+  srcml:
+    src_folder: ../../maven/
+    srcml_filepath: ../../analysis/maven/srcml_output.xml
