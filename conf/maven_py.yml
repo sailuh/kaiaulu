@@ -1,0 +1,19 @@
+# Project Configuration File for Maven Project
+project:
+  website: https://github.com/apache/maven
+
+filter:
+  # File extensions to include in the analysis
+  keep_filepaths_ending_with:
+    - .java
+    - .xml
+  # File paths to exclude from the analysis (e.g., test files)
+  remove_filepaths_containing:
+    - test
+    - example
+
+tool:
+  # path to the folder to analyze
+  srcml:
+    src_folder: ../../maven/
+    srcml_filepath: ../../analysis/maven/srcml_output.xml

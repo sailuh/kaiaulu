@@ -24,7 +24,7 @@ You should also install the identifier splitter, [Spiral](https://github.com/cas
 
 `sudo pip3 install git+https://github.com/casics/spiral.git`
 
-Finally,because we require interacting with Python to use this library, you should install the `reticulate` R package. If `install.package('reticulate')` fails due to any error, try to `install.package('Rcpp')` and then re-attempt. You must specify the local Python version which you installed Spiral when using RStudio. See: https://stackoverflow.com/a/71044068/1260232 otherwise, `reticulate` will be unable to load the `Spiral` Python library for not being installed in the correct Python version.
+Finally,because we require interacting with Python to use this library, you should install the `reticulate` R package. If `install.packages('reticulate')` fails due to any error, try to `install.packages('Rcpp')` and then re-attempt. You must specify the local Python version which you installed Spiral when using RStudio. See: https://stackoverflow.com/a/71044068/1260232 otherwise, `reticulate` will be unable to load the `Spiral` Python library for not being installed in the correct Python version.
 
 
 ```{r}
