@@ -766,6 +766,7 @@ github_api_project_pr_comments <- function(owner, repo, token, since=NULL) {
 #' Note not all columns available in the downloaded json are parsed.
 #' Note this is different from the `github_parse_project_issue_or_pr_comments` function.
 #' This function only parses for the in-line code and comments made on the pull request.
+#' `review_id` A integer value that refers to the review comment made when creating the review.
 #' `file_path` A string containing the filepath of the file the review comment is made on.
 #' `start_line` An integer value of the first line number if multiple lines are selected when
 #' making the comment, or null if only 1 line is selected. Will also return null if line is deleted
@@ -791,6 +792,7 @@ github_api_project_pr_comments <- function(owner, repo, token, since=NULL) {
 github_parse_project_pr_comments <- function(api_responses) {
   parse_response <- function(api_response) {
     parsed_response <- list()
+    parsed_response[["review_id"]] <- api_response[["pull_request_review_id"]]
     parsed_response[["comment_id"]] <- api_response[["id"]]
     parsed_response[["html_url"]] <- api_response[["html_url"]]
     parsed_response[["created_at"]] <- api_response[["created_at"]]

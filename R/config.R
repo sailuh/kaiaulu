@@ -107,7 +107,7 @@ create_file_directory <- function(conf, verbose= FALSE) {
         create_file_path(issue_tracker[["issue_search"]])
         create_file_path(issue_tracker[["issue_event"]])
         create_file_path(issue_tracker[["pull_request"]])
-        create_file_path(issue_tracker[["pr_comment"]])
+        create_file_path(issue_tracker[["pr_comments"]])
         create_file_path(issue_tracker[["commit"]])
         create_file_path(issue_tracker[["discussion"]])
       }
