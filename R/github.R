@@ -414,6 +414,7 @@ github_parse_project_commits <- function(api_responses){
 #' available requests in the used user's token).
 #' The user can also define the maximum number of pages to download.
 #' Downloaded JSON files use POSIXct format (%Y-%m-%dT%H:%M:%SZ, UTC)
+#' The function only downloads the first 100 comments for each discussion.
 #'
 #' @param token Your Github API token
 #' @param owner Github's repository owner (e.g. sailuh)
@@ -439,6 +440,8 @@ github_api_discussions <- function(token, owner, repo, save_folder_path, max_pag
         discussions (first: 100', if(!is.null(cursor)) paste0(', after: "', cursor,'"'),') {
           pageInfo {
             hasNextPage
+            hasPreviousPage
+            startCursor
             endCursor
           }
           edges {
@@ -497,6 +500,138 @@ github_api_discussions <- function(token, owner, repo, save_folder_path, max_pag
     if (has_next_page){
       cursor <- gh_response[["data"]][["repository"]][["discussions"]][["pageInfo"]][["endCursor"]]
       page_number <- page_number + 1
+    }
+    else {
+      break
+    }
+  }
+}
+
+#' Refresh for Github Discussions downloader
+#'
+#' Download Discussions from GraphQL API endpoint.
+#' Uses a query to only obtain data defined by the user.
+#' Checks if the folder to download is empty, and calls the regular downloader it it is.
+#' It then checks the downloaded JSON filenames to compare with the most recent discussion createdAt dates,
+#' formatted as POSIXct (%Y-%m-%dT%H:%M:%SZ, UTC).
+#' GitHub API endpoints return data in pages, each containing by default 100 entries.
+#' This function by default iterates over the next page in order to download all the
+#' project's data available from the endpoint (up to the remaining
+#' available requests in the used user's token).
+#' The user can also define the maximum number of pages to download.
+#' The function only downloads the first 100 comments of each discussion.
+#'
+#' @param token Your Github API token
+#' @param owner Github's repository owner (e.g. sailuh)
+#' @param repo Github's repository name (e.g. kaiaulu)
+#' @param save_folder_path A folder path to save the downloaded json pages "as-is".
+#' @references For details, see \url{https://docs.github.com/en/graphql/guides/using-the-graphql-api-for-discussions}
+#' @export
+github_api_discussions_refresh <- function(token, owner, repo, save_folder_path, verbose=TRUE) {
+  # List all json files within the save_path_folder
+  contents <- list.files(save_folder_path)
+
+  # If there are no json files, download all discussions
+  if (length(contents) == 0 ) {
+    # Run the regular downloader
+    discussions <- github_api_discussions(token, owner, repo, save_folder_path)
+    return (discussions)
+  }
+
+  # Get the name of the file with the most recent date
+  latest_discussion <- contents[which.max(sapply(contents, function (filename) {
+    # Use regex to get timestamp
+    as.numeric(sub(".*_(\\d+)\\.json$", "\\1", basename(filename)))
+  }))]
+  # Read the JSON file
+  json_data <- fromJSON(file.path(save_folder_path, latest_discussion), simplifyVector = FALSE)
+  # Get the created_at values
+  created_at <- sapply(json_data[["data"]][["repository"]][["discussions"]][["edges"]],
+                       function (edge) edge[["node"]][["createdAt"]])
+
+  # Find the latest created_at
+  created_at <- max(created_at)
+
+  if (verbose) {
+    message("Latest discussion file: ", latest_discussion)
+    message("latest created at: ", created_at)
+  }
+
+  # Initialize with startCursor field, if it is initialized with endCursor, then duplicate values may be downloaded
+  cursor <- json_data[["data"]][["repository"]][["discussions"]][["pageInfo"]][["startCursor"]]
+
+  while (TRUE) {
+    # Form a new query
+    query <- paste0('query {
+      repository (owner:"', owner, '", name:"', repo, '") {
+        discussions (first: 100, before: "', cursor, '") {
+          pageInfo {
+            hasNextPage
+            hasPreviousPage
+            startCursor
+            endCursor
+          }
+          edges {
+            node {
+              title
+              bodyText
+              author { login }
+              createdAt
+              category { name }
+              id
+              answer { id }
+              comments(first: 100) {
+                edges {
+                  node {
+                    discussion { id }
+                    bodyText
+                    author { login }
+                    id
+                    createdAt
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }')
+    # Make a new API call with the query
+    gh_response <- gh::gh("POST /graphql", query=query, .token=token)
+
+    # Check if response has new discussions
+    if (length(gh_response[["data"]][["repository"]][["discussions"]][["edges"]]) == 0 && verbose) {
+      message("No new discussions")
+      break
+    }
+
+    # Make the list of all created_dates
+    created_dates <- sapply(gh_response[["data"]][["repository"]][["discussions"]][["edges"]],
+                            function(edge) edge[["node"]][["createdAt"]])
+    # Remove NULL entries from created_dates
+    created_dates <- Filter(Negate(is.null), created_dates)
+
+    # Convert to POSIXct date objects
+    date_objects <- as.POSIXct(created_dates, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
+
+    # Find the greatest and smallest date
+    latest_date <- max(date_objects)
+    latest_date_unix <- as.numeric(latest_date)
+    oldest_date <- min(date_objects)
+    oldest_date_unix <- as.numeric(oldest_date)
+
+    # Construct the file_name
+    file_name <- paste0(save_folder_path,
+                        owner, "_", repo, "_", oldest_date_unix, "_", latest_date_unix,
+                        ".json")
+    # Save the json to the folder path
+    write_json(gh_response, file_name, pretty=TRUE, auto_unbox=TRUE)
+
+    # Check if more pages need to be downloaded
+    has_previous_page <- gh_response[["data"]][["repository"]][["discussions"]][["pageInfo"]][["hasPreviousPage"]]
+
+    if (has_previous_page){
+      cursor <- gh_response[["data"]][["repository"]][["discussions"]][["pageInfo"]][["startCursor"]]
     }
     else {
       break

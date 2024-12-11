@@ -410,7 +410,7 @@ The function by default iterates through all available discussion pages (if user
 The user can define the maximum number of pages to download in the function parameter (e.g. max_pages=1)
 
 ```{r Collect Github Discussions, eval = FALSE, warning=FALSE}
-gh_response <- github_api_discussions(token, owner, repo, save_path_discussions)
+gh_response <- github_api_discussions_refresh(token, owner, repo, save_path_discussions)
 ```
 
 Two separate tables can be created from the api response.
