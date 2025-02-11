@@ -155,6 +155,27 @@ github_api_project_contributors <- function(owner,repo,token){
          .token=token)
 }
 
+###### Github Pull Request Reviews ######
+
+#' Download Pull Request Reviews
+#'
+#' Download Pull Request Reviews from "GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @references For details, see \url{https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#list-reviews-for-a-pull-request}.
+#' @export
+github_api_pr_reviews <- function(owner,repo,pull_number,token){
+  gh::gh("GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews",
+         owner=owner,
+         repo=repo,
+         pull_number=pull_number,
+         page=1,
+         per_page=100,
+         .token=token)
+}
+
 ###### Github Issue Events ######
 
 #' Download Project Issue Events

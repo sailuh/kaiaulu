@@ -149,6 +149,7 @@ reference:
 - contents:
   - github_api_project_pull_request
   - github_parse_project_pull_request
+  - github_api_pr_reviews
 - subtitle: Issue and Pull Request Comments
   desc: >
     GitHub's assumes Issues and Pull Requests to be
@@ -325,6 +326,7 @@ reference:
   - get_github_owner
   - get_github_pull_request_path
   - get_github_repo
+  - get_github_pr_review_path
   - get_issue_id_regex
   - get_jira_domain
   - get_jira_issues_comments_path
