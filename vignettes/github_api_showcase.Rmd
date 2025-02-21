@@ -51,7 +51,6 @@ repo <- get_github_repo(conf, "project_key_1") # Has to match github repository 
 save_path_issue_or_pr_comments <- path.expand(get_github_issue_or_pr_comment_path(conf, "project_key_1"))
 save_path_issue_event <- get_github_issue_event_path(conf, "project_key_1")
 save_path_commit <- get_github_commit_path(conf, "project_key_1")
-save_pr_review <- get_github_pr_review_path(conf, "project_key_1")
 # Create the necessary file directories
 create_file_directory(conf)
 # your file github_token contains the GitHub token API obtained in the steps above
@@ -78,15 +77,6 @@ Next we download commit data from GitHub API. This will be used to know which us
 ```{r Collect all project commit messages, eval = FALSE}
 gh_response <- github_api_project_commits(owner,repo,token)
 github_api_iterate_pages(token,gh_response,save_path_commit,prefix="commit")
-```
-
-## Pull Request Reviews
-
-Next we download pull request review data from GitHub API. This will be used to know of the status of each review: APPROVED....
-
-```{r Collect all project commit messages, eval = FALSE}
-gh_response <- github_api_pr_reviews(owner,repo,pull_number)
-github_api_iterate_pages(token,gh_response,save_pr_review,prefix="pr_reviews")
 ```
 
 # Parsing Raw Data to Csv

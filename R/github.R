@@ -176,6 +176,50 @@ github_api_pr_reviews <- function(owner,repo,pull_number,token){
          .token=token)
 }
 
+#' Parse Pull Requests' Reviews JSON to Table
+#'
+#' Note not all columns available in the downloaded json are parsed.
+#' Note this is different from the `github_parse_project_issue_or_pr_comments` function.
+#' This function only parses for the in-line code and comments made on the pull request.
+#' `review_id` A integer value that refers to the review comment made when creating the review.
+#' `file_path` A string containing the filepath of the file the review comment is made on.
+#' `start_line` An integer value of the first line number if multiple lines are selected when
+#' making the comment, or null if only 1 line is selected. Will also return null if line is deleted
+#' in later commits.
+#' `line` An integer value of the last line number if multiple lines are selected when
+#' making the comment, or the the line number when only 1 line is selected. Will return
+#' 1 if no lines are selected when making the comment or null if the line is deleted
+#' in later commits.
+#' `original_start_line` An integer value of the first line number if multiple lines are selected when
+#' making the comment, or null if only 1 line is selected. The line number integer will match the line
+#' number at the time the review comment is made, regardless if a later commit changes the line number.
+#' `original_line` An integer value of the last line number if multiple lines are selected when
+#' making the comment, or the the line number when only 1 line is selected. Will return
+#' 1 if no lines are selected when making the comment. The line number integer will match the line
+#' number at the time the review comment is made, regardless if a later commit changes the line number.
+#' `diff_hunk` A string containing the code hunk the review comment is referencing.
+#' It will contain the lines from the start of the (+/-) hunk until the line
+#' associated by the review comment. Will return null if the review comment is not
+#' tied to a specific line.
+#' `body` A string containing main text of the review comment.
+#' @param api_responses API response obtained from github_api_* function.
+#' @export
+github_parse_project_pr_reviews <- function(api_responses) {
+  parse_response <- function(api_response) {
+    parsed_response <- list()
+    parsed_response[["review_id"]] <- api_response[["id"]]
+    parsed_response[["reviewer"]] <- api_response[["user"]][["login"]]
+    parsed_response[["submitted_at"]] <- api_response[["submitted_at"]]
+    parsed_response[["state"]] <- api_response[["state"]]
+    parsed_response[["body"]] <- api_response[["body"]]
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+  rbindlist(lapply(api_responses,parse_response),fill=TRUE)
+}
+
 ###### Github Issue Events ######
 
 #' Download Project Issue Events

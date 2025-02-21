@@ -54,8 +54,9 @@ save_path_pull_request <- get_github_pull_request_path(conf, "project_key_1")
 save_path_pr_comments <- get_github_pr_comments_path(conf, "project_key_1")
 save_path_issue_or_pr_comments <- get_github_issue_or_pr_comment_path(conf, "project_key_1")
 save_path_commit <- get_github_commit_path(conf, "project_key_1")
+save_path_pr_reviews <- get_github_pr_review_path(conf, "project_key_1")
 # Create all folder directories
-create_file_directory(conf)
+#create_file_directory(conf)
 
 # your file github_token (a text file) contains the GitHub token API
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
@@ -368,6 +369,30 @@ all_pr <- lapply(all_pr,
 all_pr <- rbindlist(all_pr,fill=TRUE)
 
 tail(all_pr,1)  %>%
+  gt(auto_align = FALSE) 
+```
+
+## Pull Request Review Endpoint
+
+We can obtain information on the whole review itself in a pull request, which is different than an in-line comment on code review. The review endpoint allows analysts to see the state of the review such as requesting changes, approving, or a singular comment. More information on the fields can be seen on the function definition for `github_parse_project_pr_reviews`.
+These fields of data can greatly contribute to finding and analyzing patterns in collaboration between developers.
+
+```{r Collect Reviews from Pull Requests}
+gh_response <- github_api_pr_reviews(owner, repo, pull_number = 295, token)
+
+# create file name with path to save as json.
+file_name <- paste0(save_path_pr_reviews,
+                    owner,"_",repo,"_",
+                    ".json")
+#write to json.
+write_json(gh_response,file_name,pretty=TRUE,auto_unbox=TRUE)
+```
+
+```{r Parse Review Comments from Pull Requests}
+all_pr_reviews <- lapply(list.files(save_path_pr_reviews, full.names = TRUE), read_json)
+all_pr_reviews <- lapply(all_pr_reviews, github_parse_project_pr_reviews)
+all_pr_reviews <- rbindlist(all_pr_reviews, fill = TRUE)
+head(all_pr_reviews,100)  %>%
   gt(auto_align = FALSE) 
 ```
 
