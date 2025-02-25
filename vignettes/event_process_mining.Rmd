@@ -12,7 +12,7 @@ vignette: >
 
 # Introduction
 
-Kaiaulu interface to Process Mining for Github events relies on [pm4py](https://github.com/process-intelligence-solutions/pm4py). This vignette demonstrates how to use Kaiaulu to interact with GitHub event data visually using pm4py for further analysis.
+Process mining helps uncover insights from data that represent different events in a process. It is valuable for understanding workflows, finding inefficiencies, and optimizing development processes. The Kaiaulu interface for process mining enables this discovery for Github Events (e.g. creating issues, push events, deleting branches, etc). Allowing users to visualize and analyze event data effectively. This vignette demonstrates how to use Kaiaulu to download and parse Github Event data. As well how to interact with the data to leverage process discovery for deeper analysis. This [video](https://www.youtube.com/watch?v=XLHtvt36g6U&t=1181s) provides an overview of process mining concepts and its applications and can be used as a reference point to begin. Kaiaulu's interface to Process Mining for Github events relies on the python package [pm4py](https://github.com/process-intelligence-solutions/pm4py).
 
 ## Requirements
 
