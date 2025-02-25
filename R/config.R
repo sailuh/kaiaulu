@@ -801,6 +801,110 @@ get_github_pr_review_path <- function(config_file, project_key_index) {
   return(pr_review_path)
 }
 
+### Pull Request Commit Path ###
+
+#' Returns the local folder path for GitHub pull request commits for a specific project key.
+#'
+#' @description This function returns the local folder path for GitHub pull request commits
+#' for a specific project key, that is specified in the input
+#' parameter `config_file`. The input, `config_file` must be a parsed
+#' configuration file. The function will inform the user if the local folder
+#' path for the commits exists in the parsed configuration file,
+#' `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
+#' @return The local folder path for GitHub pull request commits for project specified by key `project_key_index`.
+#' @export
+get_github_pr_commits_path <- function(config_file, project_key_index) {
+
+  pr_commits_path <- config_file[["issue_tracker"]][["github"]][[project_key_index]][["pr_commits"]]
+
+  if (is.null(pr_commits_path)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(pr_commits_path)
+}
+
+### Pull Request Files Path ###
+
+#' Returns the local folder path for GitHub pull request files for a specific project key.
+#'
+#' @description This function returns the local folder path for GitHub pull request files
+#' for a specific project key, that is specified in the input
+#' parameter `config_file`. The input, `config_file` must be a parsed
+#' configuration file. The function will inform the user if the local folder
+#' path for the files exists in the parsed configuration file,
+#' `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
+#' @return The local folder path for GitHub pull request files for project specified by key `project_key_index`.
+#' @export
+get_github_pr_files_path <- function(config_file, project_key_index) {
+
+  pr_files_path <- config_file[["issue_tracker"]][["github"]][[project_key_index]][["pr_files"]]
+
+  if (is.null(pr_files_path)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(pr_files_path)
+}
+
+### Pull Request Requested Reviewers Path ###
+
+#' Returns the local folder path for GitHub pull request requested reviewers for a specific project key.
+#'
+#' @description This function returns the local folder path for GitHub pull request requested reviewers
+#' for a specific project key, that is specified in the input
+#' parameter `config_file`. The input, `config_file` must be a parsed
+#' configuration file. The function will inform the user if the local folder
+#' path for the files exists in the parsed configuration file,
+#' `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
+#' @return The local folder path for GitHub pull request requested reviewers for project specified by key `project_key_index`.
+#' @export
+get_github_pr_reviewers_path <- function(config_file, project_key_index) {
+
+  pr_reviewers_path <- config_file[["issue_tracker"]][["github"]][[project_key_index]][["pr_reviewers"]]
+
+  if (is.null(pr_reviewers_path)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(pr_reviewers_path)
+}
+
+### Pull Request Merge Status Path ###
+
+#' Returns the local folder path for GitHub pull request merge status for a specific project key.
+#'
+#' @description This function returns the local folder path for GitHub pull request merge status
+#' for a specific project key, that is specified in the input
+#' parameter `config_file`. The input, `config_file` must be a parsed
+#' configuration file. The function will inform the user if the local folder
+#' path for the files exists in the parsed configuration file,
+#' `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
+#' @return The local folder path for GitHub pull request merge status for project specified by key `project_key_index`.
+#' @export
+get_github_pr_merge_path <- function(config_file, project_key_index) {
+
+  pr_merge_path <- config_file[["issue_tracker"]][["github"]][[project_key_index]][["pr_merge"]]
+
+  if (is.null(pr_merge_path)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(pr_merge_path)
+}
+
 
 ### Bugzilla Functions #####
 

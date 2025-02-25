@@ -179,29 +179,7 @@ github_api_pr_reviews <- function(owner,repo,pull_number,token){
 #' Parse Pull Requests' Reviews JSON to Table
 #'
 #' Note not all columns available in the downloaded json are parsed.
-#' Note this is different from the `github_parse_project_issue_or_pr_comments` function.
-#' This function only parses for the in-line code and comments made on the pull request.
-#' `review_id` A integer value that refers to the review comment made when creating the review.
-#' `file_path` A string containing the filepath of the file the review comment is made on.
-#' `start_line` An integer value of the first line number if multiple lines are selected when
-#' making the comment, or null if only 1 line is selected. Will also return null if line is deleted
-#' in later commits.
-#' `line` An integer value of the last line number if multiple lines are selected when
-#' making the comment, or the the line number when only 1 line is selected. Will return
-#' 1 if no lines are selected when making the comment or null if the line is deleted
-#' in later commits.
-#' `original_start_line` An integer value of the first line number if multiple lines are selected when
-#' making the comment, or null if only 1 line is selected. The line number integer will match the line
-#' number at the time the review comment is made, regardless if a later commit changes the line number.
-#' `original_line` An integer value of the last line number if multiple lines are selected when
-#' making the comment, or the the line number when only 1 line is selected. Will return
-#' 1 if no lines are selected when making the comment. The line number integer will match the line
-#' number at the time the review comment is made, regardless if a later commit changes the line number.
-#' `diff_hunk` A string containing the code hunk the review comment is referencing.
-#' It will contain the lines from the start of the (+/-) hunk until the line
-#' associated by the review comment. Will return null if the review comment is not
-#' tied to a specific line.
-#' `body` A string containing main text of the review comment.
+#' This function only parses for the reviews made on the pull request.
 #' @param api_responses API response obtained from github_api_* function.
 #' @export
 github_parse_project_pr_reviews <- function(api_responses) {
@@ -212,6 +190,161 @@ github_parse_project_pr_reviews <- function(api_responses) {
     parsed_response[["submitted_at"]] <- api_response[["submitted_at"]]
     parsed_response[["state"]] <- api_response[["state"]]
     parsed_response[["body"]] <- api_response[["body"]]
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+  rbindlist(lapply(api_responses,parse_response),fill=TRUE)
+}
+
+###### Github Pull Request Commits ######
+
+#' Download Pull Request Commits
+#'
+#' Download Pull Request Commits from "GET /repos/{owner}/{repo}/pulls/{pull_number}/commits" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @references For details, see \url{https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#list-commits-on-a-pull-request}.
+#' @export
+github_api_pr_commits <- function(owner,repo,pull_number,token){
+  gh::gh("GET /repos/{owner}/{repo}/pulls/{pull_number}/commits",
+         owner=owner,
+         repo=repo,
+         pull_number=pull_number,
+         page=1,
+         per_page=100,
+         .token=token)
+}
+
+#' Parse Pull Requests' Commits JSON to Table
+#'
+#' Note not all columns available in the downloaded json are parsed.
+#' This function only parses for the commits made on the pull request.
+#' @param api_responses API response obtained from github_api_* function.
+#' @export
+github_parse_project_pr_commits <- function(api_responses) {
+  parse_response <- function(api_response) {
+    parsed_response <- list()
+    parsed_response[["user"]] <- api_response[["commit"]][["author"]][["name"]]
+    parsed_response[["date"]] <- api_response[["commit"]][["author"]][["date"]]
+    parsed_response[["message"]] <- api_response[["commit"]][["message"]]
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+  rbindlist(lapply(api_responses,parse_response),fill=TRUE)
+}
+
+#' Download Pull Request Files
+#'
+#' Download Pull Request Files from "GET /repos/{owner}/{repo}/pulls/{pull_number}/files" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @references For details, see \url{https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#list-files-on-a-pull-request}.
+#' @export
+github_api_pr_files <- function(owner,repo,pull_number,token){
+  gh::gh("GET /repos/{owner}/{repo}/pulls/{pull_number}/files",
+         owner=owner,
+         repo=repo,
+         pull_number=pull_number,
+         page=1,
+         per_page=100,
+         .token=token)
+}
+
+#' Parse Pull Requests' Files JSON to Table
+#'
+#' Note not all columns available in the downloaded json are parsed.
+#' This function only parses for the files made on the pull request.
+#' @param api_responses API response obtained from github_api_* function.
+#' @export
+github_parse_project_pr_files <- function(api_responses) {
+  parse_response <- function(api_response) {
+    parsed_response <- list()
+    parsed_response[["filename"]] <- api_response[["filename"]]
+    parsed_response[["additions"]] <- api_response[["addtions"]]
+    parsed_response[["deletions"]] <- api_response[["deletions"]]
+    parsed_response[["changes"]] <- api_response[["changes"]]
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+  rbindlist(lapply(api_responses,parse_response),fill=TRUE)
+}
+
+#' Download Pull Request Requested Reviewers
+#'
+#' Download Pull Request Requested Reviewers from "GET /repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @references For details, see \url{https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#get-all-requested-reviewers-for-a-pull-request}.
+#' @export
+github_api_pr_reviewers <- function(owner,repo,pull_number,token){
+  gh::gh("GET /repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers",
+         owner=owner,
+         repo=repo,
+         pull_number=pull_number,
+         page=1,
+         per_page=100,
+         .token=token)
+}
+
+#' Parse Pull Requests' Requested Reviewers JSON to Table
+#'
+#' Note not all columns available in the downloaded json are parsed.
+#' This function only parses for the files made on the pull request.
+#' @param api_responses API response obtained from github_api_* function.
+#' @export
+github_parse_project_pr_reviewers <- function(api_responses) {
+  parse_response <- function(api_response) {
+    parsed_response <- list()
+    parsed_response[["users"]] <- api_response[["users"]][["login"]]
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+  rbindlist(lapply(api_responses,parse_response),fill=TRUE)
+}
+
+#' Download Pull Request Merge Status
+#'
+#' Download Pull Request Requested Reviewers from "GET /repos/{owner}/{repo}/pulls/{pull_number}/merge" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @references For details, see \url{https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#check-if-a-pull-request-has-been-merged}.
+#' @export
+github_api_pr_merge <- function(owner,repo,pull_number,token){
+  gh::gh("GET /repos/{owner}/{repo}/pulls/{pull_number}/merge",
+         owner=owner,
+         repo=repo,
+         pull_number=pull_number,
+         page=1,
+         per_page=100,
+         .token=token)
+}
+
+#' Parse Pull Requests' Merge Status JSON to Table
+#'
+#' Note not all columns available in the downloaded json are parsed.
+#' This function only checks for the merge status for a pull request.
+#' @param api_responses API response obtained from github_api_* function.
+#' @export
+github_parse_project_pr_merge <- function(api_responses) {
+  parse_response <- function(api_response) {
+    parsed_response <- list()
+    parsed_response[["status"]] <- api_response[["status"]]
 
     parsed_response <- as.data.table(parsed_response)
 
