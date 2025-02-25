@@ -21,6 +21,20 @@ Process mining helps uncover insights from data that represent different events 
 -   Reticulate package (to interface with python)
 -   Python environment with [pm4py](https://github.com/process-intelligence-solutions/pm4py) installed
 
+## Project Configuration File
+
+To streamline downloading and parsing data for Github Events we will specify a configuration file instead of entering parameters manually for both R and python environments. The configuration file content that interests us are the following:
+
+-   Github owner and repo names along with the save path for issue_events
+
+    ![](images/Screenshot 2025-02-25 at 12.44.10 PM-02.png)
+
+<!-- -->
+
+-   Process Mining parsed .csv file location along with folder to save images of process graphs and trees
+
+    ![](images/Screenshot 2025-02-25 at 12.44.27 PM-01.png)
+
 ### Install Reticulate
 
 ```{r}
