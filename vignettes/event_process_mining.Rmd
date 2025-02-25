@@ -1,0 +1,70 @@
+---
+title: "Event Process Mining"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Event Process Mining}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Introduction
+
+Kaiaulu interface to Process Mining for Github events relies on [pm4py](https://github.com/process-intelligence-solutions/pm4py). This vignette demonstrates how to use Kaiaulu to interact with GitHub event data visually using pm4py for further analysis.
+
+## Requirements
+
+-   Gihub Access Token
+-   Python (for visualizations)
+-   Reticulate package (to interface with python)
+-   Python environment with [pm4py](https://github.com/process-intelligence-solutions/pm4py) installed
+
+### Install Reticulate
+
+```{r}
+install.packages("reticulate")
+library(reticulate)
+```
+
+### Download the [Python Script](https://github.com/sailuh/process_mining) and Provide Path
+
+-   At this point you may need to download pm4py
+
+```{r}
+source_python("~/Desktop/Kaiaulu/Working_issues/process_mining/event_processing.py")
+```
+
+### Download and Parse data with kaiaulu ghevents.R (CLI)
+
+-   To download specify: \<owner\> \<repo\> \<output_dir\> \<github_token\>
+
+-   To parse specify \<input_dir\> \<output_file\>
+
+```{r}
+command <- 'Rscript exec/ghevents.R download sailuh kaiaulu ../output --token_path=~/.ssh/github_token'
+system(command)
+
+command <- 'Rscript exec/ghevents.R parse ../output ../output.csv'
+system(command)
+```
+
+### Call python functions from script with parsed data
+
+-   Provide .csv file location
+
+```{r}
+start_end_activities_result <- start_end_activities("~/path/to/csv")
+
+# Print the first five activies 
+head(start_end_activities_result[[1]], 5)
+```
+
+### Generate Process Tree and Save Image
+
+-   Provide .csv file location and output directory for images
+
+```{r}
+generate_tree("~/path/to/csv")
+```

@@ -1,0 +1,89 @@
+#!/usr/local/bin/Rscript
+
+# Kaiaulu - https://github.com/sailuh/kaiaulu
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+require(yaml, quietly = TRUE)
+require(cli, quietly = TRUE)
+require(docopt, quietly = TRUE)
+require(kaiaulu, quietly = TRUE)
+require(data.table, quietly = TRUE)
+require(jsonlite, quietly = TRUE)
+
+doc <- "
+USAGE:
+  github_events.R download help
+  github_events.R download <owner> <repo> <output_folder> --token_path=<path>
+    github_events.R parse help
+  github_events.R parse <input_folder> <output_file>
+  github_events.R (-h | --help)
+  github_events.R --version
+
+DESCRIPTION:
+  Download and parse GitHub event data via CLI.
+
+OPTIONS:
+  -h --help     Show this screen.
+  --version     Show version.
+"
+
+arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9700')
+
+# Download command logic
+if (arguments[["download"]] & arguments[["help"]]) {
+  cli::cli_alert_info("Downloads Github Events using R/github.R")
+} else if (arguments[["download"]]) {
+  owner <- arguments[["<owner>"]]
+  repo <- arguments[["<repo>"]]
+  save_path <- arguments[["<output_folder>"]]
+  save_path <- ifelse(substr(save_path, nchar(save_path), nchar(save_path)) == "/", save_path, paste0(save_path, "/"))
+  token_path <- arguments[["--token_path"]]
+  token <- scan(token_path, what="character", quiet = TRUE)
+
+  if (any(sapply(list(owner, repo, save_path, token_path, token), is.null))) {
+    cli::cli_abort("Error: Missing required arguments. Please provide: <owner>, <repo>, <output_folder>, and --token_path.")
+  }
+
+  if (!dir.exists(save_path)) {
+    dir.create(save_path, recursive = TRUE)
+  }
+
+  cli::cli_alert_info("Downloading GitHub Project Issue Events using R/github.R")
+
+  # Download Logic
+  gh_response <- github_api_project_issue_events(owner, repo, token)
+  github_api_iterate_pages(token, gh_response, save_path, prefix="issue_event")
+
+  cli::cli_alert_success("GitHub issue events saved to {save_path}")
+
+}
+
+# Parse command logic
+if (arguments[["parse"]] & arguments[["help"]]) {
+  cli::cli_alert_info("Parses GitHub event data from JSON files in input folder and saves it as a CSV")
+} else if (arguments[["parse"]]) {
+  input_file <- arguments[["input_folder"]]
+  output_file <- arguments[["output_file"]]
+
+  if (any(sapply(list(input_file, output_file), is.null)) || !file.exists(input_file)) {
+    cli::cli_abort("Error: Missing required arguments. Please provide: <input_folder> and <output_file>.")
+  }
+
+  cli::cli_alert_info("Parsing Github issue events from {input_file}")
+
+  all_issue_event <- lapply(list.files(input_file, full.names = TRUE), read_json)
+  all_issue_event <- lapply(all_issue_event, github_parse_project_issue_events)
+  all_issue_event <- rbindlist(all_issue_event, fill = TRUE)
+  all_issue_event[, issue_body := NULL]
+
+  # Write data
+  write.csv(all_issue_event, output_file, row.names = FALSE)
+
+  cli::cli_alert_info("Parsed data saved to {output_file}")
+}
+
+
+
