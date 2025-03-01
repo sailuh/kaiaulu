@@ -16,7 +16,7 @@ require(jsonlite, quietly = TRUE)
 doc <- "
 USAGE:
   github_events.R download help
-  github_events.R download <owner> <repo> <output_folder> --token_path=<path>
+  github_events.R download <config_path> --token_path=<path>
     github_events.R parse help
   github_events.R parse <input_folder> <output_file>
   github_events.R (-h | --help)
@@ -36,12 +36,19 @@ arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9700')
 if (arguments[["download"]] & arguments[["help"]]) {
   cli::cli_alert_info("Downloads Github Events using R/github.R")
 } else if (arguments[["download"]]) {
-  owner <- arguments[["<owner>"]]
-  repo <- arguments[["<repo>"]]
-  save_path <- arguments[["<output_folder>"]]
-  save_path <- ifelse(substr(save_path, nchar(save_path), nchar(save_path)) == "/", save_path, paste0(save_path, "/"))
-  token_path <- arguments[["--token_path"]]
-  token <- scan(token_path, what="character", quiet = TRUE)
+  # owner <- get_github_owner()
+  # repo <- arguments[["<repo>"]]
+  # save_path <- arguments[["<output_folder>"]]
+
+  config_path = arguments[["config_path"]]
+  conf <- parse_config(config_path)
+  owner <- get_github_owner(conf, "project_key_1")
+  cli::cli_alert_info(owner)
+
+
+  #save_path <- ifelse(substr(save_path, nchar(save_path), nchar(save_path)) == "/", save_path, paste0(save_path, "/"))
+  #token_path <- arguments[["--token_path"]]
+  #token <- scan(token_path, what="character", quiet = TRUE)
 
   if (any(sapply(list(owner, repo, save_path, token_path, token), is.null))) {
     cli::cli_abort("Error: Missing required arguments. Please provide: <owner>, <repo>, <output_folder>, and --token_path.")
