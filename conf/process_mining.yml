@@ -85,7 +85,7 @@ issue_tracker:
       issue_or_pr_comment: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_or_pr_comment/
       issue: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue/
       issue_search: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_search/
-      issue_event: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_event/
+      issue_event: ../rawdata/kaiaulu/sailuh_kaiaulu/issue_event/
       pull_request: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/pull_request/
       commit: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/commit/
 #     project_key_2:
@@ -232,5 +232,5 @@ analysis:
 #      - 2013-08-01 00:00:00
 #      - 2013-11-01 00:00:00
 process_mining: 
-  parsed_file: ../../rawdata/kaiaulu/sailuh_kaiaulu/
-  image_output_dir: ../../rawdata/kaiaulu/sailuh_kaiaulu/images/
+  csv_file_path: ../rawdata/kaiaulu/sailuh_kaiaulu/output.csv
+  image_output_dir: ../rawdata/kaiaulu/sailuh_kaiaulu/images/

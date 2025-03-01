@@ -12,13 +12,14 @@ require(docopt, quietly = TRUE)
 require(kaiaulu, quietly = TRUE)
 require(data.table, quietly = TRUE)
 require(jsonlite, quietly = TRUE)
+source("R/config.R")
 
 doc <- "
 USAGE:
   github_events.R download help
   github_events.R download <config_path> --token_path=<path>
     github_events.R parse help
-  github_events.R parse <input_folder> <output_file>
+  github_events.R parse <config_path>
   github_events.R (-h | --help)
   github_events.R --version
 
@@ -42,16 +43,16 @@ if (arguments[["download"]] & arguments[["help"]]) {
 
   config_path = arguments[["config_path"]]
   conf <- parse_config(config_path)
+
   owner <- get_github_owner(conf, "project_key_1")
-  cli::cli_alert_info(owner)
+  repo <- get_github_repo(conf, "project_key_1")
+  save_path <- get_github_issue_event_path(conf, "project_key_1")
 
-
-  #save_path <- ifelse(substr(save_path, nchar(save_path), nchar(save_path)) == "/", save_path, paste0(save_path, "/"))
-  #token_path <- arguments[["--token_path"]]
-  #token <- scan(token_path, what="character", quiet = TRUE)
+  token_path <- arguments[["--token_path"]]
+  token <- scan(token_path, what="character", quiet = TRUE)
 
   if (any(sapply(list(owner, repo, save_path, token_path, token), is.null))) {
-    cli::cli_abort("Error: Missing required arguments. Please provide: <owner>, <repo>, <output_folder>, and --token_path.")
+    cli::cli_abort("Error: Missing required arguments. Please provide: <config_path> and --token_path.")
   }
 
   if (!dir.exists(save_path)) {
@@ -72,16 +73,20 @@ if (arguments[["download"]] & arguments[["help"]]) {
 if (arguments[["parse"]] & arguments[["help"]]) {
   cli::cli_alert_info("Parses GitHub event data from JSON files in input folder and saves it as a CSV")
 } else if (arguments[["parse"]]) {
-  input_file <- arguments[["input_folder"]]
-  output_file <- arguments[["output_file"]]
 
-  if (any(sapply(list(input_file, output_file), is.null)) || !file.exists(input_file)) {
+  config_path = arguments[["config_path"]]
+  conf <- parse_config(config_path)
+
+  input_dir <- get_github_issue_event_path(conf, "project_key_1")
+  output_file <- get_pm_csv_path(conf)
+
+  if (any(sapply(list(input_dir, output_file), is.null)) || !file.exists(input_dir)) {
     cli::cli_abort("Error: Missing required arguments. Please provide: <input_folder> and <output_file>.")
   }
 
-  cli::cli_alert_info("Parsing Github issue events from {input_file}")
+  cli::cli_alert_info("Parsing Github issue events from {input_dir}")
 
-  all_issue_event <- lapply(list.files(input_file, full.names = TRUE), read_json)
+  all_issue_event <- lapply(list.files(input_dir, full.names = TRUE), read_json)
   all_issue_event <- lapply(all_issue_event, github_parse_project_issue_events)
   all_issue_event <- rbindlist(all_issue_event, fill = TRUE)
   all_issue_event[, issue_body := NULL]
