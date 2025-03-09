@@ -12,17 +12,16 @@ vignette: >
 
 # Introduction
 
-The `ghevents.R` script provides a command-line interface (CLI) for downloading and parsing GitHub event data using R. It is a part of the **Kaiaulu** project and is designed to facilitate the retrieval and processing of GitHub project issue events. By leveraging R libraries such as `yaml`, `cli`, `docopt`, `kaiaulu`, `data.table`, and `jsonlite`, this script offers an efficient way to manage GitHub event data. This data can be used for various analysis and use cases. This vignette shows how to access the CLI, to see a use case for process mining refer to this [repo](https://github.com/sailuh/process_mining).
+The `ghevents.R` script provides a command-line interface (CLI) for downloading and parsing GitHub event data using R. It is a part of the **Kaiaulu** project and is designed to facilitate the retrieval and processing of GitHub project issue events, this script offers an efficient way to manage GitHub event data. This data can be used for various analysis and use cases. This vignette shows how to access the CLI from Kaiaulu. A possible use case is process mining analysis, to see a example for process mining refer to this [repo](https://github.com/sailuh/process_mining).
 
 ## Requirements
 
 -   Gihub Access Token
--   Python (for visualizations)
--   Python environment with [pm4py](https://github.com/process-intelligence-solutions/pm4py) installed
+-   Kaiaulu
 
 ## Project Configuration File
 
-To streamline downloading and parsing data for Github Events we will specify a configuration file instead of entering parameters manually for both R and python environments. You can use the Kaiaulu.yml configuration file as a template. The configuration file content that interests us are the following:
+To streamline downloading and parsing data for Github Events we will specify a configuration file instead of entering parameters manually for both R and python environments. You can use the Kaiaulu.yml configuration file as a template. The configuration file content that interests us is the `issue_event` download path.
 
 -   Github owner and repo names along with the issue_event as it provides the save path for the Github API
 
@@ -55,9 +54,6 @@ command <- 'Rscript exec/ghevents.R parse ../output ../output.csv'
 system(command)
 ```
 
-### Generate tree and graphs from data
+### Download the [Process Mining Notebook](https://github.com/sailuh/process_mining)
 
-```         
-python event_processing.py ../kaiaulu/conf/process_mining.yml generate_tree
-python event_processing.py ../kaiaulu/conf/process_mining.yml generate_graph
-```
+From here on all the process mining analysis must be done with the python notebook. Kaiaulu CLI is the tool used for gathering the github event data. However the process mining portion relies heavily on pm4py a python package. Download the notebook to continue.

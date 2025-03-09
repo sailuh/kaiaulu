@@ -1214,30 +1214,4 @@ get_enumeration_commits <- function(config_file) {
 
 ##### Analysis Functions End #####
 
-##### Process Mining Functions Start #####
 
-#' Returns the csv file path from the process_mining configuration.
-#'
-#' @description This function retrieves the csv_file_path specified in the
-#' `process_mining` section of the input configuration file. The input,
-#' `config_file`, must be a parsed configuration file obtained from
-#' parse_cofig. If the csv_file_path is not found, the function
-#' will issue a warning.
-#'
-#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
-#' @return The csv file path as a character string.
-#' @export
-get_pm_csv_path <- function(config_file) {
-
-  csv_file_path <- config_file[["process_mining"]][["csv_file_path"]]
-
-  if (is.null(csv_file_path)) {
-    warning("csv file path does not exist in the configuration file.")
-    return(NULL)
-  }
-
-  return(csv_file_path)
-}
-
-
-##### Process Mining Functions End #####
