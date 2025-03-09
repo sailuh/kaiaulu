@@ -232,5 +232,7 @@ analysis:
 #      - 2013-08-01 00:00:00
 #      - 2013-11-01 00:00:00
 process_mining: 
+  kaiaulu_wd: ~/Desktop/Kaiaulu/Working_issues/kaiaulu/
   csv_file_path: ../rawdata/kaiaulu/sailuh_kaiaulu/output.csv
   image_output_dir: ../rawdata/kaiaulu/sailuh_kaiaulu/images/
+

@@ -12,20 +12,19 @@ vignette: >
 
 # Introduction
 
-Process mining helps uncover insights from data that represent different events in a process. It is valuable for understanding workflows, finding inefficiencies, and optimizing development processes. The Kaiaulu interface for process mining enables this discovery for Github Events (e.g. creating issues, push events, deleting branches, etc). Allowing users to visualize and analyze event data effectively. This vignette demonstrates how to use Kaiaulu to download and parse Github Event data. As well how to interact with the data to leverage process discovery for deeper analysis. This [video](https://www.youtube.com/watch?v=XLHtvt36g6U&t=1181s) provides an overview of process mining concepts and its applications and can be used as a reference point to begin. Kaiaulu's interface to Process Mining for Github events relies on the python package [pm4py](https://github.com/process-intelligence-solutions/pm4py).
+The `ghevents.R` script provides a command-line interface (CLI) for downloading and parsing GitHub event data using R. It is a part of the **Kaiaulu** project and is designed to facilitate the retrieval and processing of GitHub project issue events. By leveraging R libraries such as `yaml`, `cli`, `docopt`, `kaiaulu`, `data.table`, and `jsonlite`, this script offers an efficient way to manage GitHub event data. This data can be used for various analysis and use cases. This vignette shows how to access the CLI, to see a use case for process mining refer to this [repo](https://github.com/sailuh/process_mining).
 
 ## Requirements
 
 -   Gihub Access Token
 -   Python (for visualizations)
--   Reticulate package (to interface with python)
 -   Python environment with [pm4py](https://github.com/process-intelligence-solutions/pm4py) installed
 
 ## Project Configuration File
 
-To streamline downloading and parsing data for Github Events we will specify a configuration file instead of entering parameters manually for both R and python environments. The configuration file content that interests us are the following:
+To streamline downloading and parsing data for Github Events we will specify a configuration file instead of entering parameters manually for both R and python environments. You can use the Kaiaulu.yml configuration file as a template. The configuration file content that interests us are the following:
 
--   Github owner and repo names along with the save path for issue_events
+-   Github owner and repo names along with the issue_event as it provides the save path for the Github API
 
     ```         
     github:
@@ -37,63 +36,28 @@ To streamline downloading and parsing data for Github Events we will specify a c
           issue_or_pr_comment: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_or_pr_comment/
           issue: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue/
           issue_search: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_search/
-          issue_event: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_event/
+          issue_event: ../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_event/
           pull_request: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/pull_request/
           commit: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/commit/
     ```
 
--   Process Mining parsed .csv file location along with folder to save images of process graphs and trees
-
-    ```         
-    process_mining: 
-      parsed_file: ../../rawdata/kaiaulu/sailuh_kaiaulu/
-      image_output_dir: ../../rawdata/kaiaulu/sailuh_kaiaulu/images/
-    ```
-
-### Install Reticulate
-
-```{r}
-install.packages("reticulate")
-library(reticulate)
-```
-
-### Download the [Python Script](https://github.com/sailuh/process_mining) and Provide Path
-
--   At this point you may need to download pm4py
-
-```{r}
-source_python("~/Desktop/Kaiaulu/Working_issues/process_mining/event_processing.py")
-```
-
 ### Download and Parse data with kaiaulu ghevents.R (CLI)
 
--   To download specify: \<owner\> \<repo\> \<output_dir\> \<github_token\>
+-   To download specify: \<config_file\> \<github_token\>
 
--   To parse specify \<input_dir\> \<output_file\>
+-   To parse specify \<config_file\>
 
 ```{r}
-command <- 'Rscript exec/ghevents.R download sailuh kaiaulu ../output --token_path=~/.ssh/github_token'
+command <- 'Rscript exec/ghevents.R download conf/process_mining.yml --token_path=~/.ssh/github_token'
 system(command)
 
 command <- 'Rscript exec/ghevents.R parse ../output ../output.csv'
 system(command)
 ```
 
-### Call python functions from script with parsed data
+### Generate tree and graphs from data
 
--   Provide .csv file location
-
-```{r}
-start_end_activities_result <- start_end_activities("~/path/to/csv")
-
-# Print the first five activies 
-head(start_end_activities_result[[1]], 5)
-```
-
-### Generate Process Tree and Save Image
-
--   Provide .csv file location and output directory for images
-
-```{r}
-generate_tree("~/path/to/csv")
+```         
+python event_processing.py ../kaiaulu/conf/process_mining.yml generate_tree
+python event_processing.py ../kaiaulu/conf/process_mining.yml generate_graph
 ```

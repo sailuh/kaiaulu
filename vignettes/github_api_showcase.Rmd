@@ -12,18 +12,17 @@ vignette: >
 
 # Introduction
 
-
-Kaiaulu interface to GitHub API heavily relies on [gh](https://github.com/r-lib/gh), a minimalistic client to access GitHub’s REST and GraphQL APIs. In essence, Kaiaulu only defines a few API endpoints of interest where the tool is currently used, and parses the returned JSON output into a table keeping only fields of interest. But more can be added later. Please see Kaiaulu's Docs Function API to see what is currently available. 
+Kaiaulu interface to GitHub API heavily relies on [gh](https://github.com/r-lib/gh), a minimalistic client to access GitHub’s REST and GraphQL APIs. In essence, Kaiaulu only defines a few API endpoints of interest where the tool is currently used, and parses the returned JSON output into a table keeping only fields of interest. But more can be added later. Please see Kaiaulu's Docs Function API to see what is currently available.
 
 In this Vignette, I will show how to replicate [Aleksander Konnerup data acquisition pipeline](https://github.com/AleksanderKonnerup/AleksanderKonnerup_akon223_projectZ).
 
-## Create a Personal Token 
+## Create a Personal Token
 
 GitHub limits the number of API calls per IP to only 60 attempts **every hour** at the time this vignette was created. You can check the current rates at [its website](https://docs.github.com/en/free-pro-team@latest/rest/overview/resources-in-the-rest-api#rate-limiting).
 
 If using a personal account token from a free GitHub account, the number of API calls per hour increases to 5000 **per hour**. Therefore, it is recommended you create a personal token by following the [GitHub Documentation instructions](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token#:~:text=Creating%20a%20token.%201%20Verify%20your%20email%20address%2C,able%20to%20see%20the%20token%20again.%20More%20items). The process should not take more than 2 minutes.
 
-The functions in Kaiaulu will assume you have a token available, which can be passed as parameter. 
+The functions in Kaiaulu will assume you have a token available, which can be passed as parameter.
 
 ```{r warning=FALSE,message=FALSE}
 rm(list = ls())
@@ -33,12 +32,11 @@ require(jsonlite)
 require(knitr)
 ```
 
-
 # GitHub Feature: Assign Issue to Issue Commenters
 
-The feature of interest in this notebook is the introduced capability for project owners to assign issue to issue commenters (i.e. those without merge access), as discussed in the following blog post: https://github.blog/2019-06-25-assign-issues-to-issue-commenters. 
+The feature of interest in this notebook is the introduced capability for project owners to assign issue to issue commenters (i.e. those without merge access), as discussed in the following blog post: <https://github.blog/2019-06-25-assign-issues-to-issue-commenters>.
 
-The goal of the following steps is to obtain the data when a project started assigning issues to issue commenters without merge access. 
+The goal of the following steps is to obtain the data when a project started assigning issues to issue commenters without merge access.
 
 # Necessary Parameters
 
@@ -55,21 +53,19 @@ token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 
 # Collecting Data via GitHub API
 
-In this section we obtain the raw data (.json) containing all information the GitHub API endpoint provides. We parse the information of interest in the subsequent section.  
+In this section we obtain the raw data (.json) containing all information the GitHub API endpoint provides. We parse the information of interest in the subsequent section.
 
 ```{r eval = FALSE}
 dir.create(paste0(save_path))
 ```
 
-
 ## Issue Events
 
-First we obtain all issue events of the project, so we may later subset issue assignments. 
+First we obtain all issue events of the project, so we may later subset issue assignments.
 
 ```{r}
 save_path_issue_event <- paste0(save_path,"/issue_event/")
 ```
-
 
 ```{r Collect all issue events, eval = FALSE}
 gh_response <- github_api_project_issue_events(owner,repo,token)
@@ -85,7 +81,6 @@ Next we download commit data from GitHub API. This will be used to know which us
 save_path_commit <- paste0(save_path,"/commit/")
 ```
 
-
 ```{r Collect all project commit messages, eval = FALSE}
 gh_response <- github_api_project_commits(owner,repo,token)
 dir.create(save_path_commit)
@@ -94,7 +89,7 @@ github_api_iterate_pages(token,gh_response,save_path_commit,prefix="commit")
 
 # Parsing Raw Data to Csv
 
-To parse raw data, we use the associated endpoint parser functions. Keep in mind these functions only parse a subset of all the information in the json ("column wise"). Please consult with the GitHub API or inspect the raw data directly to see all information which is available. 
+To parse raw data, we use the associated endpoint parser functions. Keep in mind these functions only parse a subset of all the information in the json ("column wise"). Please consult with the GitHub API or inspect the raw data directly to see all information which is available.
 
 ```{r}
 all_issue_event <- lapply(list.files(save_path_issue_event,full.names = TRUE),read_json)
@@ -123,4 +118,26 @@ assigned_users_without_merge_access <-which(!(all_issue_event_assigned$issue_ass
                                                 unique(all_commit$committer_login)))
 
 kable(all_issue_event_assigned[assigned_users_without_merge_access])
+```
+
+# CLI to gather Issue Event Data
+
+When using Github data outside of Kaiaulu, downloading this data may be more helpful using Kaiaulu's CLI (ghevents.R). This can be used in conjunction with the sailuh python process mining [notebook](https://github.com/sailuh/process_mining) to run process mining analysis on issue event data.
+
+## Downloading Issue Event Data with CLI
+
+-   To download specify: \<config_file\> \<github_token\>
+
+```{r}
+command <- 'Rscript exec/ghevents.R download ../conf/kaiaulu_test.yml --token_path=~/.ssh/github_token'
+system(command)
+```
+
+## Parsing Issue Event Data with CLI
+
+-   To parse specify \<config_file\>
+
+```{r}
+command <- 'Rscript exec/ghevents.R parse ../output ../output.csv'
+system(command)
 ```

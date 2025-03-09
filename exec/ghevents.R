@@ -19,7 +19,7 @@ USAGE:
   github_events.R download help
   github_events.R download <config_path> --token_path=<path>
     github_events.R parse help
-  github_events.R parse <config_path>
+  github_events.R parse <config_path> <output_file>
   github_events.R (-h | --help)
   github_events.R --version
 
@@ -75,13 +75,13 @@ if (arguments[["parse"]] & arguments[["help"]]) {
 } else if (arguments[["parse"]]) {
 
   config_path = arguments[["config_path"]]
+  output_file = arguments[["output_file"]]
   conf <- parse_config(config_path)
 
   input_dir <- get_github_issue_event_path(conf, "project_key_1")
-  output_file <- get_pm_csv_path(conf)
 
   if (any(sapply(list(input_dir, output_file), is.null)) || !file.exists(input_dir)) {
-    cli::cli_abort("Error: Missing required arguments. Please provide: <input_folder> and <output_file>.")
+    cli::cli_abort("Error: Missing required arguments. Please provide: <config_path> and <output_file>.")
   }
 
   cli::cli_alert_info("Parsing Github issue events from {input_dir}")
