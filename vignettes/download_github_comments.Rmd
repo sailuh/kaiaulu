@@ -527,33 +527,6 @@ head(all_pr_files,100)  %>%
   gt(auto_align = FALSE) 
 ```
 
-## Pull Request Merge Status Endpoint
-
-We can obtain the merge status of a pull request. Will return 204 if
-merged into the base branch, or 404 if not.
-
-```{r Collect merge status from Pull Requests}
-gh_response <- github_api_pr_merge(owner, repo, pull_number = 295, token)
-
-# create file name with path to save as json.
-file_name <- paste0(save_path_pr_merge,
-                    owner,"_",repo,"_pullmerge",
-                    ".json")
-#write to json.
-write_json(gh_response,file_name,pretty=TRUE,auto_unbox=TRUE)
-message("Written to file: ", file_name)
-```
-
-```{r Parse Merge Status from Pull Requests}
-all_pr_merge <- lapply(list.files(save_path_pr_merge, full.names = TRUE), read_json)
-all_pr_merge <- lapply(all_pr_merge, github_parse_project_pr_merge)
-all_pr_merge <- rbindlist(all_pr_merge, fill = TRUE)
-head(all_pr_merge,100)  %>%
-  gt(auto_align = FALSE) 
-```
-
-## 
-
 ## Pull Request Review Endpoint
 
 We can obtain information on the whole review itself in a pull request,
@@ -581,31 +554,7 @@ message("Written to file: ", file_name)
 all_pr_reviews <- lapply(list.files(save_path_pr_reviews, full.names = TRUE), read_json)
 all_pr_reviews <- lapply(all_pr_reviews, github_parse_project_pr_reviews)
 all_pr_reviews <- rbindlist(all_pr_reviews, fill = TRUE)
-head(all_pr_reviews,100)  %>%
-  gt(auto_align = FALSE) 
-```
-
-## Pull Request Requested Reviewers Endpoint
-
-We can obtain the requested reviewers of a pull request.
-
-```{r Collect requested reviewers from Pull Requests}
-gh_response <- github_api_pr_reviewers(owner, repo, pull_number = 295, token)
-
-# create file name with path to save as json.
-file_name <- paste0(save_path_pr_reviewers,
-                    owner,"_",repo,"_pullreviewers",
-                    ".json")
-#write to json.
-write_json(gh_response,file_name,pretty=TRUE,auto_unbox=TRUE)
-message("Written to file: ", file_name)
-```
-
-```{r Parse Requested Reviewers from Pull Requests}
-all_pr_reviewers <- lapply(list.files(save_path_pr_reviewers, full.names = TRUE), read_json)
-all_pr_reviewers <- lapply(all_pr_reviewers, github_parse_project_pr_reviewers)
-all_pr_reviewers <- rbindlist(all_pr_reviewers, fill = TRUE)
-head(all_pr_reviewers,100)  %>%
+head(all_pr_reviews,10)  %>%
   gt(auto_align = FALSE) 
 ```
 

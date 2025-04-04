@@ -186,10 +186,15 @@ github_parse_project_pr_reviews <- function(api_responses) {
   parse_response <- function(api_response) {
     parsed_response <- list()
     parsed_response[["review_id"]] <- api_response[["id"]]
+    parsed_response[["user_id"]] <- api_response[["user"]][["id"]]
     parsed_response[["reviewer"]] <- api_response[["user"]][["login"]]
     parsed_response[["submitted_at"]] <- api_response[["submitted_at"]]
     parsed_response[["state"]] <- api_response[["state"]]
     parsed_response[["body"]] <- api_response[["body"]]
+    parsed_response[["pull_request_url"]] <- api_response[["_links"]][["pull_request"]][["href"]]
+    parsed_response[["commit_id"]] <- api_response[["commit_id"]]
+
+
 
     parsed_response <- as.data.table(parsed_response)
 
@@ -1002,8 +1007,11 @@ github_parse_project_pr_comments <- function(api_responses) {
     parsed_response[["line"]] <- api_response[["line"]]
     parsed_response[["original_start_line"]] <- api_response[["original_start_line"]]
     parsed_response[["original_line"]] <- api_response[["original_line"]]
+    parsed_response[["position"]] <- api_response[["position"]]
     parsed_response[["diff_hunk"]] <- api_response[["diff_hunk"]]
     parsed_response[["body"]] <- api_response[["body"]]
+    parsed_response[["commit_id"]] <- api_response[["commit_id"]]
+
 
     parsed_response <- as.data.table(parsed_response)
 
