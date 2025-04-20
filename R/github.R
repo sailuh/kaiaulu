@@ -186,6 +186,7 @@ github_parse_project_pr_reviews <- function(api_responses) {
   parse_response <- function(api_response) {
     parsed_response <- list()
     parsed_response[["review_id"]] <- api_response[["id"]]
+    parsed_response[["html_url"]] <- api_response[["html_url"]]
     parsed_response[["user_id"]] <- api_response[["user"]][["id"]]
     parsed_response[["reviewer"]] <- api_response[["user"]][["login"]]
     parsed_response[["submitted_at"]] <- api_response[["submitted_at"]]
@@ -194,13 +195,82 @@ github_parse_project_pr_reviews <- function(api_responses) {
     parsed_response[["pull_request_url"]] <- api_response[["_links"]][["pull_request"]][["href"]]
     parsed_response[["commit_id"]] <- api_response[["commit_id"]]
 
-
-
     parsed_response <- as.data.table(parsed_response)
 
     return(parsed_response)
   }
   rbindlist(lapply(api_responses,parse_response),fill=TRUE)
+}
+
+#' Download Project Pull Request Reviews Refresh
+#'
+#' Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
+#' the latest downloaded Github created_at date among the directory(intended to be the  folder).
+#' It uses this date to construct a query and calls \code{\link{github_api_project_pr_comments}}
+#'
+#' If no files exist in the file_save_path,\code{link{github_api_project_pr_comments}}
+#' is called with no additional query and all comments are downloaded.
+#'
+#' Because the endpoint this function relies on is based on the updated timestamp, running the refresher
+#' will download the most recent version of the comment changes. Only the most recent version of the comment will
+#' be downloaded, not all copies. However, if the same comment was modified before the next refresh call,
+#' then if the refresher function was executed again, then this would result in two comments with the same
+#' comment id being present in the table. This can be addressed by performing a group by over the comment\_id
+#' in the generated parsed table, and selecting to return the max(updated_at) comment, resulting in a table
+#' that only the most recent comment verson as of the latest time the refresher was executed.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @param file_save_path the save path for the pr reviews folder
+#' @param verbose boolean value. When set to true, it prints operational messages including
+#' greatest dates and the file name that contains the greatest date.
+#' @export
+#' @references For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.
+#' @seealso  \code{link{github_api_pr_reviews}} to download all pull request review data
+#' @seealso  \code{link{format_submitted_at_from_file}} for function that iterates through
+#' a .json file and returns the greatest 'created_at' value
+#' @seealso  \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
+github_api_pr_reviews_refresh <- function(owner,repo,pull_number,token,file_save_path=save_path_pr_reviews,verbose=TRUE){
+  # Check if the file is empty by checking its size
+  # List all files and subdirectories in the directory
+  contents <- list.files(path = file_save_path)
+  pull_number <- 330
+  # If the file is empty, download all pr comments
+  if(length(contents) == 0) {
+    if (verbose) {
+      message(file_save_path, " filepath is empty, running regular downloader.")
+    }
+    # Run regular downloader
+    pr_reviews <- github_api_pr_reviews(owner,repo,pull_number,token)
+    return (pr_reviews)
+  } else {
+    # Get the name of the file with the most recent date
+    latest_updated_pr_reviews <- paste0(file_save_path, parse_jira_latest_date(file_save_path))
+    latest_updated_pr_reviews <- (head(latest_updated_pr_reviews,1))
+
+    if (verbose) {
+      message("File with most recent date: ", latest_updated_pr_reviews)
+    }
+    # get the submitted_at value
+    submitted <- format_submitted_at_from_file(latest_updated_pr_reviews, item="")
+
+    # Convert the string to a POSIXct object
+    time_value <- as.POSIXct(created, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
+
+    # Add one second
+    new_time_value <- time_value + 1
+
+    # Format the new time value back into the original string format
+    formatted_new_time_value <- format(new_time_value, "%Y-%m-%dT%H:%M:%SZ")
+
+    if(verbose){
+      message("file name with greatest date: ",latest_updated_pr_reviews)
+      message("Latest date: ",formatted_new_time_value)
+    }
+    # Make the API call
+    gh_response <- github_api_project_pr_reviews(owner,repo,token,formatted_new_time_value)
+  } #end if/else
 }
 
 ###### Github Pull Request Commits ######
@@ -741,6 +811,30 @@ github_api_project_issue_or_pr_comments <- function(owner,repo,token,since=NULL)
   }
 }
 
+#' Download Project Issue's or Pull Request's Comments by specific pull request number.
+#'
+#' Download Issues' and Pull Request's Comments from "GET /repos/{owner}/{repo}/issues/comments" endpoint.
+#' All Pull Requests are counted as Issues, but not all Issues are Pull Requests
+#' Optional parameter since is used to download comments updated after the specified date.
+#' If the value of since is NULL, it is not passed to the API call and all comments are downloaded.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @export
+#' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-issue-comments-for-a-repository} and
+#' \url{https://docs.github.com/en/rest/guides/working-with-comments#pull-request-comments}.
+#' @export
+github_api_issue_pr_comments <- function(owner,repo,issue_number,token){
+    gh::gh("GET /repos/{owner}/{repo}/issues/{issue_number}/comments",
+           owner=owner,
+           repo=repo,
+           issue_number=issue_number,
+           page=1,
+           per_page=100,
+           .token=token,)
+}
+
 #' Parse Issues' or Pull Requests' Comments JSON to Table
 #'
 #' Note not all columns available in the downloaded json are parsed.
@@ -758,6 +852,15 @@ github_parse_project_issue_or_pr_comments <- function(api_responses){
     parsed_response[["comment_user_login"]] <- api_response[["user"]][["login"]]
     parsed_response[["author_association"]] <- api_response[["author_association"]]
     parsed_response[["body"]] <- api_response[["body"]]
+    parsed_response[["total_count"]] <- api_response[["total_count"]]
+    parsed_response[["+1"]] <- api_response[["+1"]]
+    parsed_response[["-1"]] <- api_response[["-1"]]
+    parsed_response[["laugh"]] <- api_response[["laugh"]]
+    parsed_response[["hooray"]] <- api_response[["hooray"]]
+    parsed_response[["confused"]] <- api_response[["confused"]]
+    parsed_response[["heart"]] <- api_response[["heart"]]
+    parsed_response[["rocket"]] <- api_response[["rocket"]]
+    parsed_response[["eyes"]] <- api_response[["eyes"]]
 
     parsed_response <- as.data.table(parsed_response)
 
@@ -931,6 +1034,52 @@ github_parse_project_pull_request <- function(api_responses){
   rbindlist(lapply(api_responses,parse_response),fill=TRUE)
 }
 
+#' Download Specific Pull Requests
+#'
+#' Download  Pull Requests from "GET /repos/{owner}/{repo}/pulls/{pull_number}" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @export
+#' @references For details, see \url{https://docs.github.com/en/rest/reference/pulls#list-pull-requests}.
+github_api_pull_request <- function(owner,repo,pull_number,token){
+  gh::gh("GET /repos/{owner}/{repo}/pulls/{pull_number}",
+         owner=owner,
+         repo=repo,
+         pull_number=pull_number,
+         state="all",
+         page=1,
+         per_page=100,
+         .token=token)
+}
+#' Parse Pull Requests JSON to Table
+#'
+#' Note not all columns available in the downloaded json are parsed.
+#'
+#' @param api_responses API response obtained from github_api_* function.
+#' @export
+github_parse_pull_request <- function(api_responses){
+  parse_response <- function(api_response){
+    parsed_response <- list()
+    parsed_response[["pr_id"]] <- api_response[["id"]]
+    parsed_response[["pr_number"]] <- api_response[["number"]]
+    parsed_response[["html_url"]] <- api_response[["html_url"]]
+    parsed_response[["url"]] <- api_response[["url"]]
+    parsed_response[["created_at"]] <- api_response[["created_at"]]
+    parsed_response[["updated_at"]] <- api_response[["updated_at"]]
+    parsed_response[["state"]] <- api_response[["state"]]
+    parsed_response[["pr_user_login"]] <- api_response[["user"]][["login"]]
+    parsed_response[["author_association"]] <- api_response[["author_association"]]
+    parsed_response[["title"]] <- api_response[["title"]]
+    parsed_response[["body"]] <- api_response[["body"]]
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+  rbindlist(lapply(api_responses,parse_response),fill=TRUE)
+}
+
 #' Download Project's Pull Request Comments
 #'
 #' @description Downloads the Pull Request Comments from `GET /repos/{owner}/{repo}/pulls/comments` endpoint.
@@ -964,6 +1113,29 @@ github_api_project_pr_comments <- function(owner, repo, token, since=NULL) {
   }
 }
 
+#' Download Project's Pull Request Comments by Specific Pull Request Number
+#'
+#' @description Downloads the Pull Request Comments from `GET /repos/{owner}/{repo}/pulls/comments` endpoint.
+#' Optional parameter since is used to download comments updated after the specified date.
+#' If the value of since is NULL, it is not passed to the API call and all comments are downloaded.
+#' NOTE: This function is different from the `github_api_project_issue_or_pr_comments`.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @param since Optional parameter to specify pulling only comments updated after this date
+#' @references For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}
+#' @export
+github_api_pull_pr_comments <- function(owner, repo, pull_number, token) {
+    api_response <- gh::gh("GET /repos/{owner}/{repo}/pulls/{pull_number}/comments",
+                           owner=owner,
+                           repo=repo,
+                           pull_number=pull_number,
+                           page=1,
+                           per_page=100,
+                           .token=token)
+}
+
 #' Parse Pull Requests' Comments JSON to Table
 #'
 #' Note not all columns available in the downloaded json are parsed.
@@ -985,8 +1157,8 @@ github_api_project_pr_comments <- function(owner, repo, token, since=NULL) {
 #' making the comment, or the the line number when only 1 line is selected. Will return
 #' 1 if no lines are selected when making the comment. The line number integer will match the line
 #' number at the time the review comment is made, regardless if a later commit changes the line number.
-#' `diff_hunk` A string containing the code hunk the review comment is referencing.
-#' It will contain the lines from the start of the (+/-) hunk until the line
+#' `diff_hunk` A string containing the code block the review comment is referencing.
+#' It will contain the lines from the start of the (+/-) block until the line
 #' associated by the review comment. Will return null if the review comment is not
 #' tied to a specific line.
 #' `body` A string containing main text of the review comment.
@@ -1011,6 +1183,18 @@ github_parse_project_pr_comments <- function(api_responses) {
     parsed_response[["diff_hunk"]] <- api_response[["diff_hunk"]]
     parsed_response[["body"]] <- api_response[["body"]]
     parsed_response[["commit_id"]] <- api_response[["commit_id"]]
+    parsed_response[["total_count"]] <- api_response[["total_count"]]
+    parsed_response[["+1"]] <- api_response[["+1"]]
+    parsed_response[["-1"]] <- api_response[["-1"]]
+    parsed_response[["laugh"]] <- api_response[["laugh"]]
+    parsed_response[["hooray"]] <- api_response[["hooray"]]
+    parsed_response[["confused"]] <- api_response[["confused"]]
+    parsed_response[["heart"]] <- api_response[["heart"]]
+    parsed_response[["rocket"]] <- api_response[["rocket"]]
+    parsed_response[["eyes"]] <- api_response[["eyes"]]
+
+
+
 
 
     parsed_response <- as.data.table(parsed_response)
@@ -1380,4 +1564,49 @@ format_created_at_from_file <- function(file_name,item_path) {
   return(formatted_greatest_date)
 }
 
+#' Retrieve greatest 'submitted_at' value from file
+#'
+#' Function to read a JSON file along a path and return the 'submitted_at'
+#' date of the greatest value for the issue key. Note that the 'submitted_at'
+#' value differs in how it is nested. This format is returned by the
+#' review endpoint currently.
+#'
+#' @param file_name the path and the file name. For example:
+#' ../../rawdata/github/kaiaulu/issue_or_pr_comment/sailuh_kaiaulu_issue_or_pr_comment_1701216000_1701261374.json
+#' @param item_path specifies the level of nesting to look for the created_at value. This was
+#' implemented given that the results of the search endpoint are differently nested than others.
+#' @seealso  \code{link{github_api_project_issue_or_pr_comment_refresh}} to refresh comment data
+#' @seealso  \code{link{github_api_project_issue_refresh}} to refresh issue data
+#' @keywords internal
+format_submitted_at_from_file <- function(file_name,item_path) {
+  # Read the JSON file
+  json_data <- fromJSON(txt= file_name, simplifyVector = FALSE)
+
+  # Navigate to the correct level in the JSON structure based on the item_path
+  data_to_process <- if (item_path != "") {
+    eval(parse(text=paste0("json_data$", item_path)))
+  } else {
+    json_data
+  }
+
+  # Initialize a variable to keep track of the greatest date
+  greatest_date <- as.POSIXct("1970-01-01T00:00:00Z", tz = "UTC")
+
+  # Iterate through each element in the data_to_process
+  for (item in data_to_process) {
+    # Extract 'created_at' date and convert to POSIXct
+    submitted_date <- as.POSIXct(item$submitted_at, format = "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+
+    # Update greatest_date if the current item's date is later
+    if (current_date > greatest_date) {
+      greatest_date <- current_date
+    }
+  }
+
+  # Format the greatest date found
+  formatted_greatest_date <- format(greatest_date, "%Y-%m-%dT%H:%M:%SZ")
+
+  # Return the latest 'submitted_at' value
+  return(formatted_greatest_date)
+}
 

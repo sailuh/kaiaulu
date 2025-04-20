@@ -1,11 +1,11 @@
 ---
-title: "Download GitHub Pull Request Conversations via REST API"
+title: "Download GitHub Pull Request Comments via REST API"
 output: 
   html_document:
     toc: true
     number_sections: true
 vignette: >
-  %\VignetteIndexEntry{Download GitHub Pull Request Conversations via REST API}
+  %\VignetteIndexEntry{Download GitHub Pull Request Comments via REST API}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -15,11 +15,11 @@ editor_options:
 
 # Introduction
 
-In this vignette, the goal is to understand and visualize the GitHub
-Pull Requests Conversations tab. The goal is to see the development
-process that involves communication between developers. The three REST
-API endpoints being used are issue comments, pull request comments, and
-pull request reviews.
+In this vignette, the goal is to understand and visualize comments on
+the GitHub Pull Requests Conversations tab. The goal is to see the
+development process that involves communication between developers. The
+three REST API endpoints being used are issue comments, pull request
+comments, and pull request reviews.
 
 ## Create a Personal Token
 
@@ -84,26 +84,56 @@ save_path_pr_merge <- get_github_pr_merge_path(conf, "project_key_1")
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 ```
 
-# GitHub Pull Request Conversations
+# GitHub Pull Request Comments
+
+## Initial Pull Request Comment
+
+The first pull request comment in the conversations tab is about the
+pull request itself. To get this, we must utilize the pull request
+endpoint to retrieve the body paragraph.
+
+```{r Collect information by pull request number}
+pull_number <- 330
+
+gh_response <- github_api_pull_request(owner, repo, pull_number, token)
+
+# create file name with path to save as json.
+file_name <- paste0(save_path_pull_request,
+                    owner,"_",repo,"_pullrequest","_", pull_number,
+                    ".json")
+#write to json.
+write_json(gh_response,file_name,pretty=TRUE,auto_unbox=TRUE)
+message("Written to file: ", file_name)
+```
+
+```{r}
+all_pull_requests <- lapply(list.files(save_path_pull_request,
+                                     full.names = TRUE),read_json)
+all_pull_requests <- lapply(all_pull_requests,
+                                   github_parse_pull_request)
+all_pull_requests <- rbindlist(all_pull_requests,fill=TRUE)
+
+head(all_pull_requests,1)  %>%
+  gt(auto_align = FALSE) 
+```
 
 ## Issue Comments
 
-Issue Comments appear in the GitHub Pull Request Conversations tab.
+Issue Comments appear in the GitHub Pull Request Conversations tab but
+can also mention PR Comments. With these four tables, they are all
+mutually exclusive, meaning the comments from each endpoint do not
+appear in other endpoints.
 
-```{r Collect comments by date, eval = FALSE}
-updated_lower_bound_comment <- "2024-04-25"
+```{r Collect comments by pull request number}
+#gh call but with date
+# get the data
+gh_response_issue_or_pr_comment <- github_api_project_issue_or_pr_comment_refresh(owner,repo,token,save_path_issue_or_pr_comments,verbose=TRUE)
 
-# make initial API CALL
-gh_response <- github_api_project_issue_or_pr_comments_by_date(owner = owner,
-                                                repo = repo,
-                                                token = token,
-                                                since = updated_lower_bound_comment,
-                                                verbose=TRUE)
-
-# Make subsequent API calls and write to JSON file along save path
-github_api_iterate_pages(token,gh_response,
+# create directory and iterate over data
+#dir.create(save_path_issue_or_pr_comments)
+github_api_iterate_pages(token,gh_response_issue_or_pr_comment,
                          save_path_issue_or_pr_comments,
-                         prefix="issue",
+                         prefix="issue_or_pr_comment",
                          verbose=TRUE)
 ```
 
@@ -114,7 +144,7 @@ all_issue_or_pr_comments <- lapply(all_issue_or_pr_comments,
                                    github_parse_project_issue_or_pr_comments)
 all_issue_or_pr_comments <- rbindlist(all_issue_or_pr_comments,fill=TRUE)
 
-head(all_issue_or_pr_comments,2)  %>%
+head(all_issue_or_pr_comments,1000)  %>%
   gt(auto_align = FALSE) 
 ```
 
@@ -130,9 +160,8 @@ contribute to finding and analyzing patterns in collaboration between
 developers.
 
 ```{r Collect Reviews from Pull Requests}
-gh_response <- github_api_pr_reviews(owner, repo, pull_number = 295, token)
+gh_response <- github_api_pr_reviews_refresh(owner, repo, pull_number = 330, token, save_path_pr_reviews)
 
-# create file name with path to save as json.
 file_name <- paste0(save_path_pr_reviews,
                     owner,"_",repo,"_pullreview",
                     ".json")
@@ -145,7 +174,7 @@ message("Written to file: ", file_name)
 all_pr_reviews <- lapply(list.files(save_path_pr_reviews, full.names = TRUE), read_json)
 all_pr_reviews <- lapply(all_pr_reviews, github_parse_project_pr_reviews)
 all_pr_reviews <- rbindlist(all_pr_reviews, fill = TRUE)
-head(all_pr_reviews,10)  %>%
+head(all_pr_reviews,2)  %>%
   gt(auto_align = FALSE) 
 ```
 
@@ -183,20 +212,38 @@ organize them by PR Review number and time.
 
 ```{r Tabulate Endpoints}
 
+all_issue_or_pr_comments <- lapply(list.files(save_path_issue_or_pr_comments, full.names = TRUE), read_json)
+all_issue_or_pr_comments <- lapply(all_issue_or_pr_comments, github_parse_project_pr_comments)
+all_issue_or_pr_comments <- rbindlist(all_issue_or_pr_comments, fill = TRUE)
+all_issue_or_pr_comments <- all_issue_or_pr_comments[,.(html_url=html_url, created_at=created_at, body=body )]
+
 all_pr_comments <- lapply(list.files(save_path_pr_comments, full.names = TRUE), read_json)
 all_pr_comments <- lapply(all_pr_comments, github_parse_project_pr_comments)
 all_pr_comments <- rbindlist(all_pr_comments, fill = TRUE)
-all_pr_comments <- all_pr_comments[,.(PR_review=review_id, created_at=created_at, body=body )]
+all_pr_comments <- all_pr_comments[,.(html_url=html_url, PR_review=review_id, created_at=created_at, body=body )]
 
 all_pr_reviews <- lapply(list.files(save_path_pr_reviews, full.names = TRUE), read_json)
 all_pr_reviews <- lapply(all_pr_reviews, github_parse_project_pr_reviews)
 all_pr_reviews <- rbindlist(all_pr_reviews, fill = TRUE)
-all_pr_reviews <- all_pr_reviews[,.(PR_review=review_id, created_at=submitted_at, body=body, state=state )]
+all_pr_reviews <- all_pr_reviews[,.(html_url=html_url, PR_review=review_id, created_at=submitted_at, body=body, state=state )]
 
-pr_endpoints <- rbind(all_pr_comments, all_pr_reviews, fill = TRUE)
-pr_endpoints <- pr_endpoints[order(pr_endpoints$PR_review)]
-pr_endpoints <- pr_endpoints[order(pr_endpoints$created_at)]
+pr_endpoints <- rbind(all_issue_or_pr_comments, all_pr_comments, all_pr_reviews, fill = TRUE)
 
-head(pr_endpoints,1000)  %>%
+pr_endpoints[, thread_root := ifelse(is.na(PR_review), 
+                                    NA,
+                                    html_url)]
+
+# Step 1: Add a sort key that gives priority to review summary (state not NA)
+pr_endpoints[, is_review_summary := !is.na(state)]
+
+# Step 2: Use PR_review as a grouping variable — fallback to NA if no review ID
+pr_endpoints[, thread_id := fcoalesce(as.character(PR_review), html_url)]
+
+# Step 3: Order by thread ID, then review summary (TRUE = 1, sorted before FALSE = 0), then timestamp
+pr_endpoints <- pr_endpoints[order(thread_id,
+                                   -as.integer(is_review_summary),
+                                   created_at)]
+
+head(pr_endpoints,100)  %>%
   gt(auto_align = FALSE) 
 ```
