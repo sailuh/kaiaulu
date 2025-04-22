@@ -15,30 +15,21 @@ editor_options:
 
 # Introduction
 
-In this vignette, the goal is to understand and visualize comments on
-the GitHub Pull Requests Conversations tab. The goal is to see the
-development process that involves communication between developers. The
-three REST API endpoints being used are issue comments, pull request
-comments, and pull request reviews.
+In this vignette, the goal is to download all comments on the GitHub
+Pull Requests Conversations tab. In a GitHub Pull Request, comments
+written in the conversations tab are not easily retrievable by one
+endpoint in chronological order. They are instead split into four
+mutually exclusive endpoints. The four REST API endpoints being used are
+pull requests, issue/pr comments, pull request in-line comments, and
+pull request reviews.
 
-## Create a Personal Token
+-   Pull Requests
 
-GitHub limits the number of API calls per IP to only 60 attempts **every
-hour** at the time this vignette was created. You can check the current
-rates at [its
-website](https://docs.github.com/en/free-pro-team@latest/rest/overview/resources-in-the-rest-api#rate-limiting).
+    -   Reviews
 
-If using a personal account token from a free GitHub account, the number
-of API calls per hour increases to 5000 **per hour**. Therefore, it is
-recommended you create a personal token by following the [GitHub
-Documentation
-instructions](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token#:~:text=Creating%20a%20token.%201%20Verify%20your%20email%20address%2C,able%20to%20see%20the%20token%20again.%20More%20items).
-The process should not take more than 2 minutes.
+        -   In-Line PR Comment
 
-The token should then be copied and pasted into `../.ssh/github_token`.
-Both the `.ssh` folder and `github_token` file may need to be created
-manually. Check for hidden folders before creating the `.ssh` folder.
-The `github_token` file should not have any file extensions.
+    -   Pull Request Comments
 
 ## Libraries
 
@@ -58,7 +49,7 @@ require(gt)
 ## Project Configuration File
 
 To use the pipeline, you must specify the organization and project of
-interest, and your token.
+interest.
 
 ```{r warning=FALSE}
 conf <- parse_config("../conf/kaiaulu.yml")
@@ -79,18 +70,84 @@ save_path_pr_reviewers <- get_github_pr_reviewers_path(conf, "project_key_1")
 save_path_pr_merge <- get_github_pr_merge_path(conf, "project_key_1")
 # Create all folder directories
 #create_file_directory(conf)
+```
 
+## Create a Personal Token
+
+GitHub limits the number of API calls per IP to only 60 attempts **every
+hour** at the time this vignette was created. You can check the current
+rates at [its
+website](https://docs.github.com/en/free-pro-team@latest/rest/overview/resources-in-the-rest-api#rate-limiting).
+
+If using a personal account token from a free GitHub account, the number
+of API calls per hour increases to 5000 **per hour**. Therefore, it is
+recommended you create a personal token by following the [GitHub
+Documentation
+instructions](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token#:~:text=Creating%20a%20token.%201%20Verify%20your%20email%20address%2C,able%20to%20see%20the%20token%20again.%20More%20items).
+The process should not take more than 2 minutes.
+
+The token should then be copied and pasted into `../.ssh/github_token`.
+Both the `.ssh` folder and `github_token` file may need to be created
+manually. Check for hidden folders before creating the `.ssh` folder.
+The `github_token` file should not have any file extensions.
+
+```{r}
 # your file github_token (a text file) contains the GitHub token API
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 ```
 
-# GitHub Pull Request Comments
+## Explanation of GitHub Pull Request Comments
+
+In GitHub, a Pull Request conversation starts off with the Pull Request
+description. Pull Request comments are made by users. A reviewer can
+start a review where they can add a single comment, request changes, or
+approve for merging. This starts the review comment. From there, in-line
+code comments can be made from the review.
+
+# Download GitHub Pull Request Comments
+
+## Pull Request Comments
+
+Pull Request Comments not connected to a review, appear in the GitHub
+Pull Request Conversations tab but is retrieved by the issue comments
+endpoint. Using this endpoint, both issues and pull request comments are
+retrieved. Knowing this, it is important to filter out the issue
+comments in this notebook. The key to this is in the html_url of each
+comment, differentiated by /issues or /pull
+
+```{r Collect comments by pull request number}
+#gh call but with date
+# get the data
+gh_response_issue_or_pr_comment <- github_api_project_issue_or_pr_comment_refresh(owner,repo,token,save_path_issue_or_pr_comments,verbose=TRUE)
+
+# create directory and iterate over data
+#dir.create(save_path_issue_or_pr_comments)
+github_api_iterate_pages(token,gh_response_issue_or_pr_comment,
+                         save_path_issue_or_pr_comments,
+                         prefix="issue_or_pr_comment",
+                         verbose=TRUE)
+```
+
+```{r}
+pr_comments <- lapply(list.files(save_path_issue_or_pr_comments, full.names = TRUE),read_json)
+pr_comments <- lapply(pr_comments, github_parse_project_issue_or_pr_comments)
+pr_comments <- rbindlist(pr_comments,fill=TRUE)
+
+#filter only pull requests using grepl
+pr_comments <- pr_comments[grepl("/pull/", html_url)]
+
+head(pr_comments,1000)  %>%
+  gt(auto_align = FALSE) 
+```
 
 ## Initial Pull Request Comment
 
-The first pull request comment in the conversations tab is about the
-pull request itself. To get this, we must utilize the pull request
-endpoint to retrieve the body paragraph.
+We may notice the first comment of the pull request is missing. The pull
+request description is treated as a pull request comment in the
+conversations tab by GitHub. However, it is not retrievable by the other
+comments endpoints. To get this, we must utilize the pull request
+endpoint to gather information on the pull request, and retrieve the
+body paragraph for that pull request.
 
 ```{r Collect information by pull request number}
 pull_number <- 330
@@ -107,53 +164,25 @@ message("Written to file: ", file_name)
 ```
 
 ```{r}
-all_pull_requests <- lapply(list.files(save_path_pull_request,
+pull_requests <- lapply(list.files(save_path_pull_request,
                                      full.names = TRUE),read_json)
-all_pull_requests <- lapply(all_pull_requests,
+pull_requests <- lapply(pull_requests,
                                    github_parse_pull_request)
-all_pull_requests <- rbindlist(all_pull_requests,fill=TRUE)
+pull_requests <- rbindlist(pull_requests,fill=TRUE)
 
-head(all_pull_requests,1)  %>%
+head(pull_requests,1)  %>%
   gt(auto_align = FALSE) 
 ```
 
-## Issue Comments
+## Pull Request Reviews
 
-Issue Comments appear in the GitHub Pull Request Conversations tab but
-can also mention PR Comments. With these four tables, they are all
-mutually exclusive, meaning the comments from each endpoint do not
-appear in other endpoints.
-
-```{r Collect comments by pull request number}
-#gh call but with date
-# get the data
-gh_response_issue_or_pr_comment <- github_api_project_issue_or_pr_comment_refresh(owner,repo,token,save_path_issue_or_pr_comments,verbose=TRUE)
-
-# create directory and iterate over data
-#dir.create(save_path_issue_or_pr_comments)
-github_api_iterate_pages(token,gh_response_issue_or_pr_comment,
-                         save_path_issue_or_pr_comments,
-                         prefix="issue_or_pr_comment",
-                         verbose=TRUE)
-```
-
-```{r}
-all_issue_or_pr_comments <- lapply(list.files(save_path_issue_or_pr_comments,
-                                     full.names = TRUE),read_json)
-all_issue_or_pr_comments <- lapply(all_issue_or_pr_comments,
-                                   github_parse_project_issue_or_pr_comments)
-all_issue_or_pr_comments <- rbindlist(all_issue_or_pr_comments,fill=TRUE)
-
-head(all_issue_or_pr_comments,1000)  %>%
-  gt(auto_align = FALSE) 
-```
-
-## Pull Request Review Endpoint
-
-We can obtain information on the whole review itself in a pull request,
-which is different than an in-line comment on code review. The review
-endpoint allows analysts to see the state of the review such as
-requesting changes, approving, or a singular comment. More information
+Up until now, previous comments were not associated to code review.
+Users can perform code reviews by add all in-line code review comments
+and save them together with "Changes Requested" or "Approved" or just a
+single comment in-line rather than grouping. The review endpoint allows
+analysts to see the state of the review such as requesting changes,
+approving, or a singular comment. With this the review has its own
+comment body different from the in-line code comments. More information
 on the fields can be seen on the function definition for
 `github_parse_project_pr_reviews`. These fields of data can greatly
 contribute to finding and analyzing patterns in collaboration between
@@ -171,22 +200,24 @@ message("Written to file: ", file_name)
 ```
 
 ```{r Parse Review Comments from Pull Requests}
-all_pr_reviews <- lapply(list.files(save_path_pr_reviews, full.names = TRUE), read_json)
-all_pr_reviews <- lapply(all_pr_reviews, github_parse_project_pr_reviews)
-all_pr_reviews <- rbindlist(all_pr_reviews, fill = TRUE)
-head(all_pr_reviews,2)  %>%
+pr_reviews <- lapply(list.files(save_path_pr_reviews, full.names = TRUE), read_json)
+pr_reviews <- lapply(pr_reviews, github_parse_project_pr_reviews)
+pr_reviews <- rbindlist(pr_reviews, fill = TRUE)
+head(pr_reviews,2)  %>%
   gt(auto_align = FALSE) 
 ```
 
-## Pull Request Comments Endpoint
+## Pull Request In-Line Code Comments
 
-Other information we can obtain is the review comments from Pull
-Requests that contain the inline code blocks. The review comments
-include the diff_hunk field, which is a string that contains the in-line
-code reviewers may comment on the pull request. The particular line
-numbers the comment is referencing is specified by the review comment.
-More information on the fields can be seen on the function definition
-for `github_parse_project_pr_comments`. These fields of data can greatly
+Other information we can obtain is the in-line code comments from Pull
+Requests. The comments include the diff_hunk field, which is a string
+that contains the in-line code reviewers may comment on the pull
+request. The particular line numbers the comment is referencing is
+specified by the review comment. These in-line code comments have a
+correlating review id number that matches the review endpoint and other
+in-line code comments, therefore grouping them all together. More
+information on the fields can be seen on the function definition for
+`github_parse_project_pr_comments`. These fields of data can greatly
 contribute to finding and analyzing patterns in collaboration between
 developers.
 
@@ -196,38 +227,42 @@ github_api_iterate_pages(token, gh_response, save_path_pr_comments, prefix="pr_c
 ```
 
 ```{r Parse Comments from Pull Requests}
-all_pr_comments <- lapply(list.files(save_path_pr_comments, full.names = TRUE), read_json)
-all_pr_comments <- lapply(all_pr_comments, github_parse_project_pr_comments)
-all_pr_comments <- rbindlist(all_pr_comments, fill = TRUE)
-head(all_pr_comments,100)  %>%
+inline_comments <- lapply(list.files(save_path_pr_comments, full.names = TRUE), read_json)
+inline_comments <- lapply(inline_comments, github_parse_project_pr_comments)
+inline_comments <- rbindlist(inline_comments, fill = TRUE)
+head(inline_comments,100)  %>%
   gt(auto_align = FALSE) 
 ```
 
 ## Tabulating GitHub Browser Conversation Tab
 
-After understanding the three endpoints that make up GitHub
+After understanding the four endpoints that make up GitHub
 Conversations, we want to visualize that in the Kaiaulu. Here we gather
 specified data from pr_comments and pr_reviews and the goal is to
 organize them by PR Review number and time.
 
 ```{r Tabulate Endpoints}
+pull_requests <- lapply(list.files(save_path_pull_request,full.names = TRUE),read_json)
+pull_requests <- lapply(pull_requests, github_parse_pull_request)
+pull_requests <- rbindlist(pull_requests,fill=TRUE)
 
-all_issue_or_pr_comments <- lapply(list.files(save_path_issue_or_pr_comments, full.names = TRUE), read_json)
-all_issue_or_pr_comments <- lapply(all_issue_or_pr_comments, github_parse_project_pr_comments)
-all_issue_or_pr_comments <- rbindlist(all_issue_or_pr_comments, fill = TRUE)
-all_issue_or_pr_comments <- all_issue_or_pr_comments[,.(html_url=html_url, created_at=created_at, body=body )]
+pr_comments <- lapply(list.files(save_path_issue_or_pr_comments, full.names = TRUE), read_json)
+pr_comments <- lapply(pr_comments, github_parse_project_pr_comments)
+pr_comments <- rbindlist(pr_comments, fill = TRUE)
+pr_comments <- pr_comments[grepl("/pull/", html_url)]
+pr_comments <- pr_comments[,.(html_url=html_url, created_at=created_at, body=body )]
 
-all_pr_comments <- lapply(list.files(save_path_pr_comments, full.names = TRUE), read_json)
-all_pr_comments <- lapply(all_pr_comments, github_parse_project_pr_comments)
-all_pr_comments <- rbindlist(all_pr_comments, fill = TRUE)
-all_pr_comments <- all_pr_comments[,.(html_url=html_url, PR_review=review_id, created_at=created_at, body=body )]
+inline_comments <- lapply(list.files(save_path_pr_comments, full.names = TRUE), read_json)
+inline_comments <- lapply(inline_comments, github_parse_project_pr_comments)
+inline_comments <- rbindlist(inline_comments, fill = TRUE)
+inline_comments <- inline_comments[,.(html_url=html_url, PR_review=review_id, created_at=created_at, body=body )]
 
-all_pr_reviews <- lapply(list.files(save_path_pr_reviews, full.names = TRUE), read_json)
-all_pr_reviews <- lapply(all_pr_reviews, github_parse_project_pr_reviews)
-all_pr_reviews <- rbindlist(all_pr_reviews, fill = TRUE)
-all_pr_reviews <- all_pr_reviews[,.(html_url=html_url, PR_review=review_id, created_at=submitted_at, body=body, state=state )]
+pr_reviews <- lapply(list.files(save_path_pr_reviews, full.names = TRUE), read_json)
+pr_reviews <- lapply(pr_reviews, github_parse_project_pr_reviews)
+pr_reviews <- rbindlist(pr_reviews, fill = TRUE)
+pr_reviews <- pr_reviews[,.(html_url=html_url, PR_review=review_id, created_at=submitted_at, body=body, state=state )]
 
-pr_endpoints <- rbind(all_issue_or_pr_comments, all_pr_comments, all_pr_reviews, fill = TRUE)
+pr_endpoints <- rbind(pull_requests, pr_comments, inline_comments, pr_reviews, fill = TRUE)
 
 pr_endpoints[, thread_root := ifelse(is.na(PR_review), 
                                     NA,
