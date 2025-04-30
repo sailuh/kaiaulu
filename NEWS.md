@@ -3,6 +3,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ * `exec/ghevents.R` has been added. It is a executable CLI (command-line interface) to download and parse Github Issue Events from outside Kaiaulu.
  * `refresh_jira_issues()` had been added. It is a wrapper function for the previous downloader and downloads only issues greater than the greatest key already downloaded.
  * `download_jira_issues()`, `download_jira_issues_by_issue_key()`, and `download_jira_issues_by_date()` has been added. This allows for downloading of Jira issues without the use of JirAgileR [#275](https://github.com/sailuh/kaiaulu/issues/275) and specification of issue Id and created ranges. It also interacts with `parse_jira_latest_date` to implement a refresh capability.
  * `make_jira_issue()` and `make_jira_issue_tracker()` no longer create fake issues following JirAgileR format, but instead the raw data obtained from JIRA API. This is compatible with the new parser function for JIRA. [#277](https://github.com/sailuh/kaiaulu/issues/277)
