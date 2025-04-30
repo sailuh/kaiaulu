@@ -204,20 +204,9 @@ github_parse_project_pr_reviews <- function(api_responses) {
 
 #' Download Project Pull Request Reviews Refresh
 #'
-#' Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
-#' the latest downloaded Github created_at date among the directory(intended to be the  folder).
-#' It uses this date to construct a query and calls \code{\link{github_api_project_pr_comments}}
-#'
 #' If no files exist in the file_save_path,\code{link{github_api_project_pr_comments}}
 #' is called with no additional query and all comments are downloaded.
 #'
-#' Because the endpoint this function relies on is based on the updated timestamp, running the refresher
-#' will download the most recent version of the comment changes. Only the most recent version of the comment will
-#' be downloaded, not all copies. However, if the same comment was modified before the next refresh call,
-#' then if the refresher function was executed again, then this would result in two comments with the same
-#' comment id being present in the table. This can be addressed by performing a group by over the comment\_id
-#' in the generated parsed table, and selecting to return the max(updated_at) comment, resulting in a table
-#' that only the most recent comment verson as of the latest time the refresher was executed.
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
@@ -231,11 +220,18 @@ github_parse_project_pr_reviews <- function(api_responses) {
 #' @seealso  \code{link{format_submitted_at_from_file}} for function that iterates through
 #' a .json file and returns the greatest 'created_at' value
 #' @seealso  \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
-github_api_pr_reviews_refresh <- function(owner,repo,pull_number,token,file_save_path=save_path_pr_reviews,verbose=TRUE){
+github_api_pr_reviews_refresh <- function(owner,repo,token,file_save_path=save_path_pr_reviews,verbose=TRUE){
+  # Sift through pull request file and retrieve all valid pull request numbers
+
+  pull_data <- fromJSON("your_file.json")
+
+  # Extract 'number' field
+  pull_numbers <- data$number
+
+
   # Check if the file is empty by checking its size
   # List all files and subdirectories in the directory
   contents <- list.files(path = file_save_path)
-  pull_number <- 330
   # If the file is empty, download all pr comments
   if(length(contents) == 0) {
     if (verbose) {
@@ -1078,6 +1074,77 @@ github_parse_pull_request <- function(api_responses){
     return(parsed_response)
   }
   rbindlist(lapply(api_responses,parse_response),fill=TRUE)
+}
+
+#' Download Project Pull Requests Refresh
+#'
+#' Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
+#' the latest downloaded Github created_at date among the directory(intended to be the  folder).
+#' It uses this date to construct a query and calls \code{\link{github_api_project_pull_request}}
+#'
+#' If no files exist in the file_save_path,\code{link{github_api_project_pull_request}}
+#' is called with no additional query and all comments are downloaded.
+#'
+#' Because the endpoint this function relies on is based on the updated timestamp, running the refresher
+#' will download the most recent version of the comment changes. Only the most recent version of the comment will
+#' be downloaded, not all copies. However, if the same comment was modified before the next refresh call,
+#' then if the refresher function was executed again, then this would result in two comments with the same
+#' comment id being present in the table. This can be addressed by performing a group by over the comment\_id
+#' in the generated parsed table, and selecting to return the max(updated_at) comment, resulting in a table
+#' that only the most recent comment verson as of the latest time the refresher was executed.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @param file_save_path the save path for the pr folder
+#' @param verbose boolean value. When set to true, it prints operational messages including
+#' greatest dates and the file name that contains the greatest date.
+#' @export
+#' @references For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.
+#' @seealso  \code{link{github_api_project_pr_comments}} to download all pull request  data
+#' @seealso  \code{link{format_created_at_from_file}} for function that iterates through
+#' a .json file and returns the greatest 'created_at' value
+#' @seealso  \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
+#' @seealso  \code{link{github_api_project_pull_request}} to call pr endpoint
+github_api_project_pull_request_refresh <- function(owner,repo,token,file_save_path=save_path_pull_request,verbose=TRUE){
+  # Check if the file is empty by checking its size
+  # List all files and subdirectories in the directory
+  contents <- list.files(path = file_save_path)
+  # If the file is empty, download all pull requests
+  if(length(contents) == 0) {
+    if (verbose) {
+      message(file_save_path, " filepath is empty, running regular downloader.")
+    }
+    # Run regular downloader
+    pull_requests <- github_api_project_pull_request(owner,repo,token)
+    return (pull_requests)
+  } else {
+    # Get the name of the file with the most recent date
+    latest_updated_pull_requests <- paste0(file_save_path, parse_jira_latest_date(file_save_path))
+    latest_updated_pull_requests <- (head(latest_updated_pull_requests,1))
+
+    if (verbose) {
+      message("File with most recent date: ", latest_updated_pull_requests)
+    }
+    # get the created_at value
+    created <- format_created_at_from_file(latest_updated_pull_requests, item="")
+
+    # Convert the string to a POSIXct object
+    time_value <- as.POSIXct(created, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
+
+    # Add one second
+    new_time_value <- time_value + 1
+
+    # Format the new time value back into the original string format
+    formatted_new_time_value <- format(new_time_value, "%Y-%m-%dT%H:%M:%SZ")
+
+    if(verbose){
+      message("file name with greatest date: ",latest_updated_pull_requests)
+      message("Latest date: ",formatted_new_time_value)
+    }
+    # Make the API call
+    gh_response <- github_api_project_pull_request(owner,repo,token,formatted_new_time_value)
+  } #end if/else
 }
 
 #' Download Project's Pull Request Comments

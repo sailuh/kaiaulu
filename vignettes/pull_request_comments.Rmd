@@ -96,7 +96,7 @@ The `github_token` file should not have any file extensions.
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 ```
 
-## Explanation of GitHub Pull Request Comments
+## GitHub Pull Request Comments
 
 In GitHub, a Pull Request conversation starts off with the Pull Request
 description. Pull Request comments are made by users. A reviewer can
@@ -106,14 +106,14 @@ code comments can be made from the review.
 
 # Download GitHub Pull Request Comments
 
-## Pull Request Comments
+## Conversation Comments
+
+### Pull Request Comments
 
 Pull Request Comments not connected to a review, appear in the GitHub
 Pull Request Conversations tab but is retrieved by the issue comments
 endpoint. Using this endpoint, both issues and pull request comments are
-retrieved. Knowing this, it is important to filter out the issue
-comments in this notebook. The key to this is in the html_url of each
-comment, differentiated by /issues or /pull
+retrieved.
 
 ```{r Collect comments by pull request number}
 #gh call but with date
@@ -128,6 +128,10 @@ github_api_iterate_pages(token,gh_response_issue_or_pr_comment,
                          verbose=TRUE)
 ```
 
+It is important to filter out the issue comments in this notebook. The
+key to this is in the html_url of each comment, differentiated by
+/issues or /pull
+
 ```{r}
 pr_comments <- lapply(list.files(save_path_issue_or_pr_comments, full.names = TRUE),read_json)
 pr_comments <- lapply(pr_comments, github_parse_project_issue_or_pr_comments)
@@ -140,7 +144,7 @@ head(pr_comments,1000)  %>%
   gt(auto_align = FALSE) 
 ```
 
-## Initial Pull Request Comment
+### First Pull Request Comment
 
 We may notice the first comment of the pull request is missing. The pull
 request description is treated as a pull request comment in the
@@ -174,7 +178,9 @@ head(pull_requests,1)  %>%
   gt(auto_align = FALSE) 
 ```
 
-## Pull Request Reviews
+## Code Comments
+
+### Pull Request Reviews
 
 Up until now, previous comments were not associated to code review.
 Users can perform code reviews by add all in-line code review comments
@@ -207,7 +213,7 @@ head(pr_reviews,2)  %>%
   gt(auto_align = FALSE) 
 ```
 
-## Pull Request In-Line Code Comments
+### Pull Request In-Line Code Comments
 
 Other information we can obtain is the in-line code comments from Pull
 Requests. The comments include the diff_hunk field, which is a string
@@ -234,12 +240,12 @@ head(inline_comments,100)  %>%
   gt(auto_align = FALSE) 
 ```
 
-## Tabulating GitHub Browser Conversation Tab
+# Pull Request Conversations Tab
 
 After understanding the four endpoints that make up GitHub
 Conversations, we want to visualize that in the Kaiaulu. Here we gather
-specified data from pr_comments and pr_reviews and the goal is to
-organize them by PR Review number and time.
+specified data from pull_requests, pr_comments, pr_reviews, and in-line
+comments and the goal is to organize them by PR Review number and time.
 
 ```{r Tabulate Endpoints}
 pull_requests <- lapply(list.files(save_path_pull_request,full.names = TRUE),read_json)
