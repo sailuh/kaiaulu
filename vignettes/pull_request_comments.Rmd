@@ -91,7 +91,7 @@ Both the `.ssh` folder and `github_token` file may need to be created
 manually. Check for hidden folders before creating the `.ssh` folder.
 The `github_token` file should not have any file extensions.
 
-```{r}
+```{r Scan GitHub Token}
 # your file github_token (a text file) contains the GitHub token API
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 ```
@@ -153,15 +153,14 @@ comments endpoints. To get this, we must utilize the pull request
 endpoint to gather information on the pull request, and retrieve the
 body paragraph for that pull request.
 
-```{r Collect information by pull request number}
-pull_number <- 330
+```{r Collect information on pull request}
 
-gh_response <- github_api_pull_request(owner, repo, pull_number, token)
+gh_response <- github_api_project_pull_request_refresh(owner, repo, token, save_path_pull_request)
 
 # create file name with path to save as json.
 file_name <- paste0(save_path_pull_request,
-                    owner,"_",repo,"_pullrequest","_", pull_number,
-                    ".json")
+                  owner,"_",repo,"_pullrequest","_", pull_number,
+                  ".json")
 #write to json.
 write_json(gh_response,file_name,pretty=TRUE,auto_unbox=TRUE)
 message("Written to file: ", file_name)
@@ -171,10 +170,10 @@ message("Written to file: ", file_name)
 pull_requests <- lapply(list.files(save_path_pull_request,
                                      full.names = TRUE),read_json)
 pull_requests <- lapply(pull_requests,
-                                   github_parse_pull_request)
+                                   github_parse_project_pull_request)
 pull_requests <- rbindlist(pull_requests,fill=TRUE)
 
-head(pull_requests,1)  %>%
+head(pull_requests,100)  %>%
   gt(auto_align = FALSE) 
 ```
 
@@ -195,21 +194,14 @@ contribute to finding and analyzing patterns in collaboration between
 developers.
 
 ```{r Collect Reviews from Pull Requests}
-gh_response <- github_api_pr_reviews_refresh(owner, repo, pull_number = 330, token, save_path_pr_reviews)
-
-file_name <- paste0(save_path_pr_reviews,
-                    owner,"_",repo,"_pullreview",
-                    ".json")
-#write to json.
-write_json(gh_response,file_name,pretty=TRUE,auto_unbox=TRUE)
-message("Written to file: ", file_name)
+gh_response <- github_api_pr_reviews_refresh(owner, repo, token, save_path_pull_request, save_path_pr_reviews)
 ```
 
 ```{r Parse Review Comments from Pull Requests}
 pr_reviews <- lapply(list.files(save_path_pr_reviews, full.names = TRUE), read_json)
 pr_reviews <- lapply(pr_reviews, github_parse_project_pr_reviews)
 pr_reviews <- rbindlist(pr_reviews, fill = TRUE)
-head(pr_reviews,2)  %>%
+head(pr_reviews,100)  %>%
   gt(auto_align = FALSE) 
 ```
 

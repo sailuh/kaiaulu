@@ -204,9 +204,13 @@ github_parse_project_pr_reviews <- function(api_responses) {
 
 #' Download Project Pull Request Reviews Refresh
 #'
-#' If no files exist in the file_save_path,\code{link{github_api_project_pr_comments}}
+#' If no files exist in the file_save_path,\code{link{github_api_pr_reviews}}
+#'
+#'
+#' \code{link{github_api_project_pull_request}}
 #' is called with no additional query and all comments are downloaded.
 #'
+#'first parameter should be the folder of the pull requests, and then call the pull request downloader.
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
@@ -216,57 +220,24 @@ github_parse_project_pr_reviews <- function(api_responses) {
 #' greatest dates and the file name that contains the greatest date.
 #' @export
 #' @references For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.
-#' @seealso  \code{link{github_api_pr_reviews}} to download all pull request review data
-#' @seealso  \code{link{format_submitted_at_from_file}} for function that iterates through
-#' a .json file and returns the greatest 'created_at' value
-#' @seealso  \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
-github_api_pr_reviews_refresh <- function(owner,repo,token,file_save_path=save_path_pr_reviews,verbose=TRUE){
+#' @seealso  \code{link{github_api_pr_reviews}} to download all pull request review data.
+github_api_pr_reviews_refresh <- function(owner,repo,token,save_path_pull_request,file_save_path=save_path_pr_reviews,verbose=TRUE){
   # Sift through pull request file and retrieve all valid pull request numbers
-
-  pull_data <- fromJSON("your_file.json")
+  # Assumed that user already downloaded pull request endpoint.
+  pull_numbers <- list.files(path = save_path_pull_request)
 
   # Extract 'number' field
-  pull_numbers <- data$number
+  numbers <- sapply(pull_numbers, function(x) x$number)
 
+  # Iterate through numbers and download a review per pull number
+  for (num in numbers) {
+    gh_response <- github_api_pr_reviews(owner,repo,token,file_save_path)
 
-  # Check if the file is empty by checking its size
-  # List all files and subdirectories in the directory
-  contents <- list.files(path = file_save_path)
-  # If the file is empty, download all pr comments
-  if(length(contents) == 0) {
-    if (verbose) {
-      message(file_save_path, " filepath is empty, running regular downloader.")
-    }
-    # Run regular downloader
-    pr_reviews <- github_api_pr_reviews(owner,repo,pull_number,token)
-    return (pr_reviews)
-  } else {
-    # Get the name of the file with the most recent date
-    latest_updated_pr_reviews <- paste0(file_save_path, parse_jira_latest_date(file_save_path))
-    latest_updated_pr_reviews <- (head(latest_updated_pr_reviews,1))
-
-    if (verbose) {
-      message("File with most recent date: ", latest_updated_pr_reviews)
-    }
-    # get the submitted_at value
-    submitted <- format_submitted_at_from_file(latest_updated_pr_reviews, item="")
-
-    # Convert the string to a POSIXct object
-    time_value <- as.POSIXct(created, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
-
-    # Add one second
-    new_time_value <- time_value + 1
-
-    # Format the new time value back into the original string format
-    formatted_new_time_value <- format(new_time_value, "%Y-%m-%dT%H:%M:%SZ")
-
-    if(verbose){
-      message("file name with greatest date: ",latest_updated_pr_reviews)
-      message("Latest date: ",formatted_new_time_value)
-    }
-    # Make the API call
-    gh_response <- github_api_project_pr_reviews(owner,repo,token,formatted_new_time_value)
-  } #end if/else
+    # Save file.
+    file_name <- paste0(save_path_pull_request, owner,"_",repo,"","_", num,".json")
+    write_json(gh_response,file_name,pretty=TRUE,auto_unbox=TRUE)
+  }
+  message("File with most recent pull request: ", file_name)
 }
 
 ###### Github Pull Request Commits ######
@@ -1101,11 +1072,10 @@ github_parse_pull_request <- function(api_responses){
 #' greatest dates and the file name that contains the greatest date.
 #' @export
 #' @references For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.
-#' @seealso  \code{link{github_api_project_pr_comments}} to download all pull request  data
+#' @seealso  \code{link{github_api_project_pull_request}} to download all pull request  data
 #' @seealso  \code{link{format_created_at_from_file}} for function that iterates through
 #' a .json file and returns the greatest 'created_at' value
 #' @seealso  \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
-#' @seealso  \code{link{github_api_project_pull_request}} to call pr endpoint
 github_api_project_pull_request_refresh <- function(owner,repo,token,file_save_path=save_path_pull_request,verbose=TRUE){
   # Check if the file is empty by checking its size
   # List all files and subdirectories in the directory
