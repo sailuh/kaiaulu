@@ -135,7 +135,7 @@ parse_github_replies <- function(issues_json_folder_path,
   return(replies)
 }
 
-#######
+############## Downloaders ##############
 
 #' Download Project Contributors
 #'
@@ -163,6 +163,7 @@ github_api_project_contributors <- function(owner,repo,token){
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param pull_number Required pull request number to make API request
 #' @param token Your GitHub API token
 #' @references For details, see \url{https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#list-reviews-for-a-pull-request}.
 #' @export
@@ -204,13 +205,10 @@ github_parse_project_pr_reviews <- function(api_responses) {
 
 #' Download Project Pull Request Reviews Refresh
 #'
-#' If no files exist in the file_save_path,\code{link{github_api_pr_reviews}}
-#'
-#'
-#' \code{link{github_api_project_pull_request}}
-#' is called with no additional query and all comments are downloaded.
-#'
-#'first parameter should be the folder of the pull requests, and then call the pull request downloader.
+#' Pull Request Reviews require a specific Pull Number to complete the API Request.
+#' To download all pull request reviews we must iterate through all pull numbers and download one file per pull request.
+#' Using the Pull Request endpoint to download the pull numbers, we now have a basis for iteration.
+#' The naming convention for downloading each pull request would be sailuh_kaiaulu_330 (owner_repo_pullnumber).
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
@@ -220,7 +218,8 @@ github_parse_project_pr_reviews <- function(api_responses) {
 #' greatest dates and the file name that contains the greatest date.
 #' @export
 #' @references For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.
-#' @seealso  \code{link{github_api_pr_reviews}} to download all pull request review data.
+#' @seealso  \code{link{github_api_pr_reviews}} to download pull request review data.
+#' @seealso  \code{link{github_api_project_pull_request}} to download pull request data and retrieve pull numbers.
 github_api_pr_reviews_refresh <- function(owner,repo,token,save_path_pull_request,file_save_path=save_path_pr_reviews,verbose=TRUE){
   # Sift through pull request file and retrieve all valid pull request numbers
   # Assumed that user already downloaded pull request endpoint.
