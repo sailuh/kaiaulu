@@ -224,17 +224,34 @@ github_parse_project_pr_reviews <- function(api_responses) {
 github_api_pr_reviews_refresh <- function(owner,repo,token,save_path_pull_request,file_save_path=save_path_pr_reviews,verbose=TRUE){
   # Sift through pull request file and retrieve all valid pull request numbers
   # Assumed that user already downloaded pull request endpoint.
-  pull_numbers <- list.files(path = save_path_pull_request)
-
+  pull_requests <- lapply(list.files(save_path_pull_request,
+                                     full.names = TRUE),read_json)
   # Extract 'number' field
-  numbers <- lapply(pull_numbers, function(x) x[["number"]])
+  #numbers <- lapply(pull_numbers, function(x) x[["items"]][["number"]])
 
+  pull_requests <- lapply(pull_requests, github_parse_search_issues_refresh)
+  pull_requests <- rbindlist(pull_requests,fill=TRUE)
+
+  numbers <- pull_requests$issue_number
   # Iterate through numbers and download a review per pull number
+  pull_requests <- list.files(save_path_pr_reviews, full.names = TRUE)
+
+  split_pull_request_number <- function(file_path) {
+    file_path <- stringi::stri_split(file_path, regex = "/")[[1]][8]
+    file_path <- stringi::stri_split(file_path, regex = "\\.")[[1]][1]
+    file_path <- stringi::stri_split(file_path, regex = "_")[[1]][3]
+    return (file_path)
+  }
+
+  downloaded_change_request_pull_request <- as.numeric(sapply(pull_requests,split_pull_request_number))
+
+  numbers <- setdiff(numbers, downloaded_change_request_pull_request)
+
   for (num in numbers) {
-    gh_response <- github_api_pr_reviews(owner,repo,token,file_save_path)
+    gh_response <- github_api_pr_reviews(owner,repo,num,token)
 
     # Save file.
-    file_name <- paste0(save_path_pull_request, owner,"_",repo,"_", num,".json")
+    file_name <- paste0(save_path_pr_reviews, owner,"_",repo,"_", num,".json")
     write_json(gh_response,file_name,pretty=TRUE,auto_unbox=TRUE)
   }
   message("File with most recent pull request: ", file_name)
@@ -638,7 +655,7 @@ github_api_project_issue_refresh <- function(owner,
                                              token,
                                              save_path_issue_refresh,
                                              issue_or_pr,
-                                             verbose){
+                                             verbose=TRUE){
 
 
   # Check if refresh folder is empty
