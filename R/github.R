@@ -226,7 +226,7 @@ github_api_pr_reviews_refresh <- function(owner,repo,token,save_path_pull_reques
   pull_numbers <- list.files(path = save_path_pull_request)
 
   # Extract 'number' field
-  numbers <- sapply(pull_numbers, function(x) x$number)
+  numbers <- sapply(pull_numbers, function(x) x[["number"]])
 
   # Iterate through numbers and download a review per pull number
   for (num in numbers) {

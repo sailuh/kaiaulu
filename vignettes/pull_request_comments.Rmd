@@ -140,7 +140,7 @@ pr_comments <- rbindlist(pr_comments,fill=TRUE)
 #filter only pull requests using grepl
 pr_comments <- pr_comments[grepl("/pull/", html_url)]
 
-head(pr_comments,1000)  %>%
+head(pr_comments,10)  %>%
   gt(auto_align = FALSE) 
 ```
 
@@ -156,14 +156,7 @@ body paragraph for that pull request.
 ```{r Collect information on pull request}
 
 gh_response <- github_api_project_pull_request_refresh(owner, repo, token, save_path_pull_request)
-
-# create file name with path to save as json.
-file_name <- paste0(save_path_pull_request,
-                  owner,"_",repo,"_pullrequest","_", pull_number,
-                  ".json")
-#write to json.
-write_json(gh_response,file_name,pretty=TRUE,auto_unbox=TRUE)
-message("Written to file: ", file_name)
+github_api_iterate_pages(token, gh_response, save_path_pull_request, prefix="pull_request")
 ```
 
 ```{r}
@@ -173,7 +166,7 @@ pull_requests <- lapply(pull_requests,
                                    github_parse_project_pull_request)
 pull_requests <- rbindlist(pull_requests,fill=TRUE)
 
-head(pull_requests,100)  %>%
+head(pull_requests,10)  %>%
   gt(auto_align = FALSE) 
 ```
 
@@ -201,7 +194,7 @@ gh_response <- github_api_pr_reviews_refresh(owner, repo, token, save_path_pull_
 pr_reviews <- lapply(list.files(save_path_pr_reviews, full.names = TRUE), read_json)
 pr_reviews <- lapply(pr_reviews, github_parse_project_pr_reviews)
 pr_reviews <- rbindlist(pr_reviews, fill = TRUE)
-head(pr_reviews,100)  %>%
+head(pr_reviews,10)  %>%
   gt(auto_align = FALSE) 
 ```
 
@@ -228,7 +221,7 @@ github_api_iterate_pages(token, gh_response, save_path_pr_comments, prefix="pr_c
 inline_comments <- lapply(list.files(save_path_pr_comments, full.names = TRUE), read_json)
 inline_comments <- lapply(inline_comments, github_parse_project_pr_comments)
 inline_comments <- rbindlist(inline_comments, fill = TRUE)
-head(inline_comments,100)  %>%
+head(inline_comments,10)  %>%
   gt(auto_align = FALSE) 
 ```
 
