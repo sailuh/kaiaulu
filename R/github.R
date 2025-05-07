@@ -233,7 +233,7 @@ github_api_pr_reviews_refresh <- function(owner,repo,token,save_path_pull_reques
     gh_response <- github_api_pr_reviews(owner,repo,token,file_save_path)
 
     # Save file.
-    file_name <- paste0(save_path_pull_request, owner,"_",repo,"","_", num,".json")
+    file_name <- paste0(save_path_pull_request, owner,"_",repo,"_", num,".json")
     write_json(gh_response,file_name,pretty=TRUE,auto_unbox=TRUE)
   }
   message("File with most recent pull request: ", file_name)
