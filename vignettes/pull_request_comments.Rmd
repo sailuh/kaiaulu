@@ -236,6 +236,7 @@ comments and the goal is to organize them by PR Review number and time.
 pull_requests <- lapply(list.files(save_path_pull_request,full.names = TRUE),read_json)
 pull_requests <- lapply(pull_requests, github_parse_pull_request)
 pull_requests <- rbindlist(pull_requests,fill=TRUE)
+pull_requests <- pull_requests[,.(html_url=html_url, created_at=created_at, body=body )]
 
 pr_comments <- lapply(list.files(save_path_issue_or_pr_comments, full.names = TRUE), read_json)
 pr_comments <- lapply(pr_comments, github_parse_project_pr_comments)
@@ -251,7 +252,7 @@ inline_comments <- inline_comments[,.(html_url=html_url, PR_review=review_id, cr
 pr_reviews <- lapply(list.files(save_path_pr_reviews, full.names = TRUE), read_json)
 pr_reviews <- lapply(pr_reviews, github_parse_project_pr_reviews)
 pr_reviews <- rbindlist(pr_reviews, fill = TRUE)
-pr_reviews <- pr_reviews[,.(html_url=html_url, PR_review=review_id, created_at=submitted_at, body=body, state=state )]
+pr_reviews <- pr_reviews[,.(html_url=html_url, PR_review=review_id, created_at=submitted_at, body=body, state=state)]
 
 pr_endpoints <- rbind(pull_requests, pr_comments, inline_comments, pr_reviews, fill = TRUE)
 

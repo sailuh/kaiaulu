@@ -213,6 +213,7 @@ github_parse_project_pr_reviews <- function(api_responses) {
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
+#' @param save_path_pull_request save path for the pull requests to retrieve pull numbers.
 #' @param file_save_path the save path for the pr reviews folder
 #' @param verbose boolean value. When set to true, it prints operational messages including
 #' greatest dates and the file name that contains the greatest date.
@@ -226,7 +227,7 @@ github_api_pr_reviews_refresh <- function(owner,repo,token,save_path_pull_reques
   pull_numbers <- list.files(path = save_path_pull_request)
 
   # Extract 'number' field
-  numbers <- sapply(pull_numbers, function(x) x[["number"]])
+  numbers <- lapply(pull_numbers, function(x) x[["number"]])
 
   # Iterate through numbers and download a review per pull number
   for (num in numbers) {
