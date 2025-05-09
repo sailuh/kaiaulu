@@ -129,15 +129,15 @@ When using Github data outside of Kaiaulu, downloading this data may be more hel
 -   To download specify: \<config_file\> \<github_token\>
 
 ```{r}
-command <- 'Rscript exec/ghevents.R download ../conf/kaiaulu_test.yml --token_path=~/.ssh/github_token'
+command <- 'Rscript exec/ghevents.R download ../conf/kaiaulu.yml --token_path=~/.ssh/github_token'
 system(command)
 ```
 
 ## Parsing Issue Event Data with CLI
 
--   To parse specify \<config_file\>
+-   To parse specify \<config_file\> \<output_file\>
 
 ```{r}
-command <- 'Rscript exec/ghevents.R parse ../output ../output.csv'
+command <- 'Rscript exec/ghevents.R parse ../conf/kaiaulu.yml ../issue_output.csv'
 system(command)
 ```

@@ -18,7 +18,7 @@ doc <- "
 USAGE:
   github_events.R download help
   github_events.R download <config_path> --token_path=<path>
-    github_events.R parse help
+  github_events.R parse help
   github_events.R parse <config_path> <output_file>
   github_events.R (-h | --help)
   github_events.R --version
