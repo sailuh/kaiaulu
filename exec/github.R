@@ -22,10 +22,10 @@ require(gt,quietly=TRUE)
 
 doc <- "
 USAGE:
-  github parse help
-  github parse <project_conf.yml> <save_file_name_path> [--issues | --comments | --pr]
   github refresh help
   github refresh <project_conf.yml> <project_key> [--issues | --comments | --pr]
+  github parse help
+  github parse <project_conf.yml> <save_file_name_path> [--issues | --comments | --pr]
   github (-h | --help)
   github --version
 
