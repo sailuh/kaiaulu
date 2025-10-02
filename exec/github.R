@@ -82,7 +82,8 @@ if(arguments[["refresh"]] & arguments[["help"]]) {
     cli_alert_success(paste0("Downloaded new Github Pull Requests saved at: ", save_path_pull_request))
   } else if(arguments [["--comments"]]){
     save_path_issue_or_pr_comments <- path.expand(get_github_issue_or_pr_comment_path(conf, project_key))
-
+    
+    gh_response <- github_api_project_issue_or_pr_comments(owner, repo, token)
     dir.create(save_path_issue_or_pr_comments)
     github_api_iterate_pages(token,gh_response,
                              save_path_issue_or_pr_comments,
