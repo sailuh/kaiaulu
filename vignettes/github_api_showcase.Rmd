@@ -44,9 +44,9 @@ To use the pipeline, you must specify the organization and project of interest, 
 
 ```{r}
 conf <- yaml::read_yaml("../conf/kaiaulu.yml")
-owner <- conf[["issue_tracker"]][["github"]][["owner"]] # Has to match github organization (e.g. github.com/sailuh)
-repo <- conf[["issue_tracker"]][["github"]][["repo"]] # Has to match github repository (e.g. github.com/sailuh/perceive)
-save_path <- path.expand(conf[["issue_tracker"]][["github"]][["replies"]]) # Path you wish to save all raw data. A folder with the repo name and sub-folders will be created.
+owner <- get_github_owner(conf, "project_key_1") # Has to match github organization (e.g. github.com/sailuh)
+repo <- get_github_repo(conf,"project_key_1") # Has to match github repository (e.g. github.com/sailuh/perceive)
+save_path <- path.expand(get_github_issue_or_pr_comment_path(conf, "project_key_1")) # Path you wish to save all raw data. A folder with the repo name and sub-folders will be created. 
 # your file github_token contains the GitHub token API obtained in the steps above
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 ```
