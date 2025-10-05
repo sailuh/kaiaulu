@@ -119,25 +119,3 @@ assigned_users_without_merge_access <-which(!(all_issue_event_assigned$issue_ass
 
 kable(all_issue_event_assigned[assigned_users_without_merge_access])
 ```
-
-# CLI to gather Issue Event Data
-
-When using Github data outside of Kaiaulu, downloading this data may be more helpful using Kaiaulu's CLI (ghevents.R). This can be used in conjunction with the sailuh python process mining [notebook](https://github.com/sailuh/process_mining) to run process mining analysis on issue event data.
-
-## Downloading Issue Event Data with CLI
-
--   To download specify: \<config_file\> \<github_token\>
-
-```{r}
-command <- 'Rscript exec/ghevents.R download ../conf/kaiaulu.yml --token_path=~/.ssh/github_token'
-system(command)
-```
-
-## Parsing Issue Event Data with CLI
-
--   To parse specify \<config_file\> \<output_file\>
-
-```{r}
-command <- 'Rscript exec/ghevents.R parse ../conf/kaiaulu.yml ../issue_output.csv'
-system(command)
-```
