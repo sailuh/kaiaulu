@@ -15,19 +15,17 @@
 #' possibly modified 'reply_id' values for rows where 'if_comment' is TRUE.
 #' @export
 create_if_comment_column <- function (df) {
-  if (!(" reply _id" %in% colnames (df) && " reply _ subject " %in% colnames (df
+  if (!("reply_id" %in% colnames (df) && "reply_subject" %in% colnames (df
       ))) {
-    stop ("The data frame does not contain reply _id or reply _ subject columns ")
+    stop ("The data frame does not contain reply_id or reply_subject columns ")
 }
+df$if_comment <- df$reply_id != df$reply_subject
 
-df$if_ comment <- df$ reply _id != df$ reply _ subject
-
-df$ reply _id <- ifelse (
-  df$if_ comment ,
-  paste0(df$ reply _id , "_ unique _", seq_ along(df$ reply _id)),
-  df$ reply _id
+df$reply_id <- ifelse (
+  df$if_comment ,
+  paste0(df$reply_id, "_unique_", seq_along(df$reply_id)),
+  df$reply_id
 )
-
   return (df)
 }
 
