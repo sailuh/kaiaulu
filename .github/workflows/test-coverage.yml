@@ -55,7 +55,6 @@ jobs:
           sed -i -e 's/perceval: ~\/perceval\/bin\/perceval/perceval: \/Library\/Frameworks\/Python.framework\/Versions\/Current\/bin\/perceval/g' tools.yml
           tmpfolder=${{ runner.temp }}
           sed -i -e 's/tmp: \/tmp/tmp: ${tmpfolder}/g' tools.yml
-          cat $tmpfolder
           cat tools.yml
           cp tools.yml tests/testthat/testdata/tools.yml
         shell: bash
