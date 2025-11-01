@@ -19,3 +19,5 @@ srcml: /usr/local/bin/srcml
 pattern4: ~/Desktop/kaiaulu/tools/pattern4.jar
 # Scitools Understand: https://scitools.com/
 scitools: /Applications/Understand.app/Contents/MacOS/und
+# Temporary folder path for intermediate files
+tmp: /tmp

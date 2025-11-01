@@ -13,3 +13,5 @@ dv8: /Applications/DV84/bin/dv8-console
 # OSLOM: http://oslom.org/
 oslom_dir: ~/OSLOM2/oslom_dir
 oslom_undir: ~/OSLOM2/oslom_undir
+# Temporary folder path for intermediate files
+tmp: /tmp

@@ -1,6 +1,9 @@
 tools_path <- test_path("testdata", "tools.yml")
 conf_path <- test_path("testdata", "thrift.yml")
 
+tool <- yaml::read_yaml(tools_path)
+tmp_folderpath <- tool[["tmp"]]
+
 # Parser
 
 test_that("Perceval path in tools.yml is specified correctly", {
@@ -14,7 +17,7 @@ test_that("Configuration files are placed on recommended path", {
 })
 
 test_that("Correct git repo path", {
-  git_repo_path <- suppressWarnings(git_create_sample_log())
+  git_repo_path <- suppressWarnings(git_create_sample_log(folder_path = tmp_folderpath))
   expect_equal(file.exists(git_repo_path), TRUE)
   suppressWarnings(git_delete_sample_log(git_repo_path))
 })
@@ -24,7 +27,7 @@ test_that("Calling parse_gitlog with correct perceval and correct git log path r
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
 
-  git_repo_path <- suppressWarnings(git_create_sample_log())
+  git_repo_path <- suppressWarnings(git_create_sample_log(tmp_folderpath))
 
   result <- parse_gitlog(perceval_path, git_repo_path)
 
@@ -34,7 +37,7 @@ test_that("Calling parse_gitlog with correct perceval and correct git log path r
 })
 
 test_that("Calling parse_gitlog with incorrect perceval path returns correct error", {
-  git_repo_path <- suppressWarnings(git_create_sample_log())
+  git_repo_path <- suppressWarnings(git_create_sample_log(tmp_folderpath))
   incorrect_perceval_path <- "incorrect/path/to/perceval"
   expect_error(parse_gitlog(perceval_path, git_repo_path))
 })
@@ -168,7 +171,7 @@ test_that("Parsing git log function entities on R files return a table", {
 
 
 test_that("Calling git_checkout with correct branch name and an exist local path of github project returns list of string", {
-  git_repo_path <- suppressWarnings(git_create_sample_log())
+  git_repo_path <- suppressWarnings(git_create_sample_log(tmp_folderpath))
   branch_name <- ''
   result <- git_checkout(branch_name, git_repo_path)
   expect_no_error(result)
@@ -177,7 +180,7 @@ test_that("Calling git_checkout with correct branch name and an exist local path
 })
 
 test_that("Calling git_checkout with incorrect branch name and an exist local path of github project returns warning", {
-  git_repo_path <- suppressWarnings(git_create_sample_log())
+  git_repo_path <- suppressWarnings(git_create_sample_log(tmp_folderpath))
   branch_name <- "mas"
   expect_warning(git_checkout(branch_name, git_repo_path))
   suppressWarnings(git_delete_sample_log(git_repo_path))
