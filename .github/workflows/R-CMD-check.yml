@@ -15,7 +15,7 @@ jobs:
     runs-on: macOS-15
     strategy:
       matrix:
-        r-version: ['4.23']
+        r-version: ['4.4']
 
     steps:
       - uses: actions/checkout@v3
@@ -57,7 +57,9 @@ jobs:
       - name: Install Perceval and Update tools.yml
         if: always()
         run: |
-          pip3 install perceval==0.12.24
+          python3 -m venv venv_perceval
+          source venv_perceval/activate
+          python3 -m pip install perceval==3.12
           sed -i -e 's|perceval: ~\/perceval\/bin\/perceval|perceval: \/Library\/Frameworks\/Python.framework\/Versions\/Current\/bin\/perceval|g' tools.yml
           cp tools.yml tests/testthat/testdata/tools.yml
         shell: bash
