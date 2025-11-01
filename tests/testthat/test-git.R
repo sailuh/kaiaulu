@@ -6,16 +6,6 @@ tmp_folderpath <- tool[["tmp"]]
 
 # Parser
 
-test_that("Perceval path in tools.yml is specified correctly", {
-  tool <- yaml::read_yaml(tools_path)
-  perceval_path <- tool[["perceval"]]
-  perceval_path <- path.expand(perceval_path)
-  expect_equal(file.exists(perceval_path), TRUE)
-})
-test_that("Configuration files are placed on recommended path", {
-  expect_equal(file.exists(conf_path), TRUE)
-})
-
 test_that("Correct git repo path", {
   git_repo_path <- suppressWarnings(git_create_sample_log(folder_path = tmp_folderpath))
   expect_equal(file.exists(git_repo_path), TRUE)

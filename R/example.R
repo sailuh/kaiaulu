@@ -19,7 +19,7 @@
 #' @return git_repo of newly created empty repo
 #' @export
 #' @keywords internal
-example_renamed_file <- function(folder_path="/tmp",folder_name) {
+example_renamed_file <- function(folder_path,folder_name) {
 
   # Create folder & repo
   folder_path <- io_make_folder(folder_path, folder_name)
@@ -62,7 +62,7 @@ example_renamed_file <- function(folder_path="/tmp",folder_name) {
 #' @return git_repo of newly created empty repo
 #' @export
 #' @keywords internal
-example_test_example_src_repo <- function(folder_path="/tmp",folder_name) {
+example_test_example_src_repo <- function(folder_path,folder_name) {
 
   # Create folder & repo
   folder_path <- io_make_folder(folder_path,folder_name)
@@ -102,7 +102,7 @@ example_test_example_src_repo <- function(folder_path="/tmp",folder_name) {
 #' @return git_repo_path of newly created empty repo
 #' @export
 #' @keywords internal
-example_empty_repo <- function(folder_path="/tmp",folder_name) {
+example_empty_repo <- function(folder_path,folder_name) {
 
   # Create empty folder named "empty_repo"
   folder_path <- io_make_folder(folder_path=folder_path, folder_name)
@@ -123,7 +123,7 @@ example_empty_repo <- function(folder_path="/tmp",folder_name) {
 #' @return git_repo_path of newly created empty repo
 #' @export
 #' @keywords internal
-example_different_branches <- function(folder_path="/tmp", folder_name) {
+example_different_branches <- function(folder_path, folder_name) {
 
   # Create folder & repo
   folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
@@ -158,7 +158,7 @@ example_different_branches <- function(folder_path="/tmp", folder_name) {
 #' @return git_repo_path of newly created empty repo
 #' @export
 #' @keywords internal
-example_large_sized_commits <- function(folder_path="/tmp", folder_name) {
+example_large_sized_commits <- function(folder_path, folder_name) {
 
   # Create folder & repo
   folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
@@ -211,7 +211,7 @@ example_large_sized_commits <- function(folder_path="/tmp", folder_name) {
 #' @return git_repo_path of newly created empty repo
 #' @export
 #' @keywords internal
-example_notebook_function_in_code_blocks <- function(folder_path="/tmp", folder_name) {
+example_notebook_function_in_code_blocks <- function(folder_path, folder_name) {
 
   # Create folder & repo
   folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
@@ -265,7 +265,7 @@ example_notebook_function_in_code_blocks <- function(folder_path="/tmp", folder_
 #' @return git_repo_path of newly created empty repo
 #' @export
 #' @keywords internal
-example_function_in_files <- function(folder_path="/tmp", folder_name) {
+example_function_in_files <- function(folder_path, folder_name) {
 
   # Create folder & repo
   folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
@@ -314,7 +314,7 @@ example_function_in_files <- function(folder_path="/tmp", folder_name) {
 #' @return git_repo_path of newly created empty repo
 #' @export
 #' @keywords internal
-example_notebook_alternating_function_in_files <- function(folder_path="/tmp", folder_name) {
+example_notebook_alternating_function_in_files <- function(folder_path, folder_name) {
 
   # Create folder & repo
   folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
@@ -399,7 +399,7 @@ example_notebook_alternating_function_in_files <- function(folder_path="/tmp", f
 #' @return the JSON folder path of the newly created issue issue tracker
 #' @export
 #' @keywords internal
-example_jira_issue_components <- function(folder_path = "/tmp", folder_name) {
+example_jira_issue_components <- function(folder_path, folder_name) {
 
   # Create folder & repo
   folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)
@@ -440,7 +440,7 @@ example_jira_issue_components <- function(folder_path = "/tmp", folder_name) {
 #' @return the JSON folder path of the newly created issue issue tracker
 #' @export
 #' @keywords internal
-example_jira_two_issues <- function(folder_path = "/tmp", folder_name) {
+example_jira_two_issues <- function(folder_path, folder_name) {
 
   # Create folder & repo
   folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)
@@ -500,7 +500,7 @@ example_jira_two_issues <- function(folder_path = "/tmp", folder_name) {
 #' @return the JSON folder path of the newly created issue issue tracker
 #' @export
 #' @keywords internal
-example_jira_issue_comments <- function(folder_path = "/tmp", folder_name) {
+example_jira_issue_comments <- function(folder_path, folder_name) {
 
   # Create folder & repo
   folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)
@@ -541,13 +541,13 @@ example_jira_issue_comments <- function(folder_path = "/tmp", folder_name) {
 #' Create a mailing list of two e-mail threads, with
 #' two and one reply respectively by two developers.
 #'
-#' @param folder_path Default folder path set to "/tmp"
+#' @param folder_path The folder path to create the example
 #' @param folder_name Name of the example folder
 #' @param file_name Name of the file where .mbox will be stored
 #' @return Folder path of .mbox sample file that was created
 #' @export
 #' @keywords internal
-example_mailing_list_two_threads <- function(folder_path = "/tmp", folder_name, file_name) {
+example_mailing_list_two_threads <- function(folder_path, folder_name, file_name) {
 
   # Create folder & repo
   folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)

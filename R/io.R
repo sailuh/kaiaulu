@@ -55,7 +55,7 @@ io_make_file <- function(file_path, body) {
 #' @param folder_path Path of folder where new folder will be, default set to /tmp
 #' @return The new folder_path with its updated contents
 #' @export
-io_make_folder <- function(folder_path="/tmp", folder_name) {
+io_make_folder <- function(folder_path, folder_name) {
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   folder_path <- path.expand(folder_path)
   folder_path <- file.path(folder_path, folder_name)
@@ -78,7 +78,7 @@ io_make_folder <- function(folder_path="/tmp", folder_name) {
 #' @param folder_name Name of folder to be deleted
 #' @return The deleted folder_path
 #' @export
-io_delete_folder <- function(folder_path="/tmp",folder_name) {
+io_delete_folder <- function(folder_path,folder_name) {
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   folder_path <- path.expand(folder_path)
   folder_path <- file.path(folder_path, folder_name)
