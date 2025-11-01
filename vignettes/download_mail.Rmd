@@ -29,29 +29,30 @@ require(gt)
 
 # Introduction
 
-Open source projects require a means for developers to communicate. These may include mailing lists, issue trackers, discord, etc. This notebooks showcases how to download data from mailing list archives. Two often used archive types are [mod_mbox](https://httpd.apache.org/mod_mbox/) and [pipermail](https://en.wikipedia.org/wiki/GNU_Mailman#cite_note-9), which Kaiaulu offer functions to download data from. The former is commonly used by the Apache Software Foundation projects. The latter, is more commonly use in GNU related projects, but this can vary. 
+Open source projects require a means for developers to communicate. These may include mailing lists, issue trackers, discord, etc. This notebooks showcases how to download data from mailing list **archives**. 
 
-Each mailing list maintains archives of past messages, often organized by month and year. These archives can be accessed and downloaded for analysis. However, it is important to note that mailing list archives may be split into multiple formats or locations, and not all archives contain the same information. Different archives can differ in completeness, date ranges, and the data they contain. Some archives might lack important fields like "In-Reply-To," which is important for reconstructing message threads. It is, therefore, important the archive being used is carefully inspected, since this effects the quality and completeness of analysis.
-
-# Mailing List Organization
-
-Mailing list data is stored in a variety of archives. See:
-- Mod Mbox: [Apache Geronimo](https://geronimo.apache.org/mailing-lists.html)).
-- Pipermail: [OpenSSL](https://mta.openssl.org/mailman/listinfo/).
-(More information on this in the sections below.) This notebook demonstrates how to download and refresh mailing list archives from Mod Mbox and Pipermail.
-
-Mailing lists are typically organized by topic or purpose. For example, the [OpenSSL project](https://www.openssl.org/community/mailinglists.html) maintains several mailing lists, each serving a different group:
+Mailing lists are typically organized by topic or purpose. For example, the [OpenSSL project](https://www.openssl.org/community/mailinglists.html) maintains several mailing lists, each serving a different purpose:
 
 - **project-announce**: For important announcements.
 - **project-commits**: For commit messages.
 - **project-project**: For project discussions.
 - **project-users**: For general user questions and discussions.
 
+The same mailing list, such as **project-users** may be stored in different **archives**. For example, there may be two archive mailing lists covering different time ranges. The data may overlap, or be incomplete depending on the archive type. Sometimes, each **archive** may come in a different format, communication may result from bots, etc. Different formats require different code to both download and parse them. Therefore, if the intent is to obtain a comprehensive understanding of the mailing list communication of a project, manual inspection of the available archives and their time range is **strongly** recommended. 
+
+Careful manual inspection of the mailing list data of particular importance when using Kaiaulu metrics such as social smells, where a incomplete mailing list archive will result in erroneous metric calculation (i.e. absence of communication reported in a metric when developing a feature being due to missing data, instead not ocuring within the data). 
+
+# Mailing List Organization
+
+Two often used archive types are [mod_mbox](https://httpd.apache.org/mod_mbox/) and [pipermail](https://en.wikipedia.org/wiki/GNU_Mailman#cite_note-9), which Kaiaulu offer functions to download data from. The former is commonly used by the Apache Software Foundation projects, such as [Apache Geronimo](https://geronimo.apache.org/mailing-lists.html). The latter, is more commonly use in GNU related projects, such as [OpenSSL](https://mta.openssl.org/mailman/listinfo/), but this can vary. 
+
 Mod Mbox archives also organize mailing lists by topic. The apache mailing list archives can be found at https://lists.apache.org/.
+
+This notebook demonstrates how to download and refresh mailing list archives from Mod Mbox and Pipermail.
 
 # Project Configuration File 
 
-Mailing List archives are hosted by their respective open source projects. Therefore, in order to use Kaiaulu downloaders to obtain mail data, you will need to access the respective open source project, and find out the URL tied to the archive you are interested in. Generally, that is the developer mailing list, if your interest is to understand communication patterns among developers. Alternatively, if the focus of the research is Q&A from the user base, then a user mailing list may make more sense.
+Mailing List archives are hosted by their respective open source projects. Therefore, in order to use Kaiaulu downloaders to obtain mail data, you will need to access the respective open source project, and find out the URL tied to the archive you are interested in. Generally, that is the **developer** mailing list, if your interest is to understand communication patterns among developers. Alternatively, if the focus of the research is Q&A from the user base, then a **user** mailing list may make more sense.
 
 Because project lifetime can go as far as a few decades, to have the full picture of what communication took place in the project you may need to download multiple archives and combine them, after turning them into tables using the Kaiaulu parser.
 
@@ -71,14 +72,14 @@ mailing_list:
       save_folder_path: ../../rawdata/helix/mod_mbox/save_mbox_mail
 ```
 
-The most manual time intensive step you will be required is to locate the URL of the mailing list archive you wish for in the project website. This is specified under `mailing_list`. Note for pipermail this URL should point to the page containing links to the monthly archives (e.g. https://mta.openssl.org/pipermail/openssl-users/), not the top-level mailing list page that contains all the different types of archives (e.g. https://mta.openssl.org/mailman/listinfo/).
+The most manual time intensive step you will be required is to locate the URL of the mailing list archive you wish for in the project website. Once located, this is specified in Kaiaulu's project configuration file under `mailing_list`. Note for pipermail this URL should point to the page containing links to the monthly archives (e.g. https://mta.openssl.org/pipermail/openssl-users/), not the top-level mailing list page that contains all the different types of archives (e.g. https://mta.openssl.org/mailman/listinfo/).
 
 
 Regardless of which mail archive you choose, the downloaders will store the mail data in monthly files, in a `.mbox` format. This is a simple text file that contains some markings to identify the header of the e-mail containing title, authors, etc. While you can open any of the .mbox downloaded files with any text editor, Kaiaulu parsers will format them into tables, as demonstrated below. 
 
 ## Tools Configuration
 
-In addition to the mailing list configurations, you need to specify the path to the [Perceval](https://github.com/chaoss/grimoirelab-perceval) binary in tools.yml. See the wiki for further details on how to setup third party tools. 
+In addition to the mailing list configurations, you need to specify the path to the [Perceval](https://github.com/chaoss/grimoirelab-perceval) binary in your computer in Kaiaulu's tools.yml. This is so Kaiaulu can make a system call to the tool to parse the data. See the wiki for further details on how to setup third party tools. 
 
 ```{r}
 # Load tools configuration
@@ -182,9 +183,9 @@ parsed_mail %>%
   gt()
 ```
 
-## Refreshers
+# Refreshers
 
-Kaiaulu offers convenient function to add new e-mails since the last execution of the downloaders. These are defined as "refresh_*" functions. The most recent file timestamp, which captures the latest month, is used as a starting date to download new files. The most recent file is deleted and re-downloaded to ensure all e-mails of the last month were downloaded, and subsequent files are then downloaded.
+Kaiaulu offers convenient function to add new e-mails since the last execution of the downloaders. These are defined as "refresh_*" functions. The most recent file name's timestamp, which captures the latest month, is used as a starting date to download new files. The most recent file is deleted and re-downloaded to ensure all e-mails of the last month were downloaded, and subsequent files are then downloaded.
 
 ### Pipermail Refresher
 
