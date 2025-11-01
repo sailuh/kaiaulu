@@ -48,26 +48,27 @@ version_control:
     - revert-1685-master
 
 mailing_list:
+  # If projects uses Apache Mod Mbox
   mod_mbox:
+    # There can be multiple projects in both the pipermail and mod mbox sections.
     project_key_1:
       mailing_list: https://lists.apache.org/list.html?announce@apache.org
-      save_folder_path: ../../rawdata/helix/mod_mbox/
-
+      save_folder_path: ../../rawdata/helix/mod_mbox/save_mbox_mail
+      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+    project_key_2:
+      mailing_list: https://lists.apache.org/list.html?dev@felix.apache.org
+      save_folder_path: ../../helix/mod_mbox/save_mbox_mail_2
+      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+  # If project uses Pipermail
+#  pipermail:
+#    project_key_1:
+#      mailing_list: https://mta.openssl.org/pipermail/openssl-users/
+#      save_folder_path: ../../rawdata/helix/pipermail/save_mbox_mail
+      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
 #    project_key_2:
-#      mailing_list: https://lists.apache.org/list.html?dev@felix.apache.org
-#      save_folder_path: ../../rawdata/helix/mod_mbox/save_mbox_mail_2/
-
-#   pipermail:
-#     project_key_1:
-#       mailing_list: https://mta.openssl.org/pipermail/openssl-users/
-#       save_folder_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail/
-#       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
-#       mbox_file_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail/kaiaulu.mbox
-#     project_key_2:
-#       mailing_list: https://mta.openssl.org/pipermail/openssl-project/
-#       save_folder_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail_2/
-#       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
-#       mbox_file_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail_2/kaiaulu.mbox
+#      mailing_list: https://mta.openssl.org/pipermail/openssl-project/
+#      save_folder_path: ../../rawdata/helix/pipermail/save_mbox_mail_2/
+      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
 
 issue_tracker:
   jira:

@@ -4,7 +4,7 @@
 \alias{example_test_example_src_repo}
 \title{Example Unit Test and Examples Repository}
 \usage{
-example_test_example_src_repo(folder_path = "/tmp", folder_name)
+example_test_example_src_repo(folder_path, folder_name)
 }
 \arguments{
 \item{folder_path}{The path where the folder will be created}

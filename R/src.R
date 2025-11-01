@@ -46,7 +46,7 @@ build_understand_project <- function(scitools_path, project_path, language, outp
 #' an understand DB.
 #'
 #' @param scitools_path path to the scitools binary `und`
-#' @param db_path path to the scitools DB (see \code{\link{build_understand_project}})
+#' @param db_filepath path to the scitools DB (see \code{\link{build_understand_project}})
 #' @param parse_type Type of dependencies to generate into xml (either "file" or "class")
 #' @param output_filepath path to the output XML filepath of dependencies
 #'
