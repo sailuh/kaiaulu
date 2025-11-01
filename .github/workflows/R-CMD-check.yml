@@ -57,18 +57,18 @@ jobs:
       - name: Install Perceval and Update tools.yml
         if: always()
         run: |
-          : # Use GitHub Actions Global Folder Variable
+          # Use GitHub Actions Global Folder Variable
           tmpfolder=$RUNNER_TEMP
-          : # Create Virtual Env for Perceval - Global Pip Causes error
+          # Create Virtual Env for Perceval - Global Pip Causes error
           venvfolder=$tmpfolder"/venv_perceval"
           python3 -m venv ${venvfolder}
           source ${venvfolder}/bin/activate
           python3 -m pip install perceval==1.4.1
-          : # Replace Perceval Bin path in Tools Path to match GitHub Action
+          # Replace Perceval Bin path in Tools Path to match GitHub Action
           percevalpath=$(which perceval)
           sed -i -e "s|perceval: \/Library\/Frameworks\/Python.framework\/Versions\/3.12\/bin\/perceval|perceval: ${percevalpath}|g" tools.yml
           sed -i -e "s|tmp: \/tmp|tmp: ${tmpfolder}|g" tools.yml
-          : # Display the final tools.yml for inspection
+          # Display the final tools.yml for inspection
           cat tools.yml
           cp tools.yml tests/testthat/testdata/tools.yml
         shell: bash
