@@ -61,7 +61,7 @@ jobs:
           source venv_perceval/bin/activate
           python3 -m pip install perceval==1.4.1
           sed -i -e 's|perceval: ~\/perceval\/bin\/perceval|perceval: \/Library\/Frameworks\/Python.framework\/Versions\/Current\/bin\/perceval|g' tools.yml
-          sed -i -e 's|tmp: \/$RUNNER_TEMP|g' tools.yml
+          sed -i -e 's|tmp: \/tmp|tmp: \/$RUNNER_TEMP|g' tools.yml
           cp tools.yml tests/testthat/testdata/tools.yml
         shell: bash
 
