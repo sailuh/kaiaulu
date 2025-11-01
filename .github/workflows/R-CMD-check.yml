@@ -57,7 +57,7 @@ jobs:
       - name: Install Perceval and Update tools.yml
         if: always()
         run: |
-          tmpfolder="/Users/runner/work/kaiaulu"
+          tmpfolder=$RUNNER_TEMP
           venvfolder=$tmpfolder"/venv_perceval"
           python3 -m venv ${venvfolder}
           source ${venvfolder}/bin/activate
