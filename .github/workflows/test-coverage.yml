@@ -10,10 +10,10 @@ name: test-coverage
 
 jobs:
   test-coverage:
-    runs-on: macOS-13
+    runs-on: macOS-15
     strategy:
       matrix:
-        r-version: ['4.4']
+        r-version: ['4.23']
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -33,7 +33,7 @@ jobs:
         shell: Rscript {0}
 
       - name: Restore R package cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ${{ env.R_LIBS_USER }}
           key: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-${{ hashFiles('.github/depends.Rds') }}
