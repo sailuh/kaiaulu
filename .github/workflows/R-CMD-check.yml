@@ -57,12 +57,13 @@ jobs:
       - name: Install Perceval and Update tools.yml
         if: always()
         run: |
-          python3 -m venv venv_perceval
-          source venv_perceval/bin/activate
+          tmpfolder="/Users/runner/work/kaiaulu"
+          venvfolder=$tmpfolder"/venv_perceval"
+          python3 -m venv ${venvfolder}
+          source ${venvfolder}/bin/activate
           python3 -m pip install perceval==1.4.1
           percevalpath=$(which perceval)
           sed -i -e "s|perceval: \/Library\/Frameworks\/Python.framework\/Versions\/3.12\/bin\/perceval|perceval: ${percevalpath}|g" tools.yml
-          tmpfolder="/Users/runner/work/kaiaulu"
           sed -i -e "s|tmp: \/tmp|tmp: ${tmpfolder}|g" tools.yml
           cat tools.yml
           cp tools.yml tests/testthat/testdata/tools.yml
