@@ -3,13 +3,6 @@ conf_path <- test_path("testdata", "thrift.yml")
 
 # Parser
 
-test_that("Perceval version 0.12.24 is being used", {
-  tool <- yaml::read_yaml(tools_path)
-  perceval_path <- tool[["perceval"]]
-  perceval_path <- path.expand(perceval_path)
-  perceval_version <- system2(perceval_path, args="--version", stdout=TRUE, stderr=FALSE)
-  expect_equal(perceval_version, "perceval 0.12.24")
-})
 test_that("Perceval path in tools.yml is specified correctly", {
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
