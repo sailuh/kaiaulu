@@ -4,7 +4,7 @@
 \alias{example_large_sized_commits}
 \title{Example Different Files Commit}
 \usage{
-example_large_sized_commits(folder_path = "/tmp", folder_name)
+example_large_sized_commits(folder_path, folder_name)
 }
 \arguments{
 \item{folder_path}{The path where the folder will be created}

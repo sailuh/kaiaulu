@@ -4,10 +4,7 @@
 \alias{example_notebook_alternating_function_in_files}
 \title{Example Alternating Undecided Developers}
 \usage{
-example_notebook_alternating_function_in_files(
-  folder_path = "/tmp",
-  folder_name
-)
+example_notebook_alternating_function_in_files(folder_path, folder_name)
 }
 \arguments{
 \item{folder_path}{The path where the folder will be created}
