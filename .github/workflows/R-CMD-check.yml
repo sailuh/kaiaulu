@@ -60,7 +60,7 @@ jobs:
           python3 -m venv venv_perceval
           source venv_perceval/bin/activate
           python3 -m pip install perceval==1.4.1
-          sed -i -e 's/perceval: ~\/perceval\/bin\/perceval/perceval: \/Library\/Frameworks\/Python.framework\/Versions\/Current\/bin\/perceval/g' tools.yml
+          sed -i -e "s/perceval: \/Library\/Frameworks\/Python.framework\/Versions\/3.12\/bin\/perceval/perceval: ${percevalpath}/g" tools.yml
           tmpfolder="/Users/runner/work/kaiaulu"
           sed -i -e "s|tmp: \/tmp|tmp: ${tmpfolder}|g" tools.yml
           cat tools.yml
