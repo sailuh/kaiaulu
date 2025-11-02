@@ -2,7 +2,8 @@
 % Please edit documentation in R/github.R
 \name{github_api_project_pull_request_refresh}
 \alias{github_api_project_pull_request_refresh}
-\title{Download Project Pull Requests Refresh}
+\title{Download Project Pull Requests Refresh
+TODO: Does not work as a refresher, as there is no time endpoint for it.}
 \usage{
 github_api_project_pull_request_refresh(
   owner,

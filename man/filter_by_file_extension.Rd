@@ -22,5 +22,10 @@ Filters a data.table containing filepaths using the specified extensions
 }
 \seealso{
 \code{\link{parse_gitlog}} and \code{\link{parse_dependencies}} to create dt_file
+
+Other filters: 
+\code{\link{filter_by_commit_interval}()},
+\code{\link{filter_by_commit_size}()},
+\code{\link{filter_by_filepath_substring}()}
 }
-\concept{{filters}}
+\concept{filters}
