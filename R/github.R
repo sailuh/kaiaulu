@@ -346,6 +346,7 @@ github_parse_project_pr_files <- function(api_responses) {
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param pull_number The number that identifies the pull request.
 #' @param token Your GitHub API token
 #' @references For details, see \url{https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#get-all-requested-reviewers-for-a-pull-request}.
 #' @export
