@@ -221,40 +221,49 @@ github_parse_project_pr_reviews <- function(api_responses) {
 #' @references For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.
 #' @seealso  \code{link{github_api_pr_reviews}} to download pull request review data.
 #' @seealso  \code{link{github_api_project_pull_request}} to download pull request data and retrieve pull numbers.
-github_api_pr_reviews_refresh <- function(owner,repo,token,save_path_pull_request,file_save_path=save_path_pr_reviews,verbose=TRUE){
+github_api_pr_reviews_refresh <- function(owner,repo,token,save_path_pull_request,save_path_pr_reviews,verbose=TRUE){
   # Sift through pull request file and retrieve all valid pull request numbers
   # Assumed that user already downloaded pull request endpoint.
-  pull_requests <- lapply(list.files(save_path_pull_request,
+
+  # Obtain the list of all downloaded **Non-**Code Review Comment Pull Request IDs
+  non_pull_requests <- lapply(list.files(save_path_pull_request,
                                      full.names = TRUE),read_json)
-  # Extract 'number' field
-  #numbers <- lapply(pull_numbers, function(x) x[["items"]][["number"]])
+  non_pull_requests <- lapply(non_pull_requests, github_parse_search_issues_refresh)
+  non_pull_requests <- rbindlist(non_pull_requests,fill=TRUE)
+  downloaded_non_code_review_pull_request_ids <- non_pull_requests$issue_number
 
-  pull_requests <- lapply(pull_requests, github_parse_search_issues_refresh)
-  pull_requests <- rbindlist(pull_requests,fill=TRUE)
-
-  numbers <- pull_requests$issue_number
-  # Iterate through numbers and download a review per pull number
+  # Obtain the list of all downloaded Code Review Comment Pull Request IDs
   pull_requests <- list.files(save_path_pr_reviews, full.names = TRUE)
-
   split_pull_request_number <- function(file_path) {
-    file_path <- stringi::stri_split(file_path, regex = "/")[[1]][8]
+    last_element <- length(stringi::stri_split(file_path, regex = "/")[[1]])
+    file_path <- stringi::stri_split(file_path, regex = "/")[[1]][last_element]
     file_path <- stringi::stri_split(file_path, regex = "\\.")[[1]][1]
     file_path <- stringi::stri_split(file_path, regex = "_")[[1]][3]
     return (file_path)
   }
+  downloaded_code_review_pull_request_ids <- as.integer(sapply(pull_requests,split_pull_request_number))
 
-  downloaded_change_request_pull_request <- as.numeric(sapply(pull_requests,split_pull_request_number))
+  # Which Non-Code Review Pull Request IDs have since been downloaded that we lack Code Review Comments?
+  missing_pull_request_ids <- setdiff(downloaded_non_code_review_pull_request_ids,
+                                      downloaded_code_review_pull_request_ids)
 
-  numbers <- setdiff(numbers, downloaded_change_request_pull_request)
-
-  for (num in numbers) {
-    gh_response <- github_api_pr_reviews(owner,repo,num,token)
-
-    # Save file.
-    file_name <- paste0(save_path_pr_reviews, owner,"_",repo,"_", num,".json")
-    write_json(gh_response,file_name,pretty=TRUE,auto_unbox=TRUE)
+  if(length(missing_pull_request_ids) > 0){
+      for (num in missing_pull_request_ids) {
+        if(verbose){message("Downloading Review Comment from Pull Request: ", num)}
+        gh_response <- github_api_pr_reviews(owner,repo,num,token)
+        file_name <- paste0(save_path_pr_reviews, owner,"_",repo,"_", num,".json")
+        write_json(gh_response,file_name,pretty=TRUE,auto_unbox=TRUE)
+      }
+  }else{
+      if(verbose){
+        message("All files are up to date. Nothing to download.")
+      }
   }
-  message("File with most recent pull request: ", file_name)
+  if(verbose){
+    downloaded_pull_request_filepaths <- list.files(save_path_pr_reviews, full.names = TRUE)
+    downloaded_pull_request_filepath_ids <- as.integer(sapply(downloaded_pull_request_filepaths,split_pull_request_number))
+    message("File with most recent pull request: ", max(downloaded_pull_request_filepath_ids))
+  }
 }
 
 ###### Github Pull Request Commits ######
@@ -1069,6 +1078,7 @@ github_parse_pull_request <- function(api_responses){
   }
   rbindlist(lapply(api_responses,parse_response),fill=TRUE)
 }
+
 
 #' Download Project Pull Requests Refresh
 #'

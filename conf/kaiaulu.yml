@@ -88,6 +88,7 @@ issue_tracker:
       issue_event: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_event/
       pull_request: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/pull_request/
       pr_comments: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/pr_comments/
+      pr_reviews: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/pr_reviews/
       commit: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/commit/
 #     project_key_2:
 #       # Obtained from the project's GitHub URL

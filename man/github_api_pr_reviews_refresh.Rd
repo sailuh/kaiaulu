@@ -9,7 +9,7 @@ github_api_pr_reviews_refresh(
   repo,
   token,
   save_path_pull_request,
-  file_save_path = save_path_pr_reviews,
+  file_save_path,
   verbose = TRUE
 )
 }
