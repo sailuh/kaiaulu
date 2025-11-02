@@ -25,7 +25,7 @@ github_api_project_issue_search(
 \item{issue_or_pr}{This specifies whether issues or pull requests are being searched for.
 Acceptable inputs are "is:issue" or "is:pull-request".}
 
-\item{verbose}{Prints operational messages when se to true such as stating the search query.}
+\item{verbose}{Prints operational messages when set to true such as stating the search query.}
 }
 \description{
 Download Commits from "GET /repos/{owner}/{repo}/search/issues" endpoint.

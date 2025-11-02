@@ -10,7 +10,7 @@ github_api_project_issue_refresh(
   token,
   save_path_issue_refresh,
   issue_or_pr,
-  verbose
+  verbose = TRUE
 )
 }
 \arguments{

@@ -8,7 +8,8 @@ parse_github_replies(
   issues_json_folder_path,
   pull_requests_json_folder_path,
   comments_json_folder_path,
-  commit_json_folder_path
+  commit_json_folder_path,
+  pr_comments_json_folder_path
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ parse_github_replies(
 \item{comments_json_folder_path}{The path to the downloaded comments JSON. See \code{\link{github_api_project_issue_or_pr_comments}}.}
 
 \item{commit_json_folder_path}{The path to the downloaded commits JSON (used to map github username to the git log). See \code{\link{github_api_project_commits}}.}
+
+\item{pr_comments_json_folder_path}{The path to the download pr comments JSON. see \code{\link{github_api_project_pr_comments}}.}
 }
 \value{
 A single reply table which combines the communication from the three jsons.
