@@ -16,7 +16,7 @@ github_api_issue_pr_comments(owner, repo, issue_number, token)
 \item{token}{Your GitHub API token}
 }
 \description{
-Download Issues' and Pull Request's Comments from "GET /repos/{owner}/{repo}/issues/comments" endpoint.
+Download Issues' and Pull Request's Comments from "GET /repos/\{owner\}/\{repo\}/issues/comments" endpoint.
 All Pull Requests are counted as Issues, but not all Issues are Pull Requests
 Optional parameter since is used to download comments updated after the specified date.
 If the value of since is NULL, it is not passed to the API call and all comments are downloaded.
