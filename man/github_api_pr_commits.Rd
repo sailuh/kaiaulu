@@ -11,11 +11,13 @@ github_api_pr_commits(owner, repo, pull_number, token)
 
 \item{repo}{GitHub's repository name (e.g. kaiaulu)}
 
+\item{pull_number}{The number that identifies the pull request.}
+
 \item{token}{Your GitHub API token}
 }
 \description{
 Download Pull Request Commits from "GET /repos/{owner}/{repo}/pulls/{pull_number}/commits" endpoint.
 }
 \references{
-For details, see \url{https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#list-commits-on-a-pull-request}.
+For details, see \url{https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-commits-on-a-pull-request}.
 }

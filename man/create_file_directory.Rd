@@ -7,10 +7,10 @@
 create_file_directory(conf, verbose = FALSE)
 }
 \arguments{
+\item{conf}{The parsed config file the function is creating the directory for.}
+
 \item{verbose}{A boolean variable that prints operational messages when set to TRUE.
 Obtained from `parse_config` function.}
-
-\item{config}{The parsed config file the function is creating the directory for.}
 }
 \description{
 The input is the parsed config file that the user will be using.

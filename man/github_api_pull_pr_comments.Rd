@@ -11,9 +11,9 @@ github_api_pull_pr_comments(owner, repo, pull_number, token)
 
 \item{repo}{GitHub's repository name (e.g. kaiaulu)}
 
-\item{token}{Your GitHub API token}
+\item{pull_number}{The number that identifies the pull request.}
 
-\item{since}{Optional parameter to specify pulling only comments updated after this date}
+\item{token}{Your GitHub API token}
 }
 \description{
 Downloads the Pull Request Comments from `GET /repos/{owner}/{repo}/pulls/comments` endpoint.

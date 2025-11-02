@@ -265,8 +265,9 @@ github_api_pr_reviews_refresh <- function(owner,repo,token,save_path_pull_reques
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param pull_number The number that identifies the pull request.
 #' @param token Your GitHub API token
-#' @references For details, see \url{https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#list-commits-on-a-pull-request}.
+#' @references For details, see \url{https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-commits-on-a-pull-request}.
 #' @export
 github_api_pr_commits <- function(owner,repo,pull_number,token){
   gh::gh("GET /repos/{owner}/{repo}/pulls/{pull_number}/commits",
@@ -304,6 +305,7 @@ github_parse_project_pr_commits <- function(api_responses) {
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param pull_number The number that identifies the pull request.
 #' @param token Your GitHub API token
 #' @references For details, see \url{https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#list-files-on-a-pull-request}.
 #' @export
@@ -381,6 +383,7 @@ github_parse_project_pr_reviewers <- function(api_responses) {
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param pull_number The number that identifies the pull request.
 #' @param token Your GitHub API token
 #' @references For details, see \url{https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#check-if-a-pull-request-has-been-merged}.
 #' @export
@@ -804,9 +807,10 @@ github_api_project_issue_or_pr_comments <- function(owner,repo,token,since=NULL)
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param issue_number The number that identifies the issue
 #' @param token Your GitHub API token
 #' @export
-#' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-issue-comments-for-a-repository} and
+#' @references For details, see \url{https://docs.github.com/en/rest/issues/comments?apiVersion=2022-11-28#list-issue-comments} and
 #' \url{https://docs.github.com/en/rest/guides/working-with-comments#pull-request-comments}.
 #' @export
 github_api_issue_pr_comments <- function(owner,repo,issue_number,token){
@@ -1024,6 +1028,7 @@ github_parse_project_pull_request <- function(api_responses){
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param pull_number The number that identifies the pull request.
 #' @param token Your GitHub API token
 #' @export
 #' @references For details, see \url{https://docs.github.com/en/rest/reference/pulls#list-pull-requests}.
@@ -1176,8 +1181,8 @@ github_api_project_pr_comments <- function(owner, repo, token, since=NULL) {
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param pull_number The number that identifies the pull request.
 #' @param token Your GitHub API token
-#' @param since Optional parameter to specify pulling only comments updated after this date
 #' @references For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}
 #' @export
 github_api_pull_pr_comments <- function(owner, repo, pull_number, token) {

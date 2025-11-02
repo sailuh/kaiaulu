@@ -38,7 +38,7 @@ parse_config <- function(config_path) {
 #' use the config file. The function relies on the helper function `create_file_directory`
 #' to see if any of the directories already exist, and create those that don't.
 #'
-#' @param config The parsed config file the function is creating the directory for.
+#' @param conf The parsed config file the function is creating the directory for.
 #' @param verbose A boolean variable that prints operational messages when set to TRUE.
 #' Obtained from `parse_config` function.
 #' @export

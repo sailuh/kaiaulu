@@ -11,6 +11,8 @@ github_api_pr_files(owner, repo, pull_number, token)
 
 \item{repo}{GitHub's repository name (e.g. kaiaulu)}
 
+\item{pull_number}{The number that identifies the pull request.}
+
 \item{token}{Your GitHub API token}
 }
 \description{

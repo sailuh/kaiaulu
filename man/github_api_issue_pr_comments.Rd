@@ -11,6 +11,8 @@ github_api_issue_pr_comments(owner, repo, issue_number, token)
 
 \item{repo}{GitHub's repository name (e.g. kaiaulu)}
 
+\item{issue_number}{The number that identifies the issue}
+
 \item{token}{Your GitHub API token}
 }
 \description{
@@ -20,6 +22,6 @@ Optional parameter since is used to download comments updated after the specifie
 If the value of since is NULL, it is not passed to the API call and all comments are downloaded.
 }
 \references{
-For details, see \url{https://docs.github.com/en/rest/reference/issues#list-issue-comments-for-a-repository} and
+For details, see \url{https://docs.github.com/en/rest/issues/comments?apiVersion=2022-11-28#list-issue-comments} and
 \url{https://docs.github.com/en/rest/guides/working-with-comments#pull-request-comments}.
 }
