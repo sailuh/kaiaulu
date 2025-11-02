@@ -214,7 +214,7 @@ github_parse_project_pr_reviews <- function(api_responses) {
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
 #' @param save_path_pull_request save path for the pull requests to retrieve pull numbers.
-#' @param file_save_path the save path for the pr reviews folder
+#' @param save_path_pr_reviews the save path for the pr reviews folder
 #' @param verbose boolean value. When set to true, it prints operational messages including
 #' greatest dates and the file name that contains the greatest date.
 #' @export

@@ -9,7 +9,7 @@ github_api_pr_reviews_refresh(
   repo,
   token,
   save_path_pull_request,
-  file_save_path,
+  save_path_pr_reviews,
   verbose = TRUE
 )
 }
@@ -22,7 +22,7 @@ github_api_pr_reviews_refresh(
 
 \item{save_path_pull_request}{save path for the pull requests to retrieve pull numbers.}
 
-\item{file_save_path}{the save path for the pr reviews folder}
+\item{save_path_pr_reviews}{the save path for the pr reviews folder}
 
 \item{verbose}{boolean value. When set to true, it prints operational messages including
 greatest dates and the file name that contains the greatest date.}
