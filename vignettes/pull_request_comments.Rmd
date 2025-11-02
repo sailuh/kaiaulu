@@ -258,6 +258,7 @@ pr_endpoints <- rbind(pull_requests, pr_comments, inline_comments, pr_reviews, f
 #                                   -as.integer(is_review_summary),
 #                                   created_at)]
 
+# time_value <- as.POSIXct(created, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
 pr_endpoints$dates <- lubridate::ymd_hms(pr_endpoints$created_at) 
 head(pr_endpoints[issue_number==325][order(dates)],100)  %>%
   gt(auto_align = FALSE) 

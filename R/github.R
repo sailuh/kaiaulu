@@ -1081,6 +1081,7 @@ github_parse_pull_request <- function(api_responses){
 
 
 #' Download Project Pull Requests Refresh
+#' TODO: Does not work as a refresher, as there is no time endpoint for it.
 #'
 #' Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
 #' the latest downloaded Github created_at date among the directory(intended to be the  folder).
@@ -1146,7 +1147,7 @@ github_api_project_pull_request_refresh <- function(owner,repo,token,file_save_p
       message("Latest date: ",formatted_new_time_value)
     }
     # Make the API call
-    gh_response <- github_api_project_pull_request(owner,repo,token,formatted_new_time_value)
+    gh_response <- github_api_project_pull_request(owner,repo,token)
   } #end if/else
 }
 
