@@ -20,18 +20,15 @@ github_api_project_pull_request_review_refresh(
 
 \item{token}{Your GitHub API token}
 
-\item{save_path_pull_request}{save path for the pull requests to retrieve pull numbers.}
+\item{save_path_pull_request}{save path from data obtained by \code{\link{github_api_project_pull_request_refresh}}.}
 
-\item{save_path_pr_reviews}{the save path for the pr reviews folder}
+\item{save_path_pr_reviews}{the save path for the pull request reviews folder to be downloaded}
 
-\item{verbose}{boolean value. When set to true, it prints operational messages including
-greatest dates and the file name that contains the greatest date.}
+\item{verbose}{True if messages should be displayed during execution.}
 }
 \description{
-Pull Request Reviews require a specific Pull Number to complete the API Request.
-To download all pull request reviews we must iterate through all pull numbers and download one file per pull request.
-Using the Pull Request endpoint to download the pull numbers, we now have a basis for iteration.
-The naming convention for downloading each pull request would be sailuh_kaiaulu_330 (owner_repo_pullnumber).
+Download Pull Request Reviews based on downloaded pull requests downloaded by \code{\link{github_api_project_pull_request_refresh}}.
+The data dependency is due to GitHub API requiring a specific pull request id to complete the API Request.
 }
 \references{
 For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.

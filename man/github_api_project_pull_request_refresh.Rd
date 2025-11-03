@@ -19,8 +19,7 @@ github_api_project_pull_request_refresh(
 
 \item{token}{Your GitHub API token}
 
-\item{verbose}{boolean value. When set to true, it prints operational messages including
-greatest dates and the file name that contains the greatest date.}
+\item{verbose}{True if messages should be displayed during execution.}
 
 \item{file_save_path}{the save path for the pr folder}
 }

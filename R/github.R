@@ -213,9 +213,10 @@ github_api_pull_request_reviews <- function(owner,repo,pull_number,token){
 
 #' Parse Pull Requests' Reviews JSON to Table
 #'
+#' Parse pull request data obtained by \code{\link{github_api_project_pull_request_review_refresh}}.
+#'
 #' Note not all columns available in the downloaded json are parsed.
-#' This function only parses for the reviews made on the pull request.
-#' @param api_responses API response obtained from github_api_* function.
+#' @param api_responses API response obtained from \code{\link{github_api_project_pull_request_review_refresh}}.
 #' @export
 github_parse_project_pull_request_reviews <- function(api_responses) {
   parse_response <- function(api_response) {
@@ -239,18 +240,15 @@ github_parse_project_pull_request_reviews <- function(api_responses) {
 
 #' Download Project Pull Request Reviews Refresh
 #'
-#' Pull Request Reviews require a specific Pull Number to complete the API Request.
-#' To download all pull request reviews we must iterate through all pull numbers and download one file per pull request.
-#' Using the Pull Request endpoint to download the pull numbers, we now have a basis for iteration.
-#' The naming convention for downloading each pull request would be sailuh_kaiaulu_330 (owner_repo_pullnumber).
+#' Download Pull Request Reviews based on downloaded pull requests downloaded by \code{\link{github_api_project_pull_request_refresh}}.
+#' The data dependency is due to GitHub API requiring a specific pull request id to complete the API Request.
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
-#' @param save_path_pull_request save path for the pull requests to retrieve pull numbers.
-#' @param save_path_pr_reviews the save path for the pr reviews folder
-#' @param verbose boolean value. When set to true, it prints operational messages including
-#' greatest dates and the file name that contains the greatest date.
+#' @param save_path_pull_request save path from data obtained by \code{\link{github_api_project_pull_request_refresh}}.
+#' @param save_path_pr_reviews the save path for the pull request reviews folder to be downloaded
+#' @param verbose True if messages should be displayed during execution.
 #' @export
 #' @references For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.
 #' @seealso  \code{link{github_api_pull_request_reviews}} to download pull request review data.
@@ -542,7 +540,7 @@ github_parse_project_issue_events <- function(api_responses){
 #' @param query Optional query to append to search api
 #' @param issue_or_pr This specifies whether issues or pull requests are being searched for.
 #' Acceptable inputs are "is:issue" or "is:pull-request".
-#' @param verbose Prints operational messages when set to true such as stating the search query.
+#' @param verbose True if messages should be displayed during execution.
 #' @references For details, see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}.
 #' @references For details on timestampes, se \url{https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated}
 #' @export
@@ -687,8 +685,7 @@ github_parse_project_issue <- function(api_responses){
 #' @param save_path_issue_refresh The folder path that the refresh downloader downloads to
 #' @param issue_or_pr This specifies whether issues or pull requests are being searched for.
 #' Acceptable inputs are "is:issue" or "is:pull-request".
-#' @param verbose A boolean value that prints operational messages when set to TRUE.
-#' These may include announcing successful execution of code, API queries, files saved, etc.
+#' @param verbose True if messages should be displayed during execution.
 #' @export
 #' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
 #' @references For details on timestampes, se \url{https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated}
@@ -763,8 +760,7 @@ github_api_project_issue_refresh <- function(owner,
 #' @param issue_or_pr This specifies whether issues or pull requests are being searched for.
 #' Acceptable inputs are "is:issue" or "is:pull-request".
 #' greatest dates and the file name that contains the greatest date.
-#' @param verbose boolean value. When set to true, it prints operational messages including
-#' greatest dates and the file name that contains the greatest date.
+#' @param verbose True if messages should be displayed during execution.
 #' @export
 #' @references For details on is:issue or is:pull-request see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}
 #' @references For details on timestampes, se \url{https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated}
@@ -921,8 +917,7 @@ github_parse_project_issue_or_pr_comments <- function(api_responses){
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
 #' @param file_save_path the save path for the issue comments folder
-#' @param verbose boolean value. When set to true, it prints operational messages including
-#' greatest dates and the file name that contains the greatest date.
+#' @param verbose True if messages should be displayed during execution.
 #' @export
 #' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
 #' @seealso  \code{link{github_api_project_issue_or_pr_comments}} to download all comment data
@@ -987,8 +982,7 @@ github_api_project_issue_or_pr_comment_refresh <- function(owner,repo,token,file
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
 #' @param since The lower bound. Comments created and/or updated after this date will be retrieved.
-#' @param verbose boolean value. When set to true, it prints operational messages including
-#' greatest dates and the file name that contains the greatest date.
+#' @param verbose True if messages should be displayed during execution.
 #' @export
 #' @seealso  \code{link{github_api_project_issue_or_pr_comment_refresh}} to refresh comment data
 #' @seealso  \code{link{github_api_project_issue_refresh}} to refresh issue data
@@ -1032,10 +1026,11 @@ github_api_project_pull_request <- function(owner,repo,token){
 
 #' Parse Pull Requests JSON to Table
 #'
-#' Note not all columns available in the downloaded json are parsed.
+#' Parses pull request description (first comment) downloaded by \code{\link{github_api_project_pull_request_refresh}}.
 #' This function serves as an alias to \code{\link{github_parse_search_issues_refresh}}.
+#' Note not all columns available in the downloaded json are parsed.
 #'
-#' @param api_responses API response obtained from github_api_* function.
+#' @param api_responses API response obtained from \code{\link{github_api_project_pull_request_refresh}}.
 #' @export
 github_parse_project_pull_request <- function(api_responses){
   return(github_parse_search_issues_refresh(api_responses))
@@ -1099,8 +1094,7 @@ github_parse_pull_request <- function(api_responses){
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
 #' @param file_save_path the save path for the pr folder
-#' @param verbose boolean value. When set to true, it prints operational messages including
-#' greatest dates and the file name that contains the greatest date.
+#' @param verbose True if messages should be displayed during execution.
 #' @export
 #' @references For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.
 #' @seealso  \code{link{github_api_project_pull_request}} to download all pull request  data
@@ -1236,11 +1230,9 @@ github_parse_project_pull_request_inline_comments <- function(api_responses) {
   rbindlist(lapply(api_responses,parse_response),fill=TRUE)
 }
 
-#' Download Project Pull Request Comments Refresh
+#' Download Project Pull Request Inline Review Comments Refresh
 #'
-#' Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
-#' the latest downloaded Github created_at date among the directory(intended to be the  folder).
-#' It uses this date to construct a query and calls \code{\link{github_api_project_pull_request_inline_comments}}
+#' Download Inline Pull Request Review Comments of all pull requests in a project.
 #'
 #' If no files exist in the file_save_path,\code{\link{github_api_project_pull_request_inline_comments}}
 #' is called with no additional query and all comments are downloaded.
@@ -1257,8 +1249,7 @@ github_parse_project_pull_request_inline_comments <- function(api_responses) {
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
 #' @param file_save_path the save path for the pr comments folder
-#' @param verbose boolean value. When set to true, it prints operational messages including
-#' greatest dates and the file name that contains the greatest date.
+#' @param verbose True if messages should be displayed during execution.
 #' @export
 #' @references For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.
 #' @seealso  \code{link{github_api_project_pull_request_inline_comments}} to download all pull request comment data
@@ -1422,9 +1413,7 @@ github_api_page_last <- function(gh_response){
 #' @param save_folder_path A folder path to save the downloaded json pages "as-is".
 #' @param prefix Prefix to be added to every json file name
 #' @param max_pages The maximum number of pages to download. MAX = Available token requests left
-#' @param verbose Boolean value that prints operating messages when set to TRUE, does not print when false.
-#' Operating messages may be details about certain parts of the code correctly executing or printing names
-#' of files created, etc.
+#' @param verbose True if messages should be displayed during execution.
 #' @references For details see \url{https://docs.github.com/en/free-pro-team@latest/rest/guides/traversing-with-pagination}.
 #' @export
 #' @keywords internal

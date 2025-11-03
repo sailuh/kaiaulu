@@ -7,9 +7,11 @@
 github_parse_project_pull_request_reviews(api_responses)
 }
 \arguments{
-\item{api_responses}{API response obtained from github_api_* function.}
+\item{api_responses}{API response obtained from \code{\link{github_api_project_pull_request_review_refresh}}.}
 }
 \description{
+Parse pull request data obtained by \code{\link{github_api_project_pull_request_review_refresh}}.
+}
+\details{
 Note not all columns available in the downloaded json are parsed.
-This function only parses for the reviews made on the pull request.
 }

@@ -15,26 +15,15 @@ editor_options:
 
 # Introduction
 
-In this vignette, the goal is to download all comments on the GitHub
-Pull Requests Conversations tab. In a GitHub Pull Request, comments
-written in the conversations tab are not easily retrievable by one
-endpoint in chronological order. They are instead split into four
-mutually exclusive endpoints. The four REST API endpoints being used are
-pull requests, issue/pr comments, pull request in-line comments, and
-pull request reviews.
+This notebook showcases how to obtain GitHub Pull-Request related data using Kaiaulu. The GitHub API distinguishes conversation happening on a Pull Request page as one of four types, and provides a different endpoint API for each:
 
--   Pull Requests
+  * **Pull Request Description**: The first "comment" in a Pull Request, which is written by the author of the Pull Request when creating it.
+  * **Pull Request Conversation Comment**: When using a browser to access GitHub, users can post comments on the **Conversation** tab. These comments have no association to source code. Note the Pull Request Description will not be obtained by this endpoint. 
+  * **Pull Request Review**: These reviews are done when a reviewer selects the "Files Changed" tab, and subsequently uses the "Review Changes" green button in this page. The Review comment is often used in conjunction with inline source code comments. For example, several inline comments can be made, and then a Pull Request review can be posted, which groups them in the Conversation Tab. The Pull Request Review also contains the labels of "Change Requested" or "Approved" if the reviewer marked them as such. However, this information may not be present if the reviewer posted it as "Comment". Refer to the browser interface UI for its definitions.
+  * **Pull Request Inline Comments**: These are comments posted on the "Files Changed" tab, by selecting a file line of code, pressing the "+" and then commenting inline. Reviewers can also hold "shift key" to highlight multiple lines of code to post a comment about them. These comments can then either be saved as a) "Add single line comment" or b) "Start review". If "Add single line comment" is chosen, then the comment is posted on its own in the "Conversation" tab. However, if "Start Review" is chosen, then the comment will not be posted until the **Pull Request Review** is posted grouping them. Comments posted as "Start Review" will have an explicit ID referencing the Pull Request Review ID. Accordingly, "Add single line comment" will not have a reference ID. Inline Comments are also unique in that the API provides the source code snippet associated to the comment for analysis.
 
-    -   Reviews
+The remainder of this notebook showcases how to obtain the four types of data using Kaiaulu. In the final section, the four endpoints are used to combine a Pull Request page from Kaiaulu to resemble the conversation tab. You can modify the Pull Request ID for Kaiaulu or any other GitHub project for analysis.  
 
-        -   In-Line PR Comment
-
-    -   Pull Request Comments
-
-## Libraries
-
-To use the notebook, you will need to ensure you have the required R
-packages installed.
 
 ```{r warning=FALSE,message=FALSE}
 rm(list = ls())
@@ -49,8 +38,7 @@ require(lubridate)
 
 ## Project Configuration File
 
-To use the pipeline, you must specify the organization and project of
-interest.
+This Notebook showcases how to obtain GitHub data from Kaiaulu itself. The project configuration file here serves to specify the project location on the web, and where the raw data will be stored.
 
 ```{r warning=FALSE}
 conf <- parse_config("../conf/kaiaulu.yml")
@@ -90,55 +78,15 @@ The `github_token` file should not have any file extensions.
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 ```
 
-# GitHub Pull Request Comment Types
+# Downloading Pull Request Data
 
-The GitHub API distinguishes conversation happening on a Pull Request page as one of four types, and provides a different endpoint API for each:
-
-  * **Pull Request Description**: The first "comment" in a Pull Request, which is written by the author of the Pull Request when creating it.
-  * **Pull Request Conversation Comment**: When using a browser to access GitHub, users can post comments on the **Conversation** tab. These comments have no association to source code. Note the Pull Request Description will not be obtained by this endpoint. 
-  * **Pull Request Review**: These reviews are done when a reviewer selects the "Files Changed" tab, and subsequently uses the "Review Changes" green button in this page. The Review comment is often used in conjunction with inline source code comments. For example, several inline comments can be made, and then a Pull Request review can be posted, which groups them in the Conversation Tab. The Pull Request Review also contains the labels of "Change Requested" or "Approved" if the reviewer marked them as such. However, this information may not be present if the reviewer posted it as "Comment". Refer to the browser interface UI for its definitions.
-  * **Pull Request Inline Comments**: These are comments posted on the "Files Changed" tab, by selecting a file line of code, pressing the "+" and then commenting inline. Reviewers can also hold "shift key" to highlight multiple lines of code to post a comment about them. These comments can then either be saved as a) "Add single line comment" or b) "Start review". If "Add single line comment" is chosen, then the comment is posted on its own in the "Conversation" tab. However, if "Start Review" is chosen, then the comment will not be posted until the **Pull Request Review** is posted grouping them. Comments posted as "Start Review" will have an explicit ID referencing the Pull Request Review ID. Accordingly, "Add single line comment" will not have a reference ID. Inline Comments are also unique in that the API provides the source code snippet associated to the comment for analysis.
-
-The remainder of this notebook showcases how to obtain the four types of data using Kaiaulu. In the final section, the four endpoints are used to combine a Pull Request page from Kaiaulu to resemble the conversation tab. You can modify the Pull Request ID for Kaiaulu or any other GitHub project for analysis.  
-
-## GitHub Pull Request Conversation Comments
-
-Pull Request Comments not connected to a review, appear in the GitHub Pull Request Conversations tab but is retrieved by the issue comments endpoint. Using this endpoint, both issues and pull request comments are retrieved.
-
-```{r Collect comments by pull request number}
-#gh call but with date
-# get the data
-gh_response_issue_or_pr_comment <- github_api_project_issue_or_pr_comment_refresh(owner,repo,token,save_path_issue_or_pr_comments,verbose=TRUE)
-
-# create directory and iterate over data
-#dir.create(save_path_issue_or_pr_comments)
-github_api_iterate_pages(token,gh_response_issue_or_pr_comment,
-                         save_path_issue_or_pr_comments,
-                         prefix="issue_or_pr_comment",
-                         verbose=TRUE)
-```
-
-It is important to filter out the issue comments in this notebook. The
-key to this is in the html_url of each comment, differentiated by
-/issues or /pull
-
-```{r}
-pr_comments <- lapply(list.files(save_path_issue_or_pr_comments, full.names = TRUE),read_json)
-pr_comments <- lapply(pr_comments, github_parse_project_issue_or_pr_comments)
-pr_comments <- rbindlist(pr_comments,fill=TRUE)
-
-#filter only pull requests using grepl
-pr_comments <- pr_comments[grepl("/pull/", html_url)]
-
-head(pr_comments,3)  %>%
-  gt(auto_align = FALSE) 
-```
+In the following four sub-sections, each data type discussed in the introduction will be downloaded and displayed. You should be able to reuse this notebook as a starting point for any other project using other configuration files.
 
 ## Pull Request Description
 
-We may notice the first comment of the pull request is missing. The pull request description is treated as a pull request comment in the conversations tab by GitHub. However, it is not retrievable by the other comments endpoints. To get this, we must utilize the pull request endpoint to gather information on the pull request, and retrieve the body paragraph for that pull request.
+The pull request first comment in the Conversation tab on GitHub is treated as the pull request description. Therefore, we must use the pull request endpoint to obtain it as shown:
 
-```{r Collect information on pull request}
+```{r Collect information on pull request, eval = FALSE}
 gh_response <- github_api_project_pull_request_refresh(owner, repo, token, save_path_pull_request)
 github_api_iterate_pages(token, gh_response, save_path_pull_request, prefix="pull-request", verbose=TRUE)
 ```
@@ -154,11 +102,44 @@ head(pull_requests,3)  %>%
   gt(auto_align = FALSE) 
 ```
 
+## GitHub Pull Request Conversation Comments
+
+Subsequently, to obtain the second and beyond comments of the conversation tab, we must now use the pull request comments endpoint. 
+
+```{r Collect comments by pull request number, eval = FALSE}
+#gh call but with date
+# get the data
+gh_response_issue_or_pr_comment <- github_api_project_issue_or_pr_comment_refresh(owner,repo,token,save_path_issue_or_pr_comments,verbose=TRUE)
+
+# create directory and iterate over data
+#dir.create(save_path_issue_or_pr_comments)
+github_api_iterate_pages(token,gh_response_issue_or_pr_comment,
+                         save_path_issue_or_pr_comments,
+                         prefix="issue_or_pr_comment",
+                         verbose=TRUE)
+```
+In GitHub, Pull Requests are a type of Issue. Therefore, only an endpoint of both issues and pull requests are available. We must therefore subset the full dataset to obtain only the pull request comments. We can do so using the html_url column, as the URL differentiates them by `/issues` or `/pull`:
+
+```{r}
+pr_comments <- lapply(list.files(save_path_issue_or_pr_comments, full.names = TRUE),read_json)
+pr_comments <- lapply(pr_comments, github_parse_project_issue_or_pr_comments)
+pr_comments <- rbindlist(pr_comments,fill=TRUE)
+
+#filter only pull requests using grepl
+pr_comments <- pr_comments[grepl("/pull/", html_url)]
+
+head(pr_comments,3)  %>%
+  gt(auto_align = FALSE) 
+```
+
+
 ## Pull Request Reviews
 
-Up until now, previous comments were not associated to code review. Users can perform code reviews by adding in-line code review comments and saving them together with "Changes Requested", "Approved" or just a single comment in-line rather than grouping. The review endpoint allows analysts to see the state of the review such as requesting changes, approving, or a singular comment. With this the review has its own comment body different from the in-line code comments. More information on the fields can be seen on the function definition for `github_parse_project_pr_reviews`. 
+Both the Pull Request description and comments are not directly related to source code. However, as discussed in the introduction change requests can also be made or approved, as discussed in the introduction.
 
-```{r Collect Reviews from Pull Requests}
+Note the Pull Request Reviews API is reliant on the Pull Request Description API `github_api_project_pull_request_refresh()` of the first step. This is because the Pull Request Review API requires a Pull Request ID to be specified. Kaiaulu uses the downloaded Pull Request dataset to determine if there are newer Pull Requests for which Pull Request Code Reviews have not been downloaded. This is done by comparing the Pull Request IDs present on both dataset. See the end of this notebook note on refresher for implications on this assumption.
+
+```{r Collect Reviews from Pull Requests, eval = FALSE}
 gh_response <- github_api_project_pull_request_review_refresh(owner, repo, token, save_path_pull_request, save_path_pr_reviews,verbose=TRUE)
 ```
 
@@ -172,19 +153,9 @@ head(pr_reviews,3)  %>%
 
 ## Pull Request In-Line Code Comments
 
-Other information we can obtain is the in-line code comments from Pull
-Requests. The comments include the diff_hunk field, which is a string
-that contains the in-line code reviewers may comment on the pull
-request. The particular line numbers the comment is referencing is
-specified by the review comment. These in-line code comments have a
-matching review id number that matches the review endpoint and other
-in-line code comments, therefore grouping them all together. More
-information on the fields can be seen on the function definition for
-`github_parse_project_pull_request_inline_comments`. These fields of data can greatly
-contribute to finding and analyzing patterns in collaboration between
-developers.
+The last endpoint downloads the inline code comments. This table provides direct association between a comment and a specific line on the file being modified. This table offers therefore a bridge between communication and code changes not found in any other data source. As noted in the introduction, inline comments that are associated to a change request will contain a `review_id` value which can be inner joined to the pull request review table above.
 
-```{r Collect Comments from Pull Requests}
+```{r Collect Comments from Pull Requests, eval = FALSE}
 gh_response <- github_api_project_pull_request_inline_comments_refresh(owner, repo, token)
 github_api_iterate_pages(token, gh_response, save_path_pr_comments, prefix="pr_comments")
 ```
@@ -200,10 +171,7 @@ head(inline_comments,2)  %>%
 
 # Putting All Together: Pull Request Conversations Tab
 
-After understanding the four endpoints that make up GitHub
-Conversations, we want to visualize that in the Kaiaulu. Here we gather
-specified data from pull_requests, pr_comments, pr_reviews, and in-line
-comments and the goal is to organize them by PR Review number and time.
+By combining the four endpoints above, we can recreate the conversation tab of a given pull request, as shown below. 
 
 ```{r Tabulate Endpoints}
 
@@ -240,23 +208,16 @@ pr_reviews <- pr_reviews[,.(issue_number=issue_number,html_url=html_url, PR_revi
 
 pr_endpoints <- rbind(pull_requests, pr_comments, inline_comments, pr_reviews, fill = TRUE)
 
-#pr_endpoints[, thread_root := ifelse(is.na(PR_review), 
-#                                    NA,
-#                                    html_url)]
-
-# Step 1: Add a sort key that gives priority to review summary (state not NA)
-#pr_endpoints[, is_review_summary := !is.na(state)]
-
-# Step 2: Use PR_review as a grouping variable — fallback to NA if no review ID
-#pr_endpoints[, thread_id := fcoalesce(as.character(PR_review), html_url)]
-
-# Step 3: Order by thread ID, then review summary (TRUE = 1, sorted before FALSE = 0), then timestamp
-#pr_endpoints <- pr_endpoints[order(thread_id,
-#                                   -as.integer(is_review_summary),
-#                                   created_at)]
-
 # time_value <- as.POSIXct(created, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
 pr_endpoints$dates <- lubridate::ymd_hms(pr_endpoints$created_at) 
 head(pr_endpoints[issue_number==325][order(dates)],100)  %>%
   gt(auto_align = FALSE) 
 ```
+
+# A note on Refreshers
+
+When using refreshers, you should keep in mind the assumptions used to re-download data due to limitations of the data source. For example, when downloading mailing list data, the refresher guarantees the dataset is complete by rewriting the most recently downloaded month on file, and the months thereafter. This is because after the end of the month, the data becomes immutable for that file. 
+
+The same can't be said for all data of issue trackers. That is, developers may choose to comment in an old issue, or perform another code review. Kaiaulu's issue tracker refreshers will use the timestamp of the most recently downloaded file of the endpoint (comment, issue, etc) when downloading more data. This will download additional issue, comments, etc. but **not always comment edits**. Further, if the data source endpoint does not allow for querying by timestamp, Kaiaulu will download newer IDs (as is the case of pull request reviews in this Notebook). Hence, if a **pull request you already downloaded receives a new code review, these will not be downloaded by the refresher**.
+
+To resolve this issue, if the interest is a complete dataset, use the associated data (issue, pull request) status (e.g. open, closed) to identify if the pull request is still expected to have changes. If so, you can script checking the data associated to these files to be deleted, and use Kaiaulu to re-download them. If your intent is to use the data for research purposes, the rule of thumb is to filter out data which status is not marked as closed, as you will inevitably have ongoing open discussion in a project you are analyzing unless the project is inactive. 

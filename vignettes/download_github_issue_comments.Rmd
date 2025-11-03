@@ -612,3 +612,11 @@ replies <- parse_github_replies(save_path_issue,
 tail(replies,2)  %>%
   gt(auto_align = FALSE) 
 ```
+
+# A note on Refreshers
+
+When using refreshers, you should keep in mind the assumptions used to re-download data due to limitations of the data source. For example, when downloading mailing list data, the refresher guarantees the dataset is complete by rewriting the most recently downloaded month on file, and the months thereafter. This is because after the end of the month, the data becomes immutable for that file. 
+
+The same can't be said for all data of issue trackers. That is, developers may choose to comment in an old issue, or perform another code review. Kaiaulu's issue tracker refreshers will use the timestamp of the most recently downloaded file of the endpoint (comment, issue, etc) when downloading more data. This will download additional issue, comments, etc. but **not always comment edits**. Further, if the data source endpoint does not allow for querying by timestamp, Kaiaulu will download newer IDs (as is the case of pull request reviews in this Notebook). Hence, if a **pull request you already downloaded receives a new code review, these will not be downloaded by the refresher**.
+
+To resolve this issue, if the interest is a complete dataset, use the associated data (issue, pull request) status (e.g. open, closed) to identify if the pull request is still expected to have changes. If so, you can script checking the data associated to these files to be deleted, and use Kaiaulu to re-download them. If your intent is to use the data for research purposes, the rule of thumb is to filter out data which status is not marked as closed, as you will inevitably have ongoing open discussion in a project you are analyzing unless the project is inactive. 

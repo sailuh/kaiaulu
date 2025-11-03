@@ -2,7 +2,7 @@
 % Please edit documentation in R/github.R
 \name{github_api_project_pull_request_inline_comments_refresh}
 \alias{github_api_project_pull_request_inline_comments_refresh}
-\title{Download Project Pull Request Comments Refresh}
+\title{Download Project Pull Request Inline Review Comments Refresh}
 \usage{
 github_api_project_pull_request_inline_comments_refresh(
   owner,
@@ -21,13 +21,10 @@ github_api_project_pull_request_inline_comments_refresh(
 
 \item{file_save_path}{the save path for the pr comments folder}
 
-\item{verbose}{boolean value. When set to true, it prints operational messages including
-greatest dates and the file name that contains the greatest date.}
+\item{verbose}{True if messages should be displayed during execution.}
 }
 \description{
-Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
-the latest downloaded Github created_at date among the directory(intended to be the  folder).
-It uses this date to construct a query and calls \code{\link{github_api_project_pull_request_inline_comments}}
+Download Inline Pull Request Review Comments of all pull requests in a project.
 }
 \details{
 If no files exist in the file_save_path,\code{\link{github_api_project_pull_request_inline_comments}}

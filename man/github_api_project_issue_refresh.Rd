@@ -25,8 +25,7 @@ github_api_project_issue_refresh(
 \item{issue_or_pr}{This specifies whether issues or pull requests are being searched for.
 Acceptable inputs are "is:issue" or "is:pull-request".}
 
-\item{verbose}{A boolean value that prints operational messages when set to TRUE.
-These may include announcing successful execution of code, API queries, files saved, etc.}
+\item{verbose}{True if messages should be displayed during execution.}
 }
 \description{
 Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
