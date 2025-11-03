@@ -2,14 +2,13 @@
 % Please edit documentation in R/github.R
 \name{github_api_project_pull_request_refresh}
 \alias{github_api_project_pull_request_refresh}
-\title{Download Project Pull Requests Refresh
-TODO: Does not work as a refresher, as there is no time endpoint for it.}
+\title{Download Project Pull Requests Description (First Comment) Refresh}
 \usage{
 github_api_project_pull_request_refresh(
   owner,
   repo,
   token,
-  file_save_path = save_path_pull_request,
+  save_path_pull_request,
   verbose = TRUE
 )
 }
@@ -20,27 +19,15 @@ github_api_project_pull_request_refresh(
 
 \item{token}{Your GitHub API token}
 
-\item{file_save_path}{the save path for the pr folder}
-
 \item{verbose}{boolean value. When set to true, it prints operational messages including
 greatest dates and the file name that contains the greatest date.}
+
+\item{file_save_path}{the save path for the pr folder}
 }
 \description{
-Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
-the latest downloaded Github created_at date among the directory(intended to be the  folder).
-It uses this date to construct a query and calls \code{\link{github_api_project_pull_request}}
-}
-\details{
-If no files exist in the file_save_path,\code{link{github_api_project_pull_request}}
-is called with no additional query and all comments are downloaded.
-
-Because the endpoint this function relies on is based on the updated timestamp, running the refresher
-will download the most recent version of the comment changes. Only the most recent version of the comment will
-be downloaded, not all copies. However, if the same comment was modified before the next refresh call,
-then if the refresher function was executed again, then this would result in two comments with the same
-comment id being present in the table. This can be addressed by performing a group by over the comment\_id
-in the generated parsed table, and selecting to return the max(updated_at) comment, resulting in a table
-that only the most recent comment verson as of the latest time the refresher was executed.
+Downloads the Pull Request First Comment (i.e. the Pull Request "Description"). This serves
+as a convenience function to \code{\link{github_api_project_issue_refresh}} with parameter
+issue_or_pr = "is:pull-request". See referenced function for details.
 }
 \references{
 For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.

@@ -1114,23 +1114,11 @@ github_parse_pull_request <- function(api_responses){
 }
 
 
-#' Download Project Pull Requests Refresh
-#' TODO: Does not work as a refresher, as there is no time endpoint for it.
+#' Download Project Pull Requests Description (First Comment) Refresh
 #'
-#' Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
-#' the latest downloaded Github created_at date among the directory(intended to be the  folder).
-#' It uses this date to construct a query and calls \code{\link{github_api_project_pull_request}}
-#'
-#' If no files exist in the file_save_path,\code{link{github_api_project_pull_request}}
-#' is called with no additional query and all comments are downloaded.
-#'
-#' Because the endpoint this function relies on is based on the updated timestamp, running the refresher
-#' will download the most recent version of the comment changes. Only the most recent version of the comment will
-#' be downloaded, not all copies. However, if the same comment was modified before the next refresh call,
-#' then if the refresher function was executed again, then this would result in two comments with the same
-#' comment id being present in the table. This can be addressed by performing a group by over the comment\_id
-#' in the generated parsed table, and selecting to return the max(updated_at) comment, resulting in a table
-#' that only the most recent comment verson as of the latest time the refresher was executed.
+#' Downloads the Pull Request First Comment (i.e. the Pull Request "Description"). This serves
+#' as a convenience function to \code{\link{github_api_project_issue_refresh}} with parameter
+#' issue_or_pr = "is:pull-request". See referenced function for details.
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
@@ -1144,45 +1132,9 @@ github_parse_pull_request <- function(api_responses){
 #' @seealso  \code{link{format_created_at_from_file}} for function that iterates through
 #' a .json file and returns the greatest 'created_at' value
 #' @seealso  \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
-github_api_project_pull_request_refresh <- function(owner,repo,token,file_save_path=save_path_pull_request,verbose=TRUE){
-  # Check if the file is empty by checking its size
-  # List all files and subdirectories in the directory
-  contents <- list.files(path = file_save_path)
-  # If the file is empty, download all pull requests
-  if(length(contents) == 0) {
-    if (verbose) {
-      message(file_save_path, " filepath is empty, running regular downloader.")
-    }
-    # Run regular downloader
-    pull_requests <- github_api_project_pull_request(owner,repo,token)
-    return (pull_requests)
-  } else {
-    # Get the name of the file with the most recent date
-    latest_updated_pull_requests <- paste0(file_save_path, parse_github_latest_date(file_save_path))
-    latest_updated_pull_requests <- (head(latest_updated_pull_requests,1))
+github_api_project_pull_request_refresh <- function(owner,repo,token, save_path_pull_request,verbose=TRUE){
 
-    if (verbose) {
-      message("File with most recent date: ", latest_updated_pull_requests)
-    }
-    # get the created_at value
-    created <- format_created_at_from_file(latest_updated_pull_requests, item="")
-
-    # Convert the string to a POSIXct object
-    time_value <- as.POSIXct(created, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
-
-    # Add one second
-    new_time_value <- time_value + 1
-
-    # Format the new time value back into the original string format
-    formatted_new_time_value <- format(new_time_value, "%Y-%m-%dT%H:%M:%SZ")
-
-    if(verbose){
-      message("file name with greatest date: ",latest_updated_pull_requests)
-      message("Latest date: ",formatted_new_time_value)
-    }
-    # Make the API call
-    gh_response <- github_api_project_pull_request(owner,repo,token)
-  } #end if/else
+  return(github_api_project_issue_refresh(owner, repo, token, save_path_pull_request, issue_or_pr = "is:pull-request"))
 }
 
 #' Download Project's Pull Request Comments
