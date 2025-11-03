@@ -276,8 +276,9 @@ github_api_project_pull_request_review_refresh <- function(owner,repo,token,save
     return (file_path)
   }
   downloaded_code_review_pull_request_ids <- as.integer(sapply(pull_requests,split_pull_request_number))
+  most_recent_code_review_pull_request_id <- max(downloaded_code_review_pull_request_ids)
 
-  # Which Non-Code Review Pull Request IDs have since been downloaded that we lack Code Review Comments?
+  # Which Pull Request IDs have since been downloaded that we lack Code Reviews for?
   missing_pull_request_ids <- setdiff(downloaded_non_code_review_pull_request_ids,
                                       downloaded_code_review_pull_request_ids)
 
@@ -294,9 +295,7 @@ github_api_project_pull_request_review_refresh <- function(owner,repo,token,save
       }
   }
   if(verbose){
-    downloaded_pull_request_filepaths <- list.files(save_path_pr_reviews, full.names = TRUE)
-    downloaded_pull_request_filepath_ids <- as.integer(sapply(downloaded_pull_request_filepaths,split_pull_request_number))
-    message("File with most recent pull request: ", max(downloaded_pull_request_filepath_ids))
+    message("The latest Pull Request ID which Code Reviews were downloaded for is: ", max(most_recent_code_review_pull_request_id))
   }
 }
 
