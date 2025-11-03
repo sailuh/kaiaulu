@@ -14,7 +14,7 @@
 #' @param file_column_name a string indicating the column name which contains filepaths
 #' @return a data.table which contains only filepaths with the specified extensions
 #' @export
-#' @family {filters}
+#' @family filters
 #' @seealso \code{\link{parse_gitlog}} and \code{\link{parse_dependencies}} to create dt_file
 filter_by_file_extension <- function(dt_file,extension,file_column_name){
   file_extension_re <- stri_c('[.](',stri_c(extension,collapse="|"),')$')

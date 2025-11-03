@@ -21,8 +21,7 @@ github_api_project_issue_or_pr_comment_refresh(
 
 \item{file_save_path}{the save path for the issue comments folder}
 
-\item{verbose}{boolean value. When set to true, it prints operational messages including
-greatest dates and the file name that contains the greatest date.}
+\item{verbose}{True if messages should be displayed during execution.}
 }
 \description{
 Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify

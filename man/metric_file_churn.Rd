@@ -16,7 +16,7 @@ a two column data.table of the form file_pathname | file_churn
 The total churn of a file
 }
 \seealso{
-Other {metrics}: 
+Other metrics: 
 \code{\link{commit_message_id_coverage}()},
 \code{\link{metric_churn_per_commit_interval}()},
 \code{\link{metric_churn_per_commit_per_file}()},
@@ -26,4 +26,4 @@ Other {metrics}:
 \code{\link{metric_file_non_bug_churn}()},
 \code{\link{metric_file_non_bug_frequency}()}
 }
-\concept{{metrics}}
+\concept{metrics}

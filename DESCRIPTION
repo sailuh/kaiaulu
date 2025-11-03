@@ -24,6 +24,7 @@ Authors@R: c(
     person('Dao', 'McGill', role = c('ctb')),
     person('Nicholas', 'Beydler', role = c('ctb')),
     person('Mark', 'Burgess', role = c('ctb')),
+    person('Ryan', 'Seng', role = c('ctb')),
     person('Raven', 'Quiddaoen', role= c('ctb'))
     )
 Maintainer: Carlos Paradis <cvas@hawaii.edu>

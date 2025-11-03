@@ -664,7 +664,7 @@ git_blame <- function(git_repo_path,flags,commit_hash,file_path){
 #' @param folder_path An optional path to where the sample .git should be created.
 #' @return The path to the sample .git file.
 #' @export
-#' @family {unittest}
+#' @family unittest
 git_create_sample_log <- function(folder_path="/tmp"){
   # Expand paths (e.g. "~/Desktop" => "/Users/someuser/Desktop")
   folder_path <- path.expand(folder_path)
@@ -695,7 +695,7 @@ git_create_sample_log <- function(folder_path="/tmp"){
 #' @param folder_path An optional path to where the sample .git should be created.
 #' @return The path to the sample .git file.
 #' @export
-#' @family {unittest}
+#' @family unittest
 git_delete_sample_log <- function(folder_path="/tmp"){
   folder_path <- path.expand(folder_path)
   folder_path <- file.path(folder_path,"kaiaulu_sample")

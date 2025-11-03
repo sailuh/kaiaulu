@@ -7,8 +7,10 @@
 github_parse_project_pull_request(api_responses)
 }
 \arguments{
-\item{api_responses}{API response obtained from github_api_* function.}
+\item{api_responses}{API response obtained from \code{\link{github_api_project_pull_request_refresh}}.}
 }
 \description{
+Parses pull request description (first comment) downloaded by \code{\link{github_api_project_pull_request_refresh}}.
+This function serves as an alias to \code{\link{github_parse_search_issues_refresh}}.
 Note not all columns available in the downloaded json are parsed.
 }

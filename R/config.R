@@ -5,8 +5,6 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 
-########## Configuration File Parser Functions ##########
-
 #' Returns the parsed configuration file (.yml).
 #'
 #' @description The input file is expected to be in the .yml format.
@@ -29,7 +27,7 @@ parse_config <- function(config_path) {
   return(conf)
 }
 
-##### Git Getter Functions #####
+##### Git #####
 
 #' Returns the path to the .git of the project repository that is being analyzed.
 #'
@@ -77,7 +75,7 @@ get_git_branches <- function(config_file) {
 
 
 
-##### Mailing List Functions Start #####
+##### Mailing List #####
 
 #' Returns the list of mailing list mod mbox project keys.
 #'
@@ -243,11 +241,7 @@ get_pipermail_input_file <- function(config_file, project_key_index) {
   return(pipermail_input)
 }
 
-##### Mailing List Functions End #####
-
-##### Issue Tracker Functions Start #####
-
-##### Jira Functions #####
+##### JIRA #####
 
 #' Returns the list of Jira issue tracker project keys.
 #'
@@ -364,7 +358,7 @@ get_jira_issues_comments_path <- function(config_file, project_key_index) {
   return(jira_issue_comments_path)
 }
 
-##### Github Functions #####
+##### GitHub #####
 
 #' Returns the list of GitHub issue tracker project keys.
 #'
@@ -530,6 +524,31 @@ get_github_pull_request_path <- function(config_file, project_key_index) {
   return(pull_request_path)
 }
 
+#' Returns the local folder path for GitHub Pull Request Review Comments for a specific
+#' project key.
+#'
+#' @description This function returns the local folder path for GitHub Pull
+#' Request Comments for a specific project key, that is specified in the input
+#' parameter `config_file`. The input, `config_file` must be a parsed
+#' configuration file. The function will inform the user if the local folder
+#' path for the pull request comments exists in the parsed configuration file,
+#' `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
+#' @return The local folder path for GitHub pull request review comments for project specified by key `project_key_index`.
+#' @export
+get_github_pr_comments_path <- function(config_file, project_key_index) {
+
+  pr_comments_path <- config_file[["issue_tracker"]][["github"]][[project_key_index]][["pr_comments"]]
+
+  if (is.null(pr_comments_path)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(pr_comments_path)
+}
+
 #' Returns the local folder path for GitHub issue events for a specific project
 #' key.
 #'
@@ -579,7 +598,138 @@ get_github_commit_path <- function(config_file, project_key_index) {
   return(commit_path)
 }
 
-### Bugzilla Functions #####
+### Pull Request Review Path ###
+
+#' Returns the local folder path for GitHub pull request reviews for a specific project key.
+#'
+#' @description This function returns the local folder path for GitHub pull request reviews
+#' for a specific project key, that is specified in the input
+#' parameter `config_file`. The input, `config_file` must be a parsed
+#' configuration file. The function will inform the user if the local folder
+#' path for the commits exists in the parsed configuration file,
+#' `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
+#' @return The local folder path for GitHub pull request reviews for project specified by key `project_key_index`.
+#' @export
+get_github_pr_review_path <- function(config_file, project_key_index) {
+
+  pr_review_path <- config_file[["issue_tracker"]][["github"]][[project_key_index]][["pr_reviews"]]
+
+  if (is.null(pr_review_path)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(pr_review_path)
+}
+
+### Pull Request Commit Path ###
+
+#' Returns the local folder path for GitHub pull request commits for a specific project key.
+#'
+#' @description This function returns the local folder path for GitHub pull request commits
+#' for a specific project key, that is specified in the input
+#' parameter `config_file`. The input, `config_file` must be a parsed
+#' configuration file. The function will inform the user if the local folder
+#' path for the commits exists in the parsed configuration file,
+#' `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
+#' @return The local folder path for GitHub pull request commits for project specified by key `project_key_index`.
+#' @export
+get_github_pr_commits_path <- function(config_file, project_key_index) {
+
+  pr_commits_path <- config_file[["issue_tracker"]][["github"]][[project_key_index]][["pr_commits"]]
+
+  if (is.null(pr_commits_path)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(pr_commits_path)
+}
+
+### Pull Request Files Path ###
+
+#' Returns the local folder path for GitHub pull request files for a specific project key.
+#'
+#' @description This function returns the local folder path for GitHub pull request files
+#' for a specific project key, that is specified in the input
+#' parameter `config_file`. The input, `config_file` must be a parsed
+#' configuration file. The function will inform the user if the local folder
+#' path for the files exists in the parsed configuration file,
+#' `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
+#' @return The local folder path for GitHub pull request files for project specified by key `project_key_index`.
+#' @export
+get_github_pr_files_path <- function(config_file, project_key_index) {
+
+  pr_files_path <- config_file[["issue_tracker"]][["github"]][[project_key_index]][["pr_files"]]
+
+  if (is.null(pr_files_path)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(pr_files_path)
+}
+
+### Pull Request Requested Reviewers Path ###
+
+#' Returns the local folder path for GitHub pull request requested reviewers for a specific project key.
+#'
+#' @description This function returns the local folder path for GitHub pull request requested reviewers
+#' for a specific project key, that is specified in the input
+#' parameter `config_file`. The input, `config_file` must be a parsed
+#' configuration file. The function will inform the user if the local folder
+#' path for the files exists in the parsed configuration file,
+#' `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
+#' @return The local folder path for GitHub pull request requested reviewers for project specified by key `project_key_index`.
+#' @export
+get_github_pr_reviewers_path <- function(config_file, project_key_index) {
+
+  pr_reviewers_path <- config_file[["issue_tracker"]][["github"]][[project_key_index]][["pr_reviewers"]]
+
+  if (is.null(pr_reviewers_path)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(pr_reviewers_path)
+}
+
+### Pull Request Merge Status Path ###
+
+#' Returns the local folder path for GitHub pull request merge status for a specific project key.
+#'
+#' @description This function returns the local folder path for GitHub pull request merge status
+#' for a specific project key, that is specified in the input
+#' parameter `config_file`. The input, `config_file` must be a parsed
+#' configuration file. The function will inform the user if the local folder
+#' path for the files exists in the parsed configuration file,
+#' `config_file`.
+#'
+#' @param config_file The parsed configuration file obtained from \code{\link{parse_config}}.
+#' @param project_key_index The name of the index of the project key (e.g. "project_key_1" or "project_key_2").
+#' @return The local folder path for GitHub pull request merge status for project specified by key `project_key_index`.
+#' @export
+get_github_pr_merge_path <- function(config_file, project_key_index) {
+
+  pr_merge_path <- config_file[["issue_tracker"]][["github"]][[project_key_index]][["pr_merge"]]
+
+  if (is.null(pr_merge_path)) {
+    warning("Attribute does not exist in the configuration file.")
+  }
+
+  return(pr_merge_path)
+}
+
+
+### Bugzilla #####
 
 #' Returns the name of the Bugzilla project key for a specific project key index.
 #'
@@ -650,11 +800,8 @@ get_bugzilla_issue_comment_path <- function(config_file, project_key_index) {
   return(issue_comment_path)
 }
 
-##### Issue Tracker Functions End #####
 
-
-
-##### Vulnerabilities Functions Start #####
+##### Vulnerabilities #####
 
 #' Returns the local folder path that contains the nvd (National Vulnerability
 #' Database) feeds.
@@ -679,11 +826,7 @@ get_nvdfeed_folder_path <- function(config_file) {
   return(nvdfeed_folder_path)
 }
 
-##### Vulnerabilities Functions End #####
-
-
-
-##### Regular Expression Functions Start #####
+##### Regular Expression #####
 
 #' Returns the issue Id regular expression for commit messages.
 #'
@@ -730,11 +873,7 @@ get_cveid_regex <- function(config_file) {
   return(cveid_regex)
 }
 
-##### Regular Expression Functions End #####
-
-
-
-##### Filter Functions Start #####
+##### Filter #####
 
 #' Returns the list of file extensions used for filtering files to keep.
 #'
@@ -802,11 +941,7 @@ get_filter_commit_size <- function(config_file) {
   return(filter_commit_size)
 }
 
-##### Filter Functions End #####
-
-
-
-##### Third Party Tools Functions Start #####
+##### Third Party Tools #####
 
 #' Returns the specified tool project from a parsed tool configuration file.
 #'
@@ -1097,11 +1232,11 @@ get_understand_output_path <- function(config_file) {
   return(understand_output_path)
 }
 
-##### Third Party Tools Functions End #####
+##### Third Party Tools #####
 
 
 
-##### Analysis Functions Start #####
+##### Analysis Results #####
 
 #' Returns the list of topics and keywords for analysis.
 #'
@@ -1211,5 +1346,3 @@ get_enumeration_commits <- function(config_file) {
 
   return(enumeration_commit)
 }
-
-##### Analysis Functions End #####

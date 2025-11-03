@@ -23,6 +23,7 @@ Other parsers:
 \code{\link{parse_bugzilla_rest_issues}()},
 \code{\link{parse_commit_message_id}()},
 \code{\link{parse_dependencies}()},
+\code{\link{parse_github_latest_date}()},
 \code{\link{parse_gitlog}()},
 \code{\link{parse_jira_latest_date}()},
 \code{\link{parse_jira_rss_xml}()},

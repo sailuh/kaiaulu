@@ -12,7 +12,7 @@
 #' @param jira_issues a parsed jira issue log obtained from \code{\link{parse_jira}}
 #' @return a two column data.table of the form file_pathname | file_bug_frequency
 #' @export
-#' @family {metrics}
+#' @family metrics
 metric_file_bug_frequency <- function(project_git,jira_issues){
 
   jira_issues_bug <- jira_issues[(issue_status == "Closed" | issue_status == "Resolved") & issue_type == "Bug"][,.(issue_key,issue_type)]
@@ -33,7 +33,7 @@ metric_file_bug_frequency <- function(project_git,jira_issues){
 #' @param jira_issues a parsed jira issue log obtained from \code{\link{parse_jira}}
 #' @return a two column data.table of the form file_pathname | non_file_bug_frequency
 #' @export
-#' @family {metrics}
+#' @family metrics
 metric_file_non_bug_frequency <- function(project_git,jira_issues){
 
   jira_issues_non_bug <- jira_issues[(issue_status == "Closed" | issue_status == "Resolved") & issue_type != "Bug"][,.(issue_key,issue_type)]
@@ -54,7 +54,7 @@ metric_file_non_bug_frequency <- function(project_git,jira_issues){
 #' @param jira_issues a parsed jira issue log obtained from \code{\link{parse_jira}}
 #' @return a two column data.table of the form file_pathname | file_bug_churn
 #' @export
-#' @family {metrics}
+#' @family metrics
 metric_file_bug_churn <- function(project_git,jira_issues){
 
   project_git <- metric_churn_per_commit_per_file(project_git)
@@ -76,7 +76,7 @@ metric_file_bug_churn <- function(project_git,jira_issues){
 #' @param jira_issues a parsed jira issue log obtained from \code{\link{parse_jira}}
 #' @return a two column data.table of the form file_pathname | file_non_bug_churn
 #' @export
-#' @family {metrics}
+#' @family metrics
 metric_file_non_bug_churn <- function(project_git,jira_issues){
 
   project_git <- metric_churn_per_commit_per_file(project_git)
@@ -97,7 +97,7 @@ metric_file_non_bug_churn <- function(project_git,jira_issues){
 #' @param project_git a parsed git log obtained from \code{\link{parse_gitlog}}
 #' @return a two column data.table of the form file_pathname | file_churn
 #' @export
-#' @family {metrics}
+#' @family metrics
 metric_file_churn <- function(project_git){
 
   project_file_churn <- metric_churn_per_commit_per_file(project_git)
@@ -115,7 +115,7 @@ metric_file_churn <- function(project_git){
 #' in the table
 #' @return a numeric vector of churn
 #' @export
-#' @family {metrics}
+#' @family metrics
 #' @seealso \code{\link{parse_gitlog}} to obtain additions and deletions from gitlog
 metric_churn <- function(lines_added,lines_removed){
     churn <- lines_added + lines_removed
@@ -130,7 +130,7 @@ metric_churn <- function(lines_added,lines_removed){
 #'
 #' @param git_log a parsed git log table where each row is identified by commit+file
 #' @return a single value with the sum of all churn in the commit interval
-#' @family {metrics}
+#' @family metrics
 #' @seealso \code{\link{parse_gitlog}} to obtain `git_log``
 #' @export
 metric_churn_per_commit_interval <- function(git_log){
@@ -150,7 +150,7 @@ metric_churn_per_commit_interval <- function(git_log){
 #'
 #' @param git_log a parsed git log table where each row is identified by commit+file
 #' @return `git_log` with an additional `churn` column.
-#' @family {metrics}
+#' @family metrics
 #' @seealso \code{\link{parse_gitlog}} to obtain `git_log`
 #' @export
 metric_churn_per_commit_per_file <- function(git_log){
@@ -172,7 +172,7 @@ metric_churn_per_commit_per_file <- function(git_log){
 #' in the table
 #' @return a single numeric value with the number of commits which contains the id
 #' @export
-#' @family {metrics}
+#' @family metrics
 #' @seealso \code{\link{parse_gitlog}} to obtain additions and deletions from gitlog
 commit_message_id_coverage <- function(git_log,commit_message_id_regex){
   #data.commit <- data.message <- NULL
