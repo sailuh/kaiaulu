@@ -37,7 +37,7 @@ The naming convention for downloading each pull request would be sailuh_kaiaulu_
 For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.
 }
 \seealso{
-\code{link{github_api_pr_reviews}} to download pull request review data.
+\code{link{github_api_pull_request_reviews}} to download pull request review data.
 
 \code{link{github_api_project_pull_request}} to download pull request data and retrieve pull numbers.
 }

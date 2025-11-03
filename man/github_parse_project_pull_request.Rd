@@ -11,4 +11,5 @@ github_parse_project_pull_request(api_responses)
 }
 \description{
 Note not all columns available in the downloaded json are parsed.
+This function serves as an alias to \code{\link{github_parse_search_issues_refresh}}.
 }

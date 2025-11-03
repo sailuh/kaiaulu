@@ -27,10 +27,10 @@ greatest dates and the file name that contains the greatest date.}
 \description{
 Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
 the latest downloaded Github created_at date among the directory(intended to be the  folder).
-It uses this date to construct a query and calls \code{\link{github_api_project_pr_comments}}
+It uses this date to construct a query and calls \code{\link{github_api_project_pull_request_inline_comments}}
 }
 \details{
-If no files exist in the file_save_path,\code{link{github_api_project_pr_comments}}
+If no files exist in the file_save_path,\code{\link{github_api_project_pull_request_inline_comments}}
 is called with no additional query and all comments are downloaded.
 
 Because the endpoint this function relies on is based on the updated timestamp, running the refresher
@@ -45,12 +45,12 @@ that only the most recent comment verson as of the latest time the refresher was
 For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.
 }
 \seealso{
-\code{link{github_api_project_pr_comments}} to download all pull request comment data
+\code{link{github_api_project_pull_request_inline_comments}} to download all pull request comment data
 
 \code{link{format_created_at_from_file}} for function that iterates through
 a .json file and returns the greatest 'created_at' value
 
 \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
 
-\code{link{github_api_project_pr_comments}} to call pr comments endpoint
+\code{link{github_api_project_pull_request_inline_comments}} to call pr comments endpoint
 }

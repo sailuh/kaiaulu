@@ -58,12 +58,9 @@ owner <- get_github_owner(conf, "project_key_1") # Has to match github organizat
 repo <- get_github_repo(conf, "project_key_1") # Has to match github repository (e.g. github.com/sailuh/perceive)
 
 # Path you wish to save all raw data.
-save_path_issue_refresh <- get_github_issue_search_path(conf, "project_key_1")
-save_path_issue <- get_github_issue_path(conf, "project_key_1")
 save_path_pull_request <- get_github_pull_request_path(conf, "project_key_1")
 save_path_pr_comments <- get_github_pr_comments_path(conf, "project_key_1")
 save_path_issue_or_pr_comments <- get_github_issue_or_pr_comment_path(conf, "project_key_1")
-save_path_commit <- get_github_commit_path(conf, "project_key_1")
 save_path_pr_reviews <- get_github_pr_review_path(conf, "project_key_1")
 # Create all folder directories
 #create_file_directory(conf)
@@ -93,15 +90,18 @@ The `github_token` file should not have any file extensions.
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 ```
 
-## GitHub Pull Request Comments
+# GitHub Pull Request Comment Types
 
-In GitHub, a Pull Request conversation starts off with the Pull Request description. Pull Request comments are made by users. A reviewer can start a review where they can add a single comment, request changes, or approve for merging. This starts the review comment. From there, in-line code comments can be made from the review.
+The GitHub API distinguishes conversation happening on a Pull Request page as one of four types, and provides a different endpoint API for each:
 
-# Download GitHub Pull Request Comments
+  * **Pull Request Description**: The first "comment" in a Pull Request, which is written by the author of the Pull Request when creating it.
+  * **Pull Request Conversation Comment**: When using a browser to access GitHub, users can post comments on the **Conversation** tab. These comments have no association to source code. Note the Pull Request Description will not be obtained by this endpoint. 
+  * **Pull Request Review**: These reviews are done when a reviewer selects the "Files Changed" tab, and subsequently uses the "Review Changes" green button in this page. The Review comment is often used in conjunction with inline source code comments. For example, several inline comments can be made, and then a Pull Request review can be posted, which groups them in the Conversation Tab. The Pull Request Review also contains the labels of "Change Requested" or "Approved" if the reviewer marked them as such. However, this information may not be present if the reviewer posted it as "Comment". Refer to the browser interface UI for its definitions.
+  * **Pull Request Inline Comments**: These are comments posted on the "Files Changed" tab, by selecting a file line of code, pressing the "+" and then commenting inline. Reviewers can also hold "shift key" to highlight multiple lines of code to post a comment about them. These comments can then either be saved as a) "Add single line comment" or b) "Start review". If "Add single line comment" is chosen, then the comment is posted on its own in the "Conversation" tab. However, if "Start Review" is chosen, then the comment will not be posted until the **Pull Request Review** is posted grouping them. Comments posted as "Start Review" will have an explicit ID referencing the Pull Request Review ID. Accordingly, "Add single line comment" will not have a reference ID. Inline Comments are also unique in that the API provides the source code snippet associated to the comment for analysis.
 
-## Conversation Comments
+The remainder of this notebook showcases how to obtain the four types of data using Kaiaulu. In the final section, the four endpoints are used to combine a Pull Request page from Kaiaulu to resemble the conversation tab. You can modify the Pull Request ID for Kaiaulu or any other GitHub project for analysis.  
 
-### Pull Request Comments
+## GitHub Pull Request Conversation Comments
 
 Pull Request Comments not connected to a review, appear in the GitHub Pull Request Conversations tab but is retrieved by the issue comments endpoint. Using this endpoint, both issues and pull request comments are retrieved.
 
@@ -134,7 +134,7 @@ head(pr_comments,3)  %>%
   gt(auto_align = FALSE) 
 ```
 
-### First Pull Request Comment
+## Pull Request Description
 
 We may notice the first comment of the pull request is missing. The pull request description is treated as a pull request comment in the conversations tab by GitHub. However, it is not retrievable by the other comments endpoints. To get this, we must utilize the pull request endpoint to gather information on the pull request, and retrieve the body paragraph for that pull request.
 
@@ -147,16 +147,14 @@ github_api_iterate_pages(token, gh_response, save_path_pull_request, prefix="pul
 pull_requests <- lapply(list.files(save_path_pull_request,
                                      full.names = TRUE),read_json)
 pull_requests <- lapply(pull_requests,
-                                   github_parse_search_issues_refresh)
+                                   github_parse_project_pull_request)
 pull_requests <- rbindlist(pull_requests,fill=TRUE)
 
 head(pull_requests,3)  %>%
   gt(auto_align = FALSE) 
 ```
 
-## Code Comments
-
-### Pull Request Reviews
+## Pull Request Reviews
 
 Up until now, previous comments were not associated to code review. Users can perform code reviews by adding in-line code review comments and saving them together with "Changes Requested", "Approved" or just a single comment in-line rather than grouping. The review endpoint allows analysts to see the state of the review such as requesting changes, approving, or a singular comment. With this the review has its own comment body different from the in-line code comments. More information on the fields can be seen on the function definition for `github_parse_project_pr_reviews`. 
 
@@ -166,13 +164,13 @@ gh_response <- github_api_project_pull_request_review_refresh(owner, repo, token
 
 ```{r Parse Review Comments from Pull Requests}
 pr_reviews <- lapply(list.files(save_path_pr_reviews, full.names = TRUE), read_json)
-pr_reviews <- lapply(pr_reviews, github_parse_project_pr_reviews)
+pr_reviews <- lapply(pr_reviews, github_parse_project_pull_request_reviews)
 pr_reviews <- rbindlist(pr_reviews, fill = TRUE)
 head(pr_reviews,3)  %>%
   gt(auto_align = FALSE) 
 ```
 
-### Pull Request In-Line Code Comments
+## Pull Request In-Line Code Comments
 
 Other information we can obtain is the in-line code comments from Pull
 Requests. The comments include the diff_hunk field, which is a string
@@ -182,7 +180,7 @@ specified by the review comment. These in-line code comments have a
 matching review id number that matches the review endpoint and other
 in-line code comments, therefore grouping them all together. More
 information on the fields can be seen on the function definition for
-`github_parse_project_pr_comments`. These fields of data can greatly
+`github_parse_project_pull_request_inline_comments`. These fields of data can greatly
 contribute to finding and analyzing patterns in collaboration between
 developers.
 
@@ -193,14 +191,14 @@ github_api_iterate_pages(token, gh_response, save_path_pr_comments, prefix="pr_c
 
 ```{r Parse Comments from Pull Requests}
 inline_comments <- lapply(list.files(save_path_pr_comments, full.names = TRUE), read_json)
-inline_comments <- lapply(inline_comments, github_parse_project_pr_comments)
+inline_comments <- lapply(inline_comments, github_parse_project_pull_request_inline_comments)
 inline_comments <- rbindlist(inline_comments, fill = TRUE)
-head(inline_comments,3)  %>%
+head(inline_comments,2)  %>%
   gt(auto_align = FALSE) 
 ```
 
 
-# Pull Request Conversations Tab
+# Putting All Together: Pull Request Conversations Tab
 
 After understanding the four endpoints that make up GitHub
 Conversations, we want to visualize that in the Kaiaulu. Here we gather
@@ -217,25 +215,25 @@ extract_issue_number  <- function(comment_url){
 }
 
 pull_requests <- lapply(list.files(save_path_pull_request,full.names = TRUE),read_json)
-pull_requests <- lapply(pull_requests, github_parse_search_issues_refresh)
+pull_requests <- lapply(pull_requests, github_parse_project_pull_request)
 pull_requests <- rbindlist(pull_requests,fill=TRUE)
 pull_requests <- pull_requests[,.(issue_number=issue_number,html_url=html_url, created_at=created_at, body=body )]
 
 pr_comments <- lapply(list.files(save_path_issue_or_pr_comments, full.names = TRUE), read_json)
-pr_comments <- lapply(pr_comments, github_parse_project_pr_comments)
+pr_comments <- lapply(pr_comments, github_parse_project_pull_request_inline_comments)
 pr_comments <- rbindlist(pr_comments, fill = TRUE)
 pr_comments <- pr_comments[grepl("/pull/", html_url)]
 pr_comments$issue_number <- sapply(pr_comments$html_url,extract_issue_number)
 pr_comments <- pr_comments[,.(issue_number=issue_number, html_url=html_url, created_at=created_at, body=body )]
 
 inline_comments <- lapply(list.files(save_path_pr_comments, full.names = TRUE), read_json)
-inline_comments <- lapply(inline_comments, github_parse_project_pr_comments)
+inline_comments <- lapply(inline_comments, github_parse_project_pull_request_inline_comments)
 inline_comments <- rbindlist(inline_comments, fill = TRUE)
 inline_comments$issue_number <- sapply(inline_comments$html_url,extract_issue_number)
 inline_comments <- inline_comments[,.(issue_number=issue_number, html_url=html_url, PR_review=review_id, created_at=created_at, body=body )]
 
 pr_reviews <- lapply(list.files(save_path_pr_reviews, full.names = TRUE), read_json)
-pr_reviews <- lapply(pr_reviews, github_parse_project_pr_reviews)
+pr_reviews <- lapply(pr_reviews, github_parse_project_pull_request_reviews)
 pr_reviews <- rbindlist(pr_reviews, fill = TRUE)
 pr_reviews$issue_number <- sapply(pr_reviews$html_url,extract_issue_number)
 pr_reviews <- pr_reviews[,.(issue_number=issue_number,html_url=html_url, PR_review=review_id, created_at=submitted_at, body=body, state=state)]

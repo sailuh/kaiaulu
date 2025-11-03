@@ -50,7 +50,7 @@ parse_github_latest_date <- function(json_folder_path){
 #' @param pull_requests_json_folder_path The path to the downloaded pull requests JSON. See \code{\link{github_api_project_pull_request}}.
 #' @param comments_json_folder_path The path to the downloaded comments JSON. See \code{\link{github_api_project_issue_or_pr_comments}}.
 #' @param commit_json_folder_path The path to the downloaded commits JSON (used to map github username to the git log). See \code{\link{github_api_project_commits}}.
-#' @param pr_comments_json_folder_path The path to the download pr comments JSON. see \code{\link{github_api_project_pr_comments}}.
+#' @param pr_comments_json_folder_path The path to the download pr comments JSON. see \code{\link{github_api_project_pull_request_inline_comments}}.
 #' @return A single reply table which combines the communication from the three jsons.
 #' @export
 parse_github_replies <- function(issues_json_folder_path,
@@ -127,7 +127,7 @@ parse_github_replies <- function(issues_json_folder_path,
   all_pr_comments <- lapply(list.files(pr_comments_json_folder_path,
                                        full.names = TRUE), jsonlite::read_json)
   all_pr_comments <- lapply(all_pr_comments,
-                            github_parse_project_pr_comments)
+                            github_parse_project_pull_request_inline_comments)
   all_pr_comments <- rbindlist(all_pr_comments, fill=TRUE)
 
   # We can then parse the commit messages, and format so we have a look-up table of authors
@@ -201,7 +201,7 @@ github_api_project_contributors <- function(owner,repo,token){
 #' @param token Your GitHub API token
 #' @references For details, see \url{https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#list-reviews-for-a-pull-request}.
 #' @export
-github_api_pr_reviews <- function(owner,repo,pull_number,token){
+github_api_pull_request_reviews <- function(owner,repo,pull_number,token){
   gh::gh("GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews",
          owner=owner,
          repo=repo,
@@ -217,7 +217,7 @@ github_api_pr_reviews <- function(owner,repo,pull_number,token){
 #' This function only parses for the reviews made on the pull request.
 #' @param api_responses API response obtained from github_api_* function.
 #' @export
-github_parse_project_pr_reviews <- function(api_responses) {
+github_parse_project_pull_request_reviews <- function(api_responses) {
   parse_response <- function(api_response) {
     parsed_response <- list()
     parsed_response[["review_id"]] <- api_response[["id"]]
@@ -253,7 +253,7 @@ github_parse_project_pr_reviews <- function(api_responses) {
 #' greatest dates and the file name that contains the greatest date.
 #' @export
 #' @references For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.
-#' @seealso  \code{link{github_api_pr_reviews}} to download pull request review data.
+#' @seealso  \code{link{github_api_pull_request_reviews}} to download pull request review data.
 #' @seealso  \code{link{github_api_project_pull_request}} to download pull request data and retrieve pull numbers.
 github_api_project_pull_request_review_refresh <- function(owner,repo,token,save_path_pull_request,save_path_pr_reviews,verbose=TRUE){
   # Sift through pull request file and retrieve all valid pull request numbers
@@ -284,7 +284,7 @@ github_api_project_pull_request_review_refresh <- function(owner,repo,token,save
   if(length(missing_pull_request_ids) > 0){
       for (num in missing_pull_request_ids) {
         if(verbose){message("Downloading Review Comment from Pull Request: ", num)}
-        gh_response <- github_api_pr_reviews(owner,repo,num,token)
+        gh_response <- github_api_pull_request_reviews(owner,repo,num,token)
         file_name <- paste0(save_path_pr_reviews, owner,"_",repo,"_", num,".json")
         write_json(gh_response,file_name,pretty=TRUE,auto_unbox=TRUE)
       }
@@ -1034,36 +1034,12 @@ github_api_project_pull_request <- function(owner,repo,token){
 #' Parse Pull Requests JSON to Table
 #'
 #' Note not all columns available in the downloaded json are parsed.
+#' This function serves as an alias to \code{\link{github_parse_search_issues_refresh}}.
 #'
 #' @param api_responses API response obtained from github_api_* function.
 #' @export
 github_parse_project_pull_request <- function(api_responses){
-  parse_response <- function(api_response){
-    parsed_response <- list()
-    parsed_response[["pr_id"]] <- api_response[["id"]]
-    parsed_response[["pr_number"]] <- api_response[["number"]]
-    parsed_response[["html_url"]] <- api_response[["html_url"]]
-    parsed_response[["url"]] <- api_response[["url"]]
-    parsed_response[["created_at"]] <- api_response[["created_at"]]
-    parsed_response[["updated_at"]] <- api_response[["updated_at"]]
-    parsed_response[["state"]] <- api_response[["state"]]
-    parsed_response[["pr_user_login"]] <- api_response[["user"]][["login"]]
-    parsed_response[["author_association"]] <- api_response[["author_association"]]
-    parsed_response[["title"]] <- api_response[["title"]]
-    parsed_response[["body"]] <- api_response[["body"]]
-
-    parsed_response[["labels"]] <- api_response[["labels"]]
-    if(length(parsed_response[["labels"]]) > 0){
-      parsed_response[["labels"]] <- stringi::stri_c(sapply(parsed_response[["labels"]],"[[","name"),collapse = ",")
-    }else{
-      parsed_response[["labels"]] <- NA_character_
-    }
-
-    parsed_response <- as.data.table(parsed_response)
-
-    return(parsed_response)
-  }
-  rbindlist(lapply(api_responses,parse_response),fill=TRUE)
+  return(github_parse_search_issues_refresh(api_responses))
 }
 
 #' Download Specific Pull Requests
@@ -1137,7 +1113,7 @@ github_api_project_pull_request_refresh <- function(owner,repo,token, save_path_
   return(github_api_project_issue_refresh(owner, repo, token, save_path_pull_request, issue_or_pr = "is:pull-request"))
 }
 
-#' Download Project's Pull Request Comments
+#' Download Project's Pull Request Inline Comments
 #'
 #' @description Downloads the Pull Request Comments from `GET /repos/{owner}/{repo}/pulls/comments` endpoint.
 #' Optional parameter since is used to download comments updated after the specified date.
@@ -1150,7 +1126,7 @@ github_api_project_pull_request_refresh <- function(owner,repo,token, save_path_
 #' @param since Optional parameter to specify pulling only comments updated after this date
 #' @references For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}
 #' @export
-github_api_project_pr_comments <- function(owner, repo, token, since=NULL) {
+github_api_project_pull_request_inline_comments <- function(owner, repo, token, since=NULL) {
   if (!is.null(since)) {
     # Get all pull request comments
     api_response <- gh::gh("GET /repos/{owner}/{repo}/pulls/comments",
@@ -1221,7 +1197,7 @@ github_api_pull_pr_comments <- function(owner, repo, pull_number, token) {
 #' `body` A string containing main text of the review comment.
 #' @param api_responses API response obtained from github_api_* function.
 #' @export
-github_parse_project_pr_comments <- function(api_responses) {
+github_parse_project_pull_request_inline_comments <- function(api_responses) {
   parse_response <- function(api_response) {
     parsed_response <- list()
     parsed_response[["review_id"]] <- api_response[["pull_request_review_id"]]
@@ -1265,9 +1241,9 @@ github_parse_project_pr_comments <- function(api_responses) {
 #'
 #' Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
 #' the latest downloaded Github created_at date among the directory(intended to be the  folder).
-#' It uses this date to construct a query and calls \code{\link{github_api_project_pr_comments}}
+#' It uses this date to construct a query and calls \code{\link{github_api_project_pull_request_inline_comments}}
 #'
-#' If no files exist in the file_save_path,\code{link{github_api_project_pr_comments}}
+#' If no files exist in the file_save_path,\code{\link{github_api_project_pull_request_inline_comments}}
 #' is called with no additional query and all comments are downloaded.
 #'
 #' Because the endpoint this function relies on is based on the updated timestamp, running the refresher
@@ -1286,11 +1262,11 @@ github_parse_project_pr_comments <- function(api_responses) {
 #' greatest dates and the file name that contains the greatest date.
 #' @export
 #' @references For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.
-#' @seealso  \code{link{github_api_project_pr_comments}} to download all pull request comment data
+#' @seealso  \code{link{github_api_project_pull_request_inline_comments}} to download all pull request comment data
 #' @seealso  \code{link{format_created_at_from_file}} for function that iterates through
 #' a .json file and returns the greatest 'created_at' value
 #' @seealso  \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
-#' @seealso  \code{link{github_api_project_pr_comments}} to call pr comments endpoint
+#' @seealso  \code{link{github_api_project_pull_request_inline_comments}} to call pr comments endpoint
 github_api_project_pull_request_inline_comments_refresh <- function(owner,repo,token,file_save_path=save_path_pr_comments,verbose=TRUE){
   # Check if the file is empty by checking its size
   # List all files and subdirectories in the directory
@@ -1301,7 +1277,7 @@ github_api_project_pull_request_inline_comments_refresh <- function(owner,repo,t
       message(file_save_path, " filepath is empty, running regular downloader.")
     }
     # Run regular downloader
-    pr_comments <- github_api_project_pr_comments(owner,repo,token)
+    pr_comments <- github_api_project_pull_request_inline_comments(owner,repo,token)
     return (pr_comments)
   } else {
     # Get the name of the file with the most recent date
@@ -1328,7 +1304,7 @@ github_api_project_pull_request_inline_comments_refresh <- function(owner,repo,t
       message("Latest date: ",formatted_new_time_value)
     }
     # Make the API call
-    gh_response <- github_api_project_pr_comments(owner,repo,token,formatted_new_time_value)
+    gh_response <- github_api_project_pull_request_inline_comments(owner,repo,token,formatted_new_time_value)
   } #end if/else
 }
 

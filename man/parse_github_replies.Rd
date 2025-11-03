@@ -21,7 +21,7 @@ parse_github_replies(
 
 \item{commit_json_folder_path}{The path to the downloaded commits JSON (used to map github username to the git log). See \code{\link{github_api_project_commits}}.}
 
-\item{pr_comments_json_folder_path}{The path to the download pr comments JSON. see \code{\link{github_api_project_pr_comments}}.}
+\item{pr_comments_json_folder_path}{The path to the download pr comments JSON. see \code{\link{github_api_project_pull_request_inline_comments}}.}
 }
 \value{
 A single reply table which combines the communication from the three jsons.
