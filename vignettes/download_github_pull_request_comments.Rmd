@@ -161,7 +161,7 @@ head(pull_requests,3)  %>%
 Up until now, previous comments were not associated to code review. Users can perform code reviews by adding in-line code review comments and saving them together with "Changes Requested", "Approved" or just a single comment in-line rather than grouping. The review endpoint allows analysts to see the state of the review such as requesting changes, approving, or a singular comment. With this the review has its own comment body different from the in-line code comments. More information on the fields can be seen on the function definition for `github_parse_project_pr_reviews`. 
 
 ```{r Collect Reviews from Pull Requests}
-gh_response <- github_api_pr_reviews_refresh(owner, repo, token, save_path_pull_request, save_path_pr_reviews,verbose=TRUE)
+gh_response <- github_api_project_pull_request_review_refresh(owner, repo, token, save_path_pull_request, save_path_pr_reviews,verbose=TRUE)
 ```
 
 ```{r Parse Review Comments from Pull Requests}
@@ -187,7 +187,7 @@ contribute to finding and analyzing patterns in collaboration between
 developers.
 
 ```{r Collect Comments from Pull Requests}
-gh_response <- github_api_project_pr_comments_refresh(owner, repo, token)
+gh_response <- github_api_project_pull_request_inline_comments_refresh(owner, repo, token)
 github_api_iterate_pages(token, gh_response, save_path_pr_comments, prefix="pr_comments")
 ```
 
@@ -198,6 +198,7 @@ inline_comments <- rbindlist(inline_comments, fill = TRUE)
 head(inline_comments,3)  %>%
   gt(auto_align = FALSE) 
 ```
+
 
 # Pull Request Conversations Tab
 

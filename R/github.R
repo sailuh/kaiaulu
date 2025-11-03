@@ -255,7 +255,7 @@ github_parse_project_pr_reviews <- function(api_responses) {
 #' @references For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.
 #' @seealso  \code{link{github_api_pr_reviews}} to download pull request review data.
 #' @seealso  \code{link{github_api_project_pull_request}} to download pull request data and retrieve pull numbers.
-github_api_pr_reviews_refresh <- function(owner,repo,token,save_path_pull_request,save_path_pr_reviews,verbose=TRUE){
+github_api_project_pull_request_review_refresh <- function(owner,repo,token,save_path_pull_request,save_path_pr_reviews,verbose=TRUE){
   # Sift through pull request file and retrieve all valid pull request numbers
   # Assumed that user already downloaded pull request endpoint.
 
@@ -1291,7 +1291,7 @@ github_parse_project_pr_comments <- function(api_responses) {
 #' a .json file and returns the greatest 'created_at' value
 #' @seealso  \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
 #' @seealso  \code{link{github_api_project_pr_comments}} to call pr comments endpoint
-github_api_project_pr_comments_refresh <- function(owner,repo,token,file_save_path=save_path_pr_comments,verbose=TRUE){
+github_api_project_pull_request_inline_comments_refresh <- function(owner,repo,token,file_save_path=save_path_pr_comments,verbose=TRUE){
   # Check if the file is empty by checking its size
   # List all files and subdirectories in the directory
   contents <- list.files(path = file_save_path)
