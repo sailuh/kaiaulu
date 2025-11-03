@@ -6,6 +6,41 @@
 
 ############## Parsers ##############
 
+#' Parse GitHub current issue
+#'
+#' Returns the file containing the most current issue in the specified folder.
+#'
+#' The folder assumes the following convention: "(org)_(repository)_(uniextimestamp_lowerbound)_(unixtimestamp_upperbound).json"
+#' For example: "sailuh_kaiaulu_1231234_2312413.json". This nomenclature is the various downloaders in R/github.R.
+#'
+#' @param json_folder_path path to save folder containing JIRA issue and/or comments json files.
+#' @return The name of the jira issue file with the latest created date that was created/downloaded for
+#' use by the Jira downloader refresher
+#' @export
+#' @family parsers
+#' @seealso \code{\link{parse_jira_latest_date}}
+parse_github_latest_date <- function(json_folder_path){
+  file_list <- list.files(json_folder_path)
+  time_list <- list()
+
+  # Checking if the save folder is empty
+  if (identical(file_list, character(0))){
+    stop(stringi::stri_c("cannot open the connection"))
+  }
+
+  for (j in file_list){
+    j <- sub(".*_(\\w+)\\.[^.]+$", "\\1", j)
+    j <- as.numeric(j)
+    time_list <- append(time_list, j)
+  }
+
+  overall_latest_date <- as.character(max(unlist(time_list)))
+
+  latest_issue_file <- grep(overall_latest_date, file_list, value = TRUE)
+
+  return(latest_issue_file)
+}
+
 #' Parse GitHub Issue and Pull Request Comments
 #'
 #' Parses Issue, Pull Request, and Comments Endpoints into a reply table.
@@ -23,7 +58,6 @@ parse_github_replies <- function(issues_json_folder_path,
                                  comments_json_folder_path,
                                  commit_json_folder_path,
                                  pr_comments_json_folder_path){
-# PASSING THE WRONG PARAMETER HERE
 
 #  issues_json_folder_path <- paste0(github_replies_folder_path,"/issue/")
 #  pull_requests_json_folder_path <- paste0(github_replies_folder_path,"/pull_request/")
@@ -684,7 +718,7 @@ github_api_project_issue_refresh <- function(owner,
     return(gh_response)
   } else {
     # Get the name of the file with the most recent date from the refresh_issue file if not empty
-    latest_created_issue_refresh <- paste0(save_path_issue_refresh, parse_jira_latest_date(save_path_issue_refresh))
+    latest_created_issue_refresh <- paste0(save_path_issue_refresh, parse_github_latest_date(save_path_issue_refresh))
     latest_created_issue_refresh <- head(latest_created_issue_refresh,1)
     # get the greatest created_at value among issues in the refresh_issues file
     created_refresh <- format_created_at_from_file(latest_created_issue_refresh, item="items")
@@ -909,7 +943,7 @@ github_api_project_issue_or_pr_comment_refresh <- function(owner,repo,token,file
     return (issues)
   } else {
     # Get the name of the file with the most recent date
-    latest_updated_issue_or_pr_comment <- paste0(file_save_path, parse_jira_latest_date(save_path_issue_or_pr_comments))
+    latest_updated_issue_or_pr_comment <- paste0(file_save_path, parse_github_latest_date(save_path_issue_or_pr_comments))
     latest_updated_issue_or_pr_comment <- (head(latest_updated_issue_or_pr_comment,1))
     # get the created_at value
     message("got file", latest_updated_issue_or_pr_comment)
@@ -1124,7 +1158,7 @@ github_api_project_pull_request_refresh <- function(owner,repo,token,file_save_p
     return (pull_requests)
   } else {
     # Get the name of the file with the most recent date
-    latest_updated_pull_requests <- paste0(file_save_path, parse_jira_latest_date(file_save_path))
+    latest_updated_pull_requests <- paste0(file_save_path, parse_github_latest_date(file_save_path))
     latest_updated_pull_requests <- (head(latest_updated_pull_requests,1))
 
     if (verbose) {
@@ -1319,7 +1353,7 @@ github_api_project_pr_comments_refresh <- function(owner,repo,token,file_save_pa
     return (pr_comments)
   } else {
     # Get the name of the file with the most recent date
-    latest_updated_pr_comments <- paste0(file_save_path, parse_jira_latest_date(file_save_path))
+    latest_updated_pr_comments <- paste0(file_save_path, parse_github_latest_date(file_save_path))
     latest_updated_pr_comments <- (head(latest_updated_pr_comments,1))
 
     if (verbose) {
