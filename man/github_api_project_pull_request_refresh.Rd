@@ -19,9 +19,9 @@ github_api_project_pull_request_refresh(
 
 \item{token}{Your GitHub API token}
 
-\item{verbose}{True if messages should be displayed during execution.}
+\item{save_path_pull_request}{the save path for the pr folder}
 
-\item{file_save_path}{the save path for the pr folder}
+\item{verbose}{True if messages should be displayed during execution.}
 }
 \description{
 Downloads the Pull Request First Comment (i.e. the Pull Request "Description"). This serves

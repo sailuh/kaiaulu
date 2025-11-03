@@ -8,7 +8,7 @@ github_api_project_pull_request_inline_comments_refresh(
   owner,
   repo,
   token,
-  file_save_path = save_path_pr_comments,
+  save_path_pr_comments,
   verbose = TRUE
 )
 }
@@ -19,7 +19,7 @@ github_api_project_pull_request_inline_comments_refresh(
 
 \item{token}{Your GitHub API token}
 
-\item{file_save_path}{the save path for the pr comments folder}
+\item{save_path_pr_comments}{the save path for the pr comments folder}
 
 \item{verbose}{True if messages should be displayed during execution.}
 }

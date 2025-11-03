@@ -1093,7 +1093,7 @@ github_parse_pull_request <- function(api_responses){
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
-#' @param file_save_path the save path for the pr folder
+#' @param save_path_pull_request the save path for the pr folder
 #' @param verbose True if messages should be displayed during execution.
 #' @export
 #' @references For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.
@@ -1248,7 +1248,7 @@ github_parse_project_pull_request_inline_comments <- function(api_responses) {
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
-#' @param file_save_path the save path for the pr comments folder
+#' @param save_path_pr_comments the save path for the pr comments folder
 #' @param verbose True if messages should be displayed during execution.
 #' @export
 #' @references For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.
@@ -1257,21 +1257,21 @@ github_parse_project_pull_request_inline_comments <- function(api_responses) {
 #' a .json file and returns the greatest 'created_at' value
 #' @seealso  \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
 #' @seealso  \code{link{github_api_project_pull_request_inline_comments}} to call pr comments endpoint
-github_api_project_pull_request_inline_comments_refresh <- function(owner,repo,token,file_save_path=save_path_pr_comments,verbose=TRUE){
+github_api_project_pull_request_inline_comments_refresh <- function(owner,repo,token,save_path_pr_comments,verbose=TRUE){
   # Check if the file is empty by checking its size
-  # List all files and subdirectories in the directory
-  contents <- list.files(path = file_save_path)
+  # List all files and sub directories in the directory
+  contents <- list.files(path = save_path_pr_comments)
   # If the file is empty, download all pr comments
   if(length(contents) == 0) {
     if (verbose) {
-      message(file_save_path, " filepath is empty, running regular downloader.")
+      message(save_path_pr_comments, " filepath is empty, running regular downloader.")
     }
     # Run regular downloader
     pr_comments <- github_api_project_pull_request_inline_comments(owner,repo,token)
     return (pr_comments)
   } else {
     # Get the name of the file with the most recent date
-    latest_updated_pr_comments <- paste0(file_save_path, parse_github_latest_date(file_save_path))
+    latest_updated_pr_comments <- paste0(save_path_pr_comments, parse_github_latest_date(save_path_pr_comments))
     latest_updated_pr_comments <- (head(latest_updated_pr_comments,1))
 
     if (verbose) {
