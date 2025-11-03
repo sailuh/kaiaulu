@@ -85,8 +85,6 @@ save_path_pr_commits <- get_github_pr_commits_path(conf, "project_key_1")
 save_path_pr_files <- get_github_pr_files_path(conf, "project_key_1")
 save_path_pr_reviewers <- get_github_pr_reviewers_path(conf, "project_key_1")
 save_path_pr_merge <- get_github_pr_merge_path(conf, "project_key_1")
-# Create all folder directories
-#create_file_directory(conf)
 
 # your file github_token (a text file) contains the GitHub token API
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)

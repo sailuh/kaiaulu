@@ -51,8 +51,7 @@ repo <- get_github_repo(conf, "project_key_1") # Has to match github repository 
 save_path_issue_or_pr_comments <- path.expand(get_github_issue_or_pr_comment_path(conf, "project_key_1"))
 save_path_issue_event <- get_github_issue_event_path(conf, "project_key_1")
 save_path_commit <- get_github_commit_path(conf, "project_key_1")
-# Create the necessary file directories
-create_file_directory(conf)
+
 # your file github_token contains the GitHub token API obtained in the steps above
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 ```
