@@ -126,11 +126,11 @@ reference:
 - title: __GitHub__
   desc: >
        Functions to interact and download data from GitHub API.
-       See the [GitHub API](../articles/github_api_showcase.html)
-       Notebook to learn how to set an API Key, and how to use
-       it to download issues and comments on the
-       [GitHub Downloader and Parser](../articles/download_github_comments.html)
-       Notebook.
+       See the [GitHub Events](../articles/download_github_events.html)
+       Notebook to learn how to download GitHub Events (e.g. for use in Process Mining)
+       and Commit Messages data for use in identity matching.
+       For Issue Comment data, see [GitHub Issue Comment Downloader and Parser](../articles/download_github_issue_comments.html)
+       Notebook, or [Pull Request Comment (Conversations Tab and Inline Code Comment and Snippets)](../articles/download_github_pull_request_comments.html).
 - subtitle: Issues
   desc: Download and parsing GitHub's Issues, Pull Requests and Events
 - contents:
