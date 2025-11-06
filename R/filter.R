@@ -38,6 +38,80 @@ filter_by_filepath_substring <- function(dt_file,substring,file_column_name){
   is_not_filepath_with_substring <- !stri_detect_regex(dt_file[[file_column_name]],file_contains_re)
   return(dt_file[is_not_filepath_with_substring])
 }
+
+#' Filter Replies by Author Substring
+#'
+#' Removes rows where the author or recipient address contains certain substrings.
+#' Accepts one or more substrings for filtering.
+#'
+#' @param reply_dt A data.table from \code{\link{parse_jira_replies}}, \code{\link{parse_github_replies}}, or \code{\link{parse_mbox}}.
+#' @param substrings A character vector of substrings to filter (e.g., c("bot", "jenkins")).
+#' @param file_column_name Character vector of columns to apply the filter to (default: c("reply_from", "reply_to")).
+#' @param case_insensitive Logical. Must explicitly pass TRUE or FALSE.
+#' @return A filtered data.table without rows matching any of the substrings.
+#' @export
+#' @family filters
+filter_by_reply_author_substring <- function(reply_dt, substrings, file_column_name = c("reply_from", "reply_to"), case_insensitive) {
+  if (missing(case_insensitive)) stop("You must provide TRUE or FALSE for case_insensitive")
+  
+  missing_cols <- setdiff(file_column_name, colnames(reply_dt))
+  if (length(missing_cols) > 0) {
+    stop(paste("The following columns are missing from reply_dt:", paste(missing_cols, collapse = ", ")))
+  }
+  
+  pattern <- stri_c('(', stri_c(substrings, collapse = "|"), ')')
+  
+  is_not_match <- Reduce(&, lapply(valid_cols, function(col) {
+    !stri_detect_regex(reply_dt[[col]], pattern, case_insensitive = case_insensitive)
+  }))
+  
+  return(reply_dt[is_not_match])
+}
+
+#' Filter Replies by Subject Substring
+#'
+#' Removes rows where the subject contains certain substrings.
+#'
+#' @param reply_dt A data.table from \code{\link{parse_jira_replies}}, \code{\link{parse_github_replies}} or \code{\link{parse_mbox}}.
+#' @param substrings A character vector of substrings to filter.
+#' @param case_insensitive Logical. Must explicitly pass TRUE or FALSE.
+#' @return A filtered data.table without matching subjects.
+#' @export
+#' @family filters
+filter_by_reply_subject_substring <- function(reply_dt, substrings, case_insensitive) {
+  if (missing(case_insensitive)) stop("You must provide TRUE or FALSE for case_insensitive")
+  if (!("reply_subject" %in% colnames(reply_dt))) {
+    stop("The data.table must contain a 'reply_subject' column")
+  }
+  
+  pattern <- stri_c('(', stri_c(substrings, collapse = "|"), ')')
+  is_not_match <- !stri_detect_regex(reply_dt$reply_subject, pattern, case_insensitive = case_insensitive)
+  
+  return(reply_dt[is_not_match])
+}
+
+#' Filter Replies by Body Substring
+#'
+#' Removes rows where the message body contains certain substrings.
+#'
+#' @param reply_dt A data.table from \code{\link{parse_jira_replies}}, \code{\link{parse_github_replies}} or \code{\link{parse_mbox}}.
+#' @param substrings A character vector of substrings to filter.
+#' @param case_insensitive Logical. Must explicitly pass TRUE or FALSE.
+#' @return A filtered data.table without matching bodies.
+#' @export
+#' @family filters
+filter_by_reply_body_substring <- function(reply_dt, substrings, case_insensitive) {
+  if (missing(case_insensitive)) stop("You must provide TRUE or FALSE for case_insensitive")
+  if (!("reply_body" %in% colnames(reply_dt))) {
+    stop("The data.table must contain a 'reply_body' column")
+  }
+  
+  pattern <- stri_c('(', stri_c(substrings, collapse = "|"), ')')
+  is_not_match <- !stri_detect_regex(reply_dt$reply_body, pattern, case_insensitive = case_insensitive)
+  
+  return(reply_dt[is_not_match])
+}
+
 #' Filter by commit interval
 #'
 #' Filters a data.table by with author or commit datetime using the specified start and end commits
