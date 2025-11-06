@@ -117,10 +117,22 @@ commit_message_id_regex:
   #cve_id: ?
 
 filter:
-  keep_filepaths_ending_with:
-    - R
-  remove_filepaths_containing:
-    - test
+  files:
+    keep_filepaths_ending_with:
+       - R
+    remove_filepaths_containing:
+       - test
+  replies:
+    filter_by_reply_author_substring:
+       - "no-reply@apache.org"
+       - "jenkins@builds.apache.org"
+       - "bot"
+       - "Hudson"
+    filter_by_reply_subject_substring:
+       - "Review Request"
+       - "\\[VOTE\\]"
+    filter_by_reply_body_substring:
+       - "XXXX"
 
 
 # Third Party Tools Configuration #
