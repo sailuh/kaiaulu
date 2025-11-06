@@ -60,12 +60,15 @@ filter_by_reply_author_substring <- function(reply_dt, substrings, file_column_n
   }
   
   pattern <- stri_c('(', stri_c(substrings, collapse = "|"), ')')
+
+  filtered_dt <- copy(reply_dt)
   
-  is_not_match <- Reduce(&, lapply(valid_cols, function(col) {
-    !stri_detect_regex(reply_dt[[col]], pattern, case_insensitive = case_insensitive)
-  }))
+  for (col in file_column_name) {
+    matches <- stri_detect_regex(filtered_dt[[col]], pattern, case_insensitive = case_insensitive)
+    filtered_dt <- filtered_dt[!matches]
+  }
   
-  return(reply_dt[is_not_match])
+  return(filtered_dt)
 }
 
 #' Filter Replies by Subject Substring
