@@ -15,7 +15,8 @@ require(jsonlite,quietly=TRUE)
 require(knitr,quietly=TRUE)
 require(magrittr,quietly=TRUE)
 require(gt,quietly=TRUE)
-
+source("R/config.R")
+source("R/github.R")
 
 # Rscript github.R refresh issues ../../kaiaulu/conf/kaiaulu.yml ../../rawdata/github/kaiaulu/issue_search/
 # Rscript github.R refresh comments ../../kaiaulu/conf/kaiaulu.yml ../../rawdata/github/kaiaulu/issue_search/
@@ -25,7 +26,7 @@ USAGE:
   github refresh help
   github refresh <project_conf.yml> <project_key> [--issues | --comments | --pr]
   github parse help
-  github parse <project_conf.yml> <save_file_name_path> [--issues | --comments | --pr]
+  github parse <project_conf.yml> <save_file_name_path> <project_key> [--issues | --comments | --pr]
   github (-h | --help)
   github --version
 
@@ -44,17 +45,18 @@ OPTIONS:
 
 arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9700')
 
+
 if(arguments[["refresh"]] & arguments[["help"]]) {
   cli_alert_info("Downloads new data (whose type is specified by flags) from Github Rest API")
 } else if(arguments[["refresh"]]) {
-
+  
   conf_path <- arguments[["<project_conf.yml>"]]
   project_key <- arguments[["<project_key>"]]
 
   conf <- yaml::read_yaml(conf_path)
   # Path you wish to save all raw data. A folder with the repo name and sub-folders will be created.
-  owner <- get_github_owner(conf, "project_key_1") # Has to match github organization (e.g. github.com/sailuh)
-  repo <- get_github_repo(conf, "project_key_1") # Has to match github repository (e.g. github.com/sailuh/perceive)
+  owner <- get_github_owner(conf, project_key) # Has to match github organization (e.g. github.com/sailuh)
+  repo <- get_github_repo(conf, project_key) # Has to match github repository (e.g. github.com/sailuh/perceive)
   # your file github_token (a text file) contains the GitHub token API
   token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 
@@ -96,8 +98,10 @@ if(arguments[["refresh"]] & arguments[["help"]]) {
   cli_alert_info("Parses downloaded data (whose type is specified by flags) and saves into a csv denoted by <save_file_name_path>")
 } else if(arguments[["parse"]]) {
   conf_path <- arguments[["<project_conf.yml>"]]
+  project_key <- arguments[["<project_key>"]]
   save_path <- arguments[["<save_file_name_path>"]]
 
+  conf <- yaml::read_yaml(conf_path)
   if (arguments[["--issues"]]) {
     save_path_issue <- get_github_issue_path(conf, project_key)
 
