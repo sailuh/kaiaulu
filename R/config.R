@@ -1213,5 +1213,3 @@ get_enumeration_commits <- function(config_file) {
 }
 
 ##### Analysis Functions End #####
-
-
