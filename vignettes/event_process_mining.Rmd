@@ -9,6 +9,18 @@ vignette: >
   %\VignetteIndexEntry{Event Process Mining}
   %\VignetteEncoding{UTF-8}
 ---
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(data.table)
+require(jsonlite)
+require(yaml)
+```
 
 # Introduction
 
@@ -72,7 +84,7 @@ library(kaiaulu)
 library(data.table)
 library(jsonlite)
 
-conf <- parse_config("conf/kaiaulu.yml")
+conf <- parse_config("../conf/kaiaulu.yml")
 owner <- get_github_owner(conf, "project_key_1")
 repo <- get_github_repo(conf, "project_key_1")
 save_path <- get_github_issue_event_path(conf, "project_key_1")
