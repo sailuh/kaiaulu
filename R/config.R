@@ -29,6 +29,180 @@ parse_config <- function(config_path) {
   return(conf)
 }
 
+##### File Directory Function #####
+
+#' Creates file directories needed by the configuration file (.yml).
+#'
+#' @description The input is the parsed config file that the user will be using.
+#' It will take the parsed config to get the filepaths that need to be created to
+#' use the config file. The function relies on the helper function `create_file_directory`
+#' to see if any of the directories already exist, and create those that don't.
+#'
+#' @param config The parsed config file the function is creating the directory for.
+#' @param verbose A boolean variable that prints operational messages when set to TRUE.
+#' Obtained from `parse_config` function.
+#' @export
+create_file_directory <- function(conf, verbose= FALSE) {
+  # Create the git_repo folder
+  create_file_path(conf[["version_control"]][["log"]])
+
+  # Create the mailing_list directory, if needed
+  if (!is.null(conf[["mailing_list"]])) {
+    # Check if there is mod_mbox
+    if (!is.null(conf[["mailing_list"]][["mod_mbox"]])) {
+      # Create for each project key
+      project_keys <- names(conf[["mailing_list"]][["mod_mbox"]])
+      for (key in project_keys) {
+        mailing_list <- conf[["mailing_list"]][["mod_mbox"]][[key]]
+        create_file_path(mailing_list[["save_folder_path"]])
+      }
+    } else {
+      if (verbose) {
+        message("No mod_mbox found")
+      }
+    }
+    # Check if there is pipermail
+    if (!is.null(conf[["mailing_list"]][["pipermail"]])) {
+      # Create for each project key
+      project_keys <- names(conf[["mailing_list"]][["pipermail"]])
+      for (key in project_keys) {
+        mailing_list <- conf[["mailing_list"]][["pipermail"]][[key]]
+        create_file_path(mailing_list[["save_folder_path"]])
+      }
+    } else {
+      if (verbose) {
+        message("No pipermail found")
+      }
+    }
+  } else {
+    if (verbose) {
+      message("No mailing_list found")
+    }
+  }
+
+  # Create the issue_tracker directory, if needed
+  if (!is.null(conf[["issue_tracker"]])) {
+    # Check for jira
+    if (!is.null(conf[["issue_tracker"]][["jira"]])) {
+      # Create for each project key
+      project_keys <- names(conf[["issue_tracker"]][["jira"]])
+      for (key in project_keys) {
+        issue_tracker <- conf[["issue_tracker"]][["jira"]][[key]]
+        create_file_path(issue_tracker[["issues"]])
+        create_file_path(issue_tracker[["issue_comments"]])
+      }
+    } else {
+      if (verbose) {
+        message("No jira found")
+      }
+    }
+    # Check for github
+    if (!is.null(conf[["issue_tracker"]][["github"]])) {
+      # Create for each project key
+      project_keys <- names(conf[["issue_tracker"]][["github"]])
+      for (key in project_keys) {
+        issue_tracker <- conf[["issue_tracker"]][["github"]][[key]]
+        create_file_path(issue_tracker[["issue_or_pr_comment"]])
+        create_file_path(issue_tracker[["issue"]])
+        create_file_path(issue_tracker[["issue_search"]])
+        create_file_path(issue_tracker[["issue_event"]])
+        create_file_path(issue_tracker[["pull_request"]])
+        create_file_path(issue_tracker[["commit"]])
+        create_file_path(issue_tracker[["discussion"]])
+      }
+    } else {
+      if (verbose) {
+        message("No github found")
+      }
+    }
+    # Check for bugzilla
+    if (!is.null(conf[["issue_tracker"]][["bugzilla"]])) {
+      # Create for each project key
+      project_keys <- names(conf[["issue_tracker"]][["bugzilla"]])
+      for (key in project_keys) {
+        issue_tracker <- conf[["issue_tracker"]][["bugzilla"]][[key]]
+        create_file_path(issue_tracker[["issues"]])
+        create_file_path(issue_tracker[["issue_comments"]])
+      }
+    } else {
+      if (verbose) {
+        message("No bugzilla found")
+      }
+    }
+  } else {
+    if (verbose) {
+      message("No issue_tracker found")
+    }
+  }
+
+  # Create the tools directory, if needed
+  if (!is.null(conf[["tool"]])) {
+    # Check for dv8
+    if (!is.null(conf[["tool"]][["dv8"]])) {
+      create_file_path(conf[["tool"]][["dv8"]][["folder_path"]])
+    } else {
+      if (verbose) {
+        message("dv8 is unused")
+      }
+    }
+    # Check for srcml
+    if (!is.null(conf[["tool"]][["srcml"]])) {
+      create_file_path(conf[["tool"]][["srcml"]][["srcml_path"]])
+    } else {
+      if (verbose) {
+        message("srcml is unused")
+      }
+    }
+    # Check for pattern4
+    if (!is.null(conf[["tool"]][["pattern4"]])) {
+      create_file_path(conf[["tool"]][["pattern4"]][["class_folder_path"]])
+      create_file_path(conf[["tool"]][["pattern4"]][["output_filepath"]])
+    } else {
+      if (verbose) {
+        message("pattern4 is unused")
+      }
+    }
+    # Check for understand
+    if (!is.null(conf[["tool"]][["understand"]])) {
+      create_file_path(conf[["tool"]][["understand"]][["project_path"]])
+      create_file_path(conf[["tool"]][["understand"]][["output_path"]])
+    }
+  } else {
+    if (verbose) {
+      message("no tools used")
+    }
+  }
+}
+
+#' A helper function for `create_file_directory`.
+#'
+#' @description The function checks if a filepath exists on the local device.
+#' If the filepath does not exist, then the function creates it.
+#'
+#' @param filepath The filepath to create.
+#' @param verbose A boolean variable that prints the operational messages when set to TRUE.
+#' @export
+create_file_path <- function(filepath, verbose= TRUE) {
+  if (!is.null(filepath)) {
+    # Check if the filepath already exists
+    if (dir.exists(filepath)) {
+      if (verbose) {
+        message("Filepath: ", filepath, " already exists.")
+      }
+    } else {
+      # Create the filepath
+      dir.create(filepath, recursive= TRUE)
+      if (verbose) {
+        message("Created filepath: ", filepath)
+      }
+    }
+  } else {
+    if (verbose) {
+      message("Invalid filepath: ", filepath)
+    }
+  }
+}
+
 ##### Git Getter Functions #####
 
 #' Returns the path to the .git of the project repository that is being analyzed.
