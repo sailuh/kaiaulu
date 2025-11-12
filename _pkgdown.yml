@@ -25,8 +25,12 @@ reference:
     Notebooks for examples.
 - contents:
   - parse_dependencies
+  - build_understand_project
+  - export_understand_dependencies
+  - parse_understand_dependencies
   - parse_r_dependencies
   - transform_dependencies_to_network
+  - transform_understand_dependencies_to_network
   - transform_r_dependencies_to_network
 - subtitle: __Gang of Four Patterns__
   desc: >
@@ -91,14 +95,14 @@ reference:
 - title: __Mail__
   desc: >
       Download, parsing and data generation of mailing lists.
-      See the [Download Mbox](../articles/download_mod_mbox.html)
+      See the [Download Mail](../articles/download_mail.html)
       and [Reply](../articles/reply_communication_showcase.html)
       Notebooks for details.
 - contents:
   - download_pipermail
-  - convert_pipermail_to_mbox
+  - refresh_pipermail
   - download_mod_mbox
-  - download_mod_mbox_per_month
+  - refresh_mod_mbox
   - parse_mbox
   - make_mbox_reply
   - make_mbox_mailing_list
@@ -115,10 +119,10 @@ reference:
   - parse_jira_rss_xml
   - make_jira_issue
   - make_jira_issue_tracker
-  - download_jira_issues_comments
-  - download_jira_issues_comments_by_date
-  - download_jira_issues_comments_by_issuekey
-  - refresh_jira_issues_comments_by_issuekey
+  - download_jira_issues
+  - download_jira_issues_by_date
+  - download_jira_issues_by_issue_key
+  - refresh_jira_issues
 - title: __GitHub__
   desc: >
        Functions to interact and download data from GitHub API.
@@ -135,7 +139,15 @@ reference:
   - github_api_project_issue_events
   - github_parse_project_issue_events
   - github_api_project_issue
+  - github_api_project_issue_refresh
   - github_parse_project_issue
+  - github_api_project_issue_search
+  - github_api_project_issue_by_date
+  - github_api_project_issue_refresh
+  - github_parse_search_issues_refresh
+  - github_api_project_issue_or_pr_comments_by_date
+  - github_api_project_issue_or_pr_comment_refresh
+
 - subtitle: Pull Request
   desc: GitHub's Pull Request
 - contents:
@@ -192,11 +204,6 @@ reference:
   - is_same_identity
   - assign_exact_identity
   - identity_match
-- title: __Interval__
-  desc:  Provides different types of interval windows (e.g. release) for metric functions.
-- contents:
-  - interval_commit_metric
-  - get_date_from_commit_hash
 - title: __Metrics__
   desc: >
       Various metrics used to estimate code quality,
@@ -285,3 +292,69 @@ reference:
   - dv8_clsxb_to_clsxj
   - dv8_clsxj_to_clsxb
   - parse_dv8_clusters
+- title: __Config__
+  desc: >
+   Get functions to access config fields.
+   The use of get() in Notebooks and executable
+   scripts is encouraged fornotebook compatibility
+   in future versions of the config.
+- contents:
+  - parse_config
+  - get_tool_project
+  - gitlog_to_hdsmj
+  - get_bugzilla_issue_comment_path
+  - get_bugzilla_issue_path
+  - get_bugzilla_project_key
+  - get_cveid_regex
+  - get_depends_code_language
+  - get_depends_keep_dependencies_type
+  - get_dv8_flaws_params
+  - get_dv8_folder_path
+  - get_enumeration_commits
+  - get_file_extensions
+  - get_filter_commit_size
+  - get_git_branches
+  - get_git_repo_path
+  - get_github_commit_path
+  - get_github_issue_event_path
+  - get_github_issue_or_pr_comment_path
+  - get_github_issue_path
+  - get_github_issue_search_path
+  - get_github_keys
+  - get_github_owner
+  - get_github_pull_request_path
+  - get_github_repo
+  - get_issue_id_regex
+  - get_jira_domain
+  - get_jira_issues_comments_path
+  - get_jira_issues_path
+  - get_jira_keys
+  - get_jira_project_key_name
+  - get_mbox_domain
+  - get_mbox_input_file
+  - get_mbox_key_indexes
+  - get_mbox_path
+  - get_nvdfeed_folder_path
+  - get_pattern4_filepath
+  - get_pattern4_folder_path
+  - get_pipermail_domain
+  - get_pipermail_input_file
+  - get_pipermail_path
+  - get_srcml_filepath
+  - get_substring_filepath
+  - get_topics
+  - get_uctags_line_types
+  - get_understand_code_language
+  - get_understand_keep_dependencies_type
+  - get_understand_output_path
+  - get_understand_project_path
+  - get_window_end_commit
+  - get_window_size
+  - get_window_start_commit
+- title: __Interval__
+  desc:  Provides different types of interval windows (e.g. release) for metric functions.
+- contents:
+  - interval_commit_metric
+  - get_date_from_commit_hash
+  - process_gz_to_mbox_in_folder
+  - parse_mbox_latest_date

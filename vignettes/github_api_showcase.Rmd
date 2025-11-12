@@ -55,11 +55,11 @@ token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
 
 # Collecting Data via GitHub API
 
-In this section we obtain the raw data (.json) containing all information the GitHub API endpoint provides. We parse the information of interest in the subsequent section.
+In this section we obtain the raw data (.json) containing all information the GitHub API endpoint provides. We parse the information of interest in the subsequent section.  
 
 ## Issue Events
 
-First we obtain all issue events of the project, so we may later subset issue assignments.
+First we obtain all issue events of the project, so we may later subset issue assignments. 
 
 ```{r Collect all issue events, eval = FALSE}
 gh_response <- github_api_project_issue_events(owner,repo,token)

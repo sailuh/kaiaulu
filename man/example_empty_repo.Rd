@@ -4,7 +4,7 @@
 \alias{example_empty_repo}
 \title{Example Empty Repo}
 \usage{
-example_empty_repo(folder_path = "/tmp", folder_name)
+example_empty_repo(folder_path, folder_name)
 }
 \arguments{
 \item{folder_path}{The path where the folder will be created}

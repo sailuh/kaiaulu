@@ -4,7 +4,7 @@
 \alias{example_notebook_function_in_code_blocks}
 \title{Example Commit of R Notebooks}
 \usage{
-example_notebook_function_in_code_blocks(folder_path = "/tmp", folder_name)
+example_notebook_function_in_code_blocks(folder_path, folder_name)
 }
 \arguments{
 \item{folder_path}{The path where the folder will be created}

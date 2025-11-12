@@ -4,7 +4,7 @@
 \alias{example_renamed_file}
 \title{Example Renamed File Repo}
 \usage{
-example_renamed_file(folder_path = "/tmp", folder_name)
+example_renamed_file(folder_path, folder_name)
 }
 \arguments{
 \item{folder_path}{The path where the folder will be created}

@@ -45,16 +45,26 @@ To try out this Notebook, try the geronimo configuration file, and follow along 
 First, we will load the Kaiaulu configuration file:
 
 ```{r}
-conf <- yaml::read_yaml("../conf/kaiaulu.yml")
+conf <- parse_config("../conf/kaiaulu.yml")
+
 # Project domain
-issue_tracker_domain <- conf[["issue_tracker"]][["jira"]][["domain"]]
+# Specify project_key_index in get_jira_domain() (e.g. "project_key_1")
+issue_tracker_domain <- get_jira_domain(conf, "project_key_1")
+
 # Project key
-issue_tracker_project_key <- conf[["issue_tracker"]][["jira"]][["project_key"]]
+# Specify project_key_index in get_jira_project_key_name() (e.g. "project_key_1")
+issue_tracker_project_key <- get_jira_project_key_name(conf, "project_key_1")
+
 # Altered save paths. Important for naming conventions
-save_path_issue_tracker_issues <- conf[["issue_tracker"]][["jira"]][["issues"]]
-save_path_issue_tracker_issue_comments <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
+# Specify project_key_index in get_jira_issues_path() (e.g. "project_key_1")
+save_path_issue_tracker_issues <- get_jira_issues_path(conf, "project_key_1")
+
+# Specify project_key_index in get_jira_issues_comments_path() (e.g. "project_key_1")
+save_path_issue_tracker_issue_comments <- get_jira_issues_comments_path(conf, "project_key_1")
+
 # Unaltered save paths from config file for use with refresh function
-refresh_issues <- conf[["issue_tracker"]][["jira"]][["issues"]]
+# Specify project_key_index in get_jira_issues_path() (e.g. "project_key_1")
+refresh_issues <- get_jira_issues_path(conf, "project_key_1")
 ```
 
 If authentication is needed, save your username (e-mail) and password (API token) in a file, e.g. atlassian_credentials, where the first line is the username, and the second the API token, e.g.
@@ -100,6 +110,10 @@ If you would like to retrieve only issues **before** a certain date, set `date_l
 Note in the subsequent code block we specified the fields from the issue we are interested in downloading. Again, you may specify [any fields](https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issue-fields/#api-rest-api-2-field-get) of interest for the downloader, including custom fields of your JIRA instance, but the parser currently only support those listed here (in addition to comments data, not exemplified yet). 
 
 Beware that even if only 3 issues exist in a JIRA, a large time range will still request several API calls (in contrast to the issue endpoint below). Therefore, it is advisable to use the issue key query instead which is explained in the next sub-section.
+
+```{r}
+file.exists(save_path_issue_tracker_issues)
+```
 
 ```{r eval = FALSE}
 # e.g. date_lower_bound <- "1970/01/01". 
@@ -162,11 +176,14 @@ In the subsequent codeblock, note we also include a new field, `comment`. This i
 
 ```{r eval = FALSE}
 # eg issueKey_lower_bound <- "GERONIMO-740"
-#issue_key_lower_bound <- "GERONIMO-500"
-#issue_key_upper_bound <- "GERONIMO-560"
+#issue_key_lower_bound <- "GERONIMO-5000"
+#issue_key_upper_bound <- "GERONIMO-5010"
 
 issue_key_lower_bound <- "SAILUH-1"
-issue_key_upper_bound <- "SAILUH-3"
+issue_key_upper_bound <- "SAILUH-7"
+
+#issue_key_lower_bound <- "CAMEL-1"
+#issue_key_upper_bound <- "CAMEL-800"
 
 all_issues <- download_jira_issues_by_issue_key(domain = issue_tracker_domain,
                            jql_query = paste0("project='",issue_tracker_project_key,"'"), 
@@ -192,13 +209,12 @@ all_issues <- download_jira_issues_by_issue_key(domain = issue_tracker_domain,
                            username = username,
                            password = password,
                            save_folder_path = save_path_issue_tracker_issue_comments, 
-                           max_results = 50, 
-                           max_total_downloads = 60,
+                           max_results = 500, 
+                           max_total_downloads = 500,
                            issue_key_lower_bound = issue_key_lower_bound,
                            issue_key_upper_bound = issue_key_upper_bound,
                            verbose = TRUE)
 ```
-
 
 ```{r}
 names(parsed_jira_issues)

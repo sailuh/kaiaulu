@@ -55,35 +55,34 @@ At the scope of this notebook, **only the first branch** (top) specified in the 
 We also provide the path for `tools.yml`. Kaiaulu does not implement all available functionality from scratch. Conversely, it will also not expect all dependencies to be installed. Every function defined in the API expects as parameter a filepath to the external dependency binary. Tools.yml is a convenience file that stores all the binary paths, so it can be set once during setup and reused multiple times for analysis. You can find an example of `tools.yml` on the github repo from Kaiaulu root directory.  For this notebook, you will need to install Perceval (use version 0.12.24) and OSLOM. Instructions to do so are available in the Kaiaulu README.md. Once you are finished, set the "perceval," "oslom_dir," and "oslom_undir" paths in your `tools.yml`.
 
 ```{r}
-tools_path <- "../tools.yml"
-conf_path <- "../conf/helix.yml"
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/helix.yml")
 
-tool <- yaml::read_yaml(tools_path)
-scc_path <- tool[["scc"]]
+scc_path <- get_tool_project("scc", tool)
 
-oslom_dir_path <- tool[["oslom_dir"]]
-oslom_undir_path <- tool[["oslom_undir"]]
+oslom_dir_path <- get_tool_project("oslom_dir", tool)
+oslom_undir_path <- get_tool_project("oslom_undir", tool)
 
-conf <- yaml::read_yaml(conf_path)
+perceval_path <- get_tool_project("perceval", tool)
+git_repo_path <- get_git_repo_path(conf)
+git_branch <- get_git_branches(conf)[1]
 
-perceval_path <- tool[["perceval"]]
-git_repo_path <- conf[["version_control"]][["log"]]
-git_branch <- conf[["version_control"]][["branch"]][1]
+start_commit <- get_window_start_commit(conf)
+end_commit <- get_window_end_commit(conf)
+window_size <- get_window_size(conf)
 
-start_commit <- conf[["analysis"]][["window"]][["start_commit"]]
-end_commit <- conf[["analysis"]][["window"]][["end_commit"]]
-window_size <- conf[["analysis"]][["window"]][["size_days"]]
+mbox_path <- get_mbox_path(conf, "project_key_1")
 
-mbox_path <- conf[["mailing_list"]][["mbox"]]
-github_replies_path <- conf[["issue_tracker"]][["github"]][["replies"]]
-jira_issue_comments_path <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
+issues_json_folder_path <- get_github_issue_path(conf, "project_key_1")
+pull_requests_json_folder_path <- get_github_pull_request_path(conf, "project_key_1")
+comments_json_folder_path <- get_github_issue_or_pr_comment_path(conf, "project_key_1")
+commit_json_folder_path <- get_github_commit_path(conf, "project_key_1")
 
-
-
+jira_issue_comments_path <- get_jira_issues_comments_path(conf, "project_key_1")
 
 # Filters
-file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
-substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+file_extensions <- get_file_extensions(conf)
+substring_filepath <- get_substring_filepath(conf)
 ```
 
 The remainder of this notebook does not require modifications. If you encounter an error in any code block below, chances are one or more parameters above have been specified incorrectly, or the project of choice may have led to an outlier case. Please open an issue if you encounter an error, or if not sure post on discussions in Kaiaulu's GitHub. **E-mailing bugs is discouraged as it is hard to track**. 
@@ -96,7 +95,7 @@ As stated in the introduction, we need both git log and at least one communicati
 
 To get started, we use the `parse_gitlog` function to extract a table from the git log. You can inspect the `project_git` variable to inspect what information is available from the git log. 
 
-```{r}
+```{r Parse Git Log}
 git_checkout(git_branch,git_repo_path)
 project_git <- parse_gitlog(perceval_path,git_repo_path)
 project_git <- project_git  %>%
@@ -110,7 +109,7 @@ Next, we parse the various communication channels the project use. Similarly to 
 
 We also have to parse and normalize the timezone across the different projects. Since one of the social metrics in the quality framework is the count of different timezones, we separate the timezone information before normalizing them.
 
-```{r}
+```{r Convert Timestamps to POSIXct}
 project_git$author_tz <- sapply(stringi::stri_split(project_git$author_datetimetz,
                                                           regex=" "),"[[",6)
 project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
@@ -133,10 +132,14 @@ project_mbox <- NULL
 project_jira <- NULL
 project_github_replies <- NULL
 
-
-
+project_mbox <- data.table()
 if(!is.null(mbox_path)){
-  project_mbox <- parse_mbox(perceval_path,mbox_path)  
+  for(mbox_file_path in list.files(mbox_path,full.names=TRUE)){
+    #print(mbox_file_path)
+    project_mbox <- rbind(project_mbox,parse_mbox(perceval_path,mbox_file_path),fill=TRUE)
+  }
+  
+  #project_mbox <- parse_mbox(perceval_path,mbox_path)  
   
   project_mbox$reply_tz <- sapply(stringi::stri_split(project_git$reply_datetimetz,
                                                             regex=" "),"[[",6)
@@ -155,8 +158,16 @@ if(!is.null(jira_issue_comments_path)){
   project_jira$reply_datetimetz <- as.POSIXct(project_jira$reply_datetimetz,
                                         format = "%Y-%m-%dT%H:%M:%S.000+0000", tz = "UTC")
 }
-if(!is.null(github_replies_path)){
-  project_github_replies <- parse_github_replies(github_replies_path)  
+
+github_reply_paths <- !is.null(issues_json_folder_path) & !is.null(pull_requests_json_folder_path) & !is.null(comments_json_folder_path) & !is.null(commit_json_folder_path)
+if(github_reply_paths){
+  
+  
+
+  project_github_replies <- parse_github_replies(issues_json_folder_path,
+                                                 pull_requests_json_folder_path,
+                                                 comments_json_folder_path,
+                                                 commit_json_folder_path)  
   
   
   # Timezone is not available on GitHub timestamp, all in UTC
@@ -242,15 +253,24 @@ A third choice we make here is whether the collaboration being analyzed is done 
 
 ## Community Detection
 
-For some social smells, such as radio silence and primma donna, community detection is required to be applied to the constructed networks. Do consider the implications of the one chosen below in your results.
+For some social smells, such as radio silence and primma donna, community detection is required to be applied to the constructed networks. Do consider the implications of the one chosen below in your results. We will use a sample of the data here for demonstration instead of the full dataset:
 
 ```{r}
 # Define all timestamp in number of days since the very first commit of the repo 
 # Note here the start_date and end_date are in respect to the git log.
-
 # Transform commit hashes into datetime so window_size can be used
-start_date <- get_date_from_commit_hash(project_git,start_commit)
-end_date <- get_date_from_commit_hash(project_git,end_commit)
+#start_date <- get_date_from_commit_hash(project_git,start_commit)
+#end_date <- get_date_from_commit_hash(project_git,end_commit)
+
+
+
+start_date <- as.POSIXct("2012-10-17 18:19:46", tz = "UTC")
+
+end_date <- as.POSIXct("2013-02-17 18:19:46", tz = "UTC")
+```
+
+
+```{r Compute Social Smells}
 datetimes <- project_git$author_datetimetz
 reply_datetimes <- project_reply$reply_datetimetz
 

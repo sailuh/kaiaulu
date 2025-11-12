@@ -4,7 +4,7 @@
 \alias{io_delete_folder}
 \title{Delete Folder}
 \usage{
-io_delete_folder(folder_path = "/tmp", folder_name)
+io_delete_folder(folder_path, folder_name)
 }
 \arguments{
 \item{folder_path}{Path of folder where the folder to be deleted is. Default set to /tmp}

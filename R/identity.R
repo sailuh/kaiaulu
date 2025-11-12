@@ -185,6 +185,7 @@ identity_match <- function(project_log,name_column,assign_identity_function,
 # Various imports
 #' @importFrom stringi stri_replace_last
 #' @importFrom stringi stri_replace_first
+#' @importFrom stringi stri_match_first
 #' @importFrom stringi stri_c
 #' @importFrom stringi stri_cmp_eq
 #' @importFrom stringi stri_replace_last_regex

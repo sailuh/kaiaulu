@@ -4,7 +4,7 @@
 \alias{example_different_branches}
 \title{Example Commit Different Branches}
 \usage{
-example_different_branches(folder_path = "/tmp", folder_name)
+example_different_branches(folder_path, folder_name)
 }
 \arguments{
 \item{folder_path}{The path where the folder will be created}
