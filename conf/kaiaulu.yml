@@ -133,6 +133,13 @@ filter:
        - "\\[VOTE\\]"
     filter_by_reply_body_substring:
        - "XXXX"
+    regex_to_replace_key_with:
+       MEMAIL: "\\S+@\\S*\\s?"
+       MMENTION: "(\\s|^)@(\\S*\\s?)"
+       MICODE: "`([^`]*)`"
+       MVERSIONNUMBER: "\\b\\d+\\.\\d+(\\.\\d+)*\\b"
+       MISSUEMENTION: "(\\s|^)#\\d+"
+       MURL: "([a-zA-Z0-9]+):\\/\\/([\\w_-]+(?:\\.[\\w_-]+)*)[\\w.,@?^=%&:/~+#-]*[\\w@?^=%&/~+#-]"
 
 
 # Third Party Tools Configuration #
