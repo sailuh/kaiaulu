@@ -65,6 +65,7 @@ filter_by_reply_author_substring <- function(reply_dt, substrings, file_column_n
   
   for (col in file_column_name) {
     matches <- stri_detect_regex(filtered_dt[[col]], pattern, case_insensitive = case_insensitive)
+    matches[is.na(matches)] <- FALSE
     filtered_dt <- filtered_dt[!matches]
   }
   
@@ -113,6 +114,39 @@ filter_by_reply_body_substring <- function(reply_dt, substrings, case_insensitiv
   is_not_match <- !stri_detect_regex(reply_dt$reply_body, pattern, case_insensitive = case_insensitive)
   
   return(reply_dt[is_not_match])
+}
+
+#' Replace Tokens in specified columns. 
+#'
+#' Replaces patterns in a specified column of a data.table with token placeholders.
+#'
+#' @param dt_file A data.table containing the column to process.
+#' @param regex_to_replace_key_with A named list of token names and their corresponding regex patterns.
+#' @param file_column_name The name of the column to perform replacements on.
+#' @return The data.table with regex matches replaced by token names.
+#' @export
+#' @family filters
+replace_token_regex_with <- function(dt_file, regex_to_replace_key_with, file_column_name) {
+  
+  # Initialize counters if not exists
+  if (!exists("counters")) counters <<- list()
+  
+  # Loop over each token/regex pair
+  for (token_name in names(regex_to_replace_key_with)) {
+    regex <- regex_to_replace_key_with[[token_name]]
+    
+    # Count matches for all rows
+    matches <- sum(stringi::stri_count_regex(dt_file[[file_column_name]], regex))
+
+    # Apply replacement to every row
+    dt_file[[file_column_name]] <- stringi::stri_replace_all_regex(
+      dt_file[[file_column_name]],
+      regex,
+      paste0(" ", token_name, " ")
+    )
+  }
+  
+  return(dt_file)
 }
 
 #' Filter by commit interval
