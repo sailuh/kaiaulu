@@ -4,6 +4,25 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+#' Remove punctuation and symbols from reply bodies
+#'
+#' This function removes all punctuation and symbol characters from the
+#' `reply_body` column of a data.table containing replies.
+#'
+#' @param reply_table A reply data.table containing at least the column
+#' 'reply_body'.
+#' @return A reply data.table with punctuation and symbols removed from
+#' the 'reply_body' column.
+#' @export
+remove_punctuation <- function(reply_table) {
+  if (!"reply_body" %in% names(reply_table)) {
+    stop("reply_table must contain a 'reply_body' column")
+  }
+
+  reply_table[, reply_body := stringi::stri_replace_all_regex(reply_body, "\\p{P}|\\p{S}", "")]
+  
+  return(reply_table)
+}
 
 #' Add Comment Classification and Uniquify Comment IDs (creates column)
 #'
