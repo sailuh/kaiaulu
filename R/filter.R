@@ -134,9 +134,6 @@ replace_token_regex_with <- function(dt_file, regex_to_replace_key_with, file_co
   # Loop over each token/regex pair
   for (token_name in names(regex_to_replace_key_with)) {
     regex <- regex_to_replace_key_with[[token_name]]
-    
-    # Count matches for all rows
-    matches <- sum(stringi::stri_count_regex(dt_file[[file_column_name]], regex))
 
     # Apply replacement to every row
     dt_file[[file_column_name]] <- stringi::stri_replace_all_regex(
