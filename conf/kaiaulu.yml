@@ -131,6 +131,12 @@ filter:
     filter_by_reply_subject_substring:
        - "Review Request"
        - "\\[VOTE\\]"
+       # When GitHub automatically sends notification emails with subjects starting with [Github]
+       - "^\\[GitHub\\]"
+       # When Jira also sends automated notification emails for issue updates, status changes, etc. starting with [jira]
+       - "^\\[jira\\]"
+       # When a user is replying to a previous msesage not creating a new topic. Re: is a reply prefix added automatically by email clients
+       - "^[Rr][Ee]:"
     filter_by_reply_body_substring:
        - "XXXX"
     regex_to_replace_key_with:
