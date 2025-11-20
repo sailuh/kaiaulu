@@ -146,6 +146,74 @@ replace_token_regex_with <- function(dt_file, regex_to_replace_key_with, file_co
   return(dt_file)
 }
 
+#' Remove punctuation and symbols from text
+#'
+#' Cleans a character vector by removing all Unicode punctuation and symbol characters.
+#'
+#' @param text_vector A character vector to be cleaned.
+#' @return A character vector with all punctuation and symbols removed.
+#' @export
+filter_punctuation_from_text <- function(text_vector) {
+  if (!is.character(text_vector)) stop("Input must be a character vector")
+  stringi::stri_replace_all_regex(text_vector, "\\p{P}|\\p{S}", "")
+}
+
+#' Clean GitHub-style email replies
+#'
+#' Removes quoted GitHub notifications, lines starting with '>', and fenced code blocks.
+#' Trims leading/trailing whitespace from each element of a character vector.
+#'
+#' @param text_vector A character vector containing text to clean.
+#' @return A character vector with quoted text, code blocks, and extra whitespace removed.
+#' @export
+clean_text <- function(text_vector) {
+  if (!is.character(text_vector)) stop("Input must be a character vector")
+  
+  # Remove GitHub-style email headers + quoted blocks
+  text_vector <- stringi::stri_replace_all_regex(
+    text_vector,
+    "^(On[\\s\\S]*?notifications@github\\.com\\s*?wrote:\\s*?)?(^(>).*\\s)*",
+    ""
+  )
+  
+  # Remove ANY lines starting with ">"
+  text_vector <- stringi::stri_replace_all_regex(
+    text_vector,
+    "(?m)^>.*$",
+    ""
+  )
+  
+  # Remove fenced code blocks
+  text_vector <- stringi::stri_replace_all_regex(
+    text_vector,
+    "```[a-zA-Z0-9]*\\n?[\\s\\S]*?\\n?```",
+    ""
+  )
+  
+  # Trim whitespace
+  text_vector <- stringi::stri_trim_both(text_vector)
+  
+  return(text_vector)
+}
+
+#' Remove Markdown formatting from text
+#'
+#' Converts Markdown text to plain text by first converting to HTML and then extracting all text nodes.
+#'
+#' @param text_vector A character vector containing Markdown-formatted text.
+#' @return A character vector with Markdown formatting removed.
+#' @export
+filter_markdown_from_text <- function(text_vector) {
+  if (!is.character(text_vector)) stop("Input must be a character vector")
+  
+  sapply(text_vector, function(text) {
+    html_content <- markdownToHTML(text = text, fragment.only = TRUE)
+    xml_doc <- htmlParse(html_content, asText = TRUE)
+    text_nodes <- xpathSApply(xml_doc, "//text()", xmlValue)
+    paste(text_nodes, collapse = "")
+  }, USE.NAMES = FALSE)
+}
+
 #' Filter by commit interval
 #'
 #' Filters a data.table by with author or commit datetime using the specified start and end commits
