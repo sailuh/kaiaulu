@@ -152,6 +152,9 @@ filter:
 #
 # See Kaiaulu's README.md for details on how to setup these tools.
 tool:
+  sentiment:
+    model: ../../rawdata/kaiaulu/sentiment/sentiment_classifier/model/
+    prediction: ../../rawdata/kaiaulu/sentiment/sentiment_classifier/prediction/
   # Depends allow to parse file-file static dependencies.
   depends:
     # accepts one language at a time: cpp, java, ruby, python, pom

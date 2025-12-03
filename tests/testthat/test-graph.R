@@ -1,4 +1,6 @@
 tools_path <- test_path("testdata", "tools.yml")
+tool <- yaml::read_yaml(tools_path)
+tmp_folderpath <- tool[["tmp"]]
 
 test_that("weighted churn temporal projection of dev 2 changing dev 1's file is accurate", {
 
@@ -174,7 +176,7 @@ test_that("Parsing git log function entities on R function declarations returns 
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
   utags_path <- tool[["utags"]]
-  git_repo_path <- example_function_in_files(folder_path = "/tmp",
+  git_repo_path <- example_function_in_files(folder_path = tmp_folderpath,
                                                       folder_name = "example_function_in_files")
 
   project_git <- parse_gitlog(perceval_path, git_repo_path)
@@ -184,7 +186,7 @@ test_that("Parsing git log function entities on R function declarations returns 
                                 kinds=list( r=c('f')),
                                 progress_bar = FALSE)
 
-  io_delete_folder(folder_path="/tmp", "example_function_in_files")
+  io_delete_folder(folder_path=tmp_folderpath, "example_function_in_files")
 
   temporal_projection <- transform_gitlog_to_entity_temporal_network(result,
                                                                      mode = "author",
@@ -203,7 +205,7 @@ test_that("Parsing git log function entities on alternating devs changing the sa
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
   utags_path <- tool[["utags"]]
-  git_repo_path <- example_notebook_alternating_function_in_files(folder_path = "/tmp",
+  git_repo_path <- example_notebook_alternating_function_in_files(folder_path = tmp_folderpath,
                                                       folder_name = "example_alternating_devs")
 
   project_git <- parse_gitlog(perceval_path, git_repo_path)
@@ -213,7 +215,7 @@ test_that("Parsing git log function entities on alternating devs changing the sa
                                 kinds=list( r=c('f')),
                                 progress_bar = FALSE)
 
-  io_delete_folder(folder_path="/tmp", "example_alternating_devs")
+  io_delete_folder(folder_path=tmp_folderpath, "example_alternating_devs")
 
   temporal_projection <- transform_gitlog_to_entity_temporal_network(result,
                                                                      mode = "author",
@@ -235,7 +237,7 @@ test_that("Check Pair Wise Cumulative Temporal Sum reflects Codeface actual impl
   tool <- yaml::read_yaml(tools_path)
   perceval_path <- tool[["perceval"]]
   utags_path <- tool[["utags"]]
-  git_repo_path <- example_notebook_alternating_function_in_files(folder_path = "/tmp",
+  git_repo_path <- example_notebook_alternating_function_in_files(folder_path = tmp_folderpath,
                                                                   folder_name = "example_alternating_devs")
 
   project_git <- parse_gitlog(perceval_path, git_repo_path)
@@ -245,7 +247,7 @@ test_that("Check Pair Wise Cumulative Temporal Sum reflects Codeface actual impl
                                 kinds=list( r=c('f')),
                                 progress_bar = FALSE)
 
-  io_delete_folder(folder_path="/tmp", "example_alternating_devs")
+  io_delete_folder(folder_path=tmp_folderpath, "example_alternating_devs")
 
   temporal_projection <- transform_gitlog_to_entity_temporal_network(result,
                                                                      mode = "author",

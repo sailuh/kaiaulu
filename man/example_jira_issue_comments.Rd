@@ -4,7 +4,7 @@
 \alias{example_jira_issue_comments}
 \title{Example Jira Issue Tracker With Comments}
 \usage{
-example_jira_issue_comments(folder_path = "/tmp", folder_name)
+example_jira_issue_comments(folder_path, folder_name)
 }
 \arguments{
 \item{folder_path}{The path where the folder will be created}

@@ -4,10 +4,10 @@
 \alias{example_mailing_list_two_threads}
 \title{Two Thread and Three Replies Mailing List}
 \usage{
-example_mailing_list_two_threads(folder_path = "/tmp", folder_name, file_name)
+example_mailing_list_two_threads(folder_path, folder_name, file_name)
 }
 \arguments{
-\item{folder_path}{Default folder path set to "/tmp"}
+\item{folder_path}{The folder path to create the example}
 
 \item{folder_name}{Name of the example folder}
 

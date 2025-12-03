@@ -1,5 +1,5 @@
 # https://github.com/chaoss/grimoirelab-perceval
-perceval: ~/perceval/bin/perceval
+perceval: /Library/Frameworks/Python.framework/Versions/3.12/bin/perceval
 # https://github.com/multilang-depends/depends
 depends: ~/depends-0.9.6/depends.jar
 # https://github.com/tsantalis/RefactoringMiner#running-refactoringminer-from-the-command-line
@@ -19,3 +19,5 @@ srcml: /usr/local/bin/srcml
 pattern4: ~/Desktop/kaiaulu/tools/pattern4.jar
 # Scitools Understand: https://scitools.com/
 scitools: /Applications/Understand.app/Contents/MacOS/und
+# https://github.com/sailuh/sentiment_classifier
+pysenti: ..\..\sentiment_classifier\exec\train_or_predict.py

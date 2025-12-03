@@ -4,7 +4,7 @@
 \alias{example_function_in_files}
 \title{Example Commit of R Function Declarations}
 \usage{
-example_function_in_files(folder_path = "/tmp", folder_name)
+example_function_in_files(folder_path, folder_name)
 }
 \arguments{
 \item{folder_path}{The path where the folder will be created}

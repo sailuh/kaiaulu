@@ -14,11 +14,11 @@ export_understand_dependencies(
 \arguments{
 \item{scitools_path}{path to the scitools binary `und`}
 
+\item{db_filepath}{path to the scitools DB (see \code{\link{build_understand_project}})}
+
 \item{parse_type}{Type of dependencies to generate into xml (either "file" or "class")}
 
 \item{output_filepath}{path to the output XML filepath of dependencies}
-
-\item{db_path}{path to the scitools DB (see \code{\link{build_understand_project}})}
 }
 \value{
 The output directory where the db will be created, i.e. output_dir parameter.
@@ -45,6 +45,7 @@ Other parsers:
 \code{\link{parse_jira_latest_date}()},
 \code{\link{parse_jira_rss_xml}()},
 \code{\link{parse_jira}()},
+\code{\link{parse_mbox_latest_date}()},
 \code{\link{parse_mbox}()},
 \code{\link{parse_nvdfeed}()},
 \code{\link{parse_understand_dependencies}()}

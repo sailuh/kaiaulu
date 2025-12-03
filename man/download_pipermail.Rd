@@ -2,16 +2,41 @@
 % Please edit documentation in R/mail.R
 \name{download_pipermail}
 \alias{download_pipermail}
-\title{Download all pipermail files in an archive}
+\title{Pipermail Downloader}
 \usage{
-download_pipermail(url)
+download_pipermail(
+  mailing_list,
+  start_year_month,
+  end_year_month,
+  save_folder_path,
+  verbose = TRUE
+)
 }
 \arguments{
-\item{url}{An url pointing to a pipermail archive}
+\item{mailing_list}{The name of the mailing list being downloaded e.g. "https://mta.openssl.org/pipermail/openssl-announce/"}
+
+\item{start_year_month}{The year and month of the first file to be downloaded format: 'YYYYMM'}
+
+\item{end_year_month}{The year and month of the last file to be downloaded format: 'YYYYMM', or use Sys.Date}
+
+\item{save_folder_path}{The folder path in which all the downloaded pipermail files will be stored}
+
+\item{verbose}{if TRUE, prints diagnostic messages during the download process}
 }
 \value{
-Returns `destination`, a vector of the downloaded files in the current working directory
+Returns `downloaded_files`, a vector of the downloaded files in the current working directory
 }
 \description{
-Download all pipermail files in an archive
+This function downloads pipermail archives from a specified pipermail mailing list as .mbox files.
+It begins by downloading an .html file that contains the URLs for monthly archives in .txt or .gz formats.
+The function first attempts to download the .txt file, and if unavailable, it falls back to downloading the .gz file.
+}
+\details{
+When a .gz file is downloaded, the function automatically unzips and converts it into an .mbox file,
+overwriting any existing file with the same name. The original .gz file is deleted after extraction.
+
+The downloaded .mbox files are saved in the specified folder following the naming convention YYYYMM.mbox.
+The function only downloads files that fall between the specified start_year_month and end_year_month.
+When both formats fail to download, the function issues a warning indicating the missing month.
+At the end, the function summarizes the downloads, indicating the range of dates present and any missing months.
 }

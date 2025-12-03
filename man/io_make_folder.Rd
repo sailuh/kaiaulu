@@ -4,7 +4,7 @@
 \alias{io_make_folder}
 \title{Make Folder}
 \usage{
-io_make_folder(folder_path = "/tmp", folder_name)
+io_make_folder(folder_path, folder_name)
 }
 \arguments{
 \item{folder_path}{Path of folder where new folder will be, default set to /tmp}
