@@ -153,47 +153,73 @@ replace_token_regex_with <- function(dt_file, regex_to_replace_key_with, file_co
 #' @param text_vector A character vector to be cleaned.
 #' @return A character vector with all punctuation and symbols removed.
 #' @export
-filter_punctuation_from_text <- function(text_vector) {
+filter_text_punctuation <- function(text_vector) {
   if (!is.character(text_vector)) stop("Input must be a character vector")
   stringi::stri_replace_all_regex(text_vector, "\\p{P}|\\p{S}", "")
 }
 
-#' Clean GitHub-style email replies
+#' Remove GitHub-style email headers
 #'
-#' Removes quoted GitHub notifications, lines starting with '>', and fenced code blocks.
-#' Trims leading/trailing whitespace from each element of a character vector.
+#' Removes GitHub notification headers from email or message text.
 #'
 #' @param text_vector A character vector containing text to clean.
-#' @return A character vector with quoted text, code blocks, and extra whitespace removed.
+#' @return A character vector with GitHub-style headers removed.
 #' @export
-clean_text <- function(text_vector) {
+filter_text_github_header <- function(text_vector) {
   if (!is.character(text_vector)) stop("Input must be a character vector")
   
-  # Remove GitHub-style email headers + quoted blocks
-  text_vector <- stringi::stri_replace_all_regex(
+  stringi::stri_replace_all_regex(
     text_vector,
-    "^(On[\\s\\S]*?notifications@github\\.com\\s*?wrote:\\s*?)?(^(>).*\\s)*",
+    "^(On[\\s\\S]*?notifications@github\\.com\\s*?wrote:\\s*?)",
     ""
   )
+}
+
+#' Remove quoted lines
+#'
+#' Removes lines starting with '>', which are typically quoted text.
+#'
+#' @param text_vector A character vector containing text to clean.
+#' @return A character vector with quoted lines removed.
+#' @export
+filter_text_quoted_lines <- function(text_vector) {
+  if (!is.character(text_vector)) stop("Input must be a character vector")
   
-  # Remove ANY lines starting with ">"
-  text_vector <- stringi::stri_replace_all_regex(
+  stringi::stri_replace_all_regex(
     text_vector,
     "(?m)^>.*$",
     ""
   )
+}
+
+#' Remove fenced code blocks
+#'
+#' Removes fenced code blocks marked with triple backticks ``` from text.
+#'
+#' @param text_vector A character vector containing text to clean.
+#' @return A character vector with fenced code blocks removed.
+#' @export
+filter_text_fenced_code_block <- function(text_vector) {
+  if (!is.character(text_vector)) stop("Input must be a character vector")
   
-  # Remove fenced code blocks
-  text_vector <- stringi::stri_replace_all_regex(
+  stringi::stri_replace_all_regex(
     text_vector,
     "```[a-zA-Z0-9]*\\n?[\\s\\S]*?\\n?```",
     ""
   )
+}
+
+#' Trim leading and trailing whitespace
+#'
+#' Removes leading and trailing whitespace from each element of a character vector.
+#'
+#' @param text_vector A character vector containing text to clean.
+#' @return A character vector with whitespace trimmed.
+#' @export
+filter_text_whitespace <- function(text_vector) {
+  if (!is.character(text_vector)) stop("Input must be a character vector")
   
-  # Trim whitespace
-  text_vector <- stringi::stri_trim_both(text_vector)
-  
-  return(text_vector)
+  stringi::stri_trim_both(text_vector)
 }
 
 #' Remove Markdown formatting from text
@@ -203,7 +229,7 @@ clean_text <- function(text_vector) {
 #' @param text_vector A character vector containing Markdown-formatted text.
 #' @return A character vector with Markdown formatting removed.
 #' @export
-filter_markdown_from_text <- function(text_vector) {
+filter_text_markdown <- function(text_vector) {
   if (!is.character(text_vector)) stop("Input must be a character vector")
   
   sapply(text_vector, function(text) {
