@@ -801,9 +801,9 @@ get_filter_by_reply_body_substring <- function(config_file) {
 #' @return A named list of regex patterns for token replacement.
 #' @export
 get_replace_token_regex_with <- function(config_file) {
-  token_replacements <- config_file[["filter"]][["replies"]][["replace_token_regex_with"]]
+  token_replacements <- config_file[["filter"]][["replies"]][["regex_to_replace_key_with"]]
   if (is.null(token_replacements)) {
-    warning("Attribute 'replace_token_regex_with' does not exist in the configuration file.")
+    warning("Attribute 'regex_to_replace_key_with' does not exist in the configuration file.")
   }
   return(token_replacements)
 }
@@ -902,6 +902,69 @@ get_tool_project <- function(tool_name, config_file) {
   }
 
   return(tool_path)
+}
+
+#' Returns the path to the PySenti Python script
+#'
+#' @description This function retrieves the path to the PySenti Python script 
+#' from a parsed configuration file. The input `config_file` must be a parsed 
+#' configuration file (from \code{\link{parse_config}}). If the attribute does 
+#' not exist, a warning is issued.
+#'
+#' @param config_file A parsed configuration file obtained from \code{\link{parse_config}}.
+#' @return The file path to the PySenti script as a string.
+#' @export
+get_pysenti_path <- function(config_file) {
+
+  pysenti_path <- config_file[["pysenti"]]
+
+  if (is.null(pysenti_path)) {
+    warning("Attribute does not exist.")
+  }
+
+  return(pysenti_path)
+}
+
+#' Returns the folder path for storing sentiment models
+#'
+#' @description This function retrieves the path to the folder where sentiment 
+#' classification models are saved, from a parsed configuration file. The input 
+#' `config_file` must be a parsed configuration file. If the attribute does not exist, 
+#' a warning is issued.
+#'
+#' @param config_file A parsed configuration file obtained from \code{\link{parse_config}}.
+#' @return The folder path for sentiment models as a string.
+#' @export
+get_sentiment_model_folder_path <- function(config_file) {
+
+  model_folder_path <- config_file[["tool"]][["sentiment"]][["model"]]
+
+  if (is.null(model_folder_path)) {
+    warning("Attribute does not exist.")
+  }
+
+  return(model_folder_path)
+}
+
+#' Returns the folder path for storing sentiment predictions
+#'
+#' @description This function retrieves the path to the folder where sentiment 
+#' predictions are saved, from a parsed configuration file. The input `config_file` 
+#' must be a parsed configuration file. If the attribute does not exist, a warning 
+#' is issued.
+#'
+#' @param config_file A parsed configuration file obtained from \code{\link{parse_config}}.
+#' @return The folder path for sentiment predictions as a string.
+#' @export
+get_sentiment_prediction_folder_path <- function(config_file) {
+
+  prediction_folder_path <- config_file[["tool"]][["sentiment"]][["prediction"]]
+
+  if (is.null(prediction_folder_path)) {
+    warning("Attribute does not exist.")
+  }
+
+  return(prediction_folder_path)
 }
 
 #' Returns the depends code language for analysis.
