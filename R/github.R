@@ -286,6 +286,11 @@ github_parse_project_pull_request <- function(api_responses){
     parsed_response[["author_association"]] <- api_response[["author_association"]]
     parsed_response[["title"]] <- api_response[["title"]]
     parsed_response[["body"]] <- api_response[["body"]]
+    if (length(parsed_response[["body"]]) > 0) {
+      parsed_response[["body"]] <- parsed_response[["body"]]
+    } else {
+      parsed_response[["body"]] <- NA_character_
+    }
 
     parsed_response[["labels"]] <- api_response[["labels"]]
     if(length(parsed_response[["labels"]]) > 0){
