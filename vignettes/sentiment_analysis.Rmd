@@ -22,7 +22,6 @@ Please ensure the following R packages are installed on your computer.
 rm(list = ls())
 seed <- 1
 set.seed(seed)
-setwd("C:/Users/huffg/OneDrive/Documents/GitHub/kaiaulu/vignettes")
 require(kaiaulu)
 require(data.table)
 require(jsonlite)
@@ -194,7 +193,7 @@ download_mod_mbox(
 ```
 
 ```{r}
-parsed_mail <- parse_mbox(
+mail_replies <- parse_mbox(
   perceval_path = parse_perceval_path,
   mbox_file_path = mbox_save_folder_path
 )
@@ -270,6 +269,7 @@ all_issues <- download_jira_issues_by_date(issue_tracker_domain,
                            date_upper_bound = date_upper_bound,
                            verbose = TRUE)
 ```
+Similary to Github and Mbox, we will parse the data into a reply data.table
 
 ```{r}
 parsed_jira_issues <- parse_jira(save_path_issue_tracker_issue_comments)
@@ -314,7 +314,7 @@ all_issues <- download_jira_issues_by_date(issue_tracker_domain,
                            verbose = TRUE)
 ```
 
-
+Similary to Github and Mbox, we will parse the data into a reply data.table
 
 ```{r}
 parsed_jira_issues <- parse_jira(save_path_issue_tracker_issue_comments)
@@ -326,11 +326,11 @@ We will now combine all of our parsed reply data.tables into a single, unified r
 
 ```{r}
 reply_dt <- rbindlist(
-  list(github_replies, parsed_mail, jira_replies),
+  list(jira_replies, github_replies, mail_replies),
   fill = TRUE
 )
 ```
-reply_dt <- jira_replies
+
 When we parse data, typically there exists entries that have NA or have an empty string of "" in the `reply_body`. Since our sentiment analysis relies on text existing in that column, these rows are dropped.  
 
 ```{r}
@@ -420,4 +420,3 @@ pred_dt <- pysenti_predict(
   model           = "bert"
 )
 ```
-print(reply_dt)
