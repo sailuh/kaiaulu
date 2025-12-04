@@ -1,0 +1,423 @@
+---
+title: "Github, Mailing List, and Jira developer comments Sentiment Analysis"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Github, Mailing List, and Jira developer comments Sentiment Analysis}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Introduction
+
+This notebook demonstrates the full workflow for conducting sentiment analysis. Sentiment analysis is an approach which helps users detect the emotional tone of comments in order to gain insights into developer collaboration and how sentiment may influence project progress by classifying developer comments as expressing positive, negative, or neutral sentiment. This notebook applies this approach to developer communication sources such as GitHub issues, pull requests, comments, commits, JIRA discussions, and mailing lists. It guides the user through preparing data, training a sentiment-classification model, and generating predictions on new datasets to study collaboration patterns and developer interactions.
+
+# Libraries
+
+Please ensure the following R packages are installed on your computer. 
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+setwd("C:/Users/huffg/OneDrive/Documents/GitHub/kaiaulu/vignettes")
+require(kaiaulu)
+require(data.table)
+require(jsonlite)
+require(magrittr)
+require(gt)
+require(stringi)
+require(markdown)
+require(XML)
+```
+source("..\\R\\config.R")       
+source("..\\R\\sentiment.R")
+source("..\\R\\filter.R")
+source("..\\R\\github.R") 
+source("..\\R\\jira.R")
+source("..\\R\\mail.R")
+
+```{r}
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/kaiaulu.yml")
+authors <- get_filter_by_reply_author_substring(conf)
+subjects <- get_filter_by_reply_subject_substring(conf)
+body <- get_filter_by_reply_body_substring(conf)
+token_replacements <- get_replace_token_regex_with(conf)
+pysenti_path <- get_pysenti_path(tool)               
+model_save_path <- get_sentiment_model_folder_path(conf)     
+prediction_save_path <- get_sentiment_prediction_folder_path(conf) 
+```
+
+# Preparing Dataset
+
+We grab project data from GitHub, JIRA, and mailing lists because these sources capture the core developer communication, including issues, pull requests, and comments. Within these sources, the `body` field generally contains the actual developer interactions and discussions within the project. Parsing this data into a unified reply data.table standardizes its structure, enabling consistent preprocessing and ensuring our sentiment model can accurately analyze human-generated content.
+
+In order to download Github data, you need a Github token. For details, see [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token). The functions in Kaiaulu will assume you have a token available, which can be passed as parameter. 
+
+```{r}
+conf <- parse_config("../conf/kaiaulu.yml")
+
+save_path_issue_refresh <- get_github_issue_search_path(conf, "project_key_1")
+save_path_pull_request <- get_github_pull_request_path(conf, "project_key_1")
+save_path_issue_or_pr_comments <- get_github_issue_or_pr_comment_path(conf, "project_key_1")
+
+# Make sure the above save_path_* folders exists using
+
+dir.create(save_path_issue_refresh)
+dir.create(save_path_pull_request)
+dir.create(save_path_issue_or_pr_comments)
+
+owner <- get_github_owner(conf, "project_key_1") # Has to match github organization (e.g. github.com/sailuh)
+repo <- get_github_repo(conf, "project_key_1") # Has to match github repository (e.g. github.com/sailuh/perceive)
+# your file github_token (a text file) contains the GitHub token API
+token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
+```
+
+# Download and Parse Github
+
+Here, we are downloading and parsing Github issue data using the `/issue_search/` API endpoint. After being parsed into a structured data table (we will refer to it as reply data.table for the rest of the notebook), it will contain the column 'reply_body', this is what we are looking for in every data that is being parsed in this notebook as it typically represents developer comments. Specifically, by fetching this `/issue_search/` API endpoint, we capture the initial message of each issue in the specified repository. For more information on API endpoints, see the `download_github_comments.Rmd` notebook.
+
+```{r Collect all issues, eval = FALSE}
+gh_response <- github_api_project_issue(owner,repo,token)
+github_api_iterate_pages(token,gh_response,
+                         save_path_issue_refresh,
+                         prefix="issue")
+
+all_issue <- lapply(list.files(save_path_issue_refresh,
+                               full.names = TRUE),jsonlite::read_json)
+all_issue <- lapply(all_issue,
+                    github_parse_search_issues_refresh)
+all_issue <- rbindlist(all_issue,fill=TRUE)
+
+all_issue <- all_issue[,.(reply_id=issue_id,
+                          in_reply_to_id=NA_character_,
+                          reply_datetimetz=created_at,
+                          reply_from=issue_user_login,
+                          reply_to=NA_character_,
+                          reply_cc=NA_character_,
+                          reply_subject=issue_number,
+                          reply_body=body)]
+```
+
+Using the `/issue_or_pr_comment/` endpoint, we capture subsequent messages that are after the initial message in both issues and pull requests.
+
+```{r Collect comments by date, eval = FALSE}
+updated_lower_bound_comment <- "2024-04-25"
+gh_response <- github_api_project_issue_or_pr_comments_by_date(owner = owner,
+                                                repo = repo,
+                                                token = token,
+                                                since = updated_lower_bound_comment,
+                                                verbose=TRUE)
+
+github_api_iterate_pages(token,gh_response,
+                         save_path_issue_or_pr_comments,
+                         prefix="issue",
+                         verbose=TRUE)
+
+
+all_issue_or_pr_comments <- lapply(list.files(save_path_issue_or_pr_comments,
+                                     full.names = TRUE),read_json)
+all_issue_or_pr_comments <- lapply(all_issue_or_pr_comments,
+                                   github_parse_project_issue_or_pr_comments)
+all_issue_or_pr_comments <- rbindlist(all_issue_or_pr_comments,fill=TRUE)
+
+all_issue_or_pr_comments <- all_issue_or_pr_comments[,.(reply_id=comment_id,
+                                                          in_reply_to_id=NA_character_,
+                                                          reply_datetimetz=created_at,
+                                                          reply_from=comment_user_login,
+                                                          reply_to=NA_character_,
+                                                          reply_cc=NA_character_,
+                                                          reply_subject=issue_url,
+                                                          reply_body=body)]
+```
+
+Using the `/pull_request/` endpoint, we capture the initial message of each pull request in a specified repository.
+
+```{r Collect all pull requests, eval = FALSE}
+gh_response <- github_api_project_pull_request(owner,repo,token)
+dir.create(save_path_pull_request)
+github_api_iterate_pages(token,gh_response,
+                         save_path_pull_request,
+                         prefix="pull_request")
+
+all_pr <- lapply(list.files(save_path_pull_request,
+                                     full.names = TRUE),read_json)
+all_pr <- lapply(all_pr,
+                                   github_parse_project_pull_request)
+all_pr <- rbindlist(all_pr,fill=TRUE)
+
+all_pr <- all_pr[,.(reply_id=pr_id,
+                      in_reply_to_id=NA_character_,
+                      reply_datetimetz=created_at,
+                      reply_from=pr_user_login,
+                      reply_to=NA_character_,
+                      reply_cc=NA_character_,
+                      reply_subject=pr_number,
+                      reply_body=body)]
+```
+
+We then combine all Github parsed replies into one unified reply data.table that will eventually be combined with Mbox and JIRA reply data.tables.
+
+```{r}
+github_replies <- rbindlist(
+  list(all_issue, all_issue_or_pr_comments, all_pr),
+  fill = TRUE
+)
+```
+
+# Download and parse Mbox
+
+First, we get the path to the Perceval tool as specified in the `tools.yml`. Perceval is required to parse .mbox files into structured tables. For more information on installing perceval, see the third-party tools setup page in kaiaulu [here](https://github.com/sailuh/kaiaulu/wiki/Third-Party-Tools-Setup)
+
+```{r}
+parse_perceval_path <- get_tool_project("perceval", tool)
+conf <- parse_config("../conf/helix.yml")
+mbox_mailing_list <- get_mbox_domain(conf, "project_key_1")
+mbox_save_folder_path <- get_mbox_path(conf, "project_key_1")
+
+# Define the date range
+mbox_start_year_month <- 202310
+mbox_end_year_month <- 202405
+```
+```{r eval=FALSE}
+dir.create(mbox_save_folder_path, recursive = TRUE)
+download_mod_mbox(
+  mailing_list = mbox_mailing_list,
+  start_year_month = mbox_start_year_month,
+  end_year_month = mbox_end_year_month,
+  save_folder_path = mbox_save_folder_path,
+  verbose = TRUE
+  )
+```
+
+```{r}
+parsed_mail <- parse_mbox(
+  perceval_path = parse_perceval_path,
+  mbox_file_path = mbox_save_folder_path
+)
+```
+
+# Download and parse jira
+
+```{r}
+conf <- parse_config("../conf/kaiaulu.yml")
+# Specify project_key_index in get_jira_domain() (e.g. "project_key_1")
+issue_tracker_domain <- get_jira_domain(conf, "project_key_1")
+
+# Specify project_key_index in get_jira_project_key_name() (e.g. "project_key_1")
+issue_tracker_project_key <- get_jira_project_key_name(conf, "project_key_1")
+
+# Specify project_key_index in get_jira_issues_comments_path() (e.g. "project_key_1")
+save_path_issue_tracker_issue_comments <- get_jira_issues_comments_path(conf, "project_key_1")
+#dir.create(save_path_issue_tracker_issue_comments, recursive = TRUE)
+```
+
+If authentication is needed, save your username (e-mail) and password (API token) in a file, e.g. atlassian_credentials, where the first line is the username, and the second the API token, e.g.
+
+```
+jondoe@jondoe.com
+jondoespassword
+```
+
+And remove the `eval = FALSE` from the code block below (note you do not want to use this code block if you are accessing a JIRA instance that you do not have an account such as Apache Software Foundation, or you will have authentication errors):
+
+file.exists("~/.ssh/atlassian_credentials")
+
+```{r eval = FALSE}
+if(file.exists("~/.ssh/atlassian_credentials")){
+  credentials <- scan("~/.ssh/atlassian_credentials", what = "character", quiet = TRUE)  
+  username <- credentials[1]
+  password <- credentials[2]
+}
+```
+
+Kaiaulu for JIRA offers three ways to download issues: By Date, by Issue Key, and Custom. We will by date.
+
+```{r eval = FALSE}
+# e.g. date_lower_bound <- "1970/01/01". 
+date_lower_bound <- "2023/11/16 21:00"
+date_upper_bound <- "2023/11/17 21:00"
+
+issue_tracker_domain <- https://issues.apache.org/jira
+all_issues <- download_jira_issues_by_date(issue_tracker_domain,
+                           jql_query = paste0("project='",issue_tracker_project_key,"'"), 
+                           fields = c("summary", 
+                           "description",
+                           "creator",
+                           "assignee",
+                           "reporter",
+                           "issuetype",
+                           "status",
+                           "resolution",
+                           "components",
+                           "created",
+                           "updated",
+                           "resolutiondate",
+                           "priority",
+                           "votes",
+                           "watches",
+                           "versions",
+                           "fixVersions",
+                           "labels",
+                           "comment"), 
+                           save_folder_path = save_path_issue_tracker_issue_comments, 
+                           max_results = 50, 
+                           max_total_downloads = 60,
+                           date_lower_bound = date_lower_bound,
+                           date_upper_bound = date_upper_bound,
+                           verbose = TRUE)
+```
+
+```{r}
+parsed_jira_issues <- parse_jira(save_path_issue_tracker_issue_comments)
+
+jira_replies <- parse_jira_replies(parsed_jira_issues)
+```
+
+#####  Using public jira instance ######
+```{r eval = FALSE}
+# e.g. date_lower_bound <- "1970/01/01". 
+date_lower_bound <- "2023/11/16 21:00"
+date_upper_bound <- "2023/11/17 21:00"
+
+issue_tracker_domain <- "https://issues.apache.org/jira"
+issue_tracker_project_key <- "CAMEL"
+all_issues <- download_jira_issues_by_date(issue_tracker_domain,
+                           jql_query = paste0("project='",issue_tracker_project_key,"'"), 
+                           fields = c("summary", 
+                           "description",
+                           "creator",
+                           "assignee",
+                           "reporter",
+                           "issuetype",
+                           "status",
+                           "resolution",
+                           "components",
+                           "created",
+                           "updated",
+                           "resolutiondate",
+                           "priority",
+                           "votes",
+                           "watches",
+                           "versions",
+                           "fixVersions",
+                           "labels",
+                           "comment"),
+                           save_folder_path = save_path_issue_tracker_issue_comments, 
+                           max_results = 50, 
+                           max_total_downloads = 60,
+                           date_lower_bound = date_lower_bound,
+                           date_upper_bound = date_upper_bound,
+                           verbose = TRUE)
+```
+
+
+
+```{r}
+parsed_jira_issues <- parse_jira(save_path_issue_tracker_issue_comments)
+
+jira_replies <- parse_jira_replies(parsed_jira_issues)
+```
+
+We will now combine all of our parsed reply data.tables into a single, unified reply data.table.  By consolidating all sources into one table, we can apply the same preprocessing steps consistently across all data, ensuring that the subsequent sentiment training and prediction functions operate on a uniform dataset. 
+
+```{r}
+reply_dt <- rbindlist(
+  list(github_replies, parsed_mail, jira_replies),
+  fill = TRUE
+)
+```
+reply_dt <- jira_replies
+When we parse data, typically there exists entries that have NA or have an empty string of "" in the `reply_body`. Since our sentiment analysis relies on text existing in that column, these rows are dropped.  
+
+```{r}
+reply_dt <- reply_dt[!is.na(reply_body)]
+reply_dt <- reply_dt[reply_body != ""]
+```
+
+We filter the dataset to remove rows that come from automated sources such as bot accounts or system notifications, and rows whose subjects indicate automated messages, vote threads, or reply prefixes. We then replace sensitive or variable text patterns in the message body—such as email addresses, user mentions, code fences, inline code, version numbers, issue references, URLs, and commit hashes with placeholder tokens to standardize the text for later analysis.
+
+```{r}
+reply_dt <- filter_by_reply_author_substring(reply_dt, authors, case_insensitive = TRUE)
+reply_dt <- filter_by_reply_subject_substring(reply_dt, subjects, case_insensitive = TRUE)
+reply_dt <- filter_by_reply_body_substring(reply_dt, body, case_insensitive = TRUE)
+reply_dt <- replace_token_regex_with(reply_dt, token_replacements, "reply_body")
+```
+
+We now apply a series of text-cleaning steps to the reply_body column. The goal is to standardize the text so the remaining content represents closely to the author's actual message.
+
+```{r}
+# "On Tue, notifications@github.com wrote: Hello" -> "Hello"
+reply_dt[, reply_body := filter_text_github_header(reply_body)]
+# "> Quoted text" -> ""
+reply_dt[, reply_body := filter_text_quoted_lines(reply_body)]
+# "Hello\nWorld\r!" -> "Hello World"
+reply_dt[, reply_body := filter_text_newlines(reply_body)]
+# "Hello, world! $100" -> "Hello world 100"
+reply_dt[, reply_body := filter_text_punctuation(reply_body)]
+# "This is **bold** text" -> "This is bold text"
+reply_dt[, reply_body := filter_text_markdown(reply_body)]
+# "   Text with spaces   " -> "Text with spaces"
+reply_dt[, reply_body := filter_text_whitespace(reply_body)]
+```
+
+Before using a reply data.table for prediction, it must have a standardized format with text and polarity columns, our current filtered reply data.table does not have that. For unlabeled data, the polarity column can be filled with a placeholder value such as "neutral" or "0" because it does not affect the prediction. The reply_body column is also renamed to text to match the expected schema required by the train and prediction functions.
+
+```{r}
+reply_dt <- reply_dt[, polarity := "neutral"]
+setnames(reply_dt, "reply_body", "text")
+```
+
+# Training Models
+
+Create directories for saving the trained model and prediction outputs. These directories ensure that the training function can store the best model and the prediction function can save generated results.
+
+```{r}
+dir.create(model_save_path, recursive = TRUE, showWarnings = FALSE)
+dir.create(prediction_save_path, recursive = TRUE, showWarnings = FALSE)
+```
+
+We will be loading a curated dataset to train the sentiment model. The dataset should have 'text' and 'polarity' columns.  It is not necessary to use this dataset; you can provide your own reply data.table as long as it has ground-truth labels (Accurate labels in 'polarity' column that reflect sentiment of the `text` column) and at least 'text' and 'polarity' columns.
+
+```{r}
+train_df <- fread("../train_df_final.csv")
+train_df <- setnames(train_df, "Text", "text")
+train_df <- setnames(train_df, "Polarity", "polarity")
+```
+
+We will now train the sentiment model. Users must specify the model type ("bert", "xlnet", "roberta", or "albert"), The function fine-tunes the model by training it on the labeled dataset. During training, the model makes predictions on the same training data and compares them to the ground-truth labels. It evaluates its accuracy, and keeps track of the best-performing version. The version with the highest accuracy on this dataset is saved to the `model_save_path` folder with the name `*_model` where * is one of the four specified models used in the train function. 
+
+```{r}
+pysenti_train_model(
+  pysenti_path    = pysenti_path,
+  reply_dt        = train_df,
+  model_save_path = model_save_path,
+  model           = "bert"
+)
+```
+
+# Prediction
+
+Once a model is trained, it can be applied to any filtered reply data.tables that has the required text | polarity structure to generate sentiment predictions. The filtered reply data.table does not need accurate ground-truth labels because the model’s predictions are independent of the existing values. The generated prediction reply data.table is then saved to our `prediction_save_path` folder. 
+
+First, we drop all columns in the reply data.table other than the expected text | polarity columns. This ensures that the .csv file that is saved to our `prediction_save_path` has only the columns that shows us the predicted sentiment of the associated text.
+
+```{r}
+reply_dt <- reply_dt[, .(text, polarity)]
+```
+
+Then we apply sentiment prediction.
+
+```{r}
+pred_dt <- pysenti_predict(
+  pysenti_path    = pysenti_path,
+  reply_dt        = reply_dt,
+  model_save_path = model_save_path,
+  prediction_path = prediction_save_path,
+  model           = "bert"
+)
+```
+print(reply_dt)
