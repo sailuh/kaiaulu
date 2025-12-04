@@ -209,6 +209,19 @@ filter_text_fenced_code_block <- function(text_vector) {
   )
 }
 
+#' Remove carriage returns and newlines
+#'
+#' Converts all \r and \n characters to a space, without collapsing the text fully.
+#'
+#' @param text_vector A character vector to clean.
+#' @return A character vector with \r and \n replaced by space.
+#' @export
+filter_text_newlines <- function(text_vector) {
+  if (!is.character(text_vector)) stop("Input must be a character vector")
+  
+  stringi::stri_replace_all_regex(text_vector, "\r|\n", "")
+}
+
 #' Trim leading and trailing whitespace
 #'
 #' Removes leading and trailing whitespace from each element of a character vector.

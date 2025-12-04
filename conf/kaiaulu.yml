@@ -142,10 +142,12 @@ filter:
     regex_to_replace_key_with:
        MEMAIL: "\\S+@\\S*\\s?"
        MMENTION: "(\\s|^)@(\\S*\\s?)"
+       MICODEFENCE: "```[\\s\\S]*?```"
        MICODE: "`([^`]*)`"
        MVERSIONNUMBER: "\\b\\d+\\.\\d+(\\.\\d+)*\\b"
        MISSUEMENTION: "(\\s|^)#\\d+"
        MURL: "([a-zA-Z0-9]+):\\/\\/([\\w_-]+(?:\\.[\\w_-]+)*)[\\w.,@?^=%&:/~+#-]*[\\w@?^=%&/~+#-]"
+       MCOMMIT: "\\b[0-9a-f]{7,40}\\b"
 
 
 # Third Party Tools Configuration #
