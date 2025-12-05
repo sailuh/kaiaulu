@@ -21,3 +21,5 @@ pattern4: ~/Desktop/kaiaulu/tools/pattern4.jar
 scitools: /Applications/Understand.app/Contents/MacOS/und
 # Temporary folder path for intermediate files
 tmp: /tmp
+# https://github.com/sailuh/sentiment_classifier
+pysenti: ..\..\sentiment_classifier\exec\train_or_predict.py

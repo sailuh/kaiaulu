@@ -1,0 +1,165 @@
+---
+title: "Sentiment analysis - output raw communication data"
+output:
+  html_document:
+    output_file: "Sentiment_analysis.html"
+---
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(visNetwork)
+require(reactable)
+require(data.table)
+require(stringi)
+require(igraph)
+require(yaml)
+source("/cloud/project/R/jira.R")
+source("/cloud/project/R/github.R")
+source("/cloud/project/R/smells.R")
+source("/cloud/project/R/git.R")
+source("/cloud/project/R/Sentic.R")
+```
+
+# Load Projects
+
+```{r}
+tool <- yaml::read_yaml("../tools.yml")
+conf <- yaml::read_yaml("../conf/ambari.yml")
+perceval_path <- tool[["perceval"]]
+
+mbox_path <- conf[["mailing_list"]][["mbox"]]
+jira_issue_comments_path <- conf[["issue_tracker"]][["jira"]][["issue_comments"]]
+github_issue_path <- conf[["issue_tracker"]][["github"]][["replies"]]
+
+# 3rd Party Tools
+utags_path <- tool[["utags"]]
+oslom_dir_path <- tool[["oslom_dir"]]
+oslom_undir_path <- tool[["oslom_undir"]]
+
+perceval_path <- tool[["perceval"]]
+git_repo_path <- conf[["version_control"]][["log"]]
+git_branch <- conf[["version_control"]][["branch"]][1]
+
+start_datetime <- conf[["analysis"]][["window"]][["start_datetime"]]
+end_datetime <- conf[["analysis"]][["window"]][["end_datetime"]]
+window_size <- 30
+
+# Filters
+file_extensions <- conf[["filter"]][["keep_filepaths_ending_with"]]
+substring_filepath <- conf[["filter"]][["remove_filepaths_containing"]]
+```
+
+## Load Jira, Mbox, and GitHub Data
+
+```{r}
+project_mbox <- create_if_comment_column(process_mbox_data(clean_mbox_data(parse_mbox(perceval_path, mbox_path), if_clean_vote=FALSE)))
+project_mbox <- project_mbox[!is.na(project_mbox$reply_subject) & project_mbox$reply_id != "", ]
+project_mbox <- unique(project_mbox)
+project_mbox <- clean_mbox_comment(project_mbox)
+```
+
+```{r}
+project_jira <- clean_jira_data(parse_jira_replies_with_comment(parse_jira(jira_issue_comments_path)))
+project_jira <- unique(project_jira)
+# Remove rows where reply_subject or reply_id is NA
+project_jira <- project_jira[!is.na(project_jira$reply_subject) & project_jira$reply_id != "", ]
+project_jira <- clean_mbox_comment(project_jira)
+```
+
+```{r}
+project_github <- clean_jira_data(create_if_comment_column(parse_github_replies(github_issue_path)))
+
+# Convert data frame to data.table format for efficiency
+project_github <- as.data.table(project_github)
+
+# Use lapply and vapply to process all columns at once
+project_github <- project_github[, lapply(.SD, function(col) {
+  if (is.list(col)) {
+    vapply(col, toString, character(1))
+  } else {
+    col
+  }
+})]
+
+project_github <- unique(project_github)
+project_github <- project_github[!is.na(project_github$reply_subject) & project_github$reply_id != "", ]
+project_github <- clean_mbox_comment(project_github)
+```
+
+## Datetime Parsing
+
+```{r}
+# Parse timestamps and convert to UTC
+project_mbox$reply_datetimetz <- as.POSIXct(project_mbox$reply_datetimetz,
+                                        format = "%a, %d %b %Y %H:%M:%S %z", tz = "UTC")
+
+project_jira$reply_datetimetz <- gsub("\\.\\d{3}\\+0000", "", project_jira$reply_datetimetz)
+
+project_jira$reply_datetimetz <- as.POSIXct(project_jira$reply_datetimetz,
+                                            format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
+
+project_github$reply_datetimetz <- as.POSIXct(project_github$reply_datetimetz, format = "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+
+project_jira <- project_jira[!is.na(reply_datetimetz)]
+project_mbox <- project_mbox[!is.na(reply_datetimetz)]
+project_github <- project_github[!is.na(reply_datetimetz)]
+
+project_jira <- project_jira[
+  project_jira$reply_datetimetz >= as.POSIXct(start_datetime, format="%Y-%m-%d %H:%M:%S") &
+  project_jira$reply_datetimetz < as.POSIXct(end_datetime, format = "%Y-%m-%d", tz = "UTC"), 
+]
+
+project_mbox <- project_mbox[
+  project_mbox$reply_datetimetz >= as.POSIXct(start_datetime, format="%Y-%m-%d %H:%M:%S") &
+  project_mbox$reply_datetimetz < as.POSIXct(end_datetime, format = "%Y-%m-%d", tz = "UTC"), 
+]
+
+project_github <- project_github[
+  project_github$reply_datetimetz >= as.POSIXct(start_datetime, format="%Y-%m-%d %H:%M:%S") &
+  project_github$reply_datetimetz < as.POSIXct(end_datetime, format = "%Y-%m-%d", tz = "UTC"), 
+]
+```
+
+## Statistical Project Information
+
+```{r}
+print("Jira comments:")
+print(nrow(project_jira))
+print("GitHub comments:")
+print(nrow(project_github))
+print("Mbox:")
+print(nrow(project_mbox))
+```
+
+## Combine Data
+
+```{r}
+project_communication <- rbind(project_github, project_jira, project_mbox)
+```
+
+# Output Reply Data for Sentic Classification
+
+```{r}
+# Check and convert encoding
+project_communication <- lapply(project_communication, function(col) {
+  if(is.character(col)) {
+    # Convert to UTF-8 encoding
+    col <- iconv(col, to = "UTF-8")
+    # Use stri_replace_all_regex to remove illegal characters
+    col <- stri_replace_all_regex(col, "[^\x09\x0A\x0D\x20-\x7E\xC2-\xF4]", "")
+  }
+  return(col)
+})
+
+# Convert the list back to a data frame
+project_communication <- as.data.frame(project_communication)
+
+# Save as a CSV file encoded in UTF-8
+write.csv(project_communication, file = "project_communication_ambari.yml", row.names = TRUE, fileEncoding = "UTF-8", quote = TRUE)
+```
