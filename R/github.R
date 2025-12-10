@@ -57,7 +57,7 @@ parse_github_replies <- function(issues_json_folder_path,
                                  pull_requests_json_folder_path,
                                  comments_json_folder_path,
                                  commit_json_folder_path,
-                                 pr_comments_json_folder_path){
+                                 pr_comments_json_folder_path = NULL){
 
 #  issues_json_folder_path <- paste0(github_replies_folder_path,"/issue/")
 #  pull_requests_json_folder_path <- paste0(github_replies_folder_path,"/pull_request/")
@@ -86,49 +86,63 @@ parse_github_replies <- function(issues_json_folder_path,
                                      github_parse_project_issue_or_pr_comments)
   all_issue_or_pr_comments <- rbindlist(all_issue_or_pr_comments,fill=TRUE)
 
+  # Tabulate PR Comments
+  if(!is.null(pr_comments_json_folder_path)){
+    all_pr_comments <- lapply(list.files(pr_comments_json_folder_path,
+                                         full.names = TRUE), jsonlite::read_json)
+    all_pr_comments <- lapply(all_pr_comments,
+                              github_parse_project_pull_request_inline_comments)
+    all_pr_comments <- rbindlist(all_pr_comments, fill=TRUE)
+  }
 
-  all_issue <- all_issue[,.(reply_id=issue_id,
-                            in_reply_to_id=NA_character_,
-                            reply_datetimetz=created_at,
-                            reply_from=issue_user_login,
-                            reply_to=NA_character_,
-                            reply_cc=NA_character_,
-                            reply_subject=issue_number,
-                            reply_body=body)]
 
-  # Note because GitHub API treats PRs as Issues, then pr_number <=> issue_number
-  all_pr <- all_pr[,.(reply_id=pr_id,
-                      in_reply_to_id=NA_character_,
-                      reply_datetimetz=created_at,
-                      reply_from=pr_user_login,
-                      reply_to=NA_character_,
-                      reply_cc=NA_character_,
-                      reply_subject=pr_number,
-                      reply_body=body)]
+  if(nrow(all_issue) > 0){
+    all_issue <- all_issue[,.(reply_id=issue_id,
+                              in_reply_to_id=NA_character_,
+                              reply_datetimetz=created_at,
+                              reply_from=issue_user_login,
+                              reply_to=NA_character_,
+                              reply_cc=NA_character_,
+                              reply_subject=issue_number,
+                              reply_body=body)]
+  }
 
-  all_issue_or_pr_comments <- all_issue_or_pr_comments[,.(reply_id=comment_id,
-                                                          in_reply_to_id=NA_character_,
-                                                          reply_datetimetz=created_at,
-                                                          reply_from=comment_user_login,
-                                                          reply_to=NA_character_,
-                                                          reply_cc=NA_character_,
-                                                          reply_subject=issue_url,
-                                                          reply_body=body)]
+
+  if(nrow(all_pr) > 0){
+    # Note because GitHub API treats PRs as Issues, then pr_number <=> issue_number
+    all_pr <- all_pr[,.(reply_id=issue_id,
+                        in_reply_to_id=NA_character_,
+                        reply_datetimetz=created_at,
+                        reply_from=issue_user_login,
+                        reply_to=NA_character_,
+                        reply_cc=NA_character_,
+                        reply_subject=issue_number,
+                        reply_body=body)]
+  }
+
+
+  if(nrow(all_issue_or_pr_comments) > 0){
+    all_issue_or_pr_comments <- all_issue_or_pr_comments[,.(reply_id=comment_id,
+                                                            in_reply_to_id=NA_character_,
+                                                            reply_datetimetz=created_at,
+                                                            reply_from=comment_user_login,
+                                                            reply_to=NA_character_,
+                                                            reply_cc=NA_character_,
+                                                            reply_subject=issue_url,
+                                                            reply_body=body)]
 
   issue_or_pr_comments_reply_subject <- stringi::stri_split_regex(all_issue_or_pr_comments$reply_subject,
                                                                   "/")
   all_issue_or_pr_comments$reply_subject <- sapply(issue_or_pr_comments_reply_subject,"[[",8)
+  }
+
+
+
 
   replies <- rbind(all_issue,
                    all_pr,
                    all_issue_or_pr_comments)
 
-  # Tabulate PR Comments
-  all_pr_comments <- lapply(list.files(pr_comments_json_folder_path,
-                                       full.names = TRUE), jsonlite::read_json)
-  all_pr_comments <- lapply(all_pr_comments,
-                            github_parse_project_pull_request_inline_comments)
-  all_pr_comments <- rbindlist(all_pr_comments, fill=TRUE)
 
   # We can then parse the commit messages, and format so we have a look-up table of authors
   # and committers name, e-mail, and github ID:

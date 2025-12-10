@@ -80,9 +80,9 @@ save_path_pull_request <- get_github_pull_request_path(conf, "project_key_1")
 save_path_pr_comments <- get_github_pr_comments_path(conf, "project_key_1")
 save_path_issue_or_pr_comments <- get_github_issue_or_pr_comment_path(conf, "project_key_1")
 save_path_commit <- get_github_commit_path(conf, "project_key_1")
-save_path_pr_reviews <- get_github_pr_review_path(conf, "project_key_1")
-save_path_pr_commits <- get_github_pr_commits_path(conf, "project_key_1")
-save_path_pr_files <- get_github_pr_files_path(conf, "project_key_1")
+
+
+
 save_path_pr_reviewers <- get_github_pr_reviewers_path(conf, "project_key_1")
 save_path_pr_merge <- get_github_pr_merge_path(conf, "project_key_1")
 
@@ -452,134 +452,7 @@ head(all_issue_or_pr,2)  %>%
   gt(auto_align = FALSE) 
 ```
 
-## Pull Requests Endpoint
 
-Similarly to the Issue API, we can also obtain other metadata from pull
-requests, including their labels.
-
-```{r Collect all pull requests, eval = FALSE}
-gh_response <- github_api_project_pull_request(owner,repo,token)
-github_api_iterate_pages(token,gh_response,
-                         save_path_pull_request,
-                         prefix="pull_request")
-```
-
-```{r Parse all pull requests, eval = FALSE}
-all_pr <- lapply(list.files(save_path_pull_request,
-                                     full.names = TRUE),read_json)
-all_pr <- lapply(all_pr,
-                                   github_parse_project_pull_request)
-all_pr <- rbindlist(all_pr,fill=TRUE)
-
-tail(all_pr,1)  %>%
-  gt(auto_align = FALSE) 
-```
-
-## Pull Request Commits Endpoint
-
-We can obtain the commits for just one pull request, rather than the
-entire repository.
-
-```{r Collect Commits from Pull Requests}
-gh_response <- github_api_pr_commits(owner, repo, pull_number = 295, token)
-
-# create file name with path to save as json.
-file_name <- paste0(save_path_pr_commits,
-                    owner,"_",repo,"_pullcommits",
-                    ".json")
-#write to json.
-write_json(gh_response,file_name,pretty=TRUE,auto_unbox=TRUE)
-message("Written to file: ", file_name)
-```
-
-```{r Parse Commits from Pull Requests}
-all_pr_commits <- lapply(list.files(save_path_pr_commits, full.names = TRUE), read_json)
-all_pr_commits <- lapply(all_pr_commits, github_parse_project_pr_commits)
-all_pr_commits <- rbindlist(all_pr_commits, fill = TRUE)
-head(all_pr_commits,100)  %>%
-  gt(auto_align = FALSE) 
-```
-
-## Pull Request Files Endpoint
-
-We can obtain the files changed or added, and the number of changes in
-those files in a pull request.
-
-```{r Collect files from Pull Requests}
-gh_response <- github_api_pr_files(owner, repo, pull_number = 295, token)
-
-# create file name with path to save as json.
-file_name <- paste0(save_path_pr_files,
-                    owner,"_",repo,"_pullfiles",
-                    ".json")
-#write to json.
-write_json(gh_response,file_name,pretty=TRUE,auto_unbox=TRUE)
-message("Written to file: ", file_name)
-```
-
-```{r Parse Files from Pull Requests}
-all_pr_files <- lapply(list.files(save_path_pr_files, full.names = TRUE), read_json)
-all_pr_files <- lapply(all_pr_files, github_parse_project_pr_files)
-all_pr_files <- rbindlist(all_pr_files, fill = TRUE)
-head(all_pr_files,100)  %>%
-  gt(auto_align = FALSE) 
-```
-
-## Pull Request Review Endpoint
-
-We can obtain information on the whole review itself in a pull request,
-which is different than an in-line comment on code review. The review
-endpoint allows analysts to see the state of the review such as
-requesting changes, approving, or a singular comment. More information
-on the fields can be seen on the function definition for
-`github_parse_project_pr_reviews`. These fields of data can greatly
-contribute to finding and analyzing patterns in collaboration between
-developers.
-
-```{r Collect Reviews from Pull Requests}
-gh_response <- github_api_pr_reviews(owner, repo, pull_number = 295, token)
-
-# create file name with path to save as json.
-file_name <- paste0(save_path_pr_reviews,
-                    owner,"_",repo,"_pullreview",
-                    ".json")
-#write to json.
-write_json(gh_response,file_name,pretty=TRUE,auto_unbox=TRUE)
-message("Written to file: ", file_name)
-```
-
-```{r Parse Review Comments from Pull Requests}
-all_pr_reviews <- lapply(list.files(save_path_pr_reviews, full.names = TRUE), read_json)
-all_pr_reviews <- lapply(all_pr_reviews, github_parse_project_pr_reviews)
-all_pr_reviews <- rbindlist(all_pr_reviews, fill = TRUE)
-head(all_pr_reviews,10)  %>%
-  gt(auto_align = FALSE) 
-```
-
-## Pull Request Review Comments Endpoint
-
-Other information we can obtain is the review comments from Pull
-Requests that contain the inline code blocks. The review comments
-include the diff_hunk field, which is a string that contains the in-line
-code reviewers may comment on the pull request. The particular line
-numbers the comment is referencing is specified by the review comment.
-More information on the fields can be seen on the function definition
-for `github_parse_project_pr_comments`. These fields of data can greatly
-contribute to finding and analyzing patterns in collaboration between
-developers.
-
-```{r Collect Review Comments from Pull Requests}
-gh_response <- github_api_project_pr_comments_refresh(owner, repo, token)
-github_api_iterate_pages(token, gh_response, save_path_pr_comments, prefix="pr_comments")
-```
-
-```{r Parse Review Comments from Pull Requests}
-all_pr_comments <- lapply(list.files(save_path_pr_comments, full.names = TRUE), read_json)
-all_pr_comments <- lapply(all_pr_comments, github_parse_project_pr_comments)
-all_pr_comments <- rbindlist(all_pr_comments, fill = TRUE)
-head(all_pr_comments,100)  %>%
-  gt(auto_align = FALSE) 
-```
 
 ## Combining Issue and Pull Request communication
 
@@ -603,15 +476,16 @@ fields obtained from the commit table. As before, we do not display the
 body column to prevent breaking the HTML format.
 
 ```{r Combine Issue and Pull Request Communication}
-replies <- parse_github_replies(save_path_issue,
-                                save_path_pull_request,
-                                save_path_issue_or_pr_comments,
-                                save_path_commit,
-                                save_path_pr_comments)  
+replies <- parse_github_replies(issues_json_folder_path=save_path_issue,
+                                pull_requests_json_folder_path=save_path_pull_request,
+                                comments_json_folder_path=save_path_issue_or_pr_comments,
+                                commit_json_folder_path=save_path_commit,
+                                pr_comments_json_folder_path=save_path_pr_comments)  
 
 tail(replies,2)  %>%
   gt(auto_align = FALSE) 
 ```
+
 
 # A note on Refreshers
 

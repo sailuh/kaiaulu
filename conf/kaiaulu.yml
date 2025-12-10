@@ -90,6 +90,8 @@ issue_tracker:
       pr_comments: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/pr_comments/
       pr_reviews: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/pr_reviews/
       commit: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/commit/
+      pr_commits: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/pr_commits/
+      pr_files: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/pr_files/
 #     project_key_2:
 #       # Obtained from the project's GitHub URL
 #       owner: ssunoo2

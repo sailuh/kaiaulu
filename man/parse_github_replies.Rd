@@ -9,7 +9,7 @@ parse_github_replies(
   pull_requests_json_folder_path,
   comments_json_folder_path,
   commit_json_folder_path,
-  pr_comments_json_folder_path
+  pr_comments_json_folder_path = NULL
 )
 }
 \arguments{
