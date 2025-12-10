@@ -21,8 +21,7 @@ github_api_project_issue_or_pr_comments_by_date(
 
 \item{since}{The lower bound. Comments created and/or updated after this date will be retrieved.}
 
-\item{verbose}{boolean value. When set to true, it prints operational messages including
-greatest dates and the file name that contains the greatest date.}
+\item{verbose}{True if messages should be displayed during execution.}
 }
 \description{
 Appends a 'since' query to the issue/comments api request and returns the first page of the result.

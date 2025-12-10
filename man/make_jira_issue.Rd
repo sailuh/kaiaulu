@@ -65,9 +65,4 @@ A list which represents the JIRA JSON in memory
 \description{
 Creates a single JIRA Issue as a list, which can be saved as a JSON with or without comments.
 }
-\seealso{
-Other {unittest}: 
-\code{\link{git_create_sample_log}()},
-\code{\link{git_delete_sample_log}()}
-}
 \concept{{unittest}}

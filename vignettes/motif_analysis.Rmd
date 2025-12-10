@@ -54,6 +54,7 @@ issues_json_folder_path <- get_github_issue_path(conf, "project_key_1")
 pull_requests_json_folder_path <- get_github_pull_request_path(conf, "project_key_1")
 comments_json_folder_path <- get_github_issue_or_pr_comment_path(conf, "project_key_1")
 commit_json_folder_path <- get_github_commit_path(conf, "project_key_1")
+save_path_pr_comments <- get_github_pr_comments_path(conf, "project_key_1")
 
 # Filters
 file_extensions <- get_file_extensions(conf)
@@ -97,7 +98,8 @@ In this Notebook, we only use GitHub replies (issue and pull requests commentary
 project_github_replies <- parse_github_replies(issues_json_folder_path,
                                                  pull_requests_json_folder_path,
                                                  comments_json_folder_path,
-                                                 commit_json_folder_path)  
+                                                 commit_json_folder_path,
+                                                 save_path_pr_comments)  
 
 
 # Timezone is not available on GitHub timestamp, all in UTC

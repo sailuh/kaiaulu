@@ -24,9 +24,7 @@ github_api_iterate_pages(
 
 \item{max_pages}{The maximum number of pages to download. MAX = Available token requests left}
 
-\item{verbose}{Boolean value that prints operating messages when set to TRUE, does not print when false.
-Operating messages may be details about certain parts of the code correctly executing or printing names
-of files created, etc.}
+\item{verbose}{True if messages should be displayed during execution.}
 }
 \description{
 GitHub API endpoints return data in pages, each containing by default 100 entries.

@@ -126,16 +126,17 @@ reference:
 - title: __GitHub__
   desc: >
        Functions to interact and download data from GitHub API.
-       See the [GitHub API](../articles/github_api_showcase.html)
-       Notebook to learn how to set an API Key, and how to use
-       it to download issues and comments on the
-       [GitHub Downloader and Parser](../articles/download_github_comments.html)
-       Notebook.
+       See the [GitHub Events](../articles/download_github_events.html)
+       Notebook to learn how to download GitHub Events (e.g. for use in Process Mining)
+       and Commit Messages data for use in identity matching.
+       For Issue Comment data, see [GitHub Issue Comment Downloader and Parser Notebook](../articles/download_github_issue_comments.html),
+       or [Pull Request Comment (Conversations Tab and Inline Code Comment and Snippets)](../articles/download_github_pull_request_comments.html).
 - subtitle: Issues
   desc: Download and parsing GitHub's Issues, Pull Requests and Events
 - contents:
   - github_api_rate_limit
   - parse_github_replies
+  - parse_github_latest_date
   - github_api_project_issue_events
   - github_parse_project_issue_events
   - github_api_project_issue
@@ -151,8 +152,27 @@ reference:
 - subtitle: Pull Request
   desc: GitHub's Pull Request
 - contents:
+  - github_api_project_pull_request_refresh
   - github_api_project_pull_request
   - github_parse_project_pull_request
+  - github_parse_pull_request
+  - github_api_project_pull_request_review_refresh
+  - github_api_pull_request_reviews
+  - github_parse_project_pull_request_reviews
+  - github_api_project_pull_request_inline_comments_refresh
+  - github_api_project_pull_request_inline_comments
+  - github_parse_project_pull_request_inline_comments
+  - github_api_issue_pr_comments
+  - github_api_pr_commits
+  - github_parse_project_pr_commits
+  - github_api_pr_files
+  - github_parse_project_pr_files
+  - github_api_pr_merge
+  - github_parse_project_pr_merge
+  - github_api_pr_reviewers
+  - github_parse_project_pr_reviewers
+  - github_api_pull_pr_comments
+  - github_api_pull_request
 - subtitle: Issue and Pull Request Comments
   desc: >
     GitHub's assumes Issues and Pull Requests to be
@@ -324,6 +344,12 @@ reference:
   - get_github_owner
   - get_github_pull_request_path
   - get_github_repo
+  - get_github_pr_review_path
+  - get_github_pr_comments_path
+  - get_github_pr_commits_path
+  - get_github_pr_files_path
+  - get_github_pr_merge_path
+  - get_github_pr_reviewers_path
   - get_issue_id_regex
   - get_jira_domain
   - get_jira_issues_comments_path

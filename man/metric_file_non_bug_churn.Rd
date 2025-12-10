@@ -18,7 +18,7 @@ a two column data.table of the form file_pathname | file_non_bug_churn
 The total churn sum of commits of all closed non-bug type issues the file was involved.
 }
 \seealso{
-Other {metrics}: 
+Other metrics: 
 \code{\link{commit_message_id_coverage}()},
 \code{\link{metric_churn_per_commit_interval}()},
 \code{\link{metric_churn_per_commit_per_file}()},
@@ -28,4 +28,4 @@ Other {metrics}:
 \code{\link{metric_file_churn}()},
 \code{\link{metric_file_non_bug_frequency}()}
 }
-\concept{{metrics}}
+\concept{metrics}

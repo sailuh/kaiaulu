@@ -1213,7 +1213,6 @@ create_priority <- function(jira_domain_url, priority) {
 #' issue_key, status, priority, and issue_type as the base issue
 #'
 #' @param jira_domain_url URL of JIRA domain
-#' @param parent_issue_key issue key of the parent issue of the current JIRA issue
 #' @param status status of issue for development
 #' @param priority the name of the priority of the issue
 #' @param issue_type type of JIRA issue
