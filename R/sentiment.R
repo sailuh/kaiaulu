@@ -14,13 +14,13 @@
 #' @param pysenti_path Path to the PySenti Python script.
 #' @param reply_dt A data.table with at least `text` and `polarity` columns.
 #' @param model_save_path Directory where the trained model will be stored.
-#' @param model Model architecture name; one of `"bert"`, `"xlnet"`, `"roberta"`, or `"albert"`.
+#' @param model Model architecture name; `"bert-base-cased"`, `"xlnet-base-cased", etc.
 #' @return Character vector containing stdout/stderr from the Python process.
 #' @export
 pysenti_train_model <- function(pysenti_path,
                                 reply_dt,
                                 model_save_path,
-                                model) {
+                                model_name) {
 
   tmp_train <- tempfile(fileext = ".csv")
   data.table::fwrite(reply_dt, tmp_train)
@@ -29,19 +29,19 @@ pysenti_train_model <- function(pysenti_path,
     stop("Python script not found at: ", pysenti_path)
   }
 
- model_save_path <- file.path(sub("/$", "", model_save_path), paste0(model, "_model"))
+  model_save_path <- paste0(model_save_path, model_name)
 
   args <- c(
     pysenti_path,
     "--mode", "train",
     "--input", tmp_train,
-    "--model", model,
-    "--output", model_save_path
+    "--output", model_save_path,
+    "--model_name", model_name
   )
 
   res <- system2("python", args = args, stdout = TRUE, stderr = TRUE)
 
-  # Extract and print the line that starts with "MODEL_SAVED_AT:"
+  # Extract line that starts with "MODEL_SAVED_AT:"
   final_line <- grep("^MODEL_SAVED_AT:", res, value = TRUE)
   sub("^MODEL_SAVED_AT:\\s*", "", final_line)
 }
@@ -56,37 +56,44 @@ pysenti_train_model <- function(pysenti_path,
 #' @param reply_dt A data.table containing a `text` column.
 #' @param model_save_path Path to the trained model folder.
 #' @param prediction_path Directory where the prediction CSV will be written.
-#' @param model Model architecture name; one of `"bert"`, `"xlnet"`, `"roberta"`, or `"albert"`.
+#' @param model Model architecture name; `"bert-base-cased"`, `"xlnet-base-cased", etc.
+#' @param timestamp Character string representing the current time, formatted as "YYYYMMDD_HHMMSS", used to append to the prediction file name for uniqueness.
 #' @return A data.table containing predicted sentiment labels.
 #' @export
 pysenti_predict <- function(pysenti_path,
                             reply_dt,
                             model_save_path,
-                            prediction_path,
-                            model) {
+                            prediction_save_path,
+                            model_name,
+                            timestamp) {
 
-  tmp_input <- tempfile(fileext = ".csv")
-  data.table::fwrite(reply_dt, tmp_input)
+  tmp_predict <- tempfile(fileext = ".csv")
+  data.table::fwrite(reply_dt, tmp_predict)
 
-  model_save_path <- file.path(sub("/$", "", model_save_path), paste0(model, "_model"))
-  # Timestamp to make the filename unique
-  timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
-  output_file <- file.path(sub("/$", "", prediction_path), paste0(model, "_prediction_", timestamp, ".csv"))
+  model_save_path <- paste0(model_save_path, model_name)
+
+  output_file <- paste0(
+    prediction_save_path,
+    model_name, "_",
+    timestamp, ".csv"
+  )
 
   args <- c(
     pysenti_path,
     "--mode", "predict",
-    "--input", tmp_input,
-    "--model", model,
-    "--model_path", model_save_path,  
+    "--input", tmp_predict,
+    "--model_name", model_name,
+    "--model_path", model_save_path,
     "--output", output_file
   )
 
   res <- system2("python", args = args, stdout = TRUE, stderr = TRUE)
 
-  cat(grep("^Using model file:", res, value = TRUE), "\n")
-  cat(grep("^PREDICTION_SAVED_AT:", res, value = TRUE), "\n")
-  
+  # Capture the full line starting with "PREDICTION_SAVED_AT:"
+  full_line <- grep("^PREDICTION_SAVED_AT:", res, value = TRUE)
+
+  print(full_line)
+
   data.table::fread(output_file)
 }
 
