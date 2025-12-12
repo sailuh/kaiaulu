@@ -607,6 +607,15 @@ github_parse_search_issues_refresh <- function(api_responses) {
     parsed_response[["author_association"]] <- api_response[["author_association"]]
     parsed_response[["title"]] <- api_response[["title"]]
     parsed_response[["body"]] <- api_response[["body"]]
+    if (length(parsed_response[["body"]]) > 0) {
+      if(parsed_response[["body"]] != ""){
+        parsed_response[["body"]] <- api_response[["body"]]
+      } else {
+        parsed_response[["body"]] <- NA_character_
+      }
+    } else {
+      parsed_response[["body"]] <- NA_character_
+    }
 
     # Parsing labels
     parsed_response[["labels"]] <- api_response[["labels"]]
@@ -713,6 +722,7 @@ github_api_project_issue_refresh <- function(owner,
                                              save_path_issue_refresh,
                                              issue_or_pr,
                                              verbose=TRUE){
+
 
 
   # Check if refresh folder is empty
@@ -893,6 +903,16 @@ github_parse_project_issue_or_pr_comments <- function(api_responses){
     parsed_response[["comment_user_login"]] <- api_response[["user"]][["login"]]
     parsed_response[["author_association"]] <- api_response[["author_association"]]
     parsed_response[["body"]] <- api_response[["body"]]
+    if (length(parsed_response[["body"]]) > 0) {
+      if(parsed_response[["body"]] != ""){
+        parsed_response[["body"]] <- api_response[["body"]]
+      } else {
+        parsed_response[["body"]] <- NA_character_
+      }
+    } else {
+      parsed_response[["body"]] <- NA_character_
+    }
+
     parsed_response[["total_count"]] <- api_response[["total_count"]]
     parsed_response[["+1"]] <- api_response[["+1"]]
     parsed_response[["-1"]] <- api_response[["-1"]]

@@ -121,16 +121,46 @@ commit_message_id_regex:
   #cve_id: ?
 
 filter:
-  keep_filepaths_ending_with:
-    - R
-  remove_filepaths_containing:
-    - test
+  files:
+    keep_filepaths_ending_with:
+       - R
+    remove_filepaths_containing:
+       - test
+  replies:
+    filter_by_reply_author_substring:
+       - "no-reply@apache.org"
+       - "jenkins@builds.apache.org"
+       - "bot"
+       - "Hudson"
+    filter_by_reply_subject_substring:
+       - "Review Request"
+       - "\\[VOTE\\]"
+       # When GitHub automatically sends notification emails with subjects starting with [Github]
+       - "^\\[GitHub\\]"
+       # When Jira also sends automated notification emails for issue updates, status changes, etc. starting with [jira]
+       - "^\\[jira\\]"
+       # When a user is replying to a previous msesage not creating a new topic. Re: is a reply prefix added automatically by email clients
+       - "^[Rr][Ee]:"
+    filter_by_reply_body_substring:
+       - "XXXX"
+    regex_to_replace_key_with:
+       MEMAIL: "\\S+@\\S*\\s?"
+       MMENTION: "(\\s|^)@(\\S*\\s?)"
+       MICODEFENCE: "```[\\s\\S]*?```"
+       MICODE: "`([^`]*)`"
+       MVERSIONNUMBER: "\\b\\d+\\.\\d+(\\.\\d+)*\\b"
+       MISSUEMENTION: "(\\s|^)#\\d+"
+       MURL: "([a-zA-Z0-9]+):\\/\\/([\\w_-]+(?:\\.[\\w_-]+)*)[\\w.,@?^=%&:/~+#-]*[\\w@?^=%&/~+#-]"
+       MCOMMIT: "\\b[0-9a-f]{7,40}\\b"
 
 
 # Third Party Tools Configuration #
 #
 # See Kaiaulu's README.md for details on how to setup these tools.
 tool:
+  sentiment:
+    model: ../../rawdata/kaiaulu/sentiment/sentiment_classifier/model/
+    prediction: ../../rawdata/kaiaulu/sentiment/sentiment_classifier/prediction/
   # Depends allow to parse file-file static dependencies.
   depends:
     # accepts one language at a time: cpp, java, ruby, python, pom
