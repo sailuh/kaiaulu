@@ -3,11 +3,8 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
-<<<<<<< HEAD
  * `exec/ghevents.R` has been added. It is a executable CLI (command-line interface) to download and parse Github Issue Events from outside Kaiaulu.
-=======
  * All GitHub Pull Request Comments are able to be downloaded in the Pull Request Comments notebook. [342](https://github.com/sailuh/kaiaulu/issues/342)
->>>>>>> origin/master
  * Refactor of all R/mail.R mailing list functions for downloading and refreshing both pipermail and mod mbox archives. [#284](https://github.com/sailuh/kaiaulu/issues/284)
  * `refresh_mod_mbox()` and `refresh_pipermail()` has been added. They are both functions that downloads mbox issues that are not already downloaded up until the current year and month. [#284](https://github.com/sailuh/kaiaulu/issues/284)
  * `parse_mbox_latest_date()` has been added. This function returns the file name of the downloaded mbox file containing the latest date for use by `download_mbox_per_month()` and `download_pipermail` to implement a refresh capability. [#284](https://github.com/sailuh/kaiaulu/issues/284)
