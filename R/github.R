@@ -6,6 +6,41 @@
 
 ############## Parsers ##############
 
+#' Parse GitHub current issue
+#'
+#' Returns the file containing the most current issue in the specified folder.
+#'
+#' The folder assumes the following convention: "(org)_(repository)_(uniextimestamp_lowerbound)_(unixtimestamp_upperbound).json"
+#' For example: "sailuh_kaiaulu_1231234_2312413.json". This nomenclature is the various downloaders in R/github.R.
+#'
+#' @param json_folder_path path to save folder containing JIRA issue and/or comments json files.
+#' @return The name of the jira issue file with the latest created date that was created/downloaded for
+#' use by the Jira downloader refresher
+#' @export
+#' @family parsers
+#' @seealso \code{\link{parse_jira_latest_date}}
+parse_github_latest_date <- function(json_folder_path){
+  file_list <- list.files(json_folder_path)
+  time_list <- list()
+
+  # Checking if the save folder is empty
+  if (identical(file_list, character(0))){
+    stop(stringi::stri_c("cannot open the connection"))
+  }
+
+  for (j in file_list){
+    j <- sub(".*_(\\w+)\\.[^.]+$", "\\1", j)
+    j <- as.numeric(j)
+    time_list <- append(time_list, j)
+  }
+
+  overall_latest_date <- as.character(max(unlist(time_list)))
+
+  latest_issue_file <- grep(overall_latest_date, file_list, value = TRUE)
+
+  return(latest_issue_file)
+}
+
 #' Parse GitHub Issue and Pull Request Comments
 #'
 #' Parses Issue, Pull Request, and Comments Endpoints into a reply table.
@@ -15,18 +50,20 @@
 #' @param pull_requests_json_folder_path The path to the downloaded pull requests JSON. See \code{\link{github_api_project_pull_request}}.
 #' @param comments_json_folder_path The path to the downloaded comments JSON. See \code{\link{github_api_project_issue_or_pr_comments}}.
 #' @param commit_json_folder_path The path to the downloaded commits JSON (used to map github username to the git log). See \code{\link{github_api_project_commits}}.
+#' @param pr_comments_json_folder_path The path to the download pr comments JSON. see \code{\link{github_api_project_pull_request_inline_comments}}.
 #' @return A single reply table which combines the communication from the three jsons.
 #' @export
 parse_github_replies <- function(issues_json_folder_path,
                                  pull_requests_json_folder_path,
                                  comments_json_folder_path,
-                                 commit_json_folder_path){
-# PASSING THE WRONG PARAMETER HERE
+                                 commit_json_folder_path,
+                                 pr_comments_json_folder_path = NULL){
 
 #  issues_json_folder_path <- paste0(github_replies_folder_path,"/issue/")
 #  pull_requests_json_folder_path <- paste0(github_replies_folder_path,"/pull_request/")
 #  comments_json_folder_path <- paste0(github_replies_folder_path,"/issue_or_pr_comment/")
 #  commit_json_folder_path <- paste0(github_replies_folder_path,"/commit/")
+#  pr_comments_json_folder_path <- paste0(github_replies_folder_path,"/pr_comment/")
 
   # Tabulate Issues
   all_issue <- lapply(list.files(issues_json_folder_path,
@@ -49,42 +86,63 @@ parse_github_replies <- function(issues_json_folder_path,
                                      github_parse_project_issue_or_pr_comments)
   all_issue_or_pr_comments <- rbindlist(all_issue_or_pr_comments,fill=TRUE)
 
+  # Tabulate PR Comments
+  if(!is.null(pr_comments_json_folder_path)){
+    all_pr_comments <- lapply(list.files(pr_comments_json_folder_path,
+                                         full.names = TRUE), jsonlite::read_json)
+    all_pr_comments <- lapply(all_pr_comments,
+                              github_parse_project_pull_request_inline_comments)
+    all_pr_comments <- rbindlist(all_pr_comments, fill=TRUE)
+  }
 
-  all_issue <- all_issue[,.(reply_id=issue_id,
-                            in_reply_to_id=NA_character_,
-                            reply_datetimetz=created_at,
-                            reply_from=issue_user_login,
-                            reply_to=NA_character_,
-                            reply_cc=NA_character_,
-                            reply_subject=issue_number,
-                            reply_body=body)]
 
-  # Note because GitHub API treats PRs as Issues, then pr_number <=> issue_number
-  all_pr <- all_pr[,.(reply_id=pr_id,
-                      in_reply_to_id=NA_character_,
-                      reply_datetimetz=created_at,
-                      reply_from=pr_user_login,
-                      reply_to=NA_character_,
-                      reply_cc=NA_character_,
-                      reply_subject=pr_number,
-                      reply_body=body)]
+  if(nrow(all_issue) > 0){
+    all_issue <- all_issue[,.(reply_id=issue_id,
+                              in_reply_to_id=NA_character_,
+                              reply_datetimetz=created_at,
+                              reply_from=issue_user_login,
+                              reply_to=NA_character_,
+                              reply_cc=NA_character_,
+                              reply_subject=issue_number,
+                              reply_body=body)]
+  }
 
-  all_issue_or_pr_comments <- all_issue_or_pr_comments[,.(reply_id=comment_id,
-                                                          in_reply_to_id=NA_character_,
-                                                          reply_datetimetz=created_at,
-                                                          reply_from=comment_user_login,
-                                                          reply_to=NA_character_,
-                                                          reply_cc=NA_character_,
-                                                          reply_subject=issue_url,
-                                                          reply_body=body)]
+
+  if(nrow(all_pr) > 0){
+    # Note because GitHub API treats PRs as Issues, then pr_number <=> issue_number
+    all_pr <- all_pr[,.(reply_id=issue_id,
+                        in_reply_to_id=NA_character_,
+                        reply_datetimetz=created_at,
+                        reply_from=issue_user_login,
+                        reply_to=NA_character_,
+                        reply_cc=NA_character_,
+                        reply_subject=issue_number,
+                        reply_body=body)]
+  }
+
+
+  if(nrow(all_issue_or_pr_comments) > 0){
+    all_issue_or_pr_comments <- all_issue_or_pr_comments[,.(reply_id=comment_id,
+                                                            in_reply_to_id=NA_character_,
+                                                            reply_datetimetz=created_at,
+                                                            reply_from=comment_user_login,
+                                                            reply_to=NA_character_,
+                                                            reply_cc=NA_character_,
+                                                            reply_subject=issue_url,
+                                                            reply_body=body)]
 
   issue_or_pr_comments_reply_subject <- stringi::stri_split_regex(all_issue_or_pr_comments$reply_subject,
                                                                   "/")
   all_issue_or_pr_comments$reply_subject <- sapply(issue_or_pr_comments_reply_subject,"[[",8)
+  }
+
+
+
 
   replies <- rbind(all_issue,
                    all_pr,
                    all_issue_or_pr_comments)
+
 
   # We can then parse the commit messages, and format so we have a look-up table of authors
   # and committers name, e-mail, and github ID:
@@ -125,7 +183,294 @@ parse_github_replies <- function(issues_json_folder_path,
   return(replies)
 }
 
-############## Downloader ##############
+############## Downloaders ##############
+
+#' Download Project Contributors
+#'
+#' Download project contributors from GET /repos/{owner}/{repo}/contributors" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @references For more details see \url{https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#list-repository-contributors}.
+#' @export
+github_api_project_contributors <- function(owner,repo,token){
+  gh::gh("GET /repos/{owner}/{repo}/contributors",
+         owner=owner,
+         repo=repo,
+         page=1,
+         per_page=100,
+         .token=token)
+}
+
+###### Github Pull Request Reviews ######
+
+#' Download Pull Request Reviews
+#'
+#' Download Pull Request Reviews from "GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param pull_number Required pull request number to make API request
+#' @param token Your GitHub API token
+#' @references For details, see \url{https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#list-reviews-for-a-pull-request}.
+#' @export
+github_api_pull_request_reviews <- function(owner,repo,pull_number,token){
+  gh::gh("GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews",
+         owner=owner,
+         repo=repo,
+         pull_number=pull_number,
+         page=1,
+         per_page=100,
+         .token=token)
+}
+
+#' Parse Pull Requests' Reviews JSON to Table
+#'
+#' Parse pull request data obtained by \code{\link{github_api_project_pull_request_review_refresh}}.
+#'
+#' Note not all columns available in the downloaded json are parsed.
+#' @param api_responses API response obtained from \code{\link{github_api_project_pull_request_review_refresh}}.
+#' @export
+github_parse_project_pull_request_reviews <- function(api_responses) {
+  parse_response <- function(api_response) {
+    parsed_response <- list()
+    parsed_response[["review_id"]] <- api_response[["id"]]
+    parsed_response[["html_url"]] <- api_response[["html_url"]]
+    parsed_response[["user_id"]] <- api_response[["user"]][["id"]]
+    parsed_response[["reviewer"]] <- api_response[["user"]][["login"]]
+    parsed_response[["submitted_at"]] <- api_response[["submitted_at"]]
+    parsed_response[["state"]] <- api_response[["state"]]
+    parsed_response[["body"]] <- api_response[["body"]]
+    parsed_response[["pull_request_url"]] <- api_response[["_links"]][["pull_request"]][["href"]]
+    parsed_response[["commit_id"]] <- api_response[["commit_id"]]
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+  rbindlist(lapply(api_responses,parse_response),fill=TRUE)
+}
+
+#' Download Project Pull Request Reviews Refresh
+#'
+#' Download Pull Request Reviews based on downloaded pull requests downloaded by \code{\link{github_api_project_pull_request_refresh}}.
+#' The data dependency is due to GitHub API requiring a specific pull request id to complete the API Request.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @param save_path_pull_request save path from data obtained by \code{\link{github_api_project_pull_request_refresh}}.
+#' @param save_path_pr_reviews the save path for the pull request reviews folder to be downloaded
+#' @param verbose True if messages should be displayed during execution.
+#' @export
+#' @references For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.
+#' @seealso  \code{link{github_api_pull_request_reviews}} to download pull request review data.
+#' @seealso  \code{link{github_api_project_pull_request}} to download pull request data and retrieve pull numbers.
+github_api_project_pull_request_review_refresh <- function(owner,repo,token,save_path_pull_request,save_path_pr_reviews,verbose=TRUE){
+  # Sift through pull request file and retrieve all valid pull request numbers
+  # Assumed that user already downloaded pull request endpoint.
+
+  # Obtain the list of all downloaded **Non-**Code Review Comment Pull Request IDs
+  non_pull_requests <- lapply(list.files(save_path_pull_request,
+                                     full.names = TRUE),read_json)
+  non_pull_requests <- lapply(non_pull_requests, github_parse_search_issues_refresh)
+  non_pull_requests <- rbindlist(non_pull_requests,fill=TRUE)
+  downloaded_non_code_review_pull_request_ids <- non_pull_requests$issue_number
+
+  # Obtain the list of all downloaded Code Review Comment Pull Request IDs
+  pull_requests <- list.files(save_path_pr_reviews, full.names = TRUE)
+  split_pull_request_number <- function(file_path) {
+    last_element <- length(stringi::stri_split(file_path, regex = "/")[[1]])
+    file_path <- stringi::stri_split(file_path, regex = "/")[[1]][last_element]
+    file_path <- stringi::stri_split(file_path, regex = "\\.")[[1]][1]
+    file_path <- stringi::stri_split(file_path, regex = "_")[[1]][3]
+    return (file_path)
+  }
+  downloaded_code_review_pull_request_ids <- as.integer(sapply(pull_requests,split_pull_request_number))
+  most_recent_code_review_pull_request_id <- max(downloaded_code_review_pull_request_ids)
+
+  # Which Pull Request IDs have since been downloaded that we lack Code Reviews for?
+  missing_pull_request_ids <- setdiff(downloaded_non_code_review_pull_request_ids,
+                                      downloaded_code_review_pull_request_ids)
+
+  if(length(missing_pull_request_ids) > 0){
+      for (num in missing_pull_request_ids) {
+        if(verbose){message("Downloading Review Comment from Pull Request: ", num)}
+        gh_response <- github_api_pull_request_reviews(owner,repo,num,token)
+        file_name <- paste0(save_path_pr_reviews, owner,"_",repo,"_", num,".json")
+        write_json(gh_response,file_name,pretty=TRUE,auto_unbox=TRUE)
+      }
+  }else{
+      if(verbose){
+        message("All files are up to date. Nothing to download.")
+      }
+  }
+  if(verbose){
+    message("The latest Pull Request ID which Code Reviews were downloaded for is: ", max(most_recent_code_review_pull_request_id))
+  }
+}
+
+###### Github Pull Request Commits ######
+
+#' Download Pull Request Commits
+#'
+#' Download Pull Request Commits from "GET /repos/{owner}/{repo}/pulls/{pull_number}/commits" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param pull_number The number that identifies the pull request.
+#' @param token Your GitHub API token
+#' @references For details, see \url{https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-commits-on-a-pull-request}.
+#' @export
+github_api_pr_commits <- function(owner,repo,pull_number,token){
+  gh::gh("GET /repos/{owner}/{repo}/pulls/{pull_number}/commits",
+         owner=owner,
+         repo=repo,
+         pull_number=pull_number,
+         page=1,
+         per_page=100,
+         .token=token)
+}
+
+#' Parse Pull Requests' Commits JSON to Table
+#'
+#' Note not all columns available in the downloaded json are parsed.
+#' This function only parses for the commits made on the pull request.
+#' @param api_responses API response obtained from github_api_* function.
+#' @export
+github_parse_project_pr_commits <- function(api_responses) {
+  parse_response <- function(api_response) {
+    parsed_response <- list()
+    parsed_response[["user"]] <- api_response[["commit"]][["author"]][["name"]]
+    parsed_response[["date"]] <- api_response[["commit"]][["author"]][["date"]]
+    parsed_response[["message"]] <- api_response[["commit"]][["message"]]
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+  rbindlist(lapply(api_responses,parse_response),fill=TRUE)
+}
+
+#' Download Pull Request Files
+#'
+#' Download Pull Request Files from "GET /repos/{owner}/{repo}/pulls/{pull_number}/files" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param pull_number The number that identifies the pull request.
+#' @param token Your GitHub API token
+#' @references For details, see \url{https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#list-files-on-a-pull-request}.
+#' @export
+github_api_pr_files <- function(owner,repo,pull_number,token){
+  gh::gh("GET /repos/{owner}/{repo}/pulls/{pull_number}/files",
+         owner=owner,
+         repo=repo,
+         pull_number=pull_number,
+         page=1,
+         per_page=100,
+         .token=token)
+}
+
+#' Parse Pull Requests' Files JSON to Table
+#'
+#' Note not all columns available in the downloaded json are parsed.
+#' This function only parses for the files made on the pull request.
+#' @param api_responses API response obtained from github_api_* function.
+#' @export
+github_parse_project_pr_files <- function(api_responses) {
+  parse_response <- function(api_response) {
+    parsed_response <- list()
+    parsed_response[["filename"]] <- api_response[["filename"]]
+    parsed_response[["additions"]] <- api_response[["addtions"]]
+    parsed_response[["deletions"]] <- api_response[["deletions"]]
+    parsed_response[["changes"]] <- api_response[["changes"]]
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+  rbindlist(lapply(api_responses,parse_response),fill=TRUE)
+}
+
+#' Download Pull Request Requested Reviewers
+#'
+#' Download Pull Request Requested Reviewers from "GET /repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param pull_number The number that identifies the pull request.
+#' @param token Your GitHub API token
+#' @references For details, see \url{https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#get-all-requested-reviewers-for-a-pull-request}.
+#' @export
+github_api_pr_reviewers <- function(owner,repo,pull_number,token){
+  gh::gh("GET /repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers",
+         owner=owner,
+         repo=repo,
+         pull_number=pull_number,
+         page=1,
+         per_page=100,
+         .token=token)
+}
+
+#' Parse Pull Requests' Requested Reviewers JSON to Table
+#'
+#' Note not all columns available in the downloaded json are parsed.
+#' This function only parses for the files made on the pull request.
+#' @param api_responses API response obtained from github_api_* function.
+#' @export
+github_parse_project_pr_reviewers <- function(api_responses) {
+  parse_response <- function(api_response) {
+    parsed_response <- list()
+    parsed_response[["users"]] <- api_response[["users"]][["login"]]
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+  rbindlist(lapply(api_responses,parse_response),fill=TRUE)
+}
+
+#' Download Pull Request Merge Status
+#'
+#' Download Pull Request Requested Reviewers from "GET /repos/{owner}/{repo}/pulls/{pull_number}/merge" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param pull_number The number that identifies the pull request.
+#' @param token Your GitHub API token
+#' @references For details, see \url{https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#check-if-a-pull-request-has-been-merged}.
+#' @export
+github_api_pr_merge <- function(owner,repo,pull_number,token){
+  gh::gh("GET /repos/{owner}/{repo}/pulls/{pull_number}/merge",
+         owner=owner,
+         repo=repo,
+         pull_number=pull_number,
+         page=1,
+         per_page=100,
+         .token=token)
+}
+
+#' Parse Pull Requests' Merge Status JSON to Table
+#'
+#' Note not all columns available in the downloaded json are parsed.
+#' This function only checks for the merge status for a pull request.
+#' @param api_responses API response obtained from github_api_* function.
+#' @export
+github_parse_project_pr_merge <- function(api_responses) {
+  parse_response <- function(api_response) {
+    parsed_response <- list()
+    parsed_response[["status"]] <- api_response[["status"]]
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+  rbindlist(lapply(api_responses,parse_response),fill=TRUE)
+}
+
+###### Github Issue Events ######
 
 #' Download Project Issue Events
 #'
@@ -193,6 +538,95 @@ github_parse_project_issue_events <- function(api_responses){
   rbindlist(lapply(api_responses,parse_response),fill=TRUE)
 }
 
+###### Github Issue Search ######
+
+#' Download Project Issues via Search
+#'
+#' Download Commits from "GET /repos/{owner}/{repo}/search/issues" endpoint.
+#' This search endpoint allows for optional query parameter. Potential queries are found
+#' [here](https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28). The query parameter
+#' assumes that owner/repo is already prepended to the query. If no query is passed to the function,
+#' it will prepend only owner/repo to the query.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @param query Optional query to append to search api
+#' @param issue_or_pr This specifies whether issues or pull requests are being searched for.
+#' Acceptable inputs are "is:issue" or "is:pull-request".
+#' @param verbose True if messages should be displayed during execution.
+#' @references For details, see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}.
+#' @references For details on timestampes, se \url{https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated}
+#' @export
+github_api_project_issue_search <- function(owner, repo, token, query = NULL, issue_or_pr, verbose=TRUE) {
+  # Construct the search query
+  #Check if there is a query
+  if (!is.null(query)){
+    search_query <- query
+  } else {
+    search_query <- "repo:"
+    search_query <- paste0(search_query,owner,"/",repo," ", issue_or_pr)
+  }
+
+  if(verbose){
+    message("Search query: ", search_query)
+  }
+
+  # Perform the GitHub API call
+  gh_response <- gh::gh("/search/issues",
+                        q = search_query,
+                        state = 'all',
+                        page = 1,
+                        per_page = 100,
+                        .token = token)
+  return(gh_response)
+}
+
+#' Parse Issues JSON from refresh to Table
+#'
+#' Note not all columns available in the downloaded json are parsed. This parser
+#' is adapted from \code{link{github_parse_project_issue}} to parse data
+#' from the refresh_issue folder. This data is downloaded from the Github API
+#' search endpoint and has a different level of nesting than the original data
+#'
+#' @param api_responses API response obtained from github_api_* function.
+#' @export
+#' @seealso  \code{link{github_api_project_issue_refresh}} to refresh issue data
+github_parse_search_issues_refresh <- function(api_responses) {
+  # Helper function to parse each issue
+  parse_response <- function(api_response) {
+    parsed_response <- list()
+    parsed_response[["issue_id"]] <- api_response[["id"]]
+    parsed_response[["issue_number"]] <- api_response[["number"]]
+    parsed_response[["html_url"]] <- api_response[["html_url"]]
+    parsed_response[["url"]] <- api_response[["url"]]
+    parsed_response[["created_at"]] <- api_response[["created_at"]]
+    parsed_response[["updated_at"]] <- api_response[["updated_at"]]
+    parsed_response[["state"]] <- api_response[["state"]]
+    parsed_response[["issue_user_login"]] <- api_response[["user"]][["login"]]
+    parsed_response[["author_association"]] <- api_response[["author_association"]]
+    parsed_response[["title"]] <- api_response[["title"]]
+    parsed_response[["body"]] <- api_response[["body"]]
+
+    # Parsing labels
+    parsed_response[["labels"]] <- api_response[["labels"]]
+    if(length(parsed_response[["labels"]]) > 0) {
+      parsed_response[["labels"]] <- stringi::stri_c(sapply(parsed_response[["labels"]], "[[", "name"), collapse = ",")
+    } else {
+      parsed_response[["labels"]] <- NA_character_
+    }
+
+    parsed_response <- as.data.table(parsed_response)
+    return(parsed_response)
+  }
+
+  # Assuming 'items' contains the issues
+  all_issues <- lapply(api_responses[["items"]], parse_response)
+  return(rbindlist(all_issues, fill = TRUE))
+}
+
+###### Github Issues ######
+
 #' Download Project Issues
 #'
 #' Download  Issues from "GET /repos/{owner}/{repo}/issues" endpoint.
@@ -254,25 +688,40 @@ github_parse_project_issue <- function(api_responses){
   rbindlist(lapply(api_responses,parse_response),fill=TRUE)
 }
 
-#' Download Project Pull Requests
+#' Download Project Issues Refresh
 #'
-#' Download  Pull Requests from "GET /repos/{owner}/{repo}/pulls" endpoint.
+#' Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
+#' the latest downloaded Github created_at date among directory "issue_search".
+#' It returns the first page of the github query for issues created after this date by calling
+#' \code{\link{github_api_project_issue_search}}
+#'
+#' If the issue directory is empty, then the created query will not be appended to the api call
+#' and the first page of a query retrieving all issues will be returned. This function can therefore
+#' be used in the specified folder to continuously refresh available issues
+#' data.
 #'
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
+#' @param save_path_issue_refresh The folder path that the refresh downloader downloads to
+#' @param issue_or_pr This specifies whether issues or pull requests are being searched for.
+#' Acceptable inputs are "is:issue" or "is:pull-request".
+#' @param verbose True if messages should be displayed during execution.
 #' @export
-#' @references For details, see \url{https://docs.github.com/en/rest/reference/pulls#list-pull-requests}.
-github_api_project_pull_request <- function(owner,repo,token){
-  gh::gh("GET /repos/{owner}/{repo}/pulls",
-         owner=owner,
-         repo=repo,
-         state="all",
-         page=1,
-         per_page=100,
-         .token=token)
-}
+#' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
+#' @references For details on timestampes, se \url{https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated}
+#' @seealso  \code{link{github_api_project_issue}} to download all issue data
+#' @seealso  \code{link{format_created_at_from_file}} for function that iterates through
+#' a .json file and returns the greatest 'created_at' value
+#' @seealso  \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
+github_api_project_issue_refresh <- function(owner,
+                                             repo,
+                                             token,
+                                             save_path_issue_refresh,
+                                             issue_or_pr,
+                                             verbose=TRUE){
 
+<<<<<<< HEAD
 #' Parse Pull Requests JSON to Table
 #'
 #' Note not all columns available in the downloaded json are parsed.
@@ -300,24 +749,115 @@ github_parse_project_pull_request <- function(api_responses){
     } else {
       parsed_response[["body"]] <- NA_character_
     }
+=======
+>>>>>>> origin/master
 
-    parsed_response[["labels"]] <- api_response[["labels"]]
-    if(length(parsed_response[["labels"]]) > 0){
-      parsed_response[["labels"]] <- stringi::stri_c(sapply(parsed_response[["labels"]],"[[","name"),collapse = ",")
-    }else{
-      parsed_response[["labels"]] <- NA_character_
+  # Check if refresh folder is empty
+  contents_refresh <- list.files(path = save_path_issue_refresh)
+
+  # If the file is empty, download all issues
+  if(length(contents_refresh) == 0) {
+    if(verbose){
+      message("No files exist in directory. Downloading all files")
+    }
+    query <- NULL
+    gh_response <- github_api_project_issue_search(owner, repo, token, query, issue_or_pr, verbose=TRUE)
+    return(gh_response)
+  } else {
+    # Get the name of the file with the most recent date from the refresh_issue file if not empty
+    latest_created_issue_refresh <- paste0(save_path_issue_refresh, parse_github_latest_date(save_path_issue_refresh))
+    latest_created_issue_refresh <- head(latest_created_issue_refresh,1)
+    # get the greatest created_at value among issues in the refresh_issues file
+    created_refresh <- format_created_at_from_file(latest_created_issue_refresh, item="items")
+    # }
+    if(verbose){
+      message("Greatest created value from issue_search folder: ", created_refresh)
     }
 
-    parsed_response <- as.data.table(parsed_response)
+    # construct the query
+    query <- paste0("repo:",owner,"/",repo," ", issue_or_pr," created:>",created_refresh)
 
-    return(parsed_response)
+    if (verbose){
+      message("Github API query: ",query)
+    }
+    # Call the API function
+    gh_response <- github_api_project_issue_search(owner, repo, token, query, verbose=TRUE)
+    return(gh_response)
   }
-  rbindlist(lapply(api_responses,parse_response),fill=TRUE)
 }
+
+#' Download Github Issue Data by Date
+#'
+#' Appends a 'created' field to a search github JQL query and returns the first page of the response.
+#'
+#' Acceptable formats for `date_lower_bound` and `date_upper_bound` are:
+#'
+#' * "YYYY-MM-DD"
+#' * "YYYY-MM-DDTHH:MM"
+#' * "YYYY-MM-DDTHH:MM:SS"
+#' * "YYYY-MM-DDTHH:MM:SSZ"
+#' * "YYYY-MM-DDTHH:MM:SS+00:00"
+#' * NULL
+#'
+#' For example: `date_lower_bound="2020-07-04"` (an issue ocurring at the exact specified time will also be downloaded).
+#'
+#' For further details on the `created` Query see [the associated Github API documentation](https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated).
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @param date_lower_bound Optional. Specify the lower bound date time (e.g. 2023/11/16 21:00)
+#' @param date_upper_bound Optional. Specify the upper bound date time (e.g. 2023/11/16 21:00)
+#' @param issue_or_pr This specifies whether issues or pull requests are being searched for.
+#' Acceptable inputs are "is:issue" or "is:pull-request".
+#' greatest dates and the file name that contains the greatest date.
+#' @param verbose True if messages should be displayed during execution.
+#' @export
+#' @references For details on is:issue or is:pull-request see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}
+#' @references For details on timestampes, se \url{https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated}
+#' @seealso  \code{link{github_api_project_issue_or_pr_comment_refresh}} to refresh comment data
+#' @seealso  \code{link{github_api_project_issue_or_pr_comments}} to refresh issue data
+github_api_project_issue_by_date <- function(owner,
+                                             repo,
+                                             token,
+                                             date_lower_bound = NULL,
+                                             date_upper_bound = NULL,
+                                             issue_or_pr,
+                                             verbose = FALSE) {
+  # Base query to include repository and issue filter
+  query <- paste0("repo:",owner, "/", repo, " ", issue_or_pr)
+  message(query)
+
+  # Add date filters to the query if provided
+  if (!is.null(date_lower_bound) && !is.null(date_upper_bound)) {
+    query <- sprintf("%s created:%s..%s", query, date_lower_bound, date_upper_bound)
+    if(verbose){
+      message("Downloading issue data created between ", date_lower_bound, " and ", date_upper_bound, ".")
+    }
+  } else if (!is.null(date_lower_bound)) {
+    query <- sprintf("%s created:>=%s", query, date_lower_bound)
+  } else if (!is.null(date_upper_bound)) {
+    query <- sprintf("%s created:<=%s", query, date_upper_bound)
+  }
+
+  # Only proceed if at least one date bound is provided
+  if (is.null(date_lower_bound) && is.null(date_upper_bound)) {
+    stop("At least one of 'date_lower_bound' or 'date_upper_bound' must be provided.
+         If you have provided at least one, it may be improperly formatted.")
+  }
+
+  # Perform the API call using the constructed query
+  gh_response <- github_api_project_issue_search(owner, repo, token, query, issue_or_pr,verbose=TRUE)
+
+  return(gh_response)
+}
+
+###### Github Issue or Pull Request #####
 
 #' Download Project Issue's or Pull Request's Comments
 #'
-#' Download Issues' or Pull Request's Comments from "GET /repos/{owner}/{repo}/issues/comments" endpoint.
+#' Download Issues' and Pull Request's Comments from "GET /repos/{owner}/{repo}/issues/comments" endpoint.
+#' All Pull Requests are counted as Issues, but not all Issues are Pull Requests
 #' Optional parameter since is used to download comments updated after the specified date.
 #' If the value of since is NULL, it is not passed to the API call and all comments are downloaded.
 #'
@@ -348,6 +888,30 @@ github_api_project_issue_or_pr_comments <- function(owner,repo,token,since=NULL)
   }
 }
 
+#' Download Project Issue's or Pull Request's Comments by specific pull request number.
+#'
+#' Download Issues' and Pull Request's Comments from "GET /repos/\{owner\}/\{repo\}/issues/comments" endpoint.
+#' All Pull Requests are counted as Issues, but not all Issues are Pull Requests
+#' Optional parameter since is used to download comments updated after the specified date.
+#' If the value of since is NULL, it is not passed to the API call and all comments are downloaded.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param issue_number The number that identifies the issue
+#' @param token Your GitHub API token
+#' @export
+#' @references For details, see \url{https://docs.github.com/en/rest/issues/comments?apiVersion=2022-11-28#list-issue-comments} and
+#' \url{https://docs.github.com/en/rest/guides/working-with-comments#pull-request-comments}.
+#' @export
+github_api_issue_pr_comments <- function(owner,repo,issue_number,token){
+    gh::gh("GET /repos/{owner}/{repo}/issues/{issue_number}/comments",
+           owner=owner,
+           repo=repo,
+           issue_number=issue_number,
+           page=1,
+           per_page=100,
+           .token=token,)
+}
 
 #' Parse Issues' or Pull Requests' Comments JSON to Table
 #'
@@ -366,6 +930,15 @@ github_parse_project_issue_or_pr_comments <- function(api_responses){
     parsed_response[["comment_user_login"]] <- api_response[["user"]][["login"]]
     parsed_response[["author_association"]] <- api_response[["author_association"]]
     parsed_response[["body"]] <- api_response[["body"]]
+    parsed_response[["total_count"]] <- api_response[["total_count"]]
+    parsed_response[["+1"]] <- api_response[["+1"]]
+    parsed_response[["-1"]] <- api_response[["-1"]]
+    parsed_response[["laugh"]] <- api_response[["laugh"]]
+    parsed_response[["hooray"]] <- api_response[["hooray"]]
+    parsed_response[["confused"]] <- api_response[["confused"]]
+    parsed_response[["heart"]] <- api_response[["heart"]]
+    parsed_response[["rocket"]] <- api_response[["rocket"]]
+    parsed_response[["eyes"]] <- api_response[["eyes"]]
 
     parsed_response <- as.data.table(parsed_response)
 
@@ -373,6 +946,411 @@ github_parse_project_issue_or_pr_comments <- function(api_responses){
   }
   rbindlist(lapply(api_responses,parse_response),fill=TRUE)
 }
+
+#' Download Project issues or pr comments after certain date
+#'
+#' Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
+#' the latest downloaded Github created_at date among the directory(intended to be the  folder).
+#' It uses this date to construct a query and calls \code{\link{github_api_project_issue_or_pr_comments}}
+#'
+#' If no files exist in the file_save_path,\code{link{github_api_project_issue_or_pr_comments}}
+#' is called with no additional query and all comments are downloaded.
+#'
+#' Because the endpoint this function relies on is based on the updated timestamp, running the refresher
+#' will download the most recent version of the comment changes. Only the most recent version of the comment will
+#' be downloaded, not all copies. However, if the same comment was modified before the next refresh call,
+#' then if the refresher function was executed again, then this would result in two comments with the same
+#' comment id being present in the table. This can be addressed by performing a group by over the comment\_id
+#' in the generated parsed table, and selecting to return the max(updated_at) comment, resulting in a table
+#' that only the most recent comment verson as of the latest time the refresher was executed.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @param file_save_path the save path for the issue comments folder
+#' @param verbose True if messages should be displayed during execution.
+#' @export
+#' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
+#' @seealso  \code{link{github_api_project_issue_or_pr_comments}} to download all comment data
+#' @seealso  \code{link{format_created_at_from_file}} for function that iterates through
+#' a .json file and returns the greatest 'created_at' value
+#' @seealso  \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
+#' @seealso  \code{link{github_api_project_issue_or_pr_comments}} to call issue/comments endpoint
+github_api_project_issue_or_pr_comment_refresh <- function(owner,repo,token,file_save_path,verbose=TRUE){
+  # Check if the file is empty by checking its size
+  # List all files and subdirectories in the directory
+  contents <- list.files(path = save_path_issue_or_pr_comments)
+
+  # If the file is empty, download all issues
+  if(length(contents) == 0) {
+    # Run regular downloader
+    issues <- github_api_project_issue_or_pr_comments(owner,repo,token)
+    return (issues)
+  } else {
+    # Get the name of the file with the most recent date
+    latest_updated_issue_or_pr_comment <- paste0(file_save_path, parse_github_latest_date(save_path_issue_or_pr_comments))
+    latest_updated_issue_or_pr_comment <- (head(latest_updated_issue_or_pr_comment,1))
+    # get the created_at value
+    message("got file", latest_updated_issue_or_pr_comment)
+    created <- format_created_at_from_file(latest_updated_issue_or_pr_comment, item="")
+
+    # Convert the string to a POSIXct object
+    time_value <- as.POSIXct(created, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
+
+    # Add one second
+    new_time_value <- time_value + 1
+
+    # Format the new time value back into the original string format
+    formatted_new_time_value <- format(new_time_value, "%Y-%m-%dT%H:%M:%SZ")
+
+    if(verbose){
+      message("file name with greatest date: ",latest_updated_issue_or_pr_comment)
+      message("Latest date: ",formatted_new_time_value)
+    }
+    # Make the API call
+    gh_response <- github_api_project_issue_or_pr_comments(owner,repo,token,formatted_new_time_value)
+  } #end if/else
+}
+
+#' Download Github comment Data by Date
+#'
+#' Appends a 'since' query to the issue/comments api request and returns the first page of the result.
+#'
+#' #' Acceptable formats for `since` are:
+#'
+#' * "YYYY-MM-DD"
+#' * "YYYY-MM-DDTHH:MM"
+#' * "YYYY-MM-DDTHH:MM:SS"
+#' * "YYYY-MM-DDTHH:MM:SSZ"
+#' * "YYYY-MM-DDTHH:MM:SS+00:00"
+#' * NULL
+#'
+#'#' For example: `since="2020-07-04"` (a comment ocurring at the exact specified time will also be downloaded).
+#'
+#' For further details on the `since` Query see [the associated Github API documentation](https://docs.github.com/en/rest/issues/comments?apiVersion=2022-11-28#:~:text=asc%2C%20desc-,since,-string).
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @param since The lower bound. Comments created and/or updated after this date will be retrieved.
+#' @param verbose True if messages should be displayed during execution.
+#' @export
+#' @seealso  \code{link{github_api_project_issue_or_pr_comment_refresh}} to refresh comment data
+#' @seealso  \code{link{github_api_project_issue_refresh}} to refresh issue data
+#' @seealso  \code{link{github_api_project_issue_or_pr_comments}} to call issue/comments endpoint
+github_api_project_issue_or_pr_comments_by_date <- function(owner,
+                                                            repo,
+                                                            token,
+                                                            since,
+                                                            verbose = FALSE) {
+  if (is.null(since)) {
+    stop("The lower bound parameter is empty or improperly formatted")
+  }
+  if(verbose){
+    message("Downloading comments updated/created after: ", since)
+  }
+  # Make the API call
+  gh_response <- github_api_project_issue_or_pr_comments(owner,repo,token,since)
+  return(gh_response)
+}
+
+###### Github Pull Requests ######
+
+#' Download Project Pull Requests
+#'
+#' Download  Pull Requests from "GET /repos/{owner}/{repo}/pulls" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @export
+#' @references For details, see \url{https://docs.github.com/en/rest/reference/pulls#list-pull-requests}.
+github_api_project_pull_request <- function(owner,repo,token){
+  gh::gh("GET /repos/{owner}/{repo}/pulls",
+         owner=owner,
+         repo=repo,
+         state="all",
+         page=1,
+         per_page=100,
+         .token=token)
+}
+
+#' Parse Pull Requests JSON to Table
+#'
+#' Parses pull request description (first comment) downloaded by \code{\link{github_api_project_pull_request_refresh}}.
+#' This function serves as an alias to \code{\link{github_parse_search_issues_refresh}}.
+#' Note not all columns available in the downloaded json are parsed.
+#'
+#' @param api_responses API response obtained from \code{\link{github_api_project_pull_request_refresh}}.
+#' @export
+github_parse_project_pull_request <- function(api_responses){
+  return(github_parse_search_issues_refresh(api_responses))
+}
+
+#' Download Specific Pull Requests
+#'
+#' Download  Pull Requests from "GET /repos/{owner}/{repo}/pulls/{pull_number}" endpoint.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param pull_number The number that identifies the pull request.
+#' @param token Your GitHub API token
+#' @export
+#' @references For details, see \url{https://docs.github.com/en/rest/reference/pulls#list-pull-requests}.
+github_api_pull_request <- function(owner,repo,pull_number,token){
+  gh::gh("GET /repos/{owner}/{repo}/pulls/{pull_number}",
+         owner=owner,
+         repo=repo,
+         pull_number=pull_number,
+         state="all",
+         page=1,
+         per_page=100,
+         .token=token)
+}
+#' Parse Pull Requests JSON to Table
+#'
+#' Note not all columns available in the downloaded json are parsed.
+#'
+#' @param api_responses API response obtained from github_api_* function.
+#' @export
+github_parse_pull_request <- function(api_responses){
+  parse_response <- function(api_response){
+    parsed_response <- list()
+    parsed_response[["pr_id"]] <- api_response[["id"]]
+    parsed_response[["pr_number"]] <- api_response[["number"]]
+    parsed_response[["html_url"]] <- api_response[["html_url"]]
+    parsed_response[["url"]] <- api_response[["url"]]
+    parsed_response[["created_at"]] <- api_response[["created_at"]]
+    parsed_response[["updated_at"]] <- api_response[["updated_at"]]
+    parsed_response[["state"]] <- api_response[["state"]]
+    parsed_response[["pr_user_login"]] <- api_response[["user"]][["login"]]
+    parsed_response[["author_association"]] <- api_response[["author_association"]]
+    parsed_response[["title"]] <- api_response[["title"]]
+    parsed_response[["body"]] <- api_response[["body"]]
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+  rbindlist(lapply(api_responses,parse_response),fill=TRUE)
+}
+
+
+#' Download Project Pull Requests Description (First Comment) Refresh
+#'
+#' Downloads the Pull Request First Comment (i.e. the Pull Request "Description"). This serves
+#' as a convenience function to \code{\link{github_api_project_issue_refresh}} with parameter
+#' issue_or_pr = "is:pull-request". See referenced function for details.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @param save_path_pull_request the save path for the pr folder
+#' @param verbose True if messages should be displayed during execution.
+#' @export
+#' @references For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.
+#' @seealso  \code{link{github_api_project_pull_request}} to download all pull request  data
+#' @seealso  \code{link{format_created_at_from_file}} for function that iterates through
+#' a .json file and returns the greatest 'created_at' value
+#' @seealso  \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
+github_api_project_pull_request_refresh <- function(owner,repo,token, save_path_pull_request,verbose=TRUE){
+
+  return(github_api_project_issue_refresh(owner, repo, token, save_path_pull_request, issue_or_pr = "is:pull-request"))
+}
+
+#' Download Project's Pull Request Inline Comments
+#'
+#' @description Downloads the Pull Request Comments from `GET /repos/{owner}/{repo}/pulls/comments` endpoint.
+#' Optional parameter since is used to download comments updated after the specified date.
+#' If the value of since is NULL, it is not passed to the API call and all comments are downloaded.
+#' NOTE: This function is different from the `github_api_project_issue_or_pr_comments`.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @param since Optional parameter to specify pulling only comments updated after this date
+#' @references For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}
+#' @export
+github_api_project_pull_request_inline_comments <- function(owner, repo, token, since=NULL) {
+  if (!is.null(since)) {
+    # Get all pull request comments
+    api_response <- gh::gh("GET /repos/{owner}/{repo}/pulls/comments",
+          owner=owner,
+          repo=repo,
+          page=1,
+          per_page=100,
+          .token=token,
+          since=since)
+  } else {
+    api_response <- gh::gh("GET /repos/{owner}/{repo}/pulls/comments",
+           owner=owner,
+           repo=repo,
+           page=1,
+           per_page=100,
+           .token=token)
+  }
+}
+
+#' Download Project's Pull Request Comments by Specific Pull Request Number
+#'
+#' @description Downloads the Pull Request Comments from `GET /repos/{owner}/{repo}/pulls/comments` endpoint.
+#' Optional parameter since is used to download comments updated after the specified date.
+#' If the value of since is NULL, it is not passed to the API call and all comments are downloaded.
+#' NOTE: This function is different from the `github_api_project_issue_or_pr_comments`.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param pull_number The number that identifies the pull request.
+#' @param token Your GitHub API token
+#' @references For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}
+#' @export
+github_api_pull_pr_comments <- function(owner, repo, pull_number, token) {
+    api_response <- gh::gh("GET /repos/{owner}/{repo}/pulls/{pull_number}/comments",
+                           owner=owner,
+                           repo=repo,
+                           pull_number=pull_number,
+                           page=1,
+                           per_page=100,
+                           .token=token)
+}
+
+#' Parse Pull Requests' Comments JSON to Table
+#'
+#' Note not all columns available in the downloaded json are parsed.
+#' Note this is different from the `github_parse_project_issue_or_pr_comments` function.
+#' This function only parses for the in-line code and comments made on the pull request.
+#' `review_id` A integer value that refers to the review comment made when creating the review.
+#' `file_path` A string containing the filepath of the file the review comment is made on.
+#' `start_line` An integer value of the first line number if multiple lines are selected when
+#' making the comment, or null if only 1 line is selected. Will also return null if line is deleted
+#' in later commits.
+#' `line` An integer value of the last line number if multiple lines are selected when
+#' making the comment, or the the line number when only 1 line is selected. Will return
+#' 1 if no lines are selected when making the comment or null if the line is deleted
+#' in later commits.
+#' `original_start_line` An integer value of the first line number if multiple lines are selected when
+#' making the comment, or null if only 1 line is selected. The line number integer will match the line
+#' number at the time the review comment is made, regardless if a later commit changes the line number.
+#' `original_line` An integer value of the last line number if multiple lines are selected when
+#' making the comment, or the the line number when only 1 line is selected. Will return
+#' 1 if no lines are selected when making the comment. The line number integer will match the line
+#' number at the time the review comment is made, regardless if a later commit changes the line number.
+#' `diff_hunk` A string containing the code block the review comment is referencing.
+#' It will contain the lines from the start of the (+/-) block until the line
+#' associated by the review comment. Will return null if the review comment is not
+#' tied to a specific line.
+#' `body` A string containing main text of the review comment.
+#' @param api_responses API response obtained from github_api_* function.
+#' @export
+github_parse_project_pull_request_inline_comments <- function(api_responses) {
+  parse_response <- function(api_response) {
+    parsed_response <- list()
+    parsed_response[["review_id"]] <- api_response[["pull_request_review_id"]]
+    parsed_response[["comment_id"]] <- api_response[["id"]]
+    parsed_response[["html_url"]] <- api_response[["html_url"]]
+    parsed_response[["created_at"]] <- api_response[["created_at"]]
+    parsed_response[["updated_at"]] <- api_response[["updated_at"]]
+    parsed_response[["comment_user_login"]] <- api_response[["user"]][["login"]]
+    parsed_response[["author_association"]] <- api_response[["author_association"]]
+    parsed_response[["file_path"]] <- api_response[["path"]]
+    parsed_response[["start_line"]] <- api_response[["start_line"]]
+    parsed_response[["line"]] <- api_response[["line"]]
+    parsed_response[["original_start_line"]] <- api_response[["original_start_line"]]
+    parsed_response[["original_line"]] <- api_response[["original_line"]]
+    parsed_response[["position"]] <- api_response[["position"]]
+    parsed_response[["diff_hunk"]] <- api_response[["diff_hunk"]]
+    parsed_response[["body"]] <- api_response[["body"]]
+    parsed_response[["commit_id"]] <- api_response[["commit_id"]]
+    parsed_response[["total_count"]] <- api_response[["total_count"]]
+    parsed_response[["+1"]] <- api_response[["+1"]]
+    parsed_response[["-1"]] <- api_response[["-1"]]
+    parsed_response[["laugh"]] <- api_response[["laugh"]]
+    parsed_response[["hooray"]] <- api_response[["hooray"]]
+    parsed_response[["confused"]] <- api_response[["confused"]]
+    parsed_response[["heart"]] <- api_response[["heart"]]
+    parsed_response[["rocket"]] <- api_response[["rocket"]]
+    parsed_response[["eyes"]] <- api_response[["eyes"]]
+
+
+
+
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+  rbindlist(lapply(api_responses,parse_response),fill=TRUE)
+}
+
+#' Download Project Pull Request Inline Review Comments Refresh
+#'
+#' Download Inline Pull Request Review Comments of all pull requests in a project.
+#'
+#' If no files exist in the file_save_path,\code{\link{github_api_project_pull_request_inline_comments}}
+#' is called with no additional query and all comments are downloaded.
+#'
+#' Because the endpoint this function relies on is based on the updated timestamp, running the refresher
+#' will download the most recent version of the comment changes. Only the most recent version of the comment will
+#' be downloaded, not all copies. However, if the same comment was modified before the next refresh call,
+#' then if the refresher function was executed again, then this would result in two comments with the same
+#' comment id being present in the table. This can be addressed by performing a group by over the comment\_id
+#' in the generated parsed table, and selecting to return the max(updated_at) comment, resulting in a table
+#' that only the most recent comment verson as of the latest time the refresher was executed.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @param save_path_pr_comments the save path for the pr comments folder
+#' @param verbose True if messages should be displayed during execution.
+#' @export
+#' @references For details, see For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}.
+#' @seealso  \code{link{github_api_project_pull_request_inline_comments}} to download all pull request comment data
+#' @seealso  \code{link{format_created_at_from_file}} for function that iterates through
+#' a .json file and returns the greatest 'created_at' value
+#' @seealso  \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
+#' @seealso  \code{link{github_api_project_pull_request_inline_comments}} to call pr comments endpoint
+github_api_project_pull_request_inline_comments_refresh <- function(owner,repo,token,save_path_pr_comments,verbose=TRUE){
+  # Check if the file is empty by checking its size
+  # List all files and sub directories in the directory
+  contents <- list.files(path = save_path_pr_comments)
+  # If the file is empty, download all pr comments
+  if(length(contents) == 0) {
+    if (verbose) {
+      message(save_path_pr_comments, " filepath is empty, running regular downloader.")
+    }
+    # Run regular downloader
+    pr_comments <- github_api_project_pull_request_inline_comments(owner,repo,token)
+    return (pr_comments)
+  } else {
+    # Get the name of the file with the most recent date
+    latest_updated_pr_comments <- paste0(save_path_pr_comments, parse_github_latest_date(save_path_pr_comments))
+    latest_updated_pr_comments <- (head(latest_updated_pr_comments,1))
+
+    if (verbose) {
+      message("File with most recent date: ", latest_updated_pr_comments)
+    }
+    # get the created_at value
+    created <- format_created_at_from_file(latest_updated_pr_comments, item="")
+
+    # Convert the string to a POSIXct object
+    time_value <- as.POSIXct(created, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
+
+    # Add one second
+    new_time_value <- time_value + 1
+
+    # Format the new time value back into the original string format
+    formatted_new_time_value <- format(new_time_value, "%Y-%m-%dT%H:%M:%SZ")
+
+    if(verbose){
+      message("file name with greatest date: ",latest_updated_pr_comments)
+      message("Latest date: ",formatted_new_time_value)
+    }
+    # Make the API call
+    gh_response <- github_api_project_pull_request_inline_comments(owner,repo,token,formatted_new_time_value)
+  } #end if/else
+}
+
+###### Github Commits ######
+
 #' Download Project Commits
 #'
 #' Download Commits from "GET /repos/{owner}/{repo}/commits" endpoint.
@@ -417,26 +1395,10 @@ github_parse_project_commits <- function(api_responses){
   rbindlist(lapply(api_responses,parse_response),fill=TRUE)
 }
 
-
-#' Download Project Contributors
-#'
-#' Download project contributors from GET /repos/{owner}/{repo}/contributors" endpoint.
-#'
-#' @param owner GitHub's repository owner (e.g. sailuh)
-#' @param repo GitHub's repository name (e.g. kaiaulu)
-#' @param token Your GitHub API token
-#' @references For more details see \url{https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#list-repository-contributors}.
-#' @export
-github_api_project_contributors <- function(owner,repo,token){
-  gh::gh("GET /repos/{owner}/{repo}/contributors",
-         owner=owner,
-         repo=repo,
-         page=1,
-         per_page=100,
-         .token=token)
-}
+###### Github API Helper Functions ######
 
 #' Returns token remaining available requests.
+#'
 #' @param token Your GitHub API token
 #' @references For more details see \url{https://docs.github.com/en/free-pro-team@latest/rest/overview/resources-in-the-rest-api#rate-limiting}.
 #' @export
@@ -450,6 +1412,7 @@ github_api_rate_limit <- function(token){
 }
 
 #' Obtain the next GitHub response page.
+#'
 #' @param gh_response A response returned by any GitHub endpoint which is paginated (e.g. \code{\link{github_api_project_commits}}).
 #' @export
 #' @keywords internal
@@ -458,6 +1421,7 @@ github_api_page_next <- function(gh_response){
 }
 
 #' Obtain the previous GitHub response page.
+#'
 #' @param gh_response A response returned by any GitHub endpoint which is paginated (e.g. \code{\link{github_api_project_commits}}).
 #' @export
 #' @keywords internal
@@ -466,6 +1430,7 @@ github_api_page_prev <- function(gh_response){
 }
 
 #' Obtain the first GitHub response page.
+#'
 #' @param gh_response A response returned by any GitHub endpoint which is paginated (e.g. \code{\link{github_api_project_commits}}).
 #' @export
 #' @keywords internal
@@ -475,6 +1440,7 @@ github_api_page_first <- function(gh_response){
 
 
 #' Obtain the last GitHub response page.
+#'
 #' @param gh_response A response returned by any GitHub endpoint which is paginated (e.g. \code{\link{github_api_project_commits}}).
 #' @export
 #' @keywords internal
@@ -498,9 +1464,7 @@ github_api_page_last <- function(gh_response){
 #' @param save_folder_path A folder path to save the downloaded json pages "as-is".
 #' @param prefix Prefix to be added to every json file name
 #' @param max_pages The maximum number of pages to download. MAX = Available token requests left
-#' @param verbose Boolean value that prints operating messages when set to TRUE, does not print when false.
-#' Operating messages may be details about certain parts of the code correctly executing or printing names
-#' of files created, etc.
+#' @param verbose True if messages should be displayed during execution.
 #' @references For details see \url{https://docs.github.com/en/free-pro-team@latest/rest/guides/traversing-with-pagination}.
 #' @export
 #' @keywords internal
@@ -624,141 +1588,6 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
 }
 
 
-#' Download Project Issues Refresh
-#'
-#' Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
-#' the latest downloaded Github created_at date among directory "issue_search".
-#' It returns the first page of the github query for issues created after this date by calling
-#' \code{\link{github_api_project_issue_search}}
-#'
-#' If the issue directory is empty, then the created query will not be appended to the api call
-#' and the first page of a query retrieving all issues will be returned. This function can therefore
-#' be used in the specified folder to continuously refresh available issues
-#' data.
-#'
-#' @param owner GitHub's repository owner (e.g. sailuh)
-#' @param repo GitHub's repository name (e.g. kaiaulu)
-#' @param token Your GitHub API token
-#' @param save_path_issue_refresh The folder path that the refresh downloader downloads to
-#' @param issue_or_pr This specifies whether issues or pull requests are being searched for.
-#' Acceptable inputs are "is:issue" or "is:pull-request".
-#' @param verbose A boolean value that prints operational messages when set to TRUE.
-#' These may include announcing successful execution of code, API queries, files saved, etc.
-#' @export
-#' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
-#' @references For details on timestampes, se \url{https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated}
-#' @seealso  \code{link{github_api_project_issue}} to download all issue data
-#' @seealso  \code{link{format_created_at_from_file}} for function that iterates through
-#' a .json file and returns the greatest 'created_at' value
-#' @seealso  \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
-github_api_project_issue_refresh <- function(owner,
-                                             repo,
-                                             token,
-                                             save_path_issue_refresh,
-                                             issue_or_pr,
-                                             verbose){
-
-
-  # Check if refresh folder is empty
-  contents_refresh <- list.files(path = save_path_issue_refresh)
-
-  # If the file is empty, download all issues
-  if(length(contents_refresh) == 0) {
-    if(verbose){
-      message("No files exist in directory. Downloading all files")
-    }
-    query <- NULL
-    gh_response <- github_api_project_issue_search(owner, repo, token, query, issue_or_pr, verbose=TRUE)
-    return(gh_response)
-  } else {
-    # Get the name of the file with the most recent date from the refresh_issue file if not empty
-    latest_created_issue_refresh <- paste0(save_path_issue_refresh, parse_jira_latest_date(save_path_issue_refresh))
-    latest_created_issue_refresh <- head(latest_created_issue_refresh,1)
-    # get the greatest created_at value among issues in the refresh_issues file
-    created_refresh <- format_created_at_from_file(latest_created_issue_refresh, item="items")
-    # }
-    if(verbose){
-      message("Greatest created value from issue_search folder: ", created_refresh)
-    }
-
-    # construct the query
-    query <- paste0("repo:",owner,"/",repo," ", issue_or_pr," created:>",created_refresh)
-
-    if (verbose){
-      message("Github API query: ",query)
-    }
-    # Call the API function
-    gh_response <- github_api_project_issue_search(owner, repo, token, query, verbose=TRUE)
-    return(gh_response)
-  }
-}
-
-#' Download Project issues or pr comments after certain date
-#'
-#' Uses the adopted file name convention by \code{\link{github_api_iterate_pages}} to identify
-#' the latest downloaded Github created_at date among the directory(intended to be the  folder).
-#' It uses this date to construct a query and calls \code{\link{github_api_project_issue_or_pr_comments}}
-#'
-#' If no files exist in the file_save_path,\code{link{github_api_project_issue_or_pr_comments}}
-#' is called with no additional query and all comments are downloaded.
-#'
-#' Because the endpoint this function relies on is based on the updated timestamp, running the refresher
-#' will download the most recent version of the comment changes. Only the most recent version of the comment will
-#' be downloaded, not all copies. However, if the same comment was modified before the next refresh call,
-#' then if the refresher function was executed again, then this would result in two comments with the same
-#' comment id being present in the table. This can be addressed by performing a group by over the comment\_id
-#' in the generated parsed table, and selecting to return the max(updated_at) comment, resulting in a table
-#' that only the most recent comment verson as of the latest time the refresher was executed.
-#'
-#' @param owner GitHub's repository owner (e.g. sailuh)
-#' @param repo GitHub's repository name (e.g. kaiaulu)
-#' @param token Your GitHub API token
-#' @param file_save_path the save path for the issue comments folder
-#' @param verbose boolean value. When set to true, it prints operational messages including
-#' greatest dates and the file name that contains the greatest date.
-#' @export
-#' @references For details, see \url{https://docs.github.com/en/rest/reference/issues#list-repository-issues}.
-#' @seealso  \code{link{github_api_project_issue_or_pr_comments}} to download all comment data
-#' @seealso  \code{link{format_created_at_from_file}} for function that iterates through
-#' a .json file and returns the greatest 'created_at' value
-#' @seealso  \code{link{github_api_iterate_pages}} to write data returned by this function to file as .json
-#' @seealso  \code{link{github_api_project_issue_or_pr_comments}} to call issue/comments endpoint
-github_api_project_issue_or_pr_comment_refresh <- function(owner,repo,token,file_save_path,verbose=TRUE){
-  # Check if the file is empty by checking its size
-  # List all files and subdirectories in the directory
-  contents <- list.files(path = save_path_issue_or_pr_comments)
-
-  # If the file is empty, download all issues
-  if(length(contents) == 0) {
-    # Run regular downloader
-    issues <- github_api_project_issue_or_pr_comments(owner,repo,token)
-    return (issues)
-  } else {
-    # Get the name of the file with the most recent date
-    latest_updated_issue_or_pr_comment <- paste0(file_save_path, parse_jira_latest_date(save_path_issue_or_pr_comments))
-    latest_updated_issue_or_pr_comment <- (head(latest_updated_issue_or_pr_comment,1))
-    # get the created_at value
-    message("got file", latest_updated_issue_or_pr_comment)
-    created <- format_created_at_from_file(latest_updated_issue_or_pr_comment, item="")
-
-    # Convert the string to a POSIXct object
-    time_value <- as.POSIXct(created, format="%Y-%m-%dT%H:%M:%SZ", tz="UTC")
-
-    # Add one second
-    new_time_value <- time_value + 1
-
-    # Format the new time value back into the original string format
-    formatted_new_time_value <- format(new_time_value, "%Y-%m-%dT%H:%M:%SZ")
-
-    if(verbose){
-      message("file name with greatest date: ",latest_updated_issue_or_pr_comment)
-      message("Latest date: ",formatted_new_time_value)
-    }
-    # Make the API call
-    gh_response <- github_api_project_issue_or_pr_comments(owner,repo,token,formatted_new_time_value)
-  } #end if/else
-}
-
 #' Retrieve greatest 'created_at' value from file
 #'
 #' Function to read a JSON file along a path and return the 'created_at'
@@ -807,199 +1636,49 @@ format_created_at_from_file <- function(file_name,item_path) {
   return(formatted_greatest_date)
 }
 
-#' Parse Issues JSON from refresh to Table
+#' Retrieve greatest 'submitted_at' value from file
 #'
-#' Note not all columns available in the downloaded json are parsed. This parser
-#' is adapted from \code{link{github_parse_project_issue}} to parse data
-#' from the refresh_issue folder. This data is downloaded from the Github API
-#' search endpoint and has a different level of nesting than the original data
+#' Function to read a JSON file along a path and return the 'submitted_at'
+#' date of the greatest value for the issue key. Note that the 'submitted_at'
+#' value differs in how it is nested. This format is returned by the
+#' review endpoint currently.
 #'
-#' @param api_responses API response obtained from github_api_* function.
-#' @export
-#' @seealso  \code{link{github_api_project_issue_refresh}} to refresh issue data
-github_parse_search_issues_refresh <- function(api_responses) {
-  # Helper function to parse each issue
-  parse_response <- function(api_response) {
-    parsed_response <- list()
-    parsed_response[["issue_id"]] <- api_response[["id"]]
-    parsed_response[["issue_number"]] <- api_response[["number"]]
-    parsed_response[["html_url"]] <- api_response[["html_url"]]
-    parsed_response[["url"]] <- api_response[["url"]]
-    parsed_response[["created_at"]] <- api_response[["created_at"]]
-    parsed_response[["updated_at"]] <- api_response[["updated_at"]]
-    parsed_response[["state"]] <- api_response[["state"]]
-    parsed_response[["issue_user_login"]] <- api_response[["user"]][["login"]]
-    parsed_response[["author_association"]] <- api_response[["author_association"]]
-    parsed_response[["title"]] <- api_response[["title"]]
-    parsed_response[["body"]] <- api_response[["body"]]
-
-    # Parsing labels
-    parsed_response[["labels"]] <- api_response[["labels"]]
-    if(length(parsed_response[["labels"]]) > 0) {
-      parsed_response[["labels"]] <- stringi::stri_c(sapply(parsed_response[["labels"]], "[[", "name"), collapse = ",")
-    } else {
-      parsed_response[["labels"]] <- NA_character_
-    }
-
-    parsed_response <- as.data.table(parsed_response)
-    return(parsed_response)
-  }
-
-  # Assuming 'items' contains the issues
-  all_issues <- lapply(api_responses[["items"]], parse_response)
-  return(rbindlist(all_issues, fill = TRUE))
-}
-
-
-#' Download Github comment Data by Date
-#'
-#' Appends a 'since' query to the issue/comments api request and returns the first page of the result.
-#'
-#' #' Acceptable formats for `since` are:
-#'
-#' * "YYYY-MM-DD"
-#' * "YYYY-MM-DDTHH:MM"
-#' * "YYYY-MM-DDTHH:MM:SS"
-#' * "YYYY-MM-DDTHH:MM:SSZ"
-#' * "YYYY-MM-DDTHH:MM:SS+00:00"
-#' * NULL
-#'
-#'#' For example: `since="2020-07-04"` (a comment ocurring at the exact specified time will also be downloaded).
-#'
-#' For further details on the `since` Query see [the associated Github API documentation](https://docs.github.com/en/rest/issues/comments?apiVersion=2022-11-28#:~:text=asc%2C%20desc-,since,-string).
-#'
-#' @param owner GitHub's repository owner (e.g. sailuh)
-#' @param repo GitHub's repository name (e.g. kaiaulu)
-#' @param token Your GitHub API token
-#' @param since The lower bound. Comments created and/or updated after this date will be retrieved.
-#' @param verbose boolean value. When set to true, it prints operational messages including
-#' greatest dates and the file name that contains the greatest date.
-#' @export
+#' @param file_name the path and the file name. For example:
+#' ../../rawdata/github/kaiaulu/issue_or_pr_comment/sailuh_kaiaulu_issue_or_pr_comment_1701216000_1701261374.json
+#' @param item_path specifies the level of nesting to look for the created_at value. This was
+#' implemented given that the results of the search endpoint are differently nested than others.
 #' @seealso  \code{link{github_api_project_issue_or_pr_comment_refresh}} to refresh comment data
 #' @seealso  \code{link{github_api_project_issue_refresh}} to refresh issue data
-#' @seealso  \code{link{github_api_project_issue_or_pr_comments}} to call issue/comments endpoint
-github_api_project_issue_or_pr_comments_by_date <- function(owner,
-                                                            repo,
-                                                            token,
-                                                            since,
-                                                            verbose = FALSE) {
-  if (is.null(since)) {
-    stop("The lower bound parameter is empty or improperly formatted")
-  }
-  if(verbose){
-    message("Downloading comments updated/created after: ", since)
-  }
-  # Make the API call
-  gh_response <- github_api_project_issue_or_pr_comments(owner,repo,token,since)
-  return(gh_response)
-}
+#' @keywords internal
+format_submitted_at_from_file <- function(file_name,item_path) {
+  # Read the JSON file
+  json_data <- fromJSON(txt= file_name, simplifyVector = FALSE)
 
-#' Download Github Issue Data by Date
-#'
-#' Appends a 'created' field to a search github JQL query and returns the first page of the response.
-#'
-#' Acceptable formats for `date_lower_bound` and `date_upper_bound` are:
-#'
-#' * "YYYY-MM-DD"
-#' * "YYYY-MM-DDTHH:MM"
-#' * "YYYY-MM-DDTHH:MM:SS"
-#' * "YYYY-MM-DDTHH:MM:SSZ"
-#' * "YYYY-MM-DDTHH:MM:SS+00:00"
-#' * NULL
-#'
-#' For example: `date_lower_bound="2020-07-04"` (an issue ocurring at the exact specified time will also be downloaded).
-#'
-#' For further details on the `created` Query see [the associated Github API documentation](https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated).
-#'
-#' @param owner GitHub's repository owner (e.g. sailuh)
-#' @param repo GitHub's repository name (e.g. kaiaulu)
-#' @param token Your GitHub API token
-#' @param date_lower_bound Optional. Specify the lower bound date time (e.g. 2023/11/16 21:00)
-#' @param date_upper_bound Optional. Specify the upper bound date time (e.g. 2023/11/16 21:00)
-#' @param issue_or_pr This specifies whether issues or pull requests are being searched for.
-#' Acceptable inputs are "is:issue" or "is:pull-request".
-#' greatest dates and the file name that contains the greatest date.
-#' @param verbose boolean value. When set to true, it prints operational messages including
-#' greatest dates and the file name that contains the greatest date.
-#' @export
-#' @references For details on is:issue or is:pull-request see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}
-#' @references For details on timestampes, se \url{https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated}
-#' @seealso  \code{link{github_api_project_issue_or_pr_comment_refresh}} to refresh comment data
-#' @seealso  \code{link{github_api_project_issue_or_pr_comments}} to refresh issue data
-github_api_project_issue_by_date <- function(owner,
-                                             repo,
-                                             token,
-                                             date_lower_bound = NULL,
-                                             date_upper_bound = NULL,
-                                             issue_or_pr,
-                                             verbose = FALSE) {
-  # Base query to include repository and issue filter
-  query <- paste0("repo:",owner, "/", repo, " ", issue_or_pr)
-  message(query)
-
-  # Add date filters to the query if provided
-  if (!is.null(date_lower_bound) && !is.null(date_upper_bound)) {
-    query <- sprintf("%s created:%s..%s", query, date_lower_bound, date_upper_bound)
-    if(verbose){
-      message("Downloading issue data created between ", date_lower_bound, " and ", date_upper_bound, ".")
-    }
-  } else if (!is.null(date_lower_bound)) {
-    query <- sprintf("%s created:>=%s", query, date_lower_bound)
-  } else if (!is.null(date_upper_bound)) {
-    query <- sprintf("%s created:<=%s", query, date_upper_bound)
-  }
-
-  # Only proceed if at least one date bound is provided
-  if (is.null(date_lower_bound) && is.null(date_upper_bound)) {
-    stop("At least one of 'date_lower_bound' or 'date_upper_bound' must be provided.
-         If you have provided at least one, it may be improperly formatted.")
-  }
-
-  # Perform the API call using the constructed query
-  gh_response <- github_api_project_issue_search(owner, repo, token, query, issue_or_pr,verbose=TRUE)
-
-  return(gh_response)
-}
-
-#' Download Project Issues via Search
-#'
-#' Download Commits from "GET /repos/{owner}/{repo}/search/issues" endpoint.
-#' This search endpoint allows for optional query parameter. Potential queries are found
-#' [here](https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28). The query parameter
-#' assumes that owner/repo is already prepended to the query. If no query is passed to the function,
-#' it will prepend only owner/repo to the query.
-#'
-#' @param owner GitHub's repository owner (e.g. sailuh)
-#' @param repo GitHub's repository name (e.g. kaiaulu)
-#' @param token Your GitHub API token
-#' @param query Optional query to append to search api
-#' @param issue_or_pr This specifies whether issues or pull requests are being searched for.
-#' Acceptable inputs are "is:issue" or "is:pull-request".
-#' @param verbose Prints operational messages when se to true such as stating the search query.
-#' @references For details, see \url{https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28}.
-#' @references For details on timestampes, se \url{https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated}
-#' @export
-github_api_project_issue_search <- function(owner, repo, token, query = NULL, issue_or_pr, verbose=TRUE) {
-  # Construct the search query
-  #Check if there is a query
-  if (!is.null(query)){
-    search_query <- query
+  # Navigate to the correct level in the JSON structure based on the item_path
+  data_to_process <- if (item_path != "") {
+    eval(parse(text=paste0("json_data$", item_path)))
   } else {
-    search_query <- "repo:"
-    search_query <- paste0(search_query,owner,"/",repo," ", issue_or_pr)
+    json_data
   }
 
-  if(verbose){
-    message("Search query: ", search_query)
+  # Initialize a variable to keep track of the greatest date
+  greatest_date <- as.POSIXct("1970-01-01T00:00:00Z", tz = "UTC")
+
+  # Iterate through each element in the data_to_process
+  for (item in data_to_process) {
+    # Extract 'created_at' date and convert to POSIXct
+    submitted_date <- as.POSIXct(item$submitted_at, format = "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+
+    # Update greatest_date if the current item's date is later
+    if (current_date > greatest_date) {
+      greatest_date <- current_date
+    }
   }
 
-  # Perform the GitHub API call
-  gh_response <- gh::gh("/search/issues",
-                        q = search_query,
-                        state = 'all',
-                        page = 1,
-                        per_page = 100,
-                        .token = token)
-  return(gh_response)
+  # Format the greatest date found
+  formatted_greatest_date <- format(greatest_date, "%Y-%m-%dT%H:%M:%SZ")
+
+  # Return the latest 'submitted_at' value
+  return(formatted_greatest_date)
 }
 

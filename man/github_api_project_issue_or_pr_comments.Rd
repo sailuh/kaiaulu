@@ -16,7 +16,8 @@ github_api_project_issue_or_pr_comments(owner, repo, token, since = NULL)
 \item{since}{Optional parameter to specify pulling only comments updated after this date}
 }
 \description{
-Download Issues' or Pull Request's Comments from "GET /repos/{owner}/{repo}/issues/comments" endpoint.
+Download Issues' and Pull Request's Comments from "GET /repos/{owner}/{repo}/issues/comments" endpoint.
+All Pull Requests are counted as Issues, but not all Issues are Pull Requests
 Optional parameter since is used to download comments updated after the specified date.
 If the value of since is NULL, it is not passed to the API call and all comments are downloaded.
 }

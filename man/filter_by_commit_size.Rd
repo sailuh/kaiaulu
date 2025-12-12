@@ -24,6 +24,7 @@ on a file-commit network to obtain co-change.(e.g. \code{\link{transform_gitlog_
 \seealso{
 Other filters: 
 \code{\link{filter_by_commit_interval}()},
+\code{\link{filter_by_file_extension}()},
 \code{\link{filter_by_filepath_substring}()}
 }
 \concept{filters}

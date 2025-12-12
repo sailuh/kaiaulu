@@ -25,6 +25,7 @@ all filepaths which contain the word 'test' anywhere in it)
 
 Other filters: 
 \code{\link{filter_by_commit_interval}()},
-\code{\link{filter_by_commit_size}()}
+\code{\link{filter_by_commit_size}()},
+\code{\link{filter_by_file_extension}()}
 }
 \concept{filters}
