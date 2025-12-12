@@ -607,6 +607,15 @@ github_parse_search_issues_refresh <- function(api_responses) {
     parsed_response[["author_association"]] <- api_response[["author_association"]]
     parsed_response[["title"]] <- api_response[["title"]]
     parsed_response[["body"]] <- api_response[["body"]]
+    if (length(parsed_response[["body"]]) > 0) {
+      if(parsed_response[["body"]] != ""){
+        parsed_response[["body"]] <- api_response[["body"]]
+      } else {
+        parsed_response[["body"]] <- NA_character_
+      }
+    } else {
+      parsed_response[["body"]] <- NA_character_
+    }
 
     # Parsing labels
     parsed_response[["labels"]] <- api_response[["labels"]]
@@ -665,11 +674,13 @@ github_parse_project_issue <- function(api_responses){
     parsed_response[["issue_user_login"]] <- api_response[["user"]][["login"]]
     parsed_response[["author_association"]] <- api_response[["author_association"]]
     parsed_response[["title"]] <- api_response[["title"]]
-
-    # For issues with "No description provided" in the top comment box.
     parsed_response[["body"]] <- api_response[["body"]]
     if (length(parsed_response[["body"]]) > 0) {
-      parsed_response[["body"]] <- parsed_response[["body"]]
+      if(parsed_response[["body"]] != ""){
+        parsed_response[["body"]] <- api_response[["body"]]
+      } else {
+        parsed_response[["body"]] <- NA_character_
+      }
     } else {
       parsed_response[["body"]] <- NA_character_
     }
@@ -721,36 +732,6 @@ github_api_project_issue_refresh <- function(owner,
                                              issue_or_pr,
                                              verbose=TRUE){
 
-<<<<<<< HEAD
-#' Parse Pull Requests JSON to Table
-#'
-#' Note not all columns available in the downloaded json are parsed.
-#'
-#' @param api_responses API response obtained from github_api_* function.
-#' @export
-github_parse_project_pull_request <- function(api_responses){
-  parse_response <- function(api_response){
-    parsed_response <- list()
-    parsed_response[["pr_id"]] <- api_response[["id"]]
-    parsed_response[["pr_number"]] <- api_response[["number"]]
-    parsed_response[["html_url"]] <- api_response[["html_url"]]
-    parsed_response[["url"]] <- api_response[["url"]]
-    parsed_response[["created_at"]] <- api_response[["created_at"]]
-    parsed_response[["updated_at"]] <- api_response[["updated_at"]]
-    parsed_response[["state"]] <- api_response[["state"]]
-    parsed_response[["pr_user_login"]] <- api_response[["user"]][["login"]]
-    parsed_response[["author_association"]] <- api_response[["author_association"]]
-    parsed_response[["title"]] <- api_response[["title"]]
-    
-    # For issues with "No description provided" in the top comment box.
-    parsed_response[["body"]] <- api_response[["body"]]
-    if (length(parsed_response[["body"]]) > 0) {
-      parsed_response[["body"]] <- parsed_response[["body"]]
-    } else {
-      parsed_response[["body"]] <- NA_character_
-    }
-=======
->>>>>>> origin/master
 
   # Check if refresh folder is empty
   contents_refresh <- list.files(path = save_path_issue_refresh)
@@ -930,6 +911,15 @@ github_parse_project_issue_or_pr_comments <- function(api_responses){
     parsed_response[["comment_user_login"]] <- api_response[["user"]][["login"]]
     parsed_response[["author_association"]] <- api_response[["author_association"]]
     parsed_response[["body"]] <- api_response[["body"]]
+    if (length(parsed_response[["body"]]) > 0) {
+      if(parsed_response[["body"]] != ""){
+        parsed_response[["body"]] <- api_response[["body"]]
+      } else {
+        parsed_response[["body"]] <- NA_character_
+      }
+    } else {
+      parsed_response[["body"]] <- NA_character_
+    }
     parsed_response[["total_count"]] <- api_response[["total_count"]]
     parsed_response[["+1"]] <- api_response[["+1"]]
     parsed_response[["-1"]] <- api_response[["-1"]]

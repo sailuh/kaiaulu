@@ -15,8 +15,6 @@ require(jsonlite,quietly=TRUE)
 require(knitr,quietly=TRUE)
 require(magrittr,quietly=TRUE)
 require(gt,quietly=TRUE)
-source("R/config.R")
-source("R/github.R")
 
 # Rscript github.R refresh issues ../../kaiaulu/conf/kaiaulu.yml ../../rawdata/github/kaiaulu/issue_search/
 # Rscript github.R refresh comments ../../kaiaulu/conf/kaiaulu.yml ../../rawdata/github/kaiaulu/issue_search/
@@ -74,7 +72,7 @@ if(arguments[["refresh"]] & arguments[["help"]]) {
   } else if(arguments [["--pr"]]){
     save_path_pull_request <- get_github_pull_request_path(conf, project_key)
 
-    gh_response <- github_api_project_pull_request(owner,repo,token)
+    gh_response <- github_api_project_pull_request_refresh(owner,repo,token, save_path_pull_request)
     dir.create(save_path_pull_request)
     github_api_iterate_pages(token,gh_response,
                              save_path_pull_request,
@@ -121,7 +119,7 @@ if(arguments[["refresh"]] & arguments[["help"]]) {
     all_pr <- lapply(all_pr,
                      github_parse_project_pull_request)
     all_pr <- rbindlist(all_pr,fill=TRUE)
-
+ 
     data.table::fwrite(all_pr, save_path)
     cli::cli_alert_success(paste0("Dependencies table was saved at: ", save_path))
   } else if(arguments [["--comments"]]){
