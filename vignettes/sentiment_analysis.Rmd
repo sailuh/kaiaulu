@@ -33,6 +33,13 @@ require(markdown)
 require(XML)
 ```
 
+source("../R/config.R")
+source("../R/sentiment.R")
+source("../R/filter.R")
+source("../R/github.R")
+source("../R/jira.R")
+source("../R/mail.R")
+
 ```{r}
 tool <- parse_config("../tools.yml")
 conf <- parse_config("../conf/kaiaulu.yml")
@@ -154,25 +161,26 @@ head(all_issue_or_pr_comments,3) %>%
 Using the `/pull_request/` endpoint, we capture the initial message of each pull request in a specified repository.
 
 ```{r Collect all pull requests, eval = FALSE}
-gh_response <- github_api_project_pull_request(owner,repo,token)
+gh_response <- github_api_project_pull_request_refresh(owner,repo,token, save_path_pull_request)
 dir.create(save_path_pull_request)
 github_api_iterate_pages(token,gh_response,
                          save_path_pull_request,
-                         prefix="pull_request")
+                         prefix="pull_request"
+                         verbose=TRUE)
 
 all_pr <- lapply(list.files(save_path_pull_request,
                                      full.names = TRUE),read_json)
 all_pr <- lapply(all_pr,
                                    github_parse_project_pull_request)
 all_pr <- rbindlist(all_pr,fill=TRUE)
-
-all_pr <- all_pr[,.(reply_id=pr_id,
+names(all_pr)
+all_pr <- all_pr[,.(reply_id=issue_id,
                       in_reply_to_id=NA_character_,
                       reply_datetimetz=created_at,
-                      reply_from=pr_user_login,
+                      reply_from=issue_user_login,
                       reply_to=NA_character_,
                       reply_cc=NA_character_,
-                      reply_subject=pr_number,
+                      reply_subject=issue_number,
                       reply_body=body)]
 
 head(all_pr, 3) %>%

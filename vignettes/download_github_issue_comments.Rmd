@@ -1,0 +1,496 @@
+---
+title: "Download GitHub Project Issue and Pull Request Comments via API"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteIndexEntry{Download GitHub Project Issue and Pull Request Comments via API}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+# Introduction
+
+In this Vignette, we show how to download GitHub comments from both
+Issue and Pull Requests. This data may be useful if development
+communication occurs through issues or pull requests in GitHub in
+addition or instead of mailing lists. For details on how to merge
+various communication sources, see the
+`reply_communication_showcase.Rmd` notebook. The parsed communication
+table from GitHub comments by `parse_github_comments` has the same
+format as the mailing list and JIRA comments tables. In turn, the
+function expects as input the table generated at the end of this
+notebook.
+
+The functions in Kaiaulu will assume you have a token available, which
+can be passed as parameter.
+
+## Create a Personal Token
+
+GitHub limits the number of API calls per IP to only 60 attempts **every
+hour** at the time this vignette was created. You can check the current
+rates at [its
+website](https://docs.github.com/en/free-pro-team@latest/rest/overview/resources-in-the-rest-api#rate-limiting).
+
+If using a personal account token from a free GitHub account, the number
+of API calls per hour increases to 5000 **per hour**. Therefore, it is
+recommended you create a personal token by following the [GitHub
+Documentation
+instructions](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token#:~:text=Creating%20a%20token.%201%20Verify%20your%20email%20address%2C,able%20to%20see%20the%20token%20again.%20More%20items).
+The process should not take more than 2 minutes.
+
+The token should then be copied and pasted into `../.ssh/github_token`.
+Both the `.ssh` folder and `github_token` file may need to be created
+manually. Check for hidden folders before creating the `.ssh` folder.
+The `github_token` file should not have any file extensions.
+
+## Libraries
+
+To use the notebook, you will need to ensure you have the required R
+packages installed.
+
+```{r warning=FALSE,message=FALSE}
+rm(list = ls())
+require(kaiaulu)
+require(data.table)
+require(jsonlite)
+require(knitr)
+require(magrittr)
+require(gt)
+```
+
+## Project Configuration File
+
+To use the pipeline, you must specify the organization and project of
+interest, and your token.
+
+```{r warning=FALSE}
+conf <- parse_config("../conf/kaiaulu.yml")
+owner <- get_github_owner(conf, "project_key_1") # Has to match github organization (e.g. github.com/sailuh)
+repo <- get_github_repo(conf, "project_key_1") # Has to match github repository (e.g. github.com/sailuh/perceive)
+
+# Path you wish to save all raw data.
+save_path_issue_refresh <- get_github_issue_search_path(conf, "project_key_1")
+save_path_issue <- get_github_issue_path(conf, "project_key_1")
+save_path_pull_request <- get_github_pull_request_path(conf, "project_key_1")
+save_path_pr_comments <- get_github_pr_comments_path(conf, "project_key_1")
+save_path_issue_or_pr_comments <- get_github_issue_or_pr_comment_path(conf, "project_key_1")
+save_path_commit <- get_github_commit_path(conf, "project_key_1")
+
+
+
+save_path_pr_reviewers <- get_github_pr_reviewers_path(conf, "project_key_1")
+save_path_pr_merge <- get_github_pr_merge_path(conf, "project_key_1")
+
+# your file github_token (a text file) contains the GitHub token API
+token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
+```
+
+# GitHub Project's Comments
+
+In this notebook, we are interested in obtaining comment data from the
+GitHub API. Development communication may occur in either issues or pull
+requests. [The GitHub API Pulls
+documentation](https://docs.github.com/en/rest/reference/pulls) states
+that *'Comments on pull requests can be managed via the Issue Comments
+API. Every pull request is an issue, but not every issue is a pull
+request. For this reason, "shared" actions for both features, like
+manipulating assignees, labels and milestones, are provided within the
+Issues API.'*
+
+Further details are noted on the issue endpoint: *'Note: GitHub's REST
+API v3 considers every pull request an issue, but not every issue is a
+pull request. For this reason, "Issues" endpoints may return both issues
+and pull requests in the response. You can identify pull requests by the
+pull_request key. Be aware that the id of a pull request returned from
+"Issues" endpoints will be an issue id. To find out the pull request id,
+use the "List pull requests" endpoint.'*
+
+While the above is true for **comments**, the first message of every
+issue and every pull request (which also include a title) is not
+regarded by GitHub as a comment. For example, suppose one issue was
+opened by Author A, and contain only one reply by Author B. In this
+case, A and B established communication, and we would like this
+interaction to be reflected in the final table. However, if we were to
+only use the **comments** endpoint, we would only obtain Author's B
+comment, and not Author's A. The same is true in Pull Requests.
+
+Therefore, in this Notebook we have to rely on four endpoints from the
+GitHub API: The `Issue endpoint` to obtain the "first comment" of every
+issue, the `Pull Request endpoint` to obtain the "first comment" of
+every pull request, followed by the
+`Issue and Pull Request Comment endpoint`, which provides comments for
+both issue and pull requests together. Unfortunately, neither the
+`Pull Request endpoint` nor the
+`Issue and Pull Request Comment endpoint` retrieve in-line code comments
+from Pull Requests. For these, we need to rely on the fourth endpoint,
+`Pull Request Comment endpoint`.
+
+# Issues
+
+## Issues by Date Range
+
+Kaiaulu offers the ability to download issue data by date range. Using
+the `github_api_project_issue_by_date()`, you can download issues based
+on their
+['created'](https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated)
+dates. The acceptable formats are:
+
+-   YYYY-MM-DD Example: 2023-04-15 (15th April 2023)
+
+-   YYYY-MM-DDTHH:MM Example: 2023-04-15T13:45 (15th April 2023 at 13:45
+    UTC)
+
+-   YYYY-MM-DDTHH:MM:SS Example: 2023-04-15T13:45:30 (15th April 2023 at
+    13:45:30 UTC)
+
+-   YYYY-MM-DDTHH:MM:SSZ or YYYY-MM-DDTHH:MM:SS+00:00 Example:
+    2023-04-15T13:45:30Z or 2023-04-15T13:45:30+00:00 (15th April 2023
+    at 13:45:30 UTC)
+
+If both date range parameters are set to `NULL`, then all issues will be
+retrieved. Alternatively, if for example `date_lower_bound_issue` is set
+to "2000-01-01" and `date_upper_bound` is set to "2005-01-01", then only
+issues created between these two dates will be retrieved.
+
+If you would like to retrieve issues only **after** a certain date, set
+`date_upper_bound_issue=NULL` and `date_lower_bound` to the date.
+
+If you would like to retrieve only issues **before** a certain date, set
+`date_lower_bound_issue=NULL` and date_upper_bound to the date.
+
+```{r Collect issues by date x, eval = FALSE}
+created_lower_bound_issue <- "2024-12-01"
+created_upper_bound_issue <- NULL
+# make initial API CALL
+# Acceptable formats for issue_or_pr
+# "is:issue"
+# "is:pull-request
+issue_or_pr <- "is:issue"
+#issue_or_pr <- "is:pull-request"
+if (issue_or_pr == "is:issue"){
+  issue_date_save_path <- save_path_issue_refresh
+} else {
+  issue_date_save_path <- save_path_pull_request
+}
+gh_response <- github_api_project_issue_by_date(owner,
+                                                repo,
+                                                token,
+                                                created_lower_bound_issue,
+                                                created_upper_bound_issue,
+                                                issue_or_pr,
+                                                verbose=TRUE)
+
+# Make subsequent API calls and write to JSON file along save path
+github_api_iterate_pages(token,gh_response,
+                         issue_date_save_path,
+                         prefix="issue",
+                         verbose=TRUE)
+```
+
+```{r}
+# Read all JSON files from the directory
+all_issue_files <- lapply(list.files(save_path_issue_refresh, full.names = TRUE), read_json)
+
+# Parse each JSON file using the refresh parser
+all_issue <- lapply(all_issue_files, github_parse_search_issues_refresh)
+
+# Combine all the data tables
+all_issues_combined <- rbindlist(all_issue, fill = TRUE)
+
+# Display the head of the combined issues table
+head(all_issues_combined) %>%
+  gt(auto_align = FALSE)
+```
+
+## Issues by Customized Queries
+
+You may alternatively have full flexibility on the choice of parameters
+using `github_api_project_issue()`.
+
+```{r Collect all issues y, eval = FALSE}
+
+query <- "<parameters_of_interest>"
+
+# Acceptable formats for issue_or_pr
+# "is:issue"
+# "is:pull-request
+# issue_or_pr <- "is:issue"
+issue_or_pr <- "is:pull-request"
+# Check which folder to use
+if (issue_or_pr == "is:issue"){
+  issue_date_save_path <- save_path_issue_refresh
+} else {
+  issue_date_save_path <- save_path_pull_request
+}
+
+gh_response <- github_api_project_issue_search(owner, repo, token, query, issue_or_pr, verbose=TRUE)
+
+# Make subsequent API calls and write to JSON file along save path
+github_api_iterate_pages(token,gh_response,
+                         save_path_issue_refresh,
+                         prefix="issue",
+                         verbose=TRUE)
+```
+
+## Refresh Issues
+
+The above function call downloads all the available issues less than the
+specified limit (default to API limit). The following chunk allows the
+downloading of issues that have been created only after the most
+recently created issue already downloaded. This allows the user to
+'refresh' their data or continue downloading if a rate limit was
+previously reached.
+
+There are a few instances in which downloading the issue data with
+comments does not capture all the issues:
+
+1.  The Github rest API rate limit (currently 5000/hour) is reached.
+2.  Function ends before completing.
+3.  More issues were since posted after downloading.
+
+This function relies on the naming convention the downloaders utilize on
+the file to perform this operation. For details, see the function
+documentation.
+
+```{r Collect all issues x, eval = FALSE}
+# Acceptable formats for issue_or_pr
+# "is:issue"
+# "is:pull-request
+issue_or_pr <- "is:issue"
+# issue_or_pr <- "is:pull-request"
+# gh call but with date
+if (issue_or_pr == "is:issue"){
+  issue_date_save_path <- save_path_issue_refresh
+} else {
+  issue_date_save_path <- save_path_pull_request
+}
+gh_response <- github_api_project_issue_refresh(owner,
+                                                repo,
+                                                token,
+                                                issue_date_save_path,
+                                                issue_or_pr,
+                                                verbose=TRUE)
+github_api_iterate_pages(token,gh_response,
+                         issue_date_save_path,
+                         prefix="issue",
+                         verbose=TRUE)
+```
+
+```{r}
+# Read all JSON files from the directory
+all_issue_files <- lapply(list.files(save_path_issue_refresh, full.names = TRUE), read_json)
+
+# Parse each JSON file using the refresh parser
+all_issue <- lapply(all_issue_files, github_parse_search_issues_refresh)
+
+
+# Combine all the data tables
+all_issues_combined <- rbindlist(all_issue, fill = TRUE)
+
+# Display the head of the combined issues table
+head(all_issues_combined) %>%
+  gt(auto_align = FALSE)
+```
+
+The Refresh parser also parses issue data but the folder
+'refresh_issues', parsing data retrieved from the search endpoint. In
+this notebook, that is data from the REFRESH issues portion saved to
+issue_search directory.
+
+# Comments
+
+## Issues and PR Comments by Date Range
+
+Sometimes it is helpful to retrieve issue comments after a particular
+date. Issue comments have the drawback in the Github API of only being
+able to specify a lower bound and downloading all comments created or
+updated after this date inclusive. If there are multiple revisions of a
+comment, the most recent version of the comment is downloaded. The
+acceptable date formats are:
+
+-   YYYY-MM-DD Example: 2023-04-15 (15th April 2023)
+
+-   YYYY-MM-DDTHH:MM Example: 2023-04-15T13:45 (15th April 2023 at 13:45
+    UTC)
+
+-   YYYY-MM-DDTHH:MM:SS Example: 2023-04-15T13:45:30 (15th April 2023 at
+    13:45:30 UTC)
+
+-   YYYY-MM-DDTHH:MM:SSZ or YYYY-MM-DDTHH:MM:SS+00:00 Example:
+    2023-04-15T13:45:30Z or 2023-04-15T13:45:30+00:00 (15th April 2023
+    at 13:45:30 UTC)
+
+```{r Collect comments by date, eval = FALSE}
+updated_lower_bound_comment <- "2024-04-25"
+
+# make initial API CALL
+gh_response <- github_api_project_issue_or_pr_comments_by_date(owner = owner,
+                                                repo = repo,
+                                                token = token,
+                                                since = updated_lower_bound_comment,
+                                                verbose=TRUE)
+
+# Make subsequent API calls and write to JSON file along save path
+github_api_iterate_pages(token,gh_response,
+                         save_path_issue_or_pr_comments,
+                         prefix="issue",
+                         verbose=TRUE)
+```
+
+```{r}
+all_issue_or_pr_comments <- lapply(list.files(save_path_issue_or_pr_comments,
+                                     full.names = TRUE),read_json)
+all_issue_or_pr_comments <- lapply(all_issue_or_pr_comments,
+                                   github_parse_project_issue_or_pr_comments)
+all_issue_or_pr_comments <- rbindlist(all_issue_or_pr_comments,fill=TRUE)
+
+head(all_issue_or_pr_comments,2)  %>%
+  gt(auto_align = FALSE) 
+```
+
+## Refresh Issue or PR Comment
+
+Similar to the refresh of the issues, this chunk allows for the
+downloading of comments that have been created and/or updated since the
+most recently created date among data already downloaded. This allows us
+to 'refresh' the comments, downloading comments made or updated since
+that date or continue downloading if a rate limit was reached.
+
+This function relies on the naming convention the downloaders utilize on
+the file to perform this operation. For details, see the function
+documentation.
+
+Because the endpoint this function relies on is based on the updated
+timestamp, running the refresher will download the most recent version
+of the comment changes. Only the most recent version of the comment will
+be downloaded, not all copies. However, if the same comment was modified
+before the next refresh call, then if the refresher function was
+executed again, then this would result in two comments with the same
+comment id being present in the table. This can be addressed by
+performing a group by over the comment_id in the generated parsed table,
+and selecting to return the max(updated_at) comment, resulting in a
+table that only the most recent comment verson as of the latest time the
+refresher was executed.
+
+```{r Collect all issues comments, eval = FALSE}
+#gh call but with date
+# get the data
+gh_response_issue_or_pr_comment <- github_api_project_issue_or_pr_comment_refresh(owner,                                                                            repo,
+                                              token,                                                                            save_path_issue_or_pr_comments,                                                    verbose=TRUE)
+
+# create directory and iterate over data
+#dir.create(save_path_issue_or_pr_comments)
+github_api_iterate_pages(token,gh_response_issue_or_pr_comment,
+                         save_path_issue_or_pr_comments,
+                         prefix="issue_or_pr_comment",
+                         verbose=TRUE)
+```
+
+```{r Parse all issues comments}
+all_issue_or_pr_comments <- lapply(list.files(save_path_issue_or_pr_comments,
+                                     full.names = TRUE),read_json)
+all_issue_or_pr_comments <- lapply(all_issue_or_pr_comments,
+                                   github_parse_project_issue_or_pr_comments)
+all_issue_or_pr_comments <- rbindlist(all_issue_or_pr_comments,fill=TRUE)
+
+head(all_issue_or_pr_comments,2)  %>%
+  gt(auto_align = FALSE) 
+
+```
+
+# Other API Endpoints
+
+The following API endpoints do not currently implement the refresher,
+but may provide useful information. The exception to this is the Pull
+Request Review Comments endpoint, which does implement a refresher.
+
+## Commits Endpoint: Obtaining author's name and e-mail
+
+The four endpoints used before do not contain author and e-mail
+information, only the developers GitHub ids. This is a problem, if the
+project being studied contains communication data outside the GitHub
+ecosystem (e.g. uses JIRA as issue tracker). In order to link developers
+to other sources, we need both author and e-mail information.
+
+To do so, we can use the committer endpoint.
+
+```{r Collect all authors and committers name and e-mail, eval = FALSE}
+gh_response <- github_api_project_commits(owner,repo,token)
+github_api_iterate_pages(token,gh_response,
+                         save_path_commit,
+                         prefix="commit",
+                         verbose=TRUE)
+
+```
+
+## Issue Endpoint
+
+The refresh search endpoint does **not** include pull requests. If the
+intent is to download both issues and pull requests, then the `/issue/`
+endpoint should be used instead:
+
+```{r Collect all issues from issue endpoint, eval = FALSE}
+gh_response <- github_api_project_issue(owner,repo,token)
+github_api_iterate_pages(token,gh_response,
+                         save_path_issue,
+                         prefix="issue")
+```
+
+```{r Parse all issues from issue endpoint}
+all_issue_or_pr <- lapply(list.files(save_path_issue,
+                                     full.names = TRUE),read_json)
+all_issue_or_pr <- lapply(all_issue_or_pr,
+                                   github_parse_project_issue_or_pr_comments)
+all_issue_or_pr <- rbindlist(all_issue_or_pr,fill=TRUE)
+
+head(all_issue_or_pr,2)  %>%
+  gt(auto_align = FALSE) 
+```
+
+
+
+## Combining Issue and Pull Request communication
+
+If our interest is to observe all the development communication, we may
+regard both the opening issue, pull request and comments as simply
+"replies" in a single table.
+
+Note because we obtain the authors and committers name and e-mail,
+**only comments made by developers who made at least one commit will
+contain their name and e-mail**. That is, people who only post issues
+and comment will not have that information available, and instead will
+have their github user as part of the `reply_from` column. Therefore,
+identity match is likely not to work when no author name and e-mail is
+available. If you are analyzing social smells, this will not be a
+problem for org silo and missing link (as their condition require code
+changes). However, since radio silence only consider the mailing list
+network, caution must be exercised.
+
+Below we show the result of such merge, including the name and e-mail
+fields obtained from the commit table. As before, we do not display the
+body column to prevent breaking the HTML format.
+
+```{r Combine Issue and Pull Request Communication}
+replies <- parse_github_replies(issues_json_folder_path=save_path_issue,
+                                pull_requests_json_folder_path=save_path_pull_request,
+                                comments_json_folder_path=save_path_issue_or_pr_comments,
+                                commit_json_folder_path=save_path_commit,
+                                pr_comments_json_folder_path=save_path_pr_comments)  
+
+tail(replies,2)  %>%
+  gt(auto_align = FALSE) 
+```
+
+
+# A note on Refreshers
+
+When using refreshers, you should keep in mind the assumptions used to re-download data due to limitations of the data source. For example, when downloading mailing list data, the refresher guarantees the dataset is complete by rewriting the most recently downloaded month on file, and the months thereafter. This is because after the end of the month, the data becomes immutable for that file. 
+
+The same can't be said for all data of issue trackers. That is, developers may choose to comment in an old issue, or perform another code review. Kaiaulu's issue tracker refreshers will use the timestamp of the most recently downloaded file of the endpoint (comment, issue, etc) when downloading more data. This will download additional issue, comments, etc. but **not always comment edits**. Further, if the data source endpoint does not allow for querying by timestamp, Kaiaulu will download newer IDs (as is the case of pull request reviews in this Notebook). Hence, if a **pull request you already downloaded receives a new code review, these will not be downloaded by the refresher**.
+
+To resolve this issue, if the interest is a complete dataset, use the associated data (issue, pull request) status (e.g. open, closed) to identify if the pull request is still expected to have changes. If so, you can script checking the data associated to these files to be deleted, and use Kaiaulu to re-download them. If your intent is to use the data for research purposes, the rule of thumb is to filter out data which status is not marked as closed, as you will inevitably have ongoing open discussion in a project you are analyzing unless the project is inactive. 

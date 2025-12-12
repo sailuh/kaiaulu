@@ -29,8 +29,7 @@ github_api_project_issue_by_date(
 Acceptable inputs are "is:issue" or "is:pull-request".
 greatest dates and the file name that contains the greatest date.}
 
-\item{verbose}{boolean value. When set to true, it prints operational messages including
-greatest dates and the file name that contains the greatest date.}
+\item{verbose}{True if messages should be displayed during execution.}
 }
 \description{
 Appends a 'created' field to a search github JQL query and returns the first page of the response.

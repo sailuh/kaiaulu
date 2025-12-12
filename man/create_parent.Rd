@@ -14,8 +14,6 @@ create_parent(jira_domain_url, issue_key, status, priority, issue_type)
 \item{priority}{the name of the priority of the issue}
 
 \item{issue_type}{type of JIRA issue}
-
-\item{parent_issue_key}{issue key of the parent issue of the current JIRA issue}
 }
 \value{
 A list named 'parent' that contains a parent issue and it's fields
