@@ -12,18 +12,17 @@ vignette: >
 
 # Introduction
 
-
-Kaiaulu interface to GitHub API heavily relies on [gh](https://github.com/r-lib/gh), a minimalistic client to access GitHub’s REST and GraphQL APIs. In essence, Kaiaulu only defines a few API endpoints of interest where the tool is currently used, and parses the returned JSON output into a table keeping only fields of interest. But more can be added later. Please see Kaiaulu's Docs Function API to see what is currently available. 
+Kaiaulu interface to GitHub API heavily relies on [gh](https://github.com/r-lib/gh), a minimalistic client to access GitHub’s REST and GraphQL APIs. In essence, Kaiaulu only defines a few API endpoints of interest where the tool is currently used, and parses the returned JSON output into a table keeping only fields of interest. But more can be added later. Please see Kaiaulu's Docs Function API to see what is currently available.
 
 In this Vignette, I will show how to replicate [Aleksander Konnerup data acquisition pipeline](https://github.com/AleksanderKonnerup/AleksanderKonnerup_akon223_projectZ).
 
-## Create a Personal Token 
+## Create a Personal Token
 
 GitHub limits the number of API calls per IP to only 60 attempts **every hour** at the time this vignette was created. You can check the current rates at [its website](https://docs.github.com/en/free-pro-team@latest/rest/overview/resources-in-the-rest-api#rate-limiting).
 
 If using a personal account token from a free GitHub account, the number of API calls per hour increases to 5000 **per hour**. Therefore, it is recommended you create a personal token by following the [GitHub Documentation instructions](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token#:~:text=Creating%20a%20token.%201%20Verify%20your%20email%20address%2C,able%20to%20see%20the%20token%20again.%20More%20items). The process should not take more than 2 minutes.
 
-The functions in Kaiaulu will assume you have a token available, which can be passed as parameter. 
+The functions in Kaiaulu will assume you have a token available, which can be passed as parameter.
 
 ```{r warning=FALSE,message=FALSE}
 rm(list = ls())
@@ -33,12 +32,11 @@ require(jsonlite)
 require(knitr)
 ```
 
-
 # GitHub Feature: Assign Issue to Issue Commenters
 
-The feature of interest in this notebook is the introduced capability for project owners to assign issue to issue commenters (i.e. those without merge access), as discussed in the following blog post: https://github.blog/2019-06-25-assign-issues-to-issue-commenters. 
+The feature of interest in this notebook is the introduced capability for project owners to assign issue to issue commenters (i.e. those without merge access), as discussed in the following blog post: <https://github.blog/2019-06-25-assign-issues-to-issue-commenters>.
 
-The goal of the following steps is to obtain the data when a project started assigning issues to issue commenters without merge access. 
+The goal of the following steps is to obtain the data when a project started assigning issues to issue commenters without merge access.
 
 # Necessary Parameters
 
@@ -80,7 +78,7 @@ github_api_iterate_pages(token,gh_response,save_path_commit,prefix="commit")
 
 # Parsing Raw Data to Csv
 
-To parse raw data, we use the associated endpoint parser functions. Keep in mind these functions only parse a subset of all the information in the json ("column wise"). Please consult with the GitHub API or inspect the raw data directly to see all information which is available. 
+To parse raw data, we use the associated endpoint parser functions. Keep in mind these functions only parse a subset of all the information in the json ("column wise"). Please consult with the GitHub API or inspect the raw data directly to see all information which is available.
 
 ```{r}
 all_issue_event <- lapply(list.files(save_path_issue_event,full.names = TRUE),read_json)

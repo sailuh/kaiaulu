@@ -6,6 +6,46 @@
 #
 # This file is meant to generate fake git data
 
+#' Example GitHub Issue Without Description
+#'
+#' This function creates a synthetic GitHub issue JSON with a missing description (`body = NULL`).
+#' The JSON is written to a temporary folder for testing how parsers handle GitHub issues
+#' with null description fields. 
+#'
+#' @param folder_path The path where the folder will be created 
+#' @param folder_name The name of the folder
+#' @return The JSON folder path of the newly created GitHub issue
+#' @export
+#' @keywords internal
+example_github_issue_no_description <- function(folder_path="/tmp", folder_name) {
+
+  # Create folder
+  folder_path <- io_make_folder(folder_path=folder_path, folder_name = folder_name)
+
+  # Synthetic GitHub issue with missing description
+  issue <- list(
+    id = 1001,
+    number = 42,
+    html_url = "https://github.com/example/repo/issues/42",
+    url = "https://api.github.com/repos/example/repo/issues/42",
+    created_at = "2025-11-01T00:00:00Z",
+    updated_at = "2025-11-02T00:00:00Z",
+    state = "open",
+    user = list(login = "test-user"),
+    author_association = "random-name",
+    title = "Issue #X",
+    body = NULL,  
+    labels = list(
+      list(name = "bug"),
+      list(name = "help wanted")
+    )
+  )
+
+  jsonlite::write_json(list(issue),
+                       file.path(folder_path, "ONE_ISSUE_NO_DESCRIPTION.json"))
+
+  return(folder_path)
+}
 
 #' Example Renamed File Repo
 #'
