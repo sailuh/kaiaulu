@@ -3,6 +3,8 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ *  A new capability to export events for process mining has been added. [#301](https://github.com/sailuh/kaiaulu/issues/301)
+ * `exec/ghevents.R` has been merged to `exec/github.R`. [#298](https://github.com/sailuh/kaiaulu/issues/298)
  * `exec/ghevents.R` has been added. It is a executable CLI (command-line interface) to download and parse Github Issue Events from outside Kaiaulu.
  * All GitHub Pull Request Comments are able to be downloaded in the Pull Request Comments notebook. [342](https://github.com/sailuh/kaiaulu/issues/342)
  * Refactor of all R/mail.R mailing list functions for downloading and refreshing both pipermail and mod mbox archives. [#284](https://github.com/sailuh/kaiaulu/issues/284)

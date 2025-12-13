@@ -20,13 +20,14 @@ require(kaiaulu)
 require(data.table)
 require(jsonlite)
 require(yaml)
+require(gt)
 ```
 
 # Introduction
 
-This notebook demonstrates how to use the **Kaiaulu R API** functions defined in `ghevents.R`  
-to download and parse GitHub issue event data using the GitHub API.  
-This data can be used for various analysis and use cases. A possible use case is process mining analysis, to see an example for process mining refer to this [repo](https://github.com/sailuh/process_mining).
+This notebook demonstrates how to use the **Kaiaulu R API** functions defined in `ghevents.R` to download and parse GitHub issue event data using the GitHub API.  
+
+Here, we showcase its use for process mining, which builds on the sailuh's processing mining python wrapper [repo](https://github.com/sailuh/process_mining).
 
 ## Requirements
 
@@ -38,66 +39,65 @@ This data can be used for various analysis and use cases. A possible use case is
 
 ## Project Configuration File
 
-To simplify setup and ensure consistency, Kaiaulu uses a configuration file (e.g., `kaiaulu.yml`)  
-that defines project-specific parameters such as the GitHub owner, repository name, and data storage paths.  
+To simplify setup and ensure consistency, Kaiaulu uses a configuration file (e.g., `kaiaulu.yml`) that defines project-specific parameters such as the GitHub owner, repository name, and data storage paths.  
 
-This configuration file enables the API functions to locate repositories and determine where to store downloaded and parsed data.  
-The content that interests us for this notebook is primarily the `issue_event` download path.  
-
-By parsing this configuration file at the start, the notebook clearly communicates **all information needed to run the API functions**:  
+This configuration file enables the API functions to locate repositories and determine where to store downloaded and parsed data:
 
 - Which GitHub organization (`owner`) and repository (`repo`) to query  
 - Where to save raw JSON issue event data (`issue_event`)  
 - Which token to use for authentication (`token_path`)  
 - Where to export the processed CSV (`output_file`)  
 
-This ensures that the notebook workflow is fully reproducible and that users do not need to manually supply repository details or paths.
 
 An example configuration snippet from `kaiaulu.yml`:
 
-    ```        
-    github:
-        project_key_1:
-          # Obtained from the project's GitHub URL
-          owner: sailuh
-          repo: kaiaulu
-          # Download using `download_github_comments.Rmd`
-          issue_or_pr_comment: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_or_pr_comment/
-          issue: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue/
-          issue_search: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_search/
-          issue_event: ../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_event/
-          pull_request: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/pull_request/
-          commit: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/commit/
+```        
+github:
+    project_key_1:
+      # Obtained from the project's GitHub URL
+      owner: sailuh
+      repo: kaiaulu
+      # Download using `download_github_comments.Rmd`
+      issue_or_pr_comment: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_or_pr_comment/
+      issue: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue/
+      issue_search: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_search/
+      issue_event: ../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_event/
+      pull_request: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/pull_request/
+      commit: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/commit/
 
-    ```
+```
+
 ## Download and Parse GitHub Issue Event Data
 
-The following code demonstrates the full workflow of the Kaiaulu R API to:
-
-1. Load the project configuration file to obtain necessary parameters (owner, repo, paths, and token).  
-2. Download all GitHub issue event data for the specified repository.  
-3. Parse the raw JSON files into a clean tabular format.  
-4. Export the processed data to a CSV file for downstream analysis, such as process mining.
+First, we load the project configuration file to obtain necessary parameters (owner, repo, paths, and token).  
 
 ```{r}
-library(kaiaulu)
-library(data.table)
-library(jsonlite)
+require(kaiaulu)
+require(data.table)
+require(jsonlite)
 
 conf <- parse_config("../conf/kaiaulu.yml")
 owner <- get_github_owner(conf, "project_key_1")
 repo <- get_github_repo(conf, "project_key_1")
 save_path <- get_github_issue_event_path(conf, "project_key_1")
 token_path <- "~/.ssh/github_token"
-output_file <- "../output.csv"
+output_file <- "../../analysis/process_mining/project_github_events.csv"
 
 token <- scan(token_path, what="character", quiet=TRUE)
 if(!dir.exists(save_path)) dir.create(save_path, recursive=TRUE)
+```
 
+We then download the issue event data: 
+
+```{r eval = FALSE}
 # Download GitHub issue events 
 gh_response <- github_api_project_issue_events(owner, repo, token)
 github_api_iterate_pages(token, gh_response, save_path, prefix="issue_event")
+```
 
+The event data is then formatted from json to table to be used by the process mining python tool:
+
+```{r}
 #  Parse downloaded JSON files 
 json_files <- list.files(save_path, full.names=TRUE)
 all_issue_event <- lapply(json_files, read_json)
@@ -105,11 +105,17 @@ all_issue_event <- lapply(all_issue_event, github_parse_project_issue_events)
 all_issue_event <- rbindlist(all_issue_event, fill=TRUE)
 all_issue_event[, issue_body := NULL]
 
+head(all_issue_event)  %>%
+  gt(auto_align = FALSE)
+```
+
+
+Specify the location where you wish to save the table to load on the Python process mining wrapper:
+
+```{r}
 write.csv(all_issue_event, output_file, row.names=FALSE)
 ```
 
-### Next Steps: Process Mining Analysis
+# Process Mining Analysis
 
-The processed GitHub issue event data is now saved in `output.csv`.  
-If you want to perform process mining analysis, you can use the [Process Mining Notebook](https://github.com/sailuh/process_mining),  
-which relies on Python and the `pm4py` package to analyze issue event data.
+To continue the process mining analysis, use the [Process Mining Notebook](https://github.com/sailuh/process_mining),   which relies on Python and the `pm4py` package to analyze event data.
