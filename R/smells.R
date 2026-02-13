@@ -282,3 +282,14 @@ smell_radio_silence <- function (mail.graph, clusters) {
 
   return(unique(brockers))
 }
+
+#' Detect Ragequit Social Smell.
+#' 
+#' @description Detect potential ragequits by identifying cases where, 
+#' after a period of inactivity (more than 3 months), a developer's final message 
+#' expressed negative sentiment.
+#' @param 
+#' @param 
+#' @export
+#' @references Wouter Mulder (2025). Am I finished yet? A discover of burnout and
+#' ragequits within open-source projects. (Master thesis, Jheronimus Academy of Data Science).

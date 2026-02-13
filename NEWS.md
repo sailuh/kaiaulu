@@ -3,6 +3,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ * New function `smell_detect_ragequit` added to `R/smells.R` to identify potential developer ragequits. [#360](https://github.com/sailuh/kaiaulu/issues/360)
  *  A new capability to export events for process mining has been added. [#301](https://github.com/sailuh/kaiaulu/issues/301)
  * `exec/ghevents.R` has been added. It is a executable CLI (command-line interface) to download and parse Github Issue Events from outside Kaiaulu.
  * All GitHub Pull Request Comments are able to be downloaded in the Pull Request Comments notebook. [342](https://github.com/sailuh/kaiaulu/issues/342)
