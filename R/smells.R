@@ -286,31 +286,38 @@ smell_radio_silence <- function (mail.graph, clusters) {
 #' Detect Ragequit Social Smell.
 #'
 #' @description Detect potential ragequits by identifying cases where, 
-#' after a period of inactivity, a developer's final message expressed negative sentiment.
-#' @param ragequit_data A data table containing developers and sentiment information on their activity
-#' @param inactive_column The column indicating whether a developer has been inactive for more than 3 months
-#' @param negative_probability_column The column containing the probability of negative sentiment in the final message
-#' @param positive_probability_column The column containing the probability of positive sentiment in the final message
-#' @param sentiment_threshold A threshold to determine if the sentiment is negative enough to indicate a potential ragequit
+#' after a period of inactivity, a developer's final commit message expressed negative sentiment.
+#' @param ragequit_data A data table containing four columns; timestamp of a commit, author, the
+#' author's commit messages, and a sentiment value (integer) assigned to the commit messages
+#' @param quit_lag The number of days since a developer's last commit message
 #' @export
 #' @references Wouter Mulder (2025). Am I finished yet? A discovery of burnout and
 #' ragequits within open-source projects. (Master thesis, Jheronimus Academy of Data Science).
-smell_detect_ragequit <- function (ragequit_data,
-inactive_column,
-negative_probability_column,
-positive_probability_column,
-sentiment_threshold = 0.15) {
+smell_detect_ragequit <- function (ragequit_data, quit_lag = 90) {
 
   ragequit_data <- data.table::as.data.table(ragequit_data)
 
-  # Return a data table with an additional column 'ragequit' indicating a ragequit only when
-  # the developer is inactive, has a higher probability of negative sentiment than positive sentiment,
-  # and the negative sentiment probability exceeds the specified threshold.
-  ragequit_data[, ragequit :=
-    get(inactive_column) &
-    (get(negative_probability_column) > get(positive_probability_column)) &
-    (get(negative_probability_column) > sentiment_threshold)
-  ]
+  ragequit_data[, timestamp := as.POSIXct(timestamp)]
 
-  return(ragequit_data)
+  last_commit_message <- ragequit_data[order(timestamp), .SD[.N], by = author]
+
+  current_time <- Sys.time()
+
+  # Compute whether the author quit
+  last_commit_message[, `:=`(
+    quit = as.numeric(difftime(current_time, timestamp, units = "days")) > quit_lag,
+    quit_date = ifelse(
+      as.numeric(difftime(current_time, timestamp, units = "days")) > quit_lag,
+      timestamp,
+      as.POSIXct(NA)
+    )
+  )]
+
+  # Compute whether the author raged
+  last_commit_message[, raged := quit & sentiment == -1]
+
+  # Computer whether the author ragequitted
+  last_commit_message[, ragequitted := quit & raged]
+
+  return(last_commit_message[, .(author, quit, quit_date, raged, ragequitted)])
 }

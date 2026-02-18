@@ -270,6 +270,7 @@ reference:
   - smell_organizational_silo
   - smell_sociotechnical_congruence
   - smell_radio_silence
+  - smell_detect_ragequit
 - title: __Architectural Flaws__
   desc: >
    Sub-graph patterns that identify bad architectural practices.
