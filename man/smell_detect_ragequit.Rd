@@ -4,13 +4,28 @@
 \alias{smell_detect_ragequit}
 \title{Detect Ragequit Social Smell.}
 \usage{
-smell_detect_ragequit(ragequit_data, quit_lag = 90)
+smell_detect_ragequit(
+  timestamp,
+  author,
+  message,
+  sentiment_value,
+  quit_lag = 90,
+  current_time = Sys.time()
+)
 }
 \arguments{
-\item{ragequit_data}{A data table containing four columns; timestamp of a commit, author, the
-author's commit messages, and a sentiment value (integer) assigned to the commit messages}
+\item{timestamp}{A data table column indicating timestamp of an author's commit message}
+
+\item{author}{A data table column indicating the author of a commit message}
+
+\item{message}{A data table column containing the commit message text}
+
+\item{sentiment_value}{A data table column containing the sentiment value of the commit message 
+(-1 for negative, 0 for neutral, 1 for positive)}
 
 \item{quit_lag}{The number of days since a developer's last commit message}
+
+\item{current_time}{The current time to compare against the last commit timestamp (default is the system's current time)}
 }
 \description{
 Detect potential ragequits by identifying cases where, 

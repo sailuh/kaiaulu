@@ -287,37 +287,55 @@ smell_radio_silence <- function (mail.graph, clusters) {
 #'
 #' @description Detect potential ragequits by identifying cases where, 
 #' after a period of inactivity, a developer's final commit message expressed negative sentiment.
-#' @param ragequit_data A data table containing four columns; timestamp of a commit, author, the
-#' author's commit messages, and a sentiment value (integer) assigned to the commit messages
+#' @param timestamp A data table column indicating timestamp of an author's commit message
+#' @param author A data table column indicating the author of a commit message
+#' @param message A data table column containing the commit message text
+#' @param sentiment_value A data table column containing the sentiment value of the commit message 
+#' (-1 for negative, 0 for neutral, 1 for positive)
 #' @param quit_lag The number of days since a developer's last commit message
+#' @param current_time The current time to compare against the last commit timestamp (default is the system's current time)
 #' @export
 #' @references Wouter Mulder (2025). Am I finished yet? A discovery of burnout and
 #' ragequits within open-source projects. (Master thesis, Jheronimus Academy of Data Science).
-smell_detect_ragequit <- function (ragequit_data, quit_lag = 90) {
+smell_detect_ragequit <- function(timestamp, author, message, sentiment_value, quit_lag = 90, current_time = Sys.time()) {
+  
+  ragequit_data_table <- data.table::data.table(
+    timestamp = as.POSIXct(timestamp),
+    author = author,
+    message = message,
+    sentiment_value = sentiment_value
+  )
 
-  ragequit_data <- data.table::as.data.table(ragequit_data)
+  last_commit <- ragequit_data_table[
+    order(timestamp),
+    .SD[.N],
+    by = author
+  ]
 
-  ragequit_data[, timestamp := as.POSIXct(timestamp)]
+  # Determine whether the author quit based on the time since their last commit
+  last_commit[, quit :=
+    as.numeric(difftime(current_time, timestamp, units = "days")) > quit_lag
+  ]
 
-  last_commit_message <- ragequit_data[order(timestamp), .SD[.N], by = author]
+  last_commit[, quit_date := as.POSIXct(NA)]
 
-  current_time <- Sys.time()
+  # For rows where quit is TRUE, set quit_date to the timestamp of the last commit
+  last_commit[quit == TRUE, quit_date := timestamp]
 
-  # Compute whether the author quit
-  last_commit_message[, `:=`(
-    quit = as.numeric(difftime(current_time, timestamp, units = "days")) > quit_lag,
-    quit_date = ifelse(
-      as.numeric(difftime(current_time, timestamp, units = "days")) > quit_lag,
-      timestamp,
-      as.POSIXct(NA)
-    )
-  )]
 
-  # Compute whether the author raged
-  last_commit_message[, raged := quit & sentiment == -1]
+  # Determine whether author raged by checking if the last commit message is not empty and has negative sentiment (-1)
+  last_commit[, raged :=
+    (!is.na(message)) &
+    (nchar(trimws(message)) > 0) &
+    (sentiment_value == -1)
+  ]
 
-  # Computer whether the author ragequitted
-  last_commit_message[, ragequitted := quit & raged]
+  # Computer whether the author ragequit by checking if they both quit and raged
+  last_commit[, ragequit :=
+    quit & raged
+  ]
 
-  return(last_commit_message[, .(author, quit, quit_date, raged, ragequitted)])
+  return(
+    last_commit[, .(author, quit, quit_date, raged, ragequit)]
+  )
 }
