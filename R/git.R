@@ -1007,3 +1007,72 @@ transform_commit_message_id_to_network <- function(project_git, commit_message_i
 
 }
 
+#' Transform parsed git repo into a heterogeneous network
+#'
+#' Combines authors, commits, and files into a single heterogeneous graph
+#' where each node type is labeled and edges carry a type describing the
+#' relationship between the two connected node types.
+#'
+#' Node types:
+#' \itemize{
+#'   \item \code{"author"} - the developer who authored the commit.
+#'   \item \code{"commit"} - the commit hash.
+#'   \item \code{"file"} - the file changed by the commit.
+#' }
+#'
+#' Edge types:
+#' \itemize{
+#'   \item \code{"authored"} - connects an author to a commit they made. Weight is 1.
+#'   \item \code{"changed"} - connects a commit to a file it modified. Weight is
+#'     total lines added and removed for that commit-file pair.
+#' }
+#'
+#' @param project_git A parsed git project by \code{\link{parse_gitlog}}.
+#' @return a heterogeneous_graph with nodes (name, type, color) and
+#' edgelist (from, to, weight, type, color).
+#' @export
+#' @family edgelists
+transform_gitlog_to_heterogeneous_network <- function(project_git){
+  author_name_email <- commit_hash <- file_pathname <- lines_added <- lines_removed <- NULL # due to NSE notes in R CMD check
+  # Verify input is a valid parse_gitlog output before transforming
+  if(!is.data.table(project_git)){
+    stop("project_git must be a data.table returned by parse_gitlog.")
+  }
+  # Build nodes table — one row per unique entity across all node types
+  author_nodes <- data.table(
+    name  = unique(project_git$author_name_email),
+    type  = "author",
+    color = "black"
+  )
+  commit_nodes <- data.table(
+    name  = unique(project_git$commit_hash),
+    type  = "commit",
+    color = "#afe569"
+  )
+  file_nodes <- data.table(
+    name  = unique(project_git$file_pathname),
+    type  = "file",
+    color = "#f4dbb5"
+  )
+  git_nodes <- rbind(author_nodes, commit_nodes, file_nodes)
+  # Build author to commit edges — one edge per unique author-commit pair
+  author_commit_edges <- unique(project_git[,.(
+    from  = author_name_email,
+    to    = commit_hash,
+    weight = 1L,
+    type  = "authored",
+    color = "black"
+  )])
+  # Build commit to file edges — weight is total lines changed per commit-file pair
+  # lines_added and lines_removed are stored as characters by parse_gitlog
+  commit_file_edges <- project_git[,.(
+    weight = sum(as.numeric(lines_added) + as.numeric(lines_removed), na.rm = TRUE),
+    type   = "changed",
+    color  = "#afe569"
+  ), by = .(from = commit_hash, to = file_pathname)]
+  git_edgelist <- rbind(author_commit_edges, commit_file_edges)
+  # Constructor only wraps pre-built tables and assigns graph type
+  git_network <- model_heterogeneous_graph(git_nodes, git_edgelist)
+  return(git_network)
+}
+

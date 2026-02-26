@@ -138,6 +138,110 @@ model_directed_graph <- function(edgelist,is_bipartite,color,aggregate_duplicate
   return(graph)
 }
 
+#' Create a directed graph model (v2)
+#'
+#' Simplified constructor. The transform function is responsible for building
+#' the nodes and edgelist tables before calling this function.
+#' This function only wraps them into a named list and assigns the graph type.
+#'
+#' @param nodes a data.table with at minimum a `name` column. Type and color
+#' columns should be set by the transform before passing in.
+#' @param edgelist a data.table with at minimum `from`, `to`, and `weight` columns.
+#' Additional columns are preserved as-is.
+#' @return a named list list(nodes, edgelist) with class `directed_graph`.
+#' @export
+model_directed_graph_v2 <- function(nodes, edgelist){
+  graph <- list(nodes=nodes, edgelist=edgelist)
+  class(graph) <- c("directed_graph", class(graph))
+  return(graph)
+}
+
+#' Create an undirected graph model
+#'
+#' Simplified constructor for undirected graphs such as co-authorship and
+#' co-change networks where edges have no meaningful direction.
+#' The transform function is responsible for building the nodes and edgelist
+#' tables before calling this function.
+#' This function only wraps them into a named list and assigns the graph type.
+#'
+#' @param nodes a data.table with at minimum a `name` column. Type and color
+#' columns should be set by the transform before passing in.
+#' @param edgelist a data.table with at minimum `from`, `to`, and `weight` columns.
+#' Additional columns are preserved as-is.
+#' @return a named list list(nodes, edgelist) with class `undirected_graph`.
+#' @export
+model_undirected_graph <- function(nodes, edgelist){
+  graph <- list(nodes=nodes, edgelist=edgelist)
+  class(graph) <- c("undirected_graph", class(graph))
+  return(graph)
+}
+
+#' Create a bipartite graph model
+#'
+#' Simplified constructor for bipartite graphs such as author-file and
+#' commit-file networks where edges connect two distinct types of nodes.
+#' The transform function is responsible for building the nodes and edgelist
+#' tables before calling this function.
+#' This function only wraps them into a named list and assigns the graph type.
+#'
+#' @param nodes a data.table with at minimum a `name` column and a `type` column
+#' where TRUE identifies one node type and FALSE identifies the other. Color
+#' columns should be set by the transform before passing in.
+#' @param edgelist a data.table with at minimum `from`, `to`, and `weight` columns.
+#' Additional columns are preserved as-is.
+#' @return a named list list(nodes, edgelist) with class `bipartite_graph`.
+#' @export
+model_bipartite_graph <- function(nodes, edgelist){
+  graph <- list(nodes=nodes, edgelist=edgelist)
+  class(graph) <- c("bipartite_graph", class(graph))
+  return(graph)
+}
+
+#' Create a heterogeneous graph model
+#'
+#' Simplified constructor for heterogeneous graphs where there are more than
+#' two node types and edges can connect any combination of those types.
+#' Examples include graphs combining developers, files, commits, and issues
+#' from multiple pipelines into a single network.
+#' The transform function is responsible for building the nodes and edgelist
+#' tables before calling this function.
+#' This function only wraps them into a named list and assigns the graph type.
+#'
+#' The transform must set the following columns before calling this constructor:
+#'
+#' nodes table:
+#' \itemize{
+#'   \item \code{name} - unique identifier for each node.
+#'   \item \code{type} - a string label identifying the node type
+#'     (e.g. \code{"author"}, \code{"file"}, \code{"issue"}, \code{"commit"}).
+#'     Unlike bipartite graphs which use TRUE/FALSE, heterogeneous graphs use
+#'     string labels to distinguish more than two node types.
+#'   \item \code{color} - a hex color string per node, assigned by node type
+#'     (e.g. all \code{"author"} nodes share one color, all \code{"file"} nodes share another).
+#' }
+#'
+#' edgelist table:
+#' \itemize{
+#'   \item \code{from} - name of the source node.
+#'   \item \code{to} - name of the destination node.
+#'   \item \code{weight} - a single numeric value per edge.
+#'   \item \code{type} - a string label identifying the edge type
+#'     (e.g. \code{"authored"}, \code{"changed"}, \code{"opened"}, \code{"linked"}).
+#'   \item \code{color} - a hex color string per edge, assigned by edge type (optional).
+#' }
+#'
+#' @param nodes a data.table with columns \code{name}, \code{type}, and \code{color}
+#' set by the transform before passing in.
+#' @param edgelist a data.table with columns \code{from}, \code{to}, \code{weight},
+#' \code{type}, and optionally \code{color} set by the transform before passing in.
+#' @return a named list list(nodes, edgelist) with class \code{heterogeneous_graph}.
+#' @export
+model_heterogeneous_graph <- function(nodes, edgelist){
+  graph <- list(nodes=nodes, edgelist=edgelist)
+  class(graph) <- c("heterogeneous_graph", class(graph))
+  return(graph)
+}
+
 #' Apply a bipartite graph projection
 #'
 #' @param graph A bipartite network (the same pair of nodes can *not* have multiple edges)

@@ -202,7 +202,7 @@ parse_dependencies <- function(depends_jar_path,git_repo_path,language,output_di
           stdout = FALSE,
           stderr = FALSE)
   # Construct /output_dir/ file path
-  output_path <- stri_c(output_dir, project_name,".json")
+  output_path <- stri_c(output_dir, project_name,"-file.json")
   # Parsed JSON output.
   depends_parsed <- jsonlite::read_json(output_path)
   # The JSON has two main parts. The first is a vector of all file names.
@@ -426,14 +426,30 @@ transform_understand_dependencies_to_network <- function(parsed, weight_types) {
 #' @family edgelists
 transform_dependencies_to_network <- function(depends_parsed,weight_types=NA){
   src <- dest <- weight <- NULL # due to NSE notes in R CMD check
+  # Verify input is a valid parse_dependencies output before transforming
+  if(!is.list(depends_parsed)){
+    stop("depends_parsed must be a list returned by parse_dependencies.")
+  }
+  if(!all(c("nodes","edgelist") %in% names(depends_parsed))){
+    stop("depends_parsed must contain 'nodes' and 'edgelist' elements.")
+  }
+  if(!is.data.table(depends_parsed[["nodes"]])){
+    stop("depends_parsed[['nodes']] must be a data.table.")
+  }
+  if(!is.data.table(depends_parsed[["edgelist"]])){
+    stop("depends_parsed[['edgelist']] must be a data.table.")
+  }
   # Can only include types user wants if Depends found them at least once on codebase
 
   nodes <- depends_parsed[["nodes"]]
   edgelist <- depends_parsed[["edgelist"]]
 
+  # Capture NA flag before intersect() converts NA to character(0)
+  use_all_types <- any(is.na(weight_types))
   weight_types <- intersect(names(edgelist)[3:ncol(edgelist)],weight_types)
-  dependency_edgelist <- edgelist[,.(src_filepath,dest_filepath)]
-  if(any(is.na(weight_types))){
+  # copy() preserves all dependency type columns (Import, Call, Use, etc.)
+  dependency_edgelist <- copy(edgelist)
+  if(use_all_types){
     dependency_edgelist$weight <- rowSums(edgelist[,3:ncol(edgelist),with=FALSE])
   }else{
     dependency_edgelist$weight <- rowSums(edgelist[,weight_types,with=FALSE])
@@ -443,18 +459,16 @@ transform_dependencies_to_network <- function(depends_parsed,weight_types=NA){
   setnames(dependency_edgelist,
            old=c("src_filepath","dest_filepath"),
            new=c("from","to"))
-  # Select relevant columns for nodes
-  dependency_nodes <- nodes
-  setnames(x=dependency_nodes,
-           old="filepath",
-           new="name")
-  # Color files yellow
-  dependency_nodes <- data.table(name=dependency_nodes$name,color="#f4dbb5")
-  # Return the parsed JSON output as nodes and edgelist.
-  file_network <- list()
-  file_network[["nodes"]] <- dependency_nodes
-  file_network[["edgelist"]] <- dependency_edgelist
-  return(file_network)
+  # Build nodes table in transform before passing to constructor.
+  # copy() prevents setnames from mutating the caller's depends_parsed object.
+  # Copying from parse output preserves all files including isolated nodes.
+  dependency_nodes <- copy(nodes)
+  setnames(dependency_nodes, old="filepath", new="name")
+  dependency_nodes$type <- FALSE
+  dependency_nodes$color <- "#f4dbb5"
+  # Constructor only wraps pre-built tables and assigns graph type.
+  depends_network <- model_directed_graph_v2(dependency_nodes, dependency_edgelist)
+  return(depends_network)
 }
 #' Transform parsed R dependencies into a graph
 #' @param r_dependencies_edgelist A parsed R folder by \code{\link{parse_r_dependencies}}.
