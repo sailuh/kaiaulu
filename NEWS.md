@@ -3,6 +3,8 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ *  A new capability to export events for process mining has been added. [#301](https://github.com/sailuh/kaiaulu/issues/301)
+ * `exec/ghevents.R` has been added. It is a executable CLI (command-line interface) to download and parse Github Issue Events from outside Kaiaulu.
  * All GitHub Pull Request Comments are able to be downloaded in the Pull Request Comments notebook. [342](https://github.com/sailuh/kaiaulu/issues/342)
  * Refactor of all R/mail.R mailing list functions for downloading and refreshing both pipermail and mod mbox archives. [#284](https://github.com/sailuh/kaiaulu/issues/284)
  * `refresh_mod_mbox()` and `refresh_pipermail()` has been added. They are both functions that downloads mbox issues that are not already downloaded up until the current year and month. [#284](https://github.com/sailuh/kaiaulu/issues/284)
@@ -38,6 +40,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### MINOR IMPROVEMENTS
 
+
  * `parse_mbox_latest_date()` now uses the new mbox naming convention for the latest date. [#284](https://github.com/sailuh/kaiaulu/issues/284)
  * All mailing list documentation can now be found in `download_mail.Rmd`. [#284](https://github.com/sailuh/kaiaulu/issues/284)
  * `download_pipermail()` now downloads all the txt and txt.gz files in the accessed pipermail archive as mbox files. [#284](https://github.com/sailuh/kaiaulu/issues/284)
@@ -62,6 +65,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### BUG FIXES
 
+ * `exec/github.R` has been fixed to address cases when issues have empty descriptions. [#298](https://github.com/sailuh/kaiaulu/issues/298)
  * keyword internal is now required to ommit functions in the docs API. [#241](https://github.com/sailuh/kaiaulu/issues/241)
  * Fixes duplication of issue rows due to multiple components in component field [#244](https://github.com/sailuh/kaiaulu/issues/244)
  * Fixes mismatch of filepath due to leading `/` remaining in relative filepath of `parse_dependencies()`. [#219](https://github.com/sailuh/kaiaulu/issues/219)

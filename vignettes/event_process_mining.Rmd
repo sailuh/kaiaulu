@@ -1,0 +1,121 @@
+---
+title: "Event Process Mining"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Event Process Mining}
+  %\VignetteEncoding{UTF-8}
+---
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(data.table)
+require(jsonlite)
+require(yaml)
+require(gt)
+```
+
+# Introduction
+
+This notebook demonstrates how to use the **Kaiaulu R API** functions defined in `ghevents.R` to download and parse GitHub issue event data using the GitHub API.  
+
+Here, we showcase its use for process mining, which builds on the sailuh's processing mining python wrapper [repo](https://github.com/sailuh/process_mining).
+
+## Requirements
+
+- **GitHub Access Token**  
+  Used for authentication when accessing the GitHub REST API.
+
+- **Kaiaulu**  
+  Provides the API functions implemented in `ghevents.R` for retrieving and parsing GitHub event data.
+
+## Project Configuration File
+
+To simplify setup and ensure consistency, Kaiaulu uses a configuration file (e.g., `kaiaulu.yml`) that defines project-specific parameters such as the GitHub owner, repository name, and data storage paths.  
+
+This configuration file enables the API functions to locate repositories and determine where to store downloaded and parsed data:
+
+- Which GitHub organization (`owner`) and repository (`repo`) to query  
+- Where to save raw JSON issue event data (`issue_event`)  
+- Which token to use for authentication (`token_path`)  
+- Where to export the processed CSV (`output_file`)  
+
+
+An example configuration snippet from `kaiaulu.yml`:
+
+```        
+github:
+    project_key_1:
+      # Obtained from the project's GitHub URL
+      owner: sailuh
+      repo: kaiaulu
+      # Download using `download_github_comments.Rmd`
+      issue_or_pr_comment: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_or_pr_comment/
+      issue: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue/
+      issue_search: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_search/
+      issue_event: ../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_event/
+      pull_request: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/pull_request/
+      commit: ../../rawdata/kaiaulu/github/sailuh_kaiaulu/commit/
+
+```
+
+## Download and Parse GitHub Issue Event Data
+
+First, we load the project configuration file to obtain necessary parameters (owner, repo, paths, and token).  
+
+```{r}
+require(kaiaulu)
+require(data.table)
+require(jsonlite)
+
+conf <- parse_config("../conf/kaiaulu.yml")
+owner <- get_github_owner(conf, "project_key_1")
+repo <- get_github_repo(conf, "project_key_1")
+save_path <- get_github_issue_event_path(conf, "project_key_1")
+token_path <- "~/.ssh/github_token"
+output_file <- "../../analysis/process_mining/project_github_events.csv"
+
+token <- scan(token_path, what="character", quiet=TRUE)
+if(!dir.exists(save_path)) dir.create(save_path, recursive=TRUE)
+```
+
+We then download the issue event data: 
+
+```{r eval = FALSE}
+# Download GitHub issue events 
+gh_response <- github_api_project_issue_events(owner, repo, token)
+github_api_iterate_pages(token, gh_response, save_path, prefix="issue_event")
+```
+
+The event data is then formatted from json to table to be used by the process mining python tool:
+
+```{r}
+#  Parse downloaded JSON files 
+json_files <- list.files(save_path, full.names=TRUE)
+all_issue_event <- lapply(json_files, read_json)
+all_issue_event <- lapply(all_issue_event, github_parse_project_issue_events)
+all_issue_event <- rbindlist(all_issue_event, fill=TRUE)
+all_issue_event[, issue_body := NULL]
+
+head(all_issue_event)  %>%
+  gt(auto_align = FALSE)
+```
+
+
+Specify the location where you wish to save the table to load on the Python process mining wrapper:
+
+```{r}
+write.csv(all_issue_event, output_file, row.names=FALSE)
+```
+
+# Process Mining Analysis
+
+To continue the process mining analysis, use the [Process Mining Notebook](https://github.com/sailuh/process_mining),   which relies on Python and the `pm4py` package to analyze event data.
