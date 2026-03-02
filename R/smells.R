@@ -283,59 +283,46 @@ smell_radio_silence <- function (mail.graph, clusters) {
   return(unique(brockers))
 }
 
-#' Detect Ragequit Social Smell.
+#' Engagement Communication Social Smell.
 #'
-#' @description Detect potential ragequits by identifying cases where, 
-#' after a period of inactivity, a developer's final commit message expressed negative sentiment.
-#' @param timestamp A data table column indicating timestamp of an author's commit message
-#' @param author A data table column indicating the author of a commit message
-#' @param message A data table column containing the commit message text
-#' @param sentiment_value A data table column containing the sentiment value of the commit message 
-#' (-1 for negative, 0 for neutral, 1 for positive)
-#' @param quit_lag The number of days since a developer's last commit message
-#' @param current_time The current time to compare against the last commit timestamp (default is the system's current time)
+#' @description Uses a rolling window of 90 days to check, for each 90-day window, how much many times
+#' an author communicated via a message.
+#' @param datetimez A data table column indicating the timestamp of an author's message
+#' @param user_name_email A data table column indicating the author of a message
+#' @param quit_lag The number of days since a developer's last message
 #' @export
 #' @references Wouter Mulder (2025). Am I finished yet? A discovery of burnout and
 #' ragequits within open-source projects. (Master thesis, Jheronimus Academy of Data Science).
-smell_detect_ragequit <- function(timestamp, author, message, sentiment_value, quit_lag = 90, current_time = Sys.time()) {
-  
-  ragequit_data_table <- data.table::data.table(
-    timestamp = as.POSIXct(timestamp),
-    author = author,
-    message = message,
-    sentiment_value = sentiment_value
+engagement_communication <- function(datetimetz, user_name_email, quit_lag = 90) {
+  dt <- data.table::data.table(
+    datetimetz = as.POSIXct(datetimetz, tz = "UTC"),
+    user_name_email = user_name_email
   )
 
-  last_commit <- ragequit_data_table[
-    order(timestamp),
-    .SD[.N],
-    by = author
-  ]
+  # Order data
+  data.table::setorder(dt, user_name_email, datetimetz)
+  data.table::setkey(dt, user_name_email, datetimetz)
 
-  # Determine whether the author quit based on the time since their last commit
-  last_commit[, quit :=
-    as.numeric(difftime(current_time, timestamp, units = "days")) > quit_lag
-  ]
+  # POSIXct is in seconds, so convert quit_lag from 90 days to seconds
+  lag_seconds <- quit_lag * 86400
 
-  last_commit[, quit_date := as.POSIXct(NA)]
+  # For each message, count how many messages occurred in prior 90 days
+  result <- dt[, {
+    
+    window_start <- datetimetz - lag_seconds
+    
+    message_count <- dt[.SD,
+                        on = .(user_name_email,
+                               datetimetz >= window_start,
+                               datetimetz <= datetimetz),
+                        .N,
+                        by = .EACHI]$N
+    
+    .(datetimetz = datetimetz,
+      user_name_email = user_name_email,
+      message_count = message_count)
+    
+  }, by = .(user_name_email, datetimetz)]
 
-  # For rows where quit is TRUE, set quit_date to the timestamp of the last commit
-  last_commit[quit == TRUE, quit_date := timestamp]
-
-
-  # Determine whether author raged by checking if the last commit message is not empty and has negative sentiment (-1)
-  last_commit[, raged :=
-    (!is.na(message)) &
-    (nchar(trimws(message)) > 0) &
-    (sentiment_value == -1)
-  ]
-
-  # Computer whether the author ragequit by checking if they both quit and raged
-  last_commit[, ragequit :=
-    quit & raged
-  ]
-
-  return(
-    last_commit[, .(author, quit, quit_date, raged, ragequit)]
-  )
+  return(result[])
 }
