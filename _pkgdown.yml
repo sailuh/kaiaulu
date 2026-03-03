@@ -242,6 +242,8 @@ reference:
   - metric_churn_per_commit_per_file
   - commit_message_id_coverage
   - metric_churn
+  - engagement_communication
+  - engagement_sentiment
 - title: __Graph__
   desc:  Provide graph models to construct networks and algorithms for graph analysis.
 - contents:
@@ -270,7 +272,6 @@ reference:
   - smell_organizational_silo
   - smell_sociotechnical_congruence
   - smell_radio_silence
-  - engagement_communication
 - title: __Architectural Flaws__
   desc: >
    Sub-graph patterns that identify bad architectural practices.

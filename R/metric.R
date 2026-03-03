@@ -181,6 +181,112 @@ commit_message_id_coverage <- function(git_log,commit_message_id_regex){
                                          pattern = commit_message_id_regex)
   return(length(is_match[is_match]))
 }
+
+#' Engagement Communication Metric.
+#'
+#' @description Uses a rolling window of 90 days to check, for each 90-day window, how much many times
+#' an author communicated via a message.
+#' @param datetimez A data table column indicating the timestamp of an author's message
+#' @param user_name_email A data table column indicating the author of a message
+#' @param quit_lag The number of days since a developer's last message
+#' @export
+#' @references Wouter Mulder (2025). Am I finished yet? A discovery of burnout and
+#' ragequits within open-source projects. (Master thesis, Jheronimus Academy of Data Science).
+engagement_communication <- function(datetimetz, user_name_email, quit_lag = 90) {
+  
+  # Determine timezone
+  tz_val <- attr(datetimetz, "tzone")
+  if (is.null(tz_val)) {
+    tz_val <- Sys.timezone()
+  }
+
+  # Create data table
+  dt <- data.table::data.table(
+    datetimetz = as.POSIXct(datetimetz, tz = tz_val),
+    user_name_email = user_name_email
+  )
+
+  # Order data
+  data.table::setorder(dt, user_name_email, datetimetz)
+  data.table::setkey(dt, user_name_email, datetimetz)
+
+  # For each message, count how many messages occurred in prior 90 days
+  result <- dt[, {
+    window_start <- stringi::stri_datetime_add(
+      datetimetz,
+      days = -quit_lag,
+      tz = tz_val
+    )
+
+    message_count <- dt[.SD,
+                        on = .(user_name_email,
+                               datetimetz >= window_start,
+                               datetimetz <= datetimetz),
+                        .N,
+                        by = .EACHI]$N
+
+    .(datetimetz = datetimetz,
+      user_name_email = user_name_email,
+      message_count = message_count)
+
+  }, by = .(user_name_email, datetimetz)]
+
+  return(result[])
+}
+
+#' Engagement Sentiment Metric.
+#'
+#' @description Apply an aggregate function to the sentiment (polarity) for each 
+#' 90 day window (quit_lag) from the author (user_name_email)
+#' @param datetimez A data table column indicating the timestamp of an author's message
+#' @param user_name_email A data table column indicating the author of a message
+#' @param quit_lag The number of days since a developer's last message
+#' @param polarity A data table column indicating the sentiment of a message
+#' @export
+#' @references Wouter Mulder (2025). Am I finished yet? A discovery of burnout and
+#' ragequits within open-source projects. (Master thesis, Jheronimus Academy of Data Science).
+engagement_sentiment <- function(datetimetz, user_name_email, polarity, 
+                                 quit_lag = 90, aggregate_func) {
+  
+  # Convert polarity strings to numeric representation: positive = 1, negative = -1, neutral = 0
+  numeric_sentiment <- fifelse(polarity == "positive", 1,
+                               fifelse(polarity == "negative", -1, 0))
+  
+  # Determine timezone
+  tz_val <- attr(datetimetz, "tzone")
+  if (is.null(tz_val)) tz_val <- Sys.timezone()
+  
+  # Create data table
+  dt <- data.table(
+    datetimetz = as.POSIXct(datetimetz, tz = tz_val),
+    user_name_email = user_name_email,
+    sentiment = numeric_sentiment
+  )
+  
+  # Order data
+  setorder(dt, user_name_email, datetimetz)
+  setkey(dt, user_name_email, datetimetz)
+  
+  # Rolling window and aggregation
+  result <- dt[, {
+    window_start <- stringi::stri_datetime_add(datetimetz, days = -quit_lag, tz = tz_val)
+    
+    agg_value <- dt[.SD,
+                    on = .(user_name_email,
+                           datetimetz >= window_start,
+                           datetimetz <= datetimetz),
+                    .(val = aggregate_func(sentiment, na.rm = TRUE)),
+                    by = .EACHI]$val
+    
+    .(datetimetz = datetimetz,
+      user_name_email = user_name_email,
+      polarity = agg_value)
+    
+  }, by = .(user_name_email, datetimetz)]
+  
+  return(result[])
+}
+
 # Various imports
 #' @importFrom stringi stri_c
 #' @importFrom stringi stri_split_regex
