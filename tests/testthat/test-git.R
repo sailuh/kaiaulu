@@ -1437,7 +1437,7 @@ test_that("Calling identity_match with different name_column parameters works co
 
   id1 <- result[[1]]$identity_id[1]
   id2 <- result[[2]]$identity_id[1]
-  expect_false(isTRUE(all.equal(id1, id2)))
+  expect_false(id1 == id2)
 
   suppressWarnings(git_delete_sample_log(git_repo_path0))
   suppressWarnings(git_delete_sample_log(git_repo_path1))
