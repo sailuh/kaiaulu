@@ -1057,7 +1057,7 @@ test_that("Calling transform_gitlog_to_entity_temporal_network() in committer mo
     project_git_entity = result,
     mode = "committer",
     lag = "one_lag",
-    weight_scheme_function = weight_scheme_sum_edges
+    weight_scheme_function=weight_scheme_sum_edges
   )
 
   expect_is(committer_network$edgelist, "data.table")
