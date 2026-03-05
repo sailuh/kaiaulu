@@ -885,38 +885,53 @@ transform_gitlog_to_temporal_network <- function(project_git,mode = c("author","
 #' @param mode The network of interest: author-entity, committer-entity, commit-entity, author-committer
 #' @export
 #' @family edgelists
-transform_gitlog_to_entity_bipartite_network <- function(project_git_entity, mode = c("author-entity","committer-entity","commit-entity",'author-committer')){
-  author_name_email <- author_datetimetz <- commit_hash <- committer_name_email <- committer_datetimetz <- lines_added <- lines_removed <- NULL # due to NSE notes in R CMD check
+transform_gitlog_to_entity_bipartite_network <- function(project_git_entity, mode = c("author-entity","committer-entity","commit-entity","author-committer")){
+  author_name_email <- committer_name_email <- commit_hash <- entity <- weight <- NULL # due to NSE notes in R CMD check
+  if(!is.data.table(project_git_entity)){
+    stop("project_git_entity must be a data.table returned by parse_gitlog_entity.")
+  }
   # Check user did not specify a mode that does not exist
   mode <- match.arg(mode)
-  # Select and rename relevant columns. Key = commit_hash.
-  project_git_entity <- project_git_entity[,.(author=author_name_email,
-                                              author_date=author_datetimetz,
-                                              commit_hash=commit_hash,
-                                              committer=committer_name_email,
-                                              committer_date = committer_datetimetz,
-                                              entity,
-                                              weight)]
-
+  # Map each mode to the from/to columns and their colors
   if(mode == "author-entity"){
-    # Select relevant columns for nodes
-    git_graph <- model_directed_graph(project_git_entity[,.(from=author,to=entity)],
-                                      is_bipartite=TRUE,
-                                      color=c("black","#fafad2"))
+    from_col   <- "author_name_email"
+    to_col     <- "entity"
+    from_color <- "black"
+    to_color   <- "#fafad2"
   }else if(mode == "committer-entity"){
-    # Select relevant columns for nodes
-    git_graph <- model_directed_graph(project_git_entity[,.(from=author,to=entity)],
-                                      is_bipartite=TRUE,
-                                      color=c("#bed7be","#fafad2"))
+    from_col   <- "committer_name_email"
+    to_col     <- "entity"
+    from_color <- "#bed7be"
+    to_color   <- "#fafad2"
   }else if(mode == "commit-entity"){
-    git_graph <- model_directed_graph(project_git_entity[,.(from=commit_hash,to=entity)],
-                                      is_bipartite=TRUE,
-                                      color=c("#afe569","#fafad2"))
+    from_col   <- "commit_hash"
+    to_col     <- "entity"
+    from_color <- "#afe569"
+    to_color   <- "#fafad2"
   }else if(mode == "author-committer"){
-    git_graph <- model_directed_graph(project_git_entity[,.(from=author,to=committer)],
-                                      is_bipartite=TRUE,
-                                      color=c("#bed7be","black"))
+    from_col   <- "author_name_email"
+    to_col     <- "committer_name_email"
+    from_color <- "black"
+    to_color   <- "#bed7be"
   }
+  # Build nodes table — from nodes get type=TRUE, to nodes get type=FALSE
+  from_nodes <- data.table(
+    name  = unique(project_git_entity[[from_col]]),
+    type  = TRUE,
+    color = from_color
+  )
+  to_nodes <- data.table(
+    name  = unique(project_git_entity[[to_col]]),
+    type  = FALSE,
+    color = to_color
+  )
+  git_nodes <- rbind(from_nodes, to_nodes)
+  # Build edgelist — sum lines changed per unique from-to pair
+  git_edgelist <- project_git_entity[, .(weight = sum(weight, na.rm=TRUE)),
+                                     by = c(from_col, to_col)]
+  setnames(git_edgelist, old = c(from_col, to_col), new = c("from", "to"))
+  # Constructor only wraps pre-built tables and assigns graph type
+  git_graph <- model_bipartite_graph(git_nodes, git_edgelist)
   return(git_graph)
 }
 #' Create time-ordered contribution network
@@ -1028,49 +1043,89 @@ transform_commit_message_id_to_network <- function(project_git, commit_message_i
 #' }
 #'
 #' @param project_git A parsed git project by \code{\link{parse_gitlog}}.
+#' @param node_cols A character vector of column names from \code{project_git}
+#' to use as node identifiers. Each column maps to one node type in the graph.
+#' Only the node types whose columns are included here will appear in the nodes
+#' table. Edges between the requested node types are included automatically.
+#' Supported columns and their node types:
+#' \itemize{
+#'   \item \code{"author_name_email"} - builds \code{"author"} nodes (color: black).
+#'   \item \code{"commit_hash"} - builds \code{"commit"} nodes (color: #afe569).
+#'   \item \code{"file_pathname"} - builds \code{"file"} nodes (color: #f4dbb5).
+#' }
+#' Supported edges derived from node pairs:
+#' \itemize{
+#'   \item \code{"authored"} - built when both \code{"author_name_email"} and
+#'     \code{"commit_hash"} are in \code{node_cols}. Weight is 1 per unique pair.
+#'   \item \code{"changed"} - built when both \code{"commit_hash"} and
+#'     \code{"file_pathname"} are in \code{node_cols}. Weight is total lines
+#'     added and removed per commit-file pair.
+#'   \item \code{"modified"} - built when both \code{"author_name_email"} and
+#'     \code{"file_pathname"} are in \code{node_cols} but \code{"commit_hash"}
+#'     is not. Collapses the two-hop author->commit->file path into a direct
+#'     author-file edge. Weight is total lines added and removed per
+#'     author-file pair across all commits.
+#' }
+#' Defaults to all three node types and both edge types.
 #' @return a heterogeneous_graph with nodes (name, type, color) and
 #' edgelist (from, to, weight, type, color).
 #' @export
 #' @family edgelists
-transform_gitlog_to_heterogeneous_network <- function(project_git){
+transform_gitlog_to_heterogeneous_network <- function(project_git,
+                                                      node_cols = c("author_name_email",
+                                                                    "commit_hash",
+                                                                    "file_pathname")){
   author_name_email <- commit_hash <- file_pathname <- lines_added <- lines_removed <- NULL # due to NSE notes in R CMD check
   # Verify input is a valid parse_gitlog output before transforming
   if(!is.data.table(project_git)){
     stop("project_git must be a data.table returned by parse_gitlog.")
   }
-  # Build nodes table — one row per unique entity across all node types
-  author_nodes <- data.table(
-    name  = unique(project_git$author_name_email),
-    type  = "author",
-    color = "black"
-  )
-  commit_nodes <- data.table(
-    name  = unique(project_git$commit_hash),
-    type  = "commit",
-    color = "#afe569"
-  )
-  file_nodes <- data.table(
-    name  = unique(project_git$file_pathname),
-    type  = "file",
-    color = "#f4dbb5"
-  )
-  git_nodes <- rbind(author_nodes, commit_nodes, file_nodes)
-  # Build author to commit edges — one edge per unique author-commit pair
-  author_commit_edges <- unique(project_git[,.(
-    from  = author_name_email,
-    to    = commit_hash,
-    weight = 1L,
-    type  = "authored",
-    color = "black"
-  )])
-  # Build commit to file edges — weight is total lines changed per commit-file pair
-  # lines_added and lines_removed are stored as characters by parse_gitlog
-  commit_file_edges <- project_git[,.(
-    weight = sum(as.numeric(lines_added) + as.numeric(lines_removed), na.rm = TRUE),
-    type   = "changed",
-    color  = "#afe569"
-  ), by = .(from = commit_hash, to = file_pathname)]
-  git_edgelist <- rbind(author_commit_edges, commit_file_edges)
+  # Internal mapping from column name to node type label and color
+  col_to_type  <- c(author_name_email="author", commit_hash="commit", file_pathname="file")
+  col_to_color <- c(author_name_email="black",  commit_hash="#afe569", file_pathname="#f4dbb5")
+  # Build one node table per requested column and stack them
+  node_tables <- lapply(node_cols, function(col){
+    data.table(
+      name  = unique(project_git[[col]]),
+      type  = col_to_type[[col]],
+      color = col_to_color[[col]]
+    )
+  })
+  git_nodes <- rbindlist(node_tables)
+  # Build edges automatically for node type pairs that are both present in node_cols
+  edge_tables <- list()
+  if(all(c("author_name_email","commit_hash") %in% node_cols)){
+    # One edge per unique author-commit pair
+    edge_tables[["authored"]] <- unique(project_git[,.(
+      from   = author_name_email,
+      to     = commit_hash,
+      weight = 1L,
+      type   = "authored",
+      color  = "black"
+    )])
+  }
+  if(all(c("commit_hash","file_pathname") %in% node_cols)){
+    # One edge per commit-file pair, weight is total lines changed
+    # lines_added and lines_removed are stored as characters by parse_gitlog
+    edge_tables[["changed"]] <- project_git[,.(
+      weight = sum(as.numeric(lines_added) + as.numeric(lines_removed), na.rm = TRUE),
+      type   = "changed",
+      color  = "#afe569"
+    ), by = .(from = commit_hash, to = file_pathname)]
+  }
+  if(all(c("author_name_email","file_pathname") %in% node_cols) &
+     !("commit_hash" %in% node_cols)){
+    # Direct author-file edge collapsed from the two-hop author->commit->file path
+    # Since every row in the git log already contains both author and file, we group
+    # directly on that pair and sum lines changed across all commits connecting them
+    # lines_added and lines_removed are stored as characters by parse_gitlog
+    edge_tables[["modified"]] <- project_git[,.(
+      weight = sum(as.numeric(lines_added) + as.numeric(lines_removed), na.rm = TRUE),
+      type   = "modified",
+      color  = "black"
+    ), by = .(from = author_name_email, to = file_pathname)]
+  }
+  git_edgelist <- rbindlist(edge_tables)
   # Constructor only wraps pre-built tables and assigns graph type
   git_network <- model_heterogeneous_graph(git_nodes, git_edgelist)
   return(git_network)

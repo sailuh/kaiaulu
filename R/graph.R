@@ -350,6 +350,121 @@ bipartite_graph_projection <- function(graph,mode,weight_scheme_function = NULL)
 
 
 }
+
+#' Apply a bipartite or heterogeneous graph projection (S3 generic)
+#'
+#' A generic projection function that dispatches to the appropriate method based
+#' on the class of the graph passed in. This allows the same function name to
+#' work for both bipartite and heterogeneous graphs without the user needing to
+#' call different functions.
+#'
+#' @param graph A graph returned by \code{\link{model_bipartite_graph}} or
+#' \code{\link{model_heterogeneous_graph}}.
+#' @param mode For \code{bipartite_graph}: \code{TRUE} or \code{FALSE} selecting
+#' which node type to project onto. For \code{heterogeneous_graph}: a string
+#' node type label such as \code{"file"} or \code{"author"}.
+#' @param ... Additional arguments passed to the method. For
+#' \code{heterogeneous_graph}, must include \code{edge_type} specifying which
+#' edge type to project through.
+#' @return A projected graph.
+#' @export
+bipartite_graph_projection_v2 <- function(graph, mode, ...) {
+  UseMethod("bipartite_graph_projection_v2")
+}
+
+#' @param weight_scheme_function See \code{\link{bipartite_graph_projection}}.
+#' @rdname bipartite_graph_projection_v2
+#' @method bipartite_graph_projection_v2 bipartite_graph
+#' @export
+bipartite_graph_projection_v2.bipartite_graph <- function(graph, mode, weight_scheme_function=NULL, ...){
+  if((identical(weight_scheme_function, kaiaulu::weight_scheme_cum_temporal) |
+      identical(weight_scheme_function, kaiaulu::weight_scheme_pairwise_cum_temporal))){
+    stop("The weight scheme for cumulative temporal should only be applied to
+         temporal_graph_projection and lag = all_lag.")
+  }
+
+  get_combinations <- function(edgelist){
+    dt <- edgelist
+    if(!("from" %in% colnames(dt))){
+      setnames(dt, c("to"), c("from"))
+    }
+    from <- unique(dt$from)
+    if(length(from) < 2){
+      combinations <- data.table(NA_character_, NA_character_)
+    }else{
+      combinations <- transpose(as.data.table(combn(from, 2, simplify=FALSE)))
+    }
+    setnames(combinations, old=c("V1","V2"), new=c("from_projection","to_projection"))
+    combinations <- merge(combinations, dt, all.x=TRUE, by.x="from_projection", by.y="from")
+    setnames(combinations, c("weight"), c("from_weight"))
+    combinations <- merge(combinations, dt, all.x=TRUE, by.x="to_projection", by.y="from")
+    setnames(combinations, c("weight"), c("to_weight"))
+    return(combinations)
+  }
+
+  graph[["nodes"]] <- graph[["nodes"]][type == mode]
+
+  if(mode){
+    graph[["edgelist"]] <- graph[["edgelist"]][, get_combinations(.SD),
+                                               by=c("to"),
+                                               .SDcols=c("from","weight")]
+    setnames(x=graph[["edgelist"]], old=c("to"), new=c("eliminated_node"))
+  }else{
+    graph[["edgelist"]] <- graph[["edgelist"]][, get_combinations(.SD),
+                                               by=c("from"),
+                                               .SDcols=c("to","weight")]
+    setnames(x=graph[["edgelist"]], old=c("from"), new=c("eliminated_node"))
+  }
+
+  graph[["edgelist"]] <- graph[["edgelist"]][complete.cases(graph[["edgelist"]])]
+
+  if(is.null(weight_scheme_function)){
+    return(graph)
+  }else{
+    return(weight_scheme_function(graph))
+  }
+}
+
+#' @param edge_type A string specifying which edge type in the heterogeneous
+#' graph to project through (e.g. \code{"changed"} or \code{"authored"}).
+#' @param weight_scheme_function See \code{\link{bipartite_graph_projection}}.
+#' @rdname bipartite_graph_projection_v2
+#' @method bipartite_graph_projection_v2 heterogeneous_graph
+#' @export
+bipartite_graph_projection_v2.heterogeneous_graph <- function(graph, mode, edge_type, weight_scheme_function=NULL, ...){
+  # Extract edgelist for the requested edge type, keeping only from/to/weight
+  slice_edges <- graph[["edgelist"]][type == edge_type, .(from, to, weight)]
+
+  if(nrow(slice_edges) == 0){
+    stop(paste0("No edges found with edge_type '", edge_type, "'."))
+  }
+
+  # Identify the two node types involved in this edge type
+  from_type <- unique(graph[["nodes"]][name %in% slice_edges$from]$type)
+  to_type   <- unique(graph[["nodes"]][name %in% slice_edges$to]$type)
+
+  if(!(mode %in% c(from_type, to_type))){
+    stop(paste0("mode '", mode, "' not found in edge_type '", edge_type, "'. ",
+                "Node types available for this edge: ",
+                paste(c(from_type, to_type), collapse=", ")))
+  }
+
+  # Extract relevant nodes and recode type to TRUE/FALSE
+  # TRUE = from-side node type, FALSE = to-side node type
+  # This matches the bipartite_graph convention expected by the bipartite method
+  slice_nodes <- copy(graph[["nodes"]][type %in% c(from_type, to_type)])
+  slice_nodes[, type := (type == from_type)]
+
+  # Build a bipartite_graph from the slice and delegate to the bipartite method
+  # TRUE if mode nodes appear in the from column, FALSE if in the to column
+  bipartite_net <- model_bipartite_graph(slice_nodes, slice_edges)
+  bool_mode <- (from_type == mode)
+
+  return(bipartite_graph_projection_v2.bipartite_graph(bipartite_net,
+                                                        mode=bool_mode,
+                                                        weight_scheme_function=weight_scheme_function))
+}
+
 #' Apply a temporal graph projection
 #'
 #' @param graph A bipartite network (the same pair of nodes can have multiple edges)
