@@ -13,13 +13,15 @@ engagement_sentiment(
 )
 }
 \arguments{
+\item{datetimetz}{A data table column indicating the timestamp of an author's message}
+
 \item{user_name_email}{A data table column indicating the author of a message}
 
 \item{polarity}{A data table column indicating the sentiment of a message}
 
 \item{quit_lag}{The number of days since a developer's last message}
 
-\item{datetimez}{A data table column indicating the timestamp of an author's message}
+\item{aggregate_func}{The aggregate function to apply to the sentiment values in the windows}
 }
 \description{
 Apply an aggregate function to the sentiment (polarity) for each 

@@ -7,14 +7,14 @@
 engagement_communication(datetimetz, user_name_email, quit_lag = 90)
 }
 \arguments{
+\item{datetimetz}{A data table column indicating the timestamp of an author's message}
+
 \item{user_name_email}{A data table column indicating the author of a message}
 
 \item{quit_lag}{The number of days since a developer's last message}
-
-\item{datetimez}{A data table column indicating the timestamp of an author's message}
 }
 \description{
-Uses a rolling window of 90 days to check, for each 90-day window, how much many times
+Uses a rolling window of 90 days to check, for each 90-day window, how many times
 an author communicated via a message.
 }
 \references{
