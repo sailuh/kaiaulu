@@ -193,7 +193,7 @@ commit_message_id_coverage <- function(git_log,commit_message_id_regex){
 #' @references Wouter Mulder (2025). Am I finished yet? A discovery of burnout and
 #' ragequits within open-source projects. (Master thesis, Jheronimus Academy of Data Science).
 engagement_communication <- function(datetimetz, user_name_email, quit_lag = 90) {
-  
+
   # Determine timezone
   tz_val <- attr(datetimetz, "tzone")
   if (is.null(tz_val)) {
@@ -208,28 +208,32 @@ engagement_communication <- function(datetimetz, user_name_email, quit_lag = 90)
 
   # Order data
   data.table::setorder(dt, user_name_email, datetimetz)
-  data.table::setkey(dt, user_name_email, datetimetz)
 
-  # For each message, count how many messages occurred in prior 90 days
+  # Rolling window message count
   result <- dt[, {
+    # Compute start of each rolling window
     window_start <- stringi::stri_datetime_add(
       datetimetz,
       days = -quit_lag,
       tz = tz_val
     )
 
-    message_count <- dt[.SD,
-                        on = .(user_name_email,
-                               datetimetz >= window_start,
-                               datetimetz <= datetimetz),
-                        .N,
-                        by = .EACHI]$N
+    # Find index of the last message before window starts
+    # +1L is used later to get the first message inside the window
+    start_idx <- findInterval(window_start, datetimetz)
 
+    # Count all messages in the 90-day rolling window ending at the most recent message
+    message_count <- vapply(seq_len(.N), function(i) {
+      idx <- seq.int(start_idx[i] + 1L, i)
+      length(idx)
+    }, integer(1))
+
+    # Return a data table with the below columns
     .(datetimetz = datetimetz,
       user_name_email = user_name_email,
       message_count = message_count)
 
-  }, by = .(user_name_email, datetimetz)]
+  }, by = .(user_name_email)]
 
   return(result[])
 }
@@ -242,51 +246,58 @@ engagement_communication <- function(datetimetz, user_name_email, quit_lag = 90)
 #' @param user_name_email A data table column indicating the author of a message
 #' @param quit_lag The number of days since a developer's last message
 #' @param polarity A data table column indicating the sentiment of a message
-#' @param aggregate_func The aggregate function to apply to the sentiment values in the windows
+#' @param aggregate_func The aggregate function to apply to the polarity values in the windows
 #' @export
 #' @references Wouter Mulder (2025). Am I finished yet? A discovery of burnout and
 #' ragequits within open-source projects. (Master thesis, Jheronimus Academy of Data Science).
-engagement_sentiment <- function(datetimetz, user_name_email, polarity, 
-                                 quit_lag = 90, aggregate_func) {
-  
+engagement_sentiment <- function(datetimetz, user_name_email, polarity, quit_lag = 90, aggregate_func) {
+
   # Convert polarity strings to numeric representation: positive = 1, negative = -1, neutral = 0
-  numeric_sentiment <- data.table::fifelse(polarity == "positive", 1,
-                                           data.table::fifelse(polarity == "negative", -1, 0))
-  
+  numeric_polarity <- data.table::fifelse(polarity == "positive", 1,
+                                          data.table::fifelse(polarity == "negative", -1, 0))
+
   # Determine timezone
   tz_val <- attr(datetimetz, "tzone")
   if (is.null(tz_val)) {
     tz_val <- Sys.timezone()
   }
-  
+
   # Create data table
   dt <- data.table::data.table(
     datetimetz = as.POSIXct(datetimetz, tz = tz_val),
     user_name_email = user_name_email,
-    sentiment = numeric_sentiment
+    polarity = numeric_polarity
   )
-  
-  # Order data
+
+  # Order data in non-decreasing order of datetimetz for each user
   data.table::setorder(dt, user_name_email, datetimetz)
-  data.table::setkey(dt, user_name_email, datetimetz)
-  
+
   # Rolling window and aggregation
   result <- dt[, {
-    window_start <- stringi::stri_datetime_add(datetimetz, days = -quit_lag, tz = tz_val)
-    
-    aggregate_value <- dt[.SD,
-                    on = .(user_name_email,
-                           datetimetz >= window_start,
-                           datetimetz <= datetimetz),
-                    .(val = aggregate_func(sentiment, na.rm = TRUE)),
-                    by = .EACHI]$val
-    
+    # Compute start of each rolling window
+    window_start <- stringi::stri_datetime_add(
+      datetimetz,
+      days = -quit_lag,
+      tz = tz_val
+    )
+
+    # Find index of the last message before window starts
+    # +1L is used later to get the first message inside the window
+    start_idx <- findInterval(window_start, datetimetz)
+
+    # Compute rolling aggregate of polarity values for each message
+    aggregate_val <- vapply(seq_len(.N), function(i) {
+      idx <- seq.int(start_idx[i] + 1L, i)
+      aggregate_func(polarity[idx], na.rm = TRUE)
+    }, numeric(1))
+
+    # Return a data table with the below columns
     .(datetimetz = datetimetz,
       user_name_email = user_name_email,
-      aggregate_polarity = aggregate_value)
-    
-  }, by = .(user_name_email, datetimetz)]
-  
+      aggregate_polarity = aggregate_val)
+
+  }, by = .(user_name_email)]
+
   return(result[])
 }
 

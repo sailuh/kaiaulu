@@ -21,7 +21,7 @@ engagement_sentiment(
 
 \item{quit_lag}{The number of days since a developer's last message}
 
-\item{aggregate_func}{The aggregate function to apply to the sentiment values in the windows}
+\item{aggregate_func}{The aggregate function to apply to the polarity values in the windows}
 }
 \description{
 Apply an aggregate function to the sentiment (polarity) for each 
