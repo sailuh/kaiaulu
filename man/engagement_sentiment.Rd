@@ -9,7 +9,7 @@ engagement_sentiment(
   user_name_email,
   polarity,
   quit_lag = 90,
-  aggregate_func
+  aggregate_func = mean
 )
 }
 \arguments{
@@ -21,7 +21,8 @@ engagement_sentiment(
 
 \item{quit_lag}{The number of days since a developer's last message}
 
-\item{aggregate_func}{The aggregate function to apply to the polarity values in the windows}
+\item{aggregate_func}{The aggregate function to apply to the polarity values in the windows.
+The default is mean, but it can be overridden.}
 }
 \description{
 Apply an aggregate function to the sentiment (polarity) for each 

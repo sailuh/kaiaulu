@@ -246,11 +246,12 @@ engagement_communication <- function(datetimetz, user_name_email, quit_lag = 90)
 #' @param user_name_email A data table column indicating the author of a message
 #' @param quit_lag The number of days since a developer's last message
 #' @param polarity A data table column indicating the sentiment of a message
-#' @param aggregate_func The aggregate function to apply to the polarity values in the windows
+#' @param aggregate_func The aggregate function to apply to the polarity values in the windows.
+#' The default is mean, but it can be overridden.
 #' @export
 #' @references Wouter Mulder (2025). Am I finished yet? A discovery of burnout and
 #' ragequits within open-source projects. (Master thesis, Jheronimus Academy of Data Science).
-engagement_sentiment <- function(datetimetz, user_name_email, polarity, quit_lag = 90, aggregate_func) {
+engagement_sentiment <- function(datetimetz, user_name_email, polarity, quit_lag = 90, aggregate_func = mean) {
 
   # Convert polarity strings to numeric representation: positive = 1, negative = -1, neutral = 0
   numeric_polarity <- data.table::fifelse(polarity == "positive", 1,
