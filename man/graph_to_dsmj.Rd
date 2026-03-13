@@ -2,27 +2,42 @@
 % Please edit documentation in R/graph.R
 \name{graph_to_dsmj}
 \alias{graph_to_dsmj}
-\title{Exports a graph as a dsmj.}
+\alias{graph_to_dsmj.directed_graph}
+\alias{graph_to_dsmj.undirected_graph}
+\alias{graph_to_dsmj.bipartite_graph}
+\alias{graph_to_dsmj.heterogeneous_graph}
+\title{Export a graph as a dsmj (S3 generic)}
 \usage{
-graph_to_dsmj(graph, dsmj_path, dsmj_name, is_directed, is_sorted = FALSE)
+graph_to_dsmj(graph, dsmj_path, dsmj_name, is_sorted = FALSE, ...)
+
+\method{graph_to_dsmj}{directed_graph}(graph, dsmj_path, dsmj_name, is_sorted = FALSE, ...)
+
+\method{graph_to_dsmj}{undirected_graph}(graph, dsmj_path, dsmj_name, is_sorted = FALSE, ...)
+
+\method{graph_to_dsmj}{bipartite_graph}(graph, dsmj_path, dsmj_name, is_sorted = FALSE, ...)
+
+\method{graph_to_dsmj}{heterogeneous_graph}(graph, dsmj_path, dsmj_name, is_sorted = FALSE, ...)
 }
 \arguments{
-\item{graph}{a graph returned by \code{\link{model_directed_graph}}}
+\item{graph}{A graph returned by \code{\link{model_directed_graph}},
+\code{\link{model_undirected_graph}}, or \code{\link{model_bipartite_graph}}.}
 
 \item{dsmj_path}{path to save the dsmj.}
 
 \item{dsmj_name}{name of the dsmj file, passed by the call from an appropriate transform function.}
 
-\item{is_directed}{whether the graph is directed. If false, cells will be doubled.
-with src/dest switched to represent an undirected graph as a directed graph.}
-
 \item{is_sorted}{whether to sort the variables (filenames) in the dsm.json files (optional).}
+
+\item{...}{Additional arguments passed to the method.}
 }
 \value{
 the path to the dsm.json file saved.
 }
 \description{
-Exports a graph as a dsmj.
+A generic export function that dispatches to the appropriate method based on
+the class of the graph passed in. Directed graphs write each edge once.
+Undirected and bipartite graphs double each edge (src/dest switched) per the
+DSMJ specification.
 }
 \seealso{
 \code{\link{transform_dependencies_to_sdsmj}} to transform dependencies from Depends into a structure dsm.json,

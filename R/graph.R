@@ -136,7 +136,7 @@ graph_to_dsmj.heterogeneous_graph <- function(graph, dsmj_path, dsmj_name, is_so
   return(dsmj_path)
 }
 
-#' Create a directed graph model (v2)
+#' Create a directed graph model
 #'
 #' Simplified constructor. The transform function is responsible for building
 #' the nodes and edgelist tables before calling this function.

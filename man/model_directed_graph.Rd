@@ -4,21 +4,20 @@
 \alias{model_directed_graph}
 \title{Create a directed graph model}
 \usage{
-model_directed_graph(edgelist, is_bipartite, color, aggregate_duplicate = TRUE)
+model_directed_graph(nodes, edgelist)
 }
 \arguments{
-\item{edgelist}{a 2-column data.table containing named columns
-`from` and `to` in any order.}
+\item{nodes}{a data.table with at minimum a `name` column. Type and color
+columns should be set by the transform before passing in.}
 
-\item{is_bipartite}{boolean specifying if network is bipartite: TRUE or FALSE}
-
-\item{color}{a character vector of length 1 or 2 specifying the hexacolor}
-
-\item{aggregate_duplicate}{If duplicated rows are encoutered, define a weight column which counts them}
+\item{edgelist}{a data.table with at minimum `from`, `to`, and `weight` columns.
+Additional columns are preserved as-is.}
 }
 \value{
-a named list list(nodes,edgelist).
+a named list list(nodes, edgelist) with class `directed_graph`.
 }
 \description{
-Create a directed graph model
+Simplified constructor. The transform function is responsible for building
+the nodes and edgelist tables before calling this function.
+This function only wraps them into a named list and assigns the graph type.
 }
