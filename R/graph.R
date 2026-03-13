@@ -371,6 +371,7 @@ bipartite_graph_projection.heterogeneous_graph <- function(graph, mode, edge_typ
 #' When receiving as parameter \code{\link{weight_scheme_sum_edges}} or
 #' \code{\link{weight_scheme_count_deleted_nodes}}, the final projection table will be returned instead.
 #' @param timestamp_column a string containing the name of the timestamp variable
+#' @param edge_type For heterogeneous graphs only: a string specifying which edge type to slice before projecting. Ignored for bipartite graphs.
 #' @param lag a string specifying either "one_lag" or "all_lag".
 #' @param ... Additional arguments passed to the method.
 #' @return A directed_graph projection.
@@ -381,7 +382,7 @@ bipartite_graph_projection.heterogeneous_graph <- function(graph, mode, edge_typ
 #' 2015 IEEE/ACM 37th IEEE International Conference on
 #' Software Engineering, Florence, 2015, pp. 563-573,
 #' doi: 10.1109/ICSE.2015.73.
-temporal_graph_projection <- function(graph, mode, weight_scheme_function=NULL, timestamp_column, lag=c("one_lag","all_lag"), ...) {
+temporal_graph_projection <- function(graph, mode, weight_scheme_function=NULL, timestamp_column, edge_type=NULL, lag=c("one_lag","all_lag"), ...) {
   UseMethod("temporal_graph_projection")
 }
 

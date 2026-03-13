@@ -11,6 +11,7 @@ temporal_graph_projection(
   mode,
   weight_scheme_function = NULL,
   timestamp_column,
+  edge_type = NULL,
   lag = c("one_lag", "all_lag"),
   ...
 )
@@ -46,6 +47,8 @@ When receiving as parameter \code{\link{weight_scheme_sum_edges}} or
 \code{\link{weight_scheme_count_deleted_nodes}}, the final projection table will be returned instead.}
 
 \item{timestamp_column}{a string containing the name of the timestamp variable}
+
+\item{edge_type}{For heterogeneous graphs only: a string specifying which edge type to slice before projecting. Ignored for bipartite graphs.}
 
 \item{lag}{a string specifying either "one_lag" or "all_lag".}
 
