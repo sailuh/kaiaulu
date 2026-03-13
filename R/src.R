@@ -467,7 +467,7 @@ transform_dependencies_to_network <- function(depends_parsed,weight_types=NA){
   dependency_nodes$type <- FALSE
   dependency_nodes$color <- "#f4dbb5"
   # Constructor only wraps pre-built tables and assigns graph type.
-  depends_network <- model_directed_graph_v2(dependency_nodes, dependency_edgelist)
+  depends_network <- model_directed_graph(dependency_nodes, dependency_edgelist)
   return(depends_network)
 }
 #' Transform parsed R dependencies into a graph

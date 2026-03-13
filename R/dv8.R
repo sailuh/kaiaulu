@@ -37,7 +37,8 @@ transform_dependencies_to_sdsmj <- function(project_dependencies, sdsmj_path, is
   setcolorder(project_depends[["edgelist"]], c("from", "to", "weight", "label"))
 
   # This is a directed graph, so no duplication of edges
-  graph_to_dsmj(project_depends, sdsmj_path, dsmj_name="sdsm", is_directed=TRUE, is_sorted)
+  depends_graph <- model_directed_graph(project_depends[["nodes"]], project_depends[["edgelist"]])
+  graph_to_dsmj(depends_graph, sdsmj_path, dsmj_name="sdsm", is_sorted=is_sorted)
 }
 
 #' Transform parsed git repo into a history dsm.json file.
@@ -69,7 +70,7 @@ transform_gitlog_to_hdsmj <- function(project_git, hdsmj_path, is_sorted=FALSE){
   cochange_table[["edgelist"]][["label"]] <- "Cochange"
 
   # This is an undirected graph, so there is duplication of edges
-  graph_to_dsmj(cochange_table, hdsmj_path, dsmj_name="hdsm", is_directed=FALSE, is_sorted)
+  graph_to_dsmj(cochange_table, hdsmj_path, dsmj_name="hdsm", is_sorted=is_sorted)
 }
 
 #' Transform parsed git repo into an author dsm.json file.
@@ -97,48 +98,9 @@ transform_temporal_gitlog_to_adsmj <- function(project_git, adsmj_path, is_sorte
   author_table[["edgelist"]][["label"]] <- "Collaborate"
 
   # This is a directed graph, so no duplication of edges
-  graph_to_dsmj(author_table, adsmj_path, dsmj_name="adsm", is_directed=TRUE, is_sorted)
+  graph_to_dsmj(author_table, adsmj_path, dsmj_name="adsm", is_sorted=is_sorted)
 }
 
-#' Transform parsed git repo into an edgelist
-#'
-#' @param project_git A parsed git project by \code{\link{parse_gitlog}}.
-#' @param mode The network of interest: author-entity, committer-entity, commit-entity, author-committer
-#' @export
-#' @family edgelists
-transform_gitlog_to_bipartite_network <- function(project_git, mode = c("author-file","committer-file","commit-file",'author-committer')){
-  author_name_email <- author_datetimetz <- commit_hash <- committer_name_email <- committer_datetimetz <- lines_added <- lines_removed <- NULL # due to NSE notes in R CMD check
-  # Check user did not specify a mode that does not exist
-  mode <- match.arg(mode)
-  # Select and rename relevant columns. Key = commit_hash.
-  project_git <- project_git[,.(author=author_name_email,
-                                author_date=author_datetimetz,
-                                commit_hash=commit_hash,
-                                committer=committer_name_email,
-                                committer_date = committer_datetimetz,
-                                file = file_pathname,
-                                added = lines_added,
-                                removed = lines_removed)]
-  if(mode == "author-file"){
-    git_graph <- model_directed_graph(project_git[,.(from=author,to=file)],
-                                      is_bipartite=TRUE,
-                                      color=c("black","#f4dbb5"))
-  }else if(mode == "committer-file"){
-    git_graph <- model_directed_graph(project_git[,.(from=committer,to=file)],
-                                      is_bipartite=TRUE,
-                                      color=c("#bed7be","#f4dbb5"))
-  }else if(mode == "commit-file"){
-    git_graph <- model_directed_graph(project_git[,.(from=commit_hash,to=file)],
-                                      is_bipartite=TRUE,
-                                      color=c("#afe569","#f4dbb5"))
-  }else if(mode == "author-committer"){
-    git_graph <- model_directed_graph(project_git[,.(from=author,to=committer)],
-                                      is_bipartite=TRUE,
-                                      color=c("black","#bed7be"))
-  }
-  return(git_graph)
-
-}
 
 #' Transforms a gitlog table to a historical DSM JSON file.
 #'

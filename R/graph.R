@@ -4,22 +4,61 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#' Exports a graph as a dsmj.
+#' Export a graph as a dsmj (S3 generic)
 #'
-#' @param graph a graph returned by \code{\link{model_directed_graph}}
+#' A generic export function that dispatches to the appropriate method based on
+#' the class of the graph passed in. Directed graphs write each edge once.
+#' Undirected and bipartite graphs double each edge (src/dest switched) per the
+#' DSMJ specification.
+#'
+#' @param graph A graph returned by \code{\link{model_directed_graph}},
+#' \code{\link{model_undirected_graph}}, or \code{\link{model_bipartite_graph}}.
 #' @param dsmj_path path to save the dsmj.
 #' @param dsmj_name name of the dsmj file, passed by the call from an appropriate transform function.
-#' @param is_directed whether the graph is directed. If false, cells will be doubled.
-#'  with src/dest switched to represent an undirected graph as a directed graph.
 #' @param is_sorted whether to sort the variables (filenames) in the dsm.json files (optional).
+#' @param ... Additional arguments passed to the method.
 #' @return the path to the dsm.json file saved.
 #' @export
 #' @family dv8
 #' @seealso \code{\link{transform_dependencies_to_sdsmj}} to transform dependencies from Depends into a structure dsm.json,
 #' \code{\link{transform_gitlog_to_hdsmj}} to transform a gitlog table into a history dsm.json, and
 #' \code{\link{transform_temporal_gitlog_to_adsmj}} to transform a gitlog table into an author dsm.json.
-#'
-graph_to_dsmj <- function(graph, dsmj_path, dsmj_name, is_directed, is_sorted=FALSE){
+graph_to_dsmj <- function(graph, dsmj_path, dsmj_name, is_sorted=FALSE, ...) {
+  UseMethod("graph_to_dsmj")
+}
+
+#' @rdname graph_to_dsmj
+#' @method graph_to_dsmj directed_graph
+#' @export
+graph_to_dsmj.directed_graph <- function(graph, dsmj_path, dsmj_name, is_sorted=FALSE, ...){
+  .graph_to_dsmj_impl(graph, dsmj_path, dsmj_name, is_directed=TRUE, is_sorted)
+}
+
+#' @rdname graph_to_dsmj
+#' @method graph_to_dsmj undirected_graph
+#' @export
+graph_to_dsmj.undirected_graph <- function(graph, dsmj_path, dsmj_name, is_sorted=FALSE, ...){
+  .graph_to_dsmj_impl(graph, dsmj_path, dsmj_name, is_directed=FALSE, is_sorted)
+}
+
+#' @rdname graph_to_dsmj
+#' @method graph_to_dsmj bipartite_graph
+#' @export
+graph_to_dsmj.bipartite_graph <- function(graph, dsmj_path, dsmj_name, is_sorted=FALSE, ...){
+  # Non-projected bipartite graphs have directional edges (e.g. author -> file)
+  .graph_to_dsmj_impl(graph, dsmj_path, dsmj_name, is_directed=TRUE, is_sorted)
+}
+
+#' @rdname graph_to_dsmj
+#' @method graph_to_dsmj heterogeneous_graph
+#' @export
+graph_to_dsmj.heterogeneous_graph <- function(graph, dsmj_path, dsmj_name, is_sorted=FALSE, ...){
+  # Heterogeneous graphs have typed directional edges across multiple node types
+  .graph_to_dsmj_impl(graph, dsmj_path, dsmj_name, is_directed=TRUE, is_sorted)
+}
+
+# Internal implementation shared by all graph_to_dsmj methods.
+.graph_to_dsmj_impl <- function(graph, dsmj_path, dsmj_name, is_directed, is_sorted=FALSE){
 
   # Get the nodes and edgelist tables
   nodes_table <- graph[["nodes"]]
@@ -57,7 +96,6 @@ graph_to_dsmj <- function(graph, dsmj_path, dsmj_name, is_directed, is_sorted=FA
   edgelist_dcast <- dcast(edgelist_table,formula = from + to ~ label,
                           value.var = "weight")
 
-
   dsmj_list <- edgelist_dcast[,.(values = convert_to_list_of_dataframes(.SD)),
                               by = .(from,to)]
 
@@ -72,9 +110,7 @@ graph_to_dsmj <- function(graph, dsmj_path, dsmj_name, is_directed, is_sorted=FA
 
   cells_df <- dsmj_list
 
-
   # Double the cells (switching src/dest) if not a directed graph according to DSMJ specification
-
   if (is_directed == FALSE){
     cells_reverse_df <- copy(cells_df)
     cells_reverse_df$src <- cells_df$dest
@@ -100,44 +136,6 @@ graph_to_dsmj <- function(graph, dsmj_path, dsmj_name, is_directed, is_sorted=FA
   return(dsmj_path)
 }
 
-#' Create a directed graph model
-#'
-#' @param edgelist a 2-column data.table containing named columns
-#' `from` and `to` in any order.
-#' @param is_bipartite boolean specifying if network is bipartite: TRUE or FALSE
-#' @param color a character vector of length 1 or 2 specifying the hexacolor
-#' @param aggregate_duplicate If duplicated rows are encoutered, define a weight column which counts them
-#' @return a named list list(nodes,edgelist).
-#' @export
-model_directed_graph <- function(edgelist,is_bipartite,color,aggregate_duplicate = TRUE){
-  # Select relevant columns for nodes
-  nodes <- data.table(name=unique(c(edgelist$from,edgelist$to)))
-
-  if(aggregate_duplicate){
-    edgelist <- edgelist[,.(weight=.N),by=c("from","to")]
-  }else{
-    if(!any("weight" %in% names(edgelist))){
-    edgelist$weight <- 1
-    }
-  }
-
-  if(is_bipartite){
-    nodes$type <- ifelse(nodes$name %in% edgelist$from,
-                             TRUE,
-                             FALSE)
-    nodes$color <- ifelse(nodes$name %in% edgelist$from,
-                          color[1],
-                          color[2])
-  }else{
-    nodes$type <- FALSE
-    nodes$color <- color[1]
-  }
-  graph <- list(nodes=nodes,edgelist=edgelist)
-  class(graph) <- c("directed_graph",class(graph))
-
-  return(graph)
-}
-
 #' Create a directed graph model (v2)
 #'
 #' Simplified constructor. The transform function is responsible for building
@@ -150,7 +148,7 @@ model_directed_graph <- function(edgelist,is_bipartite,color,aggregate_duplicate
 #' Additional columns are preserved as-is.
 #' @return a named list list(nodes, edgelist) with class `directed_graph`.
 #' @export
-model_directed_graph_v2 <- function(nodes, edgelist){
+model_directed_graph <- function(nodes, edgelist){
   graph <- list(nodes=nodes, edgelist=edgelist)
   class(graph) <- c("directed_graph", class(graph))
   return(graph)
@@ -242,115 +240,6 @@ model_heterogeneous_graph <- function(nodes, edgelist){
   return(graph)
 }
 
-#' Apply a bipartite graph projection
-#'
-#' @param graph A bipartite network (the same pair of nodes can *not* have multiple edges)
-#' @param mode Which of the two nodes the projection should be applied to. TRUE or FALSE
-#' @param weight_scheme_function When not specified, bipartite_graph_projection will return an intermediate
-#' projection table specifying the deleted node, from_projection, to_projection, from_weight, and to_weight.
-#' This table also contains (N choose 2) rows for every "deleted_node" in the original graph.
-#' When receiving as parameter \code{\link{weight_scheme_sum_edges}} or
-#' \code{\link{weight_scheme_count_deleted_nodes}}, the final projection table will be returned instead.
-#' @return A graph projection.
-#' @export
-bipartite_graph_projection <- function(graph,mode,weight_scheme_function = NULL){
-
-  # If weight scheme is cum_temporal, then lag must be "all_lag":
-  if((identical(weight_scheme_function,kaiaulu::weight_scheme_cum_temporal) |
-      identical(weight_scheme_function,kaiaulu::weight_scheme_pairwise_cum_temporal))){
-    stop("The weight scheme for cumulative temporal should only be applied to the temporal_graph_projection
-         and lag = all_lag. See ?weight_scheme_cum_temporal or ?weight_scheme_pairwise_cum_temporal.")
-  }
-
-  get_combinations <- function(edgelist){
-    dt <- edgelist
-
-#    print(colnames(dt))
-    # Decide projection base on column available
-    if("from" %in% colnames(dt)){
-      #from <- unique(dt$from)
-    }else{
-      # since in the projection only either "to" or "from" connections will exist, relabel both as "from"
-      setnames(dt,
-               c("to"),
-               c("from"))
-      #from <- unique(dt$to)
-    }
-    from <- unique(dt$from)
-    # If projection of isolated node, there is nothing to connect it to
-    # (E.g. isolated node: Commit with 1 file)
-    # or if the deleted node degree is greater than threshold we do not
-    # generate edges
-    if(length(from) < 2){
-      combinations <- data.table(NA_character_,NA_character_)
-    }else{
-      combinations <- transpose(as.data.table(combn(from,
-                                                    2,
-                                                    simplify=FALSE)))
-    }
-
-    setnames(combinations,
-             old = c("V1","V2"),
-             new = c("from_projection","to_projection"))
-
-    # add the weight contributions before the projection deletes the node
-    combinations <- merge(combinations,dt,all.x=TRUE,by.x = "from_projection", by.y="from")
-    setnames(combinations,
-             c("weight"),
-             c("from_weight"))
-    combinations <- merge(combinations,dt,all.x=TRUE,by.x = "to_projection", by.y="from")
-    setnames(combinations,
-             c("weight"),
-             c("to_weight"))
-
-    #combinations$weight <- combinations$from_weight + combinations$to_weight
-
-    return(combinations)
-  }
-
-
-  # Filter the nodes we wish to keep in the projection
-  graph[["nodes"]] <- graph[["nodes"]][type == mode]
-
-
-  if(mode){
-
-    # Calculate N Choose 2 combinations for every deleted node
-    graph[["edgelist"]] <- graph[["edgelist"]][, get_combinations(.SD),
-                                          by = c("to"),
-                                          .SDcols = c("from","weight")]
-
-    setnames(x = graph[["edgelist"]],
-             old = c("to"),
-             new = c("eliminated_node"))
-
-  }else{
-
-    # Calculate N Choose 2 combinations for every deleted node
-    graph[["edgelist"]] <- graph[["edgelist"]][, get_combinations(.SD),
-                                          by = c("from"),
-                                          .SDcols = c("to","weight")]
-
-    setnames(x = graph[["edgelist"]],
-             old = c("from"),
-             new = c("eliminated_node"))
-
-  }
-
-  # Remove from edgelist the nodes that do not connect to others (e.g. a single file commit)
-  graph[["edgelist"]] <- graph[["edgelist"]][complete.cases(graph[["edgelist"]])]
-
-
-  # Do not aggregate weights if no weight scheme is specified
-  if(is.null(weight_scheme_function)){
-    return(graph)
-  }else{
-    return(weight_scheme_function(graph))
-  }
-
-
-}
-
 #' Apply a bipartite or heterogeneous graph projection (S3 generic)
 #'
 #' A generic projection function that dispatches to the appropriate method based
@@ -368,15 +257,15 @@ bipartite_graph_projection <- function(graph,mode,weight_scheme_function = NULL)
 #' edge type to project through.
 #' @return A projected graph.
 #' @export
-bipartite_graph_projection_v2 <- function(graph, mode, ...) {
-  UseMethod("bipartite_graph_projection_v2")
+bipartite_graph_projection <- function(graph, mode, ...) {
+  UseMethod("bipartite_graph_projection")
 }
 
 #' @param weight_scheme_function See \code{\link{bipartite_graph_projection}}.
-#' @rdname bipartite_graph_projection_v2
-#' @method bipartite_graph_projection_v2 bipartite_graph
+#' @rdname bipartite_graph_projection
+#' @method bipartite_graph_projection bipartite_graph
 #' @export
-bipartite_graph_projection_v2.bipartite_graph <- function(graph, mode, weight_scheme_function=NULL, ...){
+bipartite_graph_projection.bipartite_graph <- function(graph, mode, weight_scheme_function=NULL, ...){
   if((identical(weight_scheme_function, kaiaulu::weight_scheme_cum_temporal) |
       identical(weight_scheme_function, kaiaulu::weight_scheme_pairwise_cum_temporal))){
     stop("The weight scheme for cumulative temporal should only be applied to
@@ -418,6 +307,10 @@ bipartite_graph_projection_v2.bipartite_graph <- function(graph, mode, weight_sc
 
   graph[["edgelist"]] <- graph[["edgelist"]][complete.cases(graph[["edgelist"]])]
 
+  # Reclassify as undirected_graph since projection collapses the bipartite
+  # structure into a single node type with undirected co-occurrence edges
+  class(graph) <- c("undirected_graph", "list")
+
   if(is.null(weight_scheme_function)){
     return(graph)
   }else{
@@ -428,10 +321,10 @@ bipartite_graph_projection_v2.bipartite_graph <- function(graph, mode, weight_sc
 #' @param edge_type A string specifying which edge type in the heterogeneous
 #' graph to project through (e.g. \code{"changed"} or \code{"authored"}).
 #' @param weight_scheme_function See \code{\link{bipartite_graph_projection}}.
-#' @rdname bipartite_graph_projection_v2
-#' @method bipartite_graph_projection_v2 heterogeneous_graph
+#' @rdname bipartite_graph_projection
+#' @method bipartite_graph_projection heterogeneous_graph
 #' @export
-bipartite_graph_projection_v2.heterogeneous_graph <- function(graph, mode, edge_type, weight_scheme_function=NULL, ...){
+bipartite_graph_projection.heterogeneous_graph <- function(graph, mode, edge_type, weight_scheme_function=NULL, ...){
   # Extract edgelist for the requested edge type, keeping only from/to/weight
   slice_edges <- graph[["edgelist"]][type == edge_type, .(from, to, weight)]
 
@@ -460,23 +353,27 @@ bipartite_graph_projection_v2.heterogeneous_graph <- function(graph, mode, edge_
   bipartite_net <- model_bipartite_graph(slice_nodes, slice_edges)
   bool_mode <- (from_type == mode)
 
-  return(bipartite_graph_projection_v2.bipartite_graph(bipartite_net,
+  return(bipartite_graph_projection.bipartite_graph(bipartite_net,
                                                         mode=bool_mode,
                                                         weight_scheme_function=weight_scheme_function))
 }
 
-#' Apply a temporal graph projection
+#' Apply a temporal graph projection (S3 generic)
 #'
-#' @param graph A bipartite network (the same pair of nodes can have multiple edges)
-#' @param mode Which of the two nodes the projection should be applied to. TRUE or FALSE
-#' @param weight_scheme_function When not specified, bipartite_graph_projection will return an intermediate
+#' A generic temporal projection function that dispatches to the appropriate
+#' method based on the class of the graph passed in.
+#'
+#' @param graph A graph returned by \code{\link{model_bipartite_graph}}.
+#' @param mode Which of the two node types to project onto. TRUE or FALSE.
+#' @param weight_scheme_function When not specified, temporal_graph_projection will return an intermediate
 #' projection table specifying the deleted node, from_projection, to_projection, from_weight, and to_weight.
 #' This table also contains (N choose 2) rows for every "deleted_node" in the original graph.
 #' When receiving as parameter \code{\link{weight_scheme_sum_edges}} or
 #' \code{\link{weight_scheme_count_deleted_nodes}}, the final projection table will be returned instead.
 #' @param timestamp_column a string containing the name of the timestamp variable
 #' @param lag a string specifying either "one_lag" or "all_lag".
-#' @return A graph projection.
+#' @param ... Additional arguments passed to the method.
+#' @return A directed_graph projection.
 #' @export
 #' @references M. Joblin, W. Mauerer, S. Apel,
 #' J. Siegmund and D. Riehle, "From Developer Networks
@@ -484,7 +381,55 @@ bipartite_graph_projection_v2.heterogeneous_graph <- function(graph, mode, edge_
 #' 2015 IEEE/ACM 37th IEEE International Conference on
 #' Software Engineering, Florence, 2015, pp. 563-573,
 #' doi: 10.1109/ICSE.2015.73.
-temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,timestamp_column,lag = c("one_lag","all_lag")){
+temporal_graph_projection <- function(graph, mode, weight_scheme_function=NULL, timestamp_column, lag=c("one_lag","all_lag"), ...) {
+  UseMethod("temporal_graph_projection")
+}
+
+#' @rdname temporal_graph_projection
+#' @method temporal_graph_projection heterogeneous_graph
+#' @export
+temporal_graph_projection.heterogeneous_graph <- function(graph, mode, weight_scheme_function=NULL, timestamp_column, edge_type, lag=c("one_lag","all_lag"), ...){
+  # Extract edgelist for the requested edge type, keeping from/to/weight and timestamp
+  slice_edges <- graph[["edgelist"]][type == edge_type, .SD, .SDcols = c("from","to","weight",timestamp_column)]
+
+  if(nrow(slice_edges) == 0){
+    stop(paste0("No edges found with edge_type '", edge_type, "'."))
+  }
+
+  if(!(timestamp_column %in% names(slice_edges))){
+    stop(paste0("timestamp_column '", timestamp_column, "' not found in edges of type '", edge_type, "'."))
+  }
+
+  # Identify the two node types involved in this edge type
+  from_type <- unique(graph[["nodes"]][name %in% slice_edges$from]$type)
+  to_type   <- unique(graph[["nodes"]][name %in% slice_edges$to]$type)
+
+  if(!(mode %in% c(from_type, to_type))){
+    stop(paste0("mode '", mode, "' not found in edge_type '", edge_type, "'. ",
+                "Node types available for this edge: ",
+                paste(c(from_type, to_type), collapse=", ")))
+  }
+
+  # Extract relevant nodes and recode type to TRUE/FALSE
+  # TRUE = from-side node type, FALSE = to-side node type
+  slice_nodes <- copy(graph[["nodes"]][type %in% c(from_type, to_type)])
+  slice_nodes[, type := (type == from_type)]
+
+  # Build a bipartite_graph from the slice and delegate to the bipartite method
+  bipartite_net <- model_bipartite_graph(slice_nodes, slice_edges)
+  bool_mode <- (from_type == mode)
+
+  return(temporal_graph_projection.bipartite_graph(bipartite_net,
+                                                   mode=bool_mode,
+                                                   weight_scheme_function=weight_scheme_function,
+                                                   timestamp_column=timestamp_column,
+                                                   lag=lag))
+}
+
+#' @rdname temporal_graph_projection
+#' @method temporal_graph_projection bipartite_graph
+#' @export
+temporal_graph_projection.bipartite_graph <- function(graph,mode,weight_scheme_function = NULL,timestamp_column,lag = c("one_lag","all_lag"), ...){
 
   # Check if the user specified a lag that doesn't exist
   lag <- match.arg(lag)
@@ -707,6 +652,7 @@ temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,t
                                                .SDcols = c("from","weight","datetimetz")]
 
     if(nrow(graph[["edgelist"]]) == 0){
+      class(graph) <- c("directed_graph", "list")
       return(graph)
     }else{
       setnames(x = graph[["edgelist"]],
@@ -723,6 +669,7 @@ temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,t
                                                .SDcols = c("to","weight","datetimetz")]
 
     if(nrow(graph[["edgelist"]] == 0)){
+      class(graph) <- c("directed_graph", "list")
       return(graph)
     }else{
       setnames(x = graph[["edgelist"]],
@@ -735,6 +682,9 @@ temporal_graph_projection <- function(graph,mode,weight_scheme_function = NULL,t
   # Remove from edgelist the nodes that do not connect to others (e.g. a single file commit)
   graph[["edgelist"]] <- graph[["edgelist"]][complete.cases(graph[["edgelist"]])]
 
+  # Reclassify as directed_graph since temporal projection produces directional edges
+  # (A -> B means A changed a file after B, i.e. A depends on B's code)
+  class(graph) <- c("directed_graph", "list")
 
   # Do not aggregate weights if no weight scheme is specified
   if(is.null(weight_scheme_function)){
