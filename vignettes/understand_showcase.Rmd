@@ -34,14 +34,25 @@ For this notebook, we will use Apache Helix as an example. Refer to Helix projec
 ```{r}
 tool <- parse_config("../tools.yml")
 scitools_path <- get_tool_project("scitools", tool)
+# conf <- parse_config("../conf/helix.yml")
 
-conf <- parse_config("../conf/helix.yml")
-keep_dependencies_type <- get_understand_keep_dependencies_type(conf)
-project_path <- get_understand_project_path(conf)
+# Reads 2 configs
+project <- parse_config("../conf/helix_immutable.yml")
+analysis <- parse_config("../conf/analysis1.yml")
+
+# Used for analysis.yml
+project_path <- get_understand_project_path(analysis)
+keep_dependencies_type <- get_understand_keep_dependencies_type(analysis)
+
+# keep_dependencies_type <- get_understand_keep_dependencies_type(conf)
+# project_path <- get_understand_project_path(conf)
 
 # Scitools
-understand_folder <- get_understand_output_path(conf)
-code_language <- get_understand_code_language(conf)
+understand_folder <- get_understand_output_path(analysis)
+code_language <- get_understand_code_language(analysis)
+
+# understand_folder <- get_understand_output_path(conf)
+# code_language <- get_understand_code_language(conf)
 
 db_path <- stringi::stri_c(understand_folder,"Understand.und")
 

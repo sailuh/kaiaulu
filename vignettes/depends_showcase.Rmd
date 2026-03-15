@@ -30,18 +30,28 @@ require(knitr)
 
 ```{r}
 tool <- parse_config("../tools.yml")
-#conf <- parse_config("../conf/apr.yml")
-conf <- parse_config("../conf/helix.yml")
-git_repo_path <- get_git_repo_path(conf)
+# conf <- parse_config("../conf/helix.yml")
+# git_repo_path <- get_git_repo_path(conf)
+
+# Reads 2 configs
+project <- parse_config("../conf/helix_immutable.yml")
+analysis <- parse_config("../conf/analysis1.yml")
+
+# Used for project.yml
+git_repo_path <- get_git_repo_path(project)
+
+# Used for analysis.yml
+file_extensions <- get_file_extensions(analysis)
+substring_filepath <- get_substring_filepath(analysis)
 
 # Depends parameters
 depends_jar_path <- get_tool_project("depends", tool)
-language <- get_depends_code_language(conf)
-keep_dependencies_type <- get_depends_keep_dependencies_type(conf)
+language <- get_depends_code_language(project)
+keep_dependencies_type <- get_depends_keep_dependencies_type(analysis)
 
 # Filters
-file_extensions <- get_file_extensions(conf)
-substring_filepath <- get_substring_filepath(conf)
+# file_extensions <- get_file_extensions(conf)
+# substring_filepath <- get_substring_filepath(conf)
 ```
 
 # Construct File Network
