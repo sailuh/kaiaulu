@@ -115,9 +115,9 @@ We can display the parsed dependencies as a network. You can use the dependency_
 file_graph <- transform_understand_dependencies_to_network(parsed = file_dependencies, weight_types = c(keep_dependencies_type[2], keep_dependencies_type[5]))
 
 
-project_function_network <- igraph::graph_from_data_frame(d=file_graph[["edge_list"]], 
+project_function_network <- igraph::graph_from_data_frame(d=file_graph[["edgelist"]],
                       directed = TRUE,
-                      vertices = file_graph[["node_list"]])
+                      vertices = file_graph[["nodes"]])
 visIgraph(project_function_network,randomSeed = 1)
 ```
 
@@ -129,9 +129,9 @@ The same applies to outputting our class_dependencies, but we can visualize what
 ```{r}
 class_graph <- transform_understand_dependencies_to_network(parsed = class_dependencies, weight_types = c(keep_dependencies_type[2], keep_dependencies_type[5]))
 
-project_function_network <- igraph::graph_from_data_frame(d=class_graph[["edge_list"]], 
+project_function_network <- igraph::graph_from_data_frame(d=class_graph[["edgelist"]],
                       directed = TRUE,
-                      vertices = class_graph[["node_list"]])
+                      vertices = class_graph[["nodes"]])
 visIgraph(project_function_network,randomSeed = 1)
 ```
 

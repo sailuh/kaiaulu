@@ -4,10 +4,14 @@
 \alias{transform_reply_to_bipartite_network}
 \title{Transform parsed mbox or parsed jira replies into a network}
 \usage{
-transform_reply_to_bipartite_network(project_reply)
+transform_reply_to_bipartite_network(project_reply, source = NA_character_)
 }
 \arguments{
 \item{project_reply}{A parsed mbox by \code{\link{parse_mbox}} or \code{\link{parse_jira_replies}}.}
+
+\item{source}{A string label for the data source (e.g. "mbox", "jira", "github"). Stored as a
+column in both the node list and edgelist so downstream functions can filter by source if
+needed but can also ignore it entirely. Defaults to \code{NA_character_}.}
 }
 \description{
 Transform parsed mbox or parsed jira replies into a network

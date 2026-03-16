@@ -390,30 +390,33 @@ parse_r_dependencies <- function(folder_path){
 #' @export
 #' @family edgelists
 transform_understand_dependencies_to_network <- function(parsed, weight_types) {
-
+  dependency_kind <- node_label <- id <- label_from <- id_from <- label_to <- id_to <- NULL # due to NSE notes in R CMD check
   nodes <- parsed[["node_list"]]
   edges <- parsed[["edge_list"]]
 
-  # Create an ID column, as the file name in a label may occur
-  # again in other parts of the code.
+  # Disambiguate node labels with their ID since the same label may appear in multiple contexts
+  nodes[, node_label := stringi::stri_c(node_label, "|", id)]
+  edges[, label_from := stringi::stri_c(label_from, "|", id_from)]
+  edges[, label_to   := stringi::stri_c(label_to,   "|", id_to)]
 
-  nodes$node_label <- stringi::stri_c(nodes$node_label,"|",nodes$id)
-
-  edges$label_from <- stringi::stri_c(edges$label_from,"|",edges$id_from)
-  edges$label_to <- stringi::stri_c(edges$label_to,"|",edges$id_to)
-
-  # Filter out by weights if vector provided
+  # Filter to requested dependency types
   if (length(weight_types) > 0) {
     edges <- edges[dependency_kind %in% weight_types]
   }
-
-  # If filter removed all edges:
   if (nrow(edges) == 0) {
-    stop("Error: No edges found under weight_types.")
+    stop("No edges found under weight_types.")
   }
 
-  # Create a list to return
-  graph <- list(node_list = nodes, edge_list = edges)
+  # Build nodes table
+  depend_nodes <- data.table(
+    name  = nodes[["node_label"]],
+    type  = FALSE,
+    color = "#f4dbb5"
+  )
+  # Build edgelist — weight = count of this dependency kind per from-to pair
+  depend_edgelist <- edges[, .(weight = .N), by = .(from = label_from, to = label_to, label = dependency_kind)]
+
+  graph <- model_directed_graph(depend_nodes, depend_edgelist)
   return(graph)
 }
 
@@ -474,20 +477,22 @@ transform_dependencies_to_network <- function(depends_parsed,weight_types=NA){
 #' @param r_dependencies_edgelist A parsed R folder by \code{\link{parse_r_dependencies}}.
 #' @param dependency_type The type of dependency to be parsed: Function or File
 #' @export
-transform_r_dependencies_to_network <- function(r_dependencies_edgelist,dependency_type=c("function","file")){
+transform_r_dependencies_to_network <- function(r_dependencies_edgelist, dependency_type=c("function","file")){
+  src_functions_call_name <- src_functions_caller_name <- src_functions_call_filename <- src_functions_caller_filename <- NULL # due to NSE notes in R CMD check
   mode <- match.arg(dependency_type)
   if(mode == "function"){
-    graph <-  model_directed_graph(r_dependencies_edgelist[,.(from=src_functions_call_name,
-                                                              to=src_functions_caller_name)],
-                                   is_bipartite = FALSE,
-                                   color = c("#fafad2"))
-  }else if(mode == "file"){
-    graph <-  model_directed_graph(r_dependencies_edgelist[,.(from=src_functions_call_filename,
-                                                              to=src_functions_caller_filename)],
-                                   is_bipartite = FALSE,
-                                   color = c("#f4dbb5"))
-
+    from_col <- "src_functions_call_name"
+    to_col   <- "src_functions_caller_name"
+    color    <- "#fafad2"
+  } else {
+    from_col <- "src_functions_call_filename"
+    to_col   <- "src_functions_caller_filename"
+    color    <- "#f4dbb5"
   }
+  nodes    <- data.table(name = unique(c(r_dependencies_edgelist[[from_col]], r_dependencies_edgelist[[to_col]])), color = color)
+  edgelist <- r_dependencies_edgelist[, .(weight = .N), by = c(from_col, to_col)]
+  setnames(edgelist, old = c(from_col, to_col), new = c("from", "to"))
+  graph <- model_directed_graph(nodes, edgelist)
   return(graph)
 }
 
