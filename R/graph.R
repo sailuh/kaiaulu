@@ -430,7 +430,7 @@ temporal_graph_projection.heterogeneous_graph <- function(graph, mode, weight_sc
 #' @rdname temporal_graph_projection
 #' @method temporal_graph_projection bipartite_graph
 #' @export
-temporal_graph_projection.bipartite_graph <- function(graph,mode,weight_scheme_function = NULL,timestamp_column,lag = c("one_lag","all_lag"), ...){
+temporal_graph_projection.bipartite_graph <- function(graph,mode,weight_scheme_function = NULL,timestamp_column,edge_type = NULL,lag = c("one_lag","all_lag"), ...){
 
   # Check if the user specified a lag that doesn't exist
   lag <- match.arg(lag)
