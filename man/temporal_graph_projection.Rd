@@ -31,6 +31,7 @@ temporal_graph_projection(
   mode,
   weight_scheme_function = NULL,
   timestamp_column,
+  edge_type = NULL,
   lag = c("one_lag", "all_lag"),
   ...
 )
