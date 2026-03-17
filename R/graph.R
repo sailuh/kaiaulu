@@ -337,7 +337,7 @@ bipartite_graph_projection.heterogeneous_graph <- function(graph, mode, edge_typ
   to_type   <- unique(graph[["nodes"]][name %in% slice_edges$to]$type)
 
   if(length(from_type) != 1 || length(to_type) != 1){
-    stop(paste0("edge_type '", edge_type, "' connects more than two node types — cannot project."))
+    stop(paste0("edge_type '", edge_type, "' connects more than two node types - cannot project."))
   }
 
   if(!(mode %in% c(from_type, to_type))){
@@ -410,7 +410,7 @@ temporal_graph_projection.heterogeneous_graph <- function(graph, mode, weight_sc
   to_type   <- unique(graph[["nodes"]][name %in% slice_edges$to]$type)
 
   if(length(from_type) != 1 || length(to_type) != 1){
-    stop(paste0("edge_type '", edge_type, "' connects more than two node types — cannot project."))
+    stop(paste0("edge_type '", edge_type, "' connects more than two node types - cannot project."))
   }
 
   if(!(mode %in% c(from_type, to_type))){
