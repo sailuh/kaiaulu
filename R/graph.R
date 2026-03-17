@@ -336,6 +336,10 @@ bipartite_graph_projection.heterogeneous_graph <- function(graph, mode, edge_typ
   from_type <- unique(graph[["nodes"]][name %in% slice_edges$from]$type)
   to_type   <- unique(graph[["nodes"]][name %in% slice_edges$to]$type)
 
+  if(length(from_type) != 1 || length(to_type) != 1){
+    stop(paste0("edge_type '", edge_type, "' connects more than two node types — cannot project."))
+  }
+
   if(!(mode %in% c(from_type, to_type))){
     stop(paste0("mode '", mode, "' not found in edge_type '", edge_type, "'. ",
                 "Node types available for this edge: ",
@@ -404,6 +408,10 @@ temporal_graph_projection.heterogeneous_graph <- function(graph, mode, weight_sc
   # Identify the two node types involved in this edge type
   from_type <- unique(graph[["nodes"]][name %in% slice_edges$from]$type)
   to_type   <- unique(graph[["nodes"]][name %in% slice_edges$to]$type)
+
+  if(length(from_type) != 1 || length(to_type) != 1){
+    stop(paste0("edge_type '", edge_type, "' connects more than two node types — cannot project."))
+  }
 
   if(!(mode %in% c(from_type, to_type))){
     stop(paste0("mode '", mode, "' not found in edge_type '", edge_type, "'. ",
@@ -669,7 +677,7 @@ temporal_graph_projection.bipartite_graph <- function(graph,mode,weight_scheme_f
                                                by = c("from"),
                                                .SDcols = c("to","weight","datetimetz")]
 
-    if(nrow(graph[["edgelist"]] == 0)){
+    if(nrow(graph[["edgelist"]]) == 0){
       class(graph) <- c("directed_graph", "list")
       return(graph)
     }else{

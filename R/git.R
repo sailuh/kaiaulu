@@ -1001,7 +1001,7 @@ transform_gitlog_to_entity_bipartite_network <- function(project_git_entity, mod
 #' Software Engineering, Florence, 2015, pp. 563-573,
 #' doi: 10.1109/ICSE.2015.73.
 transform_gitlog_to_entity_temporal_network <- function(project_git_entity, mode = c("author","committer"), lag = "one_lag", weight_scheme_function = weight_scheme_sum_edges){
-  author_name_email <- committer_name_email <- entity_definition_name <- author_datetimetz <- committer_datetimetz <- n_lines_changed <- NULL # due to NSE notes in R CMD check
+  author_name_email <- committer_name_email <- author_datetimetz <- committer_datetimetz <- n_lines_changed <- NULL # due to NSE notes in R CMD check
   if(!is.data.table(project_git_entity)){
     stop("project_git_entity must be a data.table returned by parse_gitlog_entity.")
   }
@@ -1015,7 +1015,7 @@ transform_gitlog_to_entity_temporal_network <- function(project_git_entity, mode
     dt_col     <- "committer_datetimetz"
     from_color <- "#bed7be"
   }
-  to_col   <- "entity_definition_name"
+  to_col   <- "entity"
   to_color <- "#fafad2"
   from_nodes <- data.table(name = unique(project_git_entity[[from_col]]), type = TRUE,  color = from_color)
   to_nodes   <- data.table(name = unique(project_git_entity[[to_col]]),   type = FALSE, color = to_color)
@@ -1045,6 +1045,7 @@ transform_commit_message_id_to_network <- function(project_git, commit_message_i
   if(!is.data.table(project_git)){
     stop("project_git must be a data.table returned by parse_gitlog.")
   }
+  project_git <- copy(project_git)
   # Extract the id according to the parameter regex
   project_git[, commit_message_id := stringi::stri_match_first_regex(commit_message, pattern = commit_message_id_regex)[, 1]]
   # Keep only rows with a matched id
@@ -1152,7 +1153,7 @@ transform_gitlog_to_heterogeneous_network <- function(project_git,
       datetimetz = author_datetimetz[1]
     ), by = .(from = commit_hash, to = file_pathname)]
   }
-  if(all(c("author_name_email","file_pathname") %in% node_cols) &
+  if(all(c("author_name_email","file_pathname") %in% node_cols) &&
      !("commit_hash" %in% node_cols)){
     # Direct author-file edge collapsed from the two-hop author->commit->file path
     # Since every row in the git log already contains both author and file, we group
