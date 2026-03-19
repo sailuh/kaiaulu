@@ -181,6 +181,51 @@ commit_message_id_coverage <- function(git_log,commit_message_id_regex){
                                          pattern = commit_message_id_regex)
   return(length(is_match[is_match]))
 }
+
+#' Productivity Developer Commits
+#'
+#' Counts the unique number of commits per developer in the git log.
+#'
+#' @param project_git_log a parsed git log obtained from \code{\link{parse_gitlog}}
+#' @return a two column data.table of the form author_name_email | total_commits
+#' @export
+#' @family metrics
+#' @seealso \code{\link{parse_gitlog}}
+productivity_developer_commits <- function(project_git_log) {
+  commit_hash <- NULL
+
+  developer_commits <- project_git_log[, .(
+    total_commits = data.table::uniqueN(commit_hash)
+  ), by = "author_name_email"]
+
+  return(developer_commits[, .(author_name_email, total_commits)])
+}
+
+#' Productivity Developer Churn
+#'
+#' Calculates the churn per developer in the git log.
+#'
+#' @param project_git_log a parsed git log obtained from \code{\link{parse_gitlog}}
+#' @return a four column data.table of the form author_name_email | lines_added | lines_removed | developer_churn
+#' @export
+#' @family metrics
+#' @seealso \code{\link{parse_gitlog}} to obtain additions and deletions from gitlog
+productivity_developer_churn <- function(project_git_log) {
+  churn <- NULL # due to NSE notes in R CMD check
+
+  # Add churn per commit per file row (and filter out "-" rows)
+  project_git_log <- metric_churn_per_commit_per_file(project_git_log)
+
+  # Aggregate churn per developer
+  developer_churn <- project_git_log[, .(
+    lines_added = sum(as.numeric(lines_added), na.rm = TRUE),
+    lines_removed = sum(as.numeric(lines_removed), na.rm = TRUE),
+    developer_churn = sum(churn, na.rm = TRUE)
+  ), by = "author_name_email"]
+
+  return(developer_churn[, .(author_name_email, lines_added, lines_removed, developer_churn)])
+}
+
 # Various imports
 #' @importFrom stringi stri_c
 #' @importFrom stringi stri_split_regex
