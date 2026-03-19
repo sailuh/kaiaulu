@@ -1385,6 +1385,57 @@ github_parse_project_commits <- function(api_responses){
   rbindlist(lapply(api_responses,parse_response),fill=TRUE)
 }
 
+###### Github Commit Comments ######
+
+#' Download Project Commit Comments
+#'
+#' Download commit comments from "GET /repos/{owner}/{repo}/comments" endpoint.
+#' These are comments left directly on a commit page on GitHub, outside of any pull request review.
+#' The returned comment IDs match the \code{comment_id} field in the GHTorrent \code{commit_comments} table,
+#' enabling sentiment label transfer by joining on comment ID.
+#'
+#' @param owner GitHub's repository owner (e.g. sailuh)
+#' @param repo GitHub's repository name (e.g. kaiaulu)
+#' @param token Your GitHub API token
+#' @references For details, see \url{https://docs.github.com/en/rest/commits/comments?apiVersion=2022-11-28#list-commit-comments-for-a-repository}.
+#' @export
+github_api_project_commit_comments <- function(owner, repo, token){
+  gh::gh("GET /repos/{owner}/{repo}/comments",
+         owner = owner,
+         repo = repo,
+         page = 1,
+         per_page = 100,
+         .token = token)
+}
+
+#' Parse Commit Comments JSON to Table
+#'
+#' Parses the response from \code{\link{github_api_project_commit_comments}} into a data.table.
+#' Note not all columns available in the downloaded json are parsed.
+#'
+#' @param api_responses API response obtained from \code{\link{github_api_project_commit_comments}}.
+#' @export
+github_parse_project_commit_comments <- function(api_responses){
+  parse_response <- function(api_response){
+    parsed_response <- list()
+    parsed_response[["comment_id"]] <- api_response[["id"]]
+    parsed_response[["commit_id"]] <- api_response[["commit_id"]]
+    parsed_response[["author_login"]] <- api_response[["user"]][["login"]]
+    parsed_response[["author_id"]] <- api_response[["user"]][["id"]]
+    parsed_response[["body"]] <- api_response[["body"]]
+    parsed_response[["path"]] <- api_response[["path"]]
+    parsed_response[["position"]] <- api_response[["position"]]
+    parsed_response[["line"]] <- api_response[["line"]]
+    parsed_response[["created_at"]] <- api_response[["created_at"]]
+    parsed_response[["updated_at"]] <- api_response[["updated_at"]]
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+  rbindlist(lapply(api_responses, parse_response), fill = TRUE)
+}
+
 ###### Github API Helper Functions ######
 
 #' Returns token remaining available requests.
