@@ -22,13 +22,13 @@ USAGE:
   git.R entity_changes help
   git.R entity_changes <tools.yml> <project_conf.yml> <save_file_name_path>
   git.R network_file_co_change help
-  git.R network_file_co_change <tools.yml> <project_conf.yml> <save_file_name_path>
+  git.R network_file_co_change <tools.yml> <project_conf.yml> <node_save_file_name_path> <edge_save_file_name_path>
   git.R network_entity_co_change help
-  git.R network_entity_co_change <tools.yml> <project_conf.yml> <save_file_name_path>
+  git.R network_entity_co_change <tools.yml> <project_conf.yml> <node_save_file_name_path> <edge_save_file_name_path>
   git.R network_file_authors help
-  git.R network_file_authors <tools.yml> <project_conf.yml> <save_file_name_path>
+  git.R network_file_authors <tools.yml> <project_conf.yml> <node_save_file_name_path> <edge_save_file_name_path>
   git.R network_entity_authors help
-  git.R network_entity_authors <tools.yml> <project_conf.yml> <save_file_name_path>
+  git.R network_entity_authors <tools.yml> <project_conf.yml> <node_save_file_name_path> <edge_save_file_name_path>
   git.R (-h | --help)
   git.R --version
 
@@ -47,7 +47,7 @@ OPTIONS:
 
 arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9600')
 if(arguments[["file_changes"]] & arguments[["help"]]){
-  cli_alert_info("Outputs a git log using parse_gitlog().")
+  cli_alert_info("Outputs a git log to save_file_name_path using parse_gitlog().")
 }else if(arguments[["file_changes"]]){
 
   tools_path <- arguments[["<tools.yml>"]]
@@ -68,7 +68,7 @@ if(arguments[["file_changes"]] & arguments[["help"]]){
 }
 
 if(arguments[["entity_changes"]] & arguments[["help"]]){
-  cli_alert_info("Outputs log of changed entities using parse_gitlog_entity. An entity is a function, class, or method in R.")
+  cli_alert_info("Outputs log of changed entities to save_file_name_path using parse_gitlog_entity. An entity is a function, class, or method in R.")
 }else if(arguments[["entity_changes"]]){
 
   tools_path <- arguments[["<tools.yml>"]]
@@ -99,7 +99,8 @@ if(arguments[["network_entity_co_change"]] & arguments[["help"]]){
 
   tools_path <- arguments[["<tools.yml>"]]
   conf_path <- arguments[["<project_conf.yml>"]]
-  save_path <- arguments[["<save_file_name_path>"]]
+  node_path <- arguments[["<node_save_file_name_path>"]]
+  edge_path <- arguments[["<edge_save_file_name_path>"]]
 
   tool <- yaml::read_yaml(tools_path)
   conf <- yaml::read_yaml(conf_path)
@@ -129,17 +130,12 @@ if(arguments[["network_entity_co_change"]] & arguments[["help"]]){
                                                   mode = FALSE,
                                                   weight_scheme_function = weight_scheme_sum_edges)
 
-  base <- tools::file_path_sans_ext(save_path)
-
-  nodes_path <- paste0(base, "_nodes.csv")
-  edges_path <- paste0(base, "_edges.csv")
-
-  data.table::fwrite(co_change_network$nodes, nodes_path)
-  data.table::fwrite(co_change_network$edgelist, edges_path)
+  data.table::fwrite(co_change_network$nodes, node_path)
+  data.table::fwrite(co_change_network$edgelist, edge_path)
 
   cli_alert_success("Entity co-change network saved:")
-  cli_alert_info(nodes_path)
-  cli_alert_info(edges_path)
+  cli_alert_info(paste("Nodes saved to:", node_path))
+  cli_alert_info(paste("Edges saved to:", edge_path))
 }
 
 if(arguments[["network_file_co_change"]] & arguments[["help"]]){
@@ -148,7 +144,8 @@ if(arguments[["network_file_co_change"]] & arguments[["help"]]){
 
   tools_path <- arguments[["<tools.yml>"]]
   conf_path <- arguments[["<project_conf.yml>"]]
-  save_path <- arguments[["<save_file_name_path>"]]
+  node_path <- arguments[["<node_save_file_name_path>"]]
+  edge_path <- arguments[["<edge_save_file_name_path>"]]
 
   tool <- yaml::read_yaml(tools_path)
   conf <- yaml::read_yaml(conf_path)
@@ -165,17 +162,12 @@ if(arguments[["network_file_co_change"]] & arguments[["help"]]){
                                                   mode = FALSE,
                                                   weight_scheme_function = weight_scheme_sum_edges)
 
-  base <- tools::file_path_sans_ext(save_path)
-
-  nodes_path <- paste0(base, "_nodes.csv")
-  edges_path <- paste0(base, "_edges.csv")
-
-  data.table::fwrite(co_change_network$nodes, nodes_path)
-  data.table::fwrite(co_change_network$edgelist, edges_path)
+  data.table::fwrite(co_change_network$nodes, node_path)
+  data.table::fwrite(co_change_network$edgelist, edge_path)
 
   cli_alert_success("File co-change network saved:")
-  cli_alert_info(nodes_path)
-  cli_alert_info(edges_path)
+  cli_alert_info(paste("Nodes saved to:", node_path))
+  cli_alert_info(paste("Edges saved to:", edge_path))
 }
 
 if(arguments[["network_file_authors"]] & arguments[["help"]]){
@@ -184,7 +176,8 @@ if(arguments[["network_file_authors"]] & arguments[["help"]]){
 
   tools_path <- arguments[["<tools.yml>"]]
   conf_path <- arguments[["<project_conf.yml>"]]
-  save_path <- arguments[["<save_file_name_path>"]]
+  node_path <- arguments[["<node_save_file_name_path>"]]
+  edge_path <- arguments[["<edge_save_file_name_path>"]]
 
   tool <- yaml::read_yaml(tools_path)
   conf <- yaml::read_yaml(conf_path)
@@ -201,17 +194,12 @@ if(arguments[["network_file_authors"]] & arguments[["help"]]){
                                                mode = TRUE,
                                                weight_scheme_function = weight_scheme_sum_edges)
 
-  base <- tools::file_path_sans_ext(save_path)
-
-  nodes_path <- paste0(base, "_nodes.csv")
-  edges_path <- paste0(base, "_edges.csv")
-
-  data.table::fwrite(author_network$nodes, nodes_path)
-  data.table::fwrite(author_network$edgelist, edges_path)
+  data.table::fwrite(author_network$nodes, node_path)
+  data.table::fwrite(author_network$edgelist, edge_path)
 
   cli_alert_success("File author co-change network saved:")
-  cli_alert_info(nodes_path)
-  cli_alert_info(edges_path)
+  cli_alert_info(paste("Nodes saved to:", node_path))
+  cli_alert_info(paste("Edges saved to:", edge_path))
 }
 
 if(arguments[["network_entity_authors"]] & arguments[["help"]]){
@@ -220,7 +208,8 @@ if(arguments[["network_entity_authors"]] & arguments[["help"]]){
 
   tools_path <- arguments[["<tools.yml>"]]
   conf_path <- arguments[["<project_conf.yml>"]]
-  save_path <- arguments[["<save_file_name_path>"]]
+  node_path <- arguments[["<node_save_file_name_path>"]]
+  edge_path <- arguments[["<edge_save_file_name_path>"]]
 
   tool <- yaml::read_yaml(tools_path)
   conf <- yaml::read_yaml(conf_path)
@@ -251,15 +240,10 @@ if(arguments[["network_entity_authors"]] & arguments[["help"]]){
                                                mode = TRUE,
                                                weight_scheme_function = weight_scheme_sum_edges)
 
-  base <- tools::file_path_sans_ext(save_path)
-
-  nodes_path <- paste0(base, "_nodes.csv")
-  edges_path <- paste0(base, "_edges.csv")
-
-  data.table::fwrite(author_network$nodes, nodes_path)
-  data.table::fwrite(author_network$edgelist, edges_path)
+  data.table::fwrite(author_network$nodes, node_path)
+  data.table::fwrite(author_network$edgelist, edge_path)
 
   cli_alert_success("Entity author co-change network saved:")
-  cli_alert_info(nodes_path)
-  cli_alert_info(edges_path)
+  cli_alert_info(paste("Nodes saved to:", node_path))
+  cli_alert_info(paste("Edges saved to:", edge_path))
 }
