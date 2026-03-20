@@ -164,7 +164,7 @@ head(pr_reviews,3)  %>%
 The last endpoint downloads the inline code comments. This table provides direct association between a comment and a specific line on the file being modified. This table offers therefore a bridge between communication and code changes not found in any other data source. The review comments include the diff_hunk field, which is a string that contains the in-line code reviewers may comment on the pull request. The particular line numbers the comment is referencing is specified by the review comment. As noted in the introduction, inline comments that are associated to a change request will contain a `review_id` value which can be inner joined to the pull request review table above.
 
 ```{r Collect Comments from Pull Requests, eval = FALSE}
-gh_response <- github_api_project_pull_request_inline_comments_refresh(owner, repo, token)
+gh_response <- github_api_project_pull_request_inline_comments_refresh(owner, repo, token, save_path_pr_comments)
 github_api_iterate_pages(token, gh_response, save_path_pr_comments, prefix="pr_comments")
 ```
 

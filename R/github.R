@@ -1158,24 +1158,26 @@ github_api_project_pull_request_refresh <- function(owner,repo,token, save_path_
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
 #' @param since Optional parameter to specify pulling only comments updated after this date
+#' @param page Page number to request (default = 1)
+#' @param per_page Number of results per page (default = 100)
 #' @references For details, see \url{https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#about-pull-request-review-comments}
 #' @export
-github_api_project_pull_request_inline_comments <- function(owner, repo, token, since=NULL) {
+github_api_project_pull_request_inline_comments <- function(owner, repo, token, since=NULL, page=1, per_page=100) {
   if (!is.null(since)) {
     # Get all pull request comments
     api_response <- gh::gh("GET /repos/{owner}/{repo}/pulls/comments",
           owner=owner,
           repo=repo,
-          page=1,
-          per_page=100,
+          page=page,
+          per_page=per_page,
           .token=token,
           since=since)
   } else {
     api_response <- gh::gh("GET /repos/{owner}/{repo}/pulls/comments",
            owner=owner,
            repo=repo,
-           page=1,
-           per_page=100,
+           page=page,
+           per_page=per_page,
            .token=token)
   }
 }
@@ -1397,14 +1399,16 @@ github_parse_project_commits <- function(api_responses){
 #' @param owner GitHub's repository owner (e.g. sailuh)
 #' @param repo GitHub's repository name (e.g. kaiaulu)
 #' @param token Your GitHub API token
+#' @param page Page number to request (default = 1)
+#' @param per_page Number of results per page (default = 100)
 #' @references For details, see \url{https://docs.github.com/en/rest/commits/comments?apiVersion=2022-11-28#list-commit-comments-for-a-repository}.
 #' @export
-github_api_project_commit_comments <- function(owner, repo, token){
+github_api_project_commit_comments <- function(owner, repo, token, page = 1, per_page = 100){
   gh::gh("GET /repos/{owner}/{repo}/comments",
          owner = owner,
          repo = repo,
-         page = 1,
-         per_page = 100,
+         page = page,
+         per_page = per_page,
          .token = token)
 }
 
@@ -1512,6 +1516,82 @@ github_api_page_last <- function(gh_response){
 github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=NA,max_pages=NA,verbose=TRUE){
   page_number <- 1
 
+  # Check if a page of results is from the commit comments endpoint (i.e. GET /repos/{owner}/{repo}/comments)
+  # by looking for fields that only appear in commit comment responses
+  page_is_commit_comments <- function(response){
+    if (is.null(response) || length(response) == 0) {
+      return(FALSE)
+    }
+    sample_item <- response[[1]]
+    if (!is.list(sample_item)) {
+      return(FALSE)
+    }
+    has_fields <- all(c("url", "id", "commit_id") %in% names(sample_item))
+    has_commit_comment_url <- !is.null(sample_item$url) && grepl("/repos/[^/]+/[^/]+/comments/[0-9]+$", sample_item$url)
+    return(has_fields && has_commit_comment_url)
+  }
+
+  # Make a unique string for a page
+  # If two pages have the same signature, they contain the same data
+  page_signature <- function(response){
+    if (is.null(response) || length(response) == 0) {
+      return(NA_character_)
+    }
+    ids <- sapply(response, function(item) item$id)
+    created <- sapply(response, function(item) item$created_at)
+    paste0(
+      length(response), "::",
+      paste(ids, collapse = "|"), "::",
+      paste(created, collapse = "|")
+    )
+  }
+
+  # Read the owner and repo name from the URL in a commit comment
+  # Needed to re-request a specific page when the normal pagination breaks
+  extract_owner_repo_from_commit_comment_url <- function(response){
+    if (!page_is_commit_comments(response)) {
+      return(NULL)
+    }
+    url <- response[[1]]$url
+    pattern <- "/repos/([^/]+)/([^/]+)/comments/[0-9]+$"
+    if (!grepl(pattern, url)) {
+      return(NULL)
+    }
+    owner <- sub(paste0(".*", pattern), "\\1", url)
+    repo <- sub(paste0(".*", pattern), "\\2", url)
+    list(owner = owner, repo = repo)
+  }
+
+  # Check if a page of results is from the PR inline comments endpoint (i.e. GET /repos/{owner}/{repo}/pulls/comments)
+  # by looking for fields that only appear in PR inline comment responses
+  page_is_pr_inline_comments <- function(response){
+    if (is.null(response) || length(response) == 0) {
+      return(FALSE)
+    }
+    sample_item <- response[[1]]
+    if (!is.list(sample_item)) {
+      return(FALSE)
+    }
+    has_fields <- all(c("pull_request_url", "diff_hunk", "id") %in% names(sample_item))
+    return(has_fields)
+  }
+
+  # Read the owner and repo name from the pull_request_url in a PR inline comment
+  # Needed to re-request a specific page when the normal pagination breaks
+  extract_owner_repo_from_pr_inline_comment_url <- function(response){
+    if (!page_is_pr_inline_comments(response)) {
+      return(NULL)
+    }
+    url <- response[[1]]$pull_request_url
+    pattern <- "/repos/([^/]+)/([^/]+)/pulls/[0-9]+$"
+    if (!grepl(pattern, url)) {
+      return(NULL)
+    }
+    owner <- sub(paste0(".*", pattern), "\\1", url)
+    repo <- sub(paste0(".*", pattern), "\\2", url)
+    list(owner = owner, repo = repo)
+  }
+
   data_exists = TRUE
   # Set the max_pages to your api limit unless specified
   if(is.na(max_pages)){
@@ -1533,8 +1613,15 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
 
   # Check if it is
 
-  #Get the most and least recent 'created_at' date in unixtime in this page
   while(!is.null(gh_response) & page_number < max_pages){
+
+    # Stop if there is nothing left to download
+    if(length(gh_response) == 0) {
+      if(verbose){
+        message("Nothing left to download")
+      }
+      break
+    }
 
     #  Set the file name from the config file. It will be modified in the following code
     file_name <- save_folder_path
@@ -1583,7 +1670,8 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
       oldest_date <- min(date_objects)
       oldest_date_unix <- as.numeric(oldest_date)
 
-      # Append oldest and latest dates to the file name
+      # Add the page number and date range to the file name so each page gets a unique file
+      file_name <- paste0(file_name, "_page_", page_number)
       file_name <- paste0(file_name, "_", oldest_date_unix)
       file_name <- paste0(file_name, "_", latest_date_unix, ".json")
 
@@ -1605,7 +1693,8 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
     if (data_exists == TRUE){
       # construct the file name
       file_name <- paste0(save_folder_path,
-                          owner,"_",repo,"_",
+                          owner,"_",repo,
+                          "_page_", page_number, "_",
                           oldest_date_unix, "_",
                           latest_date_unix,
                           ".json")
@@ -1616,14 +1705,111 @@ github_api_iterate_pages <- function(token,gh_response,save_folder_path,prefix=N
         message("Written to file: ", file_name)
       }
     }
-    # increment the page number
+    # Keep a copy of this page so we can compare it to the next one
+    previous_response <- gh_response
     page_number <- page_number + 1
-    res <- try(
+
+    # Request the next page. If there is no next page, gh_next() will error and we stop the loop
+    next_response <- try(
       {
-        gh_response <- github_api_page_next(gh_response)
+        github_api_page_next(gh_response)
       },silent=TRUE)
-    if(inherits(res,"try-error")) {
+    if(inherits(next_response,"try-error")) {
       gh_response <- NULL
+    } else {
+      gh_response <- next_response
+
+      # Bug fix for commit comments: gh_next() can get stuck and return the same page twice
+      # If this happens, request the next page directly using page=N
+      if (!is.null(gh_response) &&
+          page_is_commit_comments(previous_response) &&
+          page_is_commit_comments(gh_response) &&
+          !is.null(previous_response)) {
+        previous_signature <- page_signature(previous_response)
+        next_signature <- page_signature(gh_response)
+
+        # If gh_next() is stuck, use the fallback
+        if (!is.na(previous_signature) && !is.na(next_signature) && identical(previous_signature, next_signature)) {
+          owner_repo <- extract_owner_repo_from_commit_comment_url(previous_response)
+          if (!is.null(owner_repo)) {
+            if (verbose) {
+              message("Detected duplicate page from gh_next(). Retrying commit comments with explicit page=", page_number)
+            }
+            # Ask for page N directly by number
+            fallback_response <- try(
+              {
+                github_api_project_commit_comments(
+                  owner = owner_repo$owner,
+                  repo = owner_repo$repo,
+                  token = token,
+                  page = page_number,
+                  per_page = 100
+                )
+              },
+              silent = TRUE
+            )
+
+            if (!inherits(fallback_response, "try-error")) {
+              # Use the fallback page if it is empty or different from what we already have
+              if (length(fallback_response) == 0 || !identical(previous_signature, page_signature(fallback_response))) {
+                gh_response <- fallback_response
+              } else {
+                # The fallback explicit page request also returned duplicate content. Stop iterating.
+                if (verbose) {
+                  message("Explicit page pagination returned duplicate content. Stop iteration.")
+                }
+                gh_response <- NULL
+              }
+            }
+          }
+        }
+      }
+
+      # Bug fix for PR inline comments: gh_next() can get stuck and return the same page twice
+      # If this happens, request the next page directly using page=N
+      if (!is.null(gh_response) &&
+          page_is_pr_inline_comments(previous_response) &&
+          page_is_pr_inline_comments(gh_response) &&
+          !is.null(previous_response)) {
+        previous_signature <- page_signature(previous_response)
+        next_signature <- page_signature(gh_response)
+
+        # If gh_next() is stuck, use the fallback
+        if (!is.na(previous_signature) && !is.na(next_signature) && identical(previous_signature, next_signature)) {
+          owner_repo <- extract_owner_repo_from_pr_inline_comment_url(previous_response)
+          if (!is.null(owner_repo)) {
+            if (verbose) {
+              message("Detected duplicate page from gh_next(). Retrying PR inline comments with explicit page=", page_number)
+            }
+            # Ask for page N directly by number
+            fallback_response <- try(
+              {
+                github_api_project_pull_request_inline_comments(
+                  owner = owner_repo$owner,
+                  repo = owner_repo$repo,
+                  token = token,
+                  page = page_number,
+                  per_page = 100
+                )
+              },
+              silent = TRUE
+            )
+
+            if (!inherits(fallback_response, "try-error")) {
+              # Use the fallback page if it is empty or different from what we already have
+              if (length(fallback_response) == 0 || !identical(previous_signature, page_signature(fallback_response))) {
+                gh_response <- fallback_response
+              } else {
+                # The fallback explicit page request also returned duplicate content. Stop iterating.
+                if (verbose) {
+                  message("Explicit page pagination returned duplicate content. Stop iteration.")
+                }
+                gh_response <- NULL
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
