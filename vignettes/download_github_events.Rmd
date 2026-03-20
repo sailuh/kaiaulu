@@ -82,6 +82,7 @@ github_api_iterate_pages(token,gh_response,save_path_commit,prefix="commit")
 Next we download repository commit comments from GitHub API. These comments are posted directly on commit pages and can be joined by `comment_id` for sentiment analysis.
 
 ```{r Collect all project commit comments, eval = FALSE}
+dir.create(save_path_commit_comments, recursive = TRUE, showWarnings = FALSE)
 gh_response <- github_api_project_commit_comments(owner,repo,token)
 github_api_iterate_pages(token,gh_response,save_path_commit_comments,prefix="commit_comments")
 ```
