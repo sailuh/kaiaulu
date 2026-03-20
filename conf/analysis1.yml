@@ -98,6 +98,10 @@ tool:
     project_path: /home/giyoung7/helix
     # Where the output for the understands analysis is stored
     output_path: analysis/helix/understand/
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
   # # srcML allow to parse src code as text (e.g. identifiers)
   # srcml:
   #   # The file path to where you wish to store the srcml output of the project

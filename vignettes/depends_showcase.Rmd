@@ -46,7 +46,7 @@ substring_filepath <- get_substring_filepath(analysis)
 
 # Depends parameters
 depends_jar_path <- get_tool_project("depends", tool)
-language <- get_depends_code_language(project)
+language <- get_depends_code_language(analysis)
 keep_dependencies_type <- get_depends_keep_dependencies_type(analysis)
 
 # Filters

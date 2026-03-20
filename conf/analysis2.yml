@@ -85,7 +85,11 @@ tool:
         - f # functions
       r:
         - f # functions
+<<<<<<< Updated upstream
           understand:
+=======
+  understand:
+>>>>>>> Stashed changes
     # Accepts one language at a time: ada, assembly, c/c++, c#, fortran, java, jovial, delphi/pascal, python, vhdl, basic, javascript
     code_language: java
     # Specify which types of Dependencies to keep
@@ -99,6 +103,10 @@ tool:
     project_path: /home/giyoung7/helix
     # Where the output for the understands analysis is stored
     output_path: analysis/helix/understand/
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
   # # srcML allow to parse src code as text (e.g. identifiers)
   # srcml:
   #   # The file path to where you wish to store the srcml output of the project
