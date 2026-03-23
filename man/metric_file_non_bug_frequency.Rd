@@ -27,7 +27,7 @@ Other metrics:
 \code{\link{metric_file_bug_frequency}()},
 \code{\link{metric_file_churn}()},
 \code{\link{metric_file_non_bug_churn}()},
-\code{\link{productivity_developer_churn}()},
-\code{\link{productivity_developer_commits}()}
+\code{\link{productivity_author_churn}()},
+\code{\link{productivity_author_commits}()}
 }
 \concept{metrics}

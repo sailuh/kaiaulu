@@ -2,7 +2,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 =========================
 
 ### NEW FEATURES
- *  Add two productivity metrics: productivity_developer_commits and productivity_developer_churn to find the unique number of commits and the churn per developer, respectively, from a git log.
+ *  Add two productivity metrics: productivity_author_commits and productivity_author_churn to find the unique number of commits and the churn per developer, respectively, from a git log based on a rolling window. The default window is 90 days (3 months).
  *  A new capability to export events for process mining has been added. [#301](https://github.com/sailuh/kaiaulu/issues/301)
  * `exec/ghevents.R` has been added. It is a executable CLI (command-line interface) to download and parse Github Issue Events from outside Kaiaulu.
  * All GitHub Pull Request Comments are able to be downloaded in the Pull Request Comments notebook. [342](https://github.com/sailuh/kaiaulu/issues/342)
