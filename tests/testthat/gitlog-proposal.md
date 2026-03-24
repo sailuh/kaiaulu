@@ -1,86 +1,79 @@
 # Third Party Tools
 ## Perceval
-* `”testthat Perceval is installed in order to run the Git Log Notebooks”`
-* `”testthat Perceval is configured correctly in order to run the Git Log Notebooks”`
+* `”testthat if Perceval is specified on tools.yml, then it returns the help message”`
+* `”testthat if Perceval is specified on tools.yml, the Perceval path is a directory called perceval”`
 
 ## Git
-* `”testthat Git is installed in order to run the Git Log Notebooks”`
-* `”testthat Git is configured correctly in order to run the Git Log Notebooks”`
+* `”testthat if Git returns the help message, check there is a .git folder in the working directory”`
 
 ## utags
-* `”testthat utags is installed in order to run the Git Log Notebooks”`
-* `”testthat utags is configured correctly in order to run the Git Log Entity Notebook”`
+* `”testthat if utags is specified on tools.yml, then it returns the help message”`
+* `”testthat if utags is specified on tools.yml, the utags path is an executable file called ctags-universal”`
 
 # Parsers
 ## Git Log
 **Path Tests**
-* `”testthat function succeeds given correct arguments”`
-* `”testthat function correctly errors given incorrect git_repo_path”`
-* `”testthat function correctly errors given incorrect perceval_path”`
-* `”testthat function correctly errors given invalid save_path”`
-* `”testthat function correctly errors given invalid perl_regex”`
+* `”testthat if the path to git repo has no .git folder, the function will gracefully error with message Unable to generate git log from this repository.”`
+* `”testthat if the given Perceval path is invalid, the function will gracefully error with message Unable to generate git log from this repository.”`
+* `”testthat if the save_path is invalid, the function will still correctly parse the git log data”`
+* `”testthat given an invalid perl_regex argument, the function will gracefully error with message Unable to generate git log from this repository.”`
 
 **Behavioral Tests**
-* `”testthat the amount of commit hashes correspond to the amount of commits”`
-* `”testthat all commit hashes correspond with the correct author when there are multiple commits”`
-* `”testthat all commit hashes correspond with the correct commit message when there are multiple commits”`
-* `”testthat all commit hashes correspond with the correct file pathname”`
-* `”testthat all commit hashes correspond with the correct commit date”`
 * `”testthat calling parse_gitlog with correct perceval and correct git log path returns a data table”`
-* `”testthat calling parse_gitlog does not display deleted branches”`
-* `”testthat calling parse_gitlog on two branches with one commit each extracts all commits”`
-* `”testthat calling parse_gitlog on a repo with no commits throws an error”`
-* `”testthat calling parse_gitlog and filtering by commit size removes large sized commits”`
-* `”testthat calling parse_gitlog with renamed file repository is reported on parsed git log”`
+* `”testthat all commits preserve their commit order in the data table output”`
+* `”testthat all necessary columns are generated in the data table output”`
+* `”testthat all author_name_email fields correspond to their correct commit_message fields”`
+* `”testthat all author_name_email fields correspond to their correct file_pathname fields”`
+* `”testthat all author_name_email fields correspond to their correct lines_added and lines_removed fields”`
+* `”testthat author_name_email, commit_message, and file_pathname columns correctly parsed the git log data”`
+* `”testthat the lines_added and lines_removed columns correctly parsed the git log data”`
+* `”testthat calling parse_gitlog on two branches with one commit each extracts only the current branch commits”`
+* `”testthat calling parse_gitlog on a repo with no commits throws a Git command error”` - Error is not propagated via system call, temporarily caught with ```try catch``` block
+* `”testthat calling parse_gitlog with a renamed file repository parses the renamed file to the file_pathname_renamed column”`
 * `”testthat calling parse_gitlog with perl_regex correctly filters git log data”`
 
 ## Git Blame
 **Path Tests**
-* `”testthat function succeeds given correct arguments”`
-* `”testthat function correctly errors given incorrect git_repo_path”`
-* `”testthat function correctly errors given invalid commit_hash”`
-* `”testthat function correctly errors given incorrect file_path”`
+* `”testthat function errors gracefully and outputs an informative error message given a git_repo_path with no .git folder”`
+* `”testthat function returns NULL when given an invalid commit_hash”`
+* `”testthat function errors gracefully given a file_path that does not exist and informs the user”`
 
 **Behavioral Tests**
-* `”testthat for n_lines_content == 2, the correct commit hash and line content are parsed”`
-* `”testthat for n_lines_content == 3, the correct commit hash, line content, and filename are parsed”`
-* `”testthat for n_lines_content == 4, a previous commit hash exists, and the correct commit hash, line content, and filename are parsed”`
-* `”testthat for n_lines_content == 13, full metadata is included with a previous commit will produce correct blame data”`
-* `”testthat for n_lines_content == 12, full metadata is included with no previous commit will produce correct blame data”`
+* `”testhat function correctly parses a minimal 2-line git blame output(commit hash + content) into a data table”`
+* `”testthat function correctly parses a 3-line git blame output including filename into a data table”`
+* `”testthat function correctly parses a 4-line git blame output including previous commit and previous file into a data table”`
+* `”testthat function correctly parses a 12-line git blame output with full author and committer metadata into a data table”`
+* `”testthat function correctly parses a 13-line git blame output with full metadata and previous commit info into a data table”`
+* `”testthat function throws an informative error for unrecognized git blame line output lengths into a data table”`
 * `”testthat parse_git_blame will correctly parse empty lines committed”`
 * `”testthat parse_git_blame will correctly parse blame data for a commit behind the most recent commit”`
 * `”testthat parse_git_blame will correctly track moved lines and parse their blame accordingly”`
 
 ## Git Log Entity
 **Path Tests**
-* `”testthat function succeeds given correct arguments”`
-* `”testthat function succeeds given correct arguments and progress_bar set to TRUE”`
-* `”testthat function correctly errors given incorrect git_repo_path”`
-* `”testthat function correctly errors given incorrect utags_path”`
-* `”testthat function correctly errors given incorrect object project_git_log”`
+* `”testthat function errors gracefully and outputs an informative error message given a git_repo_path with no .git folder”`
+* `"testthat if the given utags path is invalid, the function will gracefully error with message regarding it”`
+* `”testthat if the given object project_git_log is invalid, the function will gracefully error with message regarding it”`
 
 **Behavioral Tests**
 * `”testthat calling parse_gitlog_entity with correct fields returns a data table”`
-* `”testthat calling parse_gitlog_entity with kinds ‘c’ correctly returns changes to all classes per commit”`
-* `”testthat calling parse_gitlog_entity with kinds ‘f’ correctly returns changes to all functions per commit”`
-* `”testthat calling parse_gitlog_entity with kinds ‘m’ correctly returns changes to all methods per commit”`
-* `”testthat calling parse_gitlog_entity with kinds ‘c’, `f`, and `m` correctly returns changes to all classes, functions, and methods per commit”`
-* `”testthat commit_hash column matches with the column from object project_git_log”`
-* `”testthat n_lines_changed column correctly outputs changed lines for each author”`
-* `”testthat weight column correctly outputs changed lines for each author”`
-* `”testthat entity column correctly outputs the corresponding entities”`
-* `”testthat the amount of commit hashes correspond to the amount of commits”`
-* `”testthat all commit hashes correspond with the correct author when there are multiple commits”`
+* `”testthat calling parse_gitlog_entity with correct fields and progress bar set to TRUE returns a data table”`
+* `”testthat calling parse_gitlog_entity with kinds ‘c’ correctly returns correct entity_type and entity_definition_name columns in the outputted data table”`
+* `”testthat calling parse_gitlog_entity with kinds ‘f’ correctly returns correct entity_type and entity_definition_name columns in the outputted data table”`
+* `”testthat calling parse_gitlog_entity with kinds ‘m’ correctly returns correct entity_type and entity_definition_name columns in the outputted data table”`
+* `”testthat calling parse_gitlog_entity with kinds ‘c’, `f`, and `m` correctly returns correct entity_type and entity_definition_name columns in the outputted data table”`
+* `”testthat commit_hash column matches with the column from object project_git_log in the outputted data table”`
+* `”testthat the amount of commit hashes correspond to the amount of commits in the outputted data table”`
+
 
 ## Commit Message ID
 **Path Tests**
-* `”testhat function succeeds given correct arguments”`
-* `”testhat function throws proper error given invalid project_git object”`
-* `”testthat function throws proper error given erroneous commit_message_id_regex”`
+* `”testhat function throws informative error message given invalid project_git object”`
+* `”testthat function throws informative error message given erroneous commit_message_id_regex”`
 
 **Behavioral Tests**
-* `”testthat parse_commit_message_id creates a new column commit_message_id”`
-* `”testthat parse_commit_message_id correctly inputs correct commit messages in new column”`
+* `”testthat parse_commit_message_id creates a new column commit_message_id in the outputted data table”`
+* `”testthat parse_commit_message_id correctly inputs correct commit messages in new column in the outputted data table”`
 * `”testthat parse_commit_message_id correctly filters using commit_message_id_regex to input correct commit messages in new column”` 
 
 # Git Cmd
@@ -88,63 +81,52 @@
 
 ## Git Add
 **Path Tests**
-* `”testthat function succeeds given correct arguments”` 
-* `”testthat function correctly errors given invalid git_repo”` 
-* `”testthat function correctly errors given invalid folder_path”` 
-* `”testthat function correctly errors given invalid file_path”` 
+* `”testthat git_add wrapper performs git add given correct arguments”` 
+* `”testthat function returns the respective system2 warning output to the user when given an invalid git_repo”` 
+* `”testthat function returns the respective system2 warning output to the user when given an invalid folder_path”` 
+* `”testthat function returns the respective system2 warning output to the user when given an given invalid file_path”` 
 
 ## Git Commit
 **Path Tests**
-* `”testthat function succeeds given correct arguments”` 
-* `”testthat function correctly errors given invalid git_repo”` 
-* `”testthat function correctly errors given invalid folder_path”` 
-* `”testthat function correctly errors given invalid commit_msg”` 
-* `”testthat function correctly errors given invalid email”` 
+* `”testthat git_commit wrapper performs git commit given correct arguments”` 
+* `”testthat function returns a system2 warning output to the user when given an invalid git_repo”` 
     
 ## Git Init
 **Path Tests**
-* `”testthat function succeeds given correct arguments”` 
-* `”testthat function correctly errors given invalid folder_path”` 
-* `”testthat function correctly errors given invalid commit_msg”` 
-* `”testthat function correctly errors given invalid email”` 
+* `”testthat git_init wrapper performs git init given correct arguments”` 
+* `”testthat function returns a system2 warning output to the user when given an invalid folder_path”` 
 
 ## Git mv
 **Path Tests**
-* `”testthat function succeeds given correct arguments”` 
-* `”testthat function correctly errors given invalid git_repo”` 
-* `”testthat function correctly errors given invalid folder_path”` 
-* `”testthat function correctly errors given invalid old_name”` 
-* `”testthat function correctly errors given invalid new_name”` 
+* `”testthat git_mv wrapper performs git mv given correct arguments”` 
+* `”testthat function returns a system2 warning output to the user when given an invalid git_repo”` 
 
 ## Git head
 **Path Tests**
-* `”testthat function succeeds given correct arguments”` 
-* `”testthat function correctly errors given invalid git_repo_path”` 
+* `”testthat git_head wrapper performs git head given correct arguments”` 
+* `”testthat function returns a system2 warning output to the user when given an invalid git_repo_path”` 
 
 ## Git log
 **Path Tests**
-* `”testthat function succeeds given correct arguments”` 
-* `”Test for proper error given invalid git_repo_path”` 
-* `”Test for proper error given invalid flags”` 
-* `”Test for proper error given invalid save_path”` 
+* `”testthat git_log wrapper performs git log given correct arguments”` 
+* `”testthat function returns a system2 warning output to the user when given an invalid git_repo_path”` 
 
 ## Git blame
 **Path Tests**
-* `”testthat function succeeds given correct arguments”` 
-* `”testthat function correctly errors given invalid git_repo_path”` 
-* `”testthat function correctly errors given invalid commit_hash”` 
-* `”testthat function correctly errors given invalid file_path”` 
+* `”testthat git_blame wrapper performs git blame given correct arguments”` 
+* `”testthat function returns a system2 warning output to the user when given an invalid git_repo_path”` 
+
+**The Git wrappers return the same warning regardless of what argument is incorrect, so testing for multiple different incorrect arguments seems pointless to me.**
 
 ## Git Create Sample Log
 ## Git Delete Sample Log
-**Both serve a function similar to R/example.R, and so don’t need unit tests**
+**Both serve a function similar to R/example.R, and so don’t need unit tests. They are immutable.**
 
 # Transforms
 ## Gitlog to bipartite
 **Path Tests**
-* `”testthat function succeeds given correct arguments”` 
-* `”testthat function correctly errors given incorrect object project_git”`
-* `”testthat function correctly errors given invalid mode”`
+* `”testthat if the given object project_git is invalid, the function will gracefully error with message regarding it”`
+* `”testthat function throws an error given invalid mode and explains the argument mode”`
 
 **Behavioral Tests**
 * `"testthat the bipartite transform outputs a nodes data table"`
@@ -164,9 +146,8 @@
 
 ## Gitlog to entity bipartite
 **Path Tests**
-* `”testthat function succeeds given correct arguments”` 
-* `”testthat function correctly errors given incorrect object project_git_entity”`
-* `”testthat function correctly errors given invalid mode”`
+* `”testthat if the given object project_git_entity is invalid, the function will gracefully error with message regarding it”`
+* `”testthat function throws an error given invalid mode and explains the argument mode”`
 
 **Behavioral Tests**
 * `"testthat the entity bipartite transform outputs a nodes data table"`
@@ -186,11 +167,9 @@
 
 ## Gitlog to temporal
 **Path Tests**
-* `”testthat function succeeds given correct arguments”` 
-* `”testthat function correctly errors given incorrect object project_git”`
-* `”testthat function correctly errors given invalid mode”`
-* `”testthat function correctly errors given invalid lag”`
-* `”testthat function correctly errors given invalid weight_scheme_function”`
+* `”testthat if the given object project_git is invalid, the function will gracefully error with message regarding it”`
+* `”testthat function throws an error given invalid mode and explains the argument mode”`
+* `”testthat function throws an error given invalid lag and explains the argument lag”`
 
 **Behavioral Tests**
 * `"testthat the temporal transform outputs a nodes data table"`
@@ -206,11 +185,9 @@
 
 ## Gitlog to entity temporal
 **Path Tests**
-* `”testthat function succeeds given correct arguments”` 
-* `”testthat function correctly errors given incorrect object project_git_entity”`
-* `”testthat function correctly errors given invalid mode”`
-* `”testthat function correctly errors given invalid lag”`
-* `”testthat function correctly errors given invalid weight_scheme_function”`
+* `”testthat if the given object project_git_entity is invalid, the function will gracefully error with message regarding it”`
+* `”testthat function throws an error given invalid mode and explains the argument mode”`
+* `”testthat function throws an error given invalid lag and explains the argument lag”`
 
 **Behavioral Tests**
 * `"testthat the temporal transform outputs a nodes data table"`
@@ -226,9 +203,8 @@
 
 ## Commit message ID to network
 **Path Tests**
-* `”testthat function succeeds given correct arguments”` 
-* `”testthat function correctly errors given incorrect object project_git”`
-* `”Test for proper error given invalid commit_message_id_regex”`
+* `”testthat if the given object project_git is invalid, the function will gracefully error with message regarding it”`
+* `”testthat function throws informative error message given erroneous commit_message_id_regex”`
 
 **Behavioral Tests**
 * `"testthat the commit message id transform outputs a nodes data table"`
