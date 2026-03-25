@@ -109,12 +109,14 @@
 ## Git log
 **Path Tests**
 * `”testthat git_log wrapper performs git log given correct arguments”` 
-* `”testthat function returns a system2 warning output to the user when given an invalid git_repo_path”` 
+* `”testthat function returns NULL when given an invalid git_repo_path”` 
 
 ## Git blame
 **Path Tests**
 * `”testthat git_blame wrapper performs git blame given correct arguments”` 
-* `”testthat function returns a system2 warning output to the user when given an invalid git_repo_path”` 
+* `”testthat function returns NULL when given an invalid git_repo_path”` 
+* `”testthat function returns NULL when given a file deleted by the blamed commit”` 
+
 
 **The Git wrappers return the same warning regardless of what argument is incorrect, so testing for multiple different incorrect arguments seems pointless to me.**
 
