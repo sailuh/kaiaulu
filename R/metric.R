@@ -188,21 +188,18 @@ commit_message_id_coverage <- function(git_log,commit_message_id_regex){
 #' the git log.
 #'
 #' @param project_git_log a parsed git log obtained from \code{\link{parse_gitlog}}
-#' @param quit_lag The number of days to look back for the rolling window (90 day default)
+#' @param lag The number of days to look back for the rolling window (90 day default)
 #' @return A three column data.table of the form author_name_email | author_datetimetz | author_total_commits.
 #' For each row (each timestamp in author_datetimetz), author_total_commits is the number of unique 
 #' commits by that author in the preceding 90 days ending at that timestamp.
 #' @export
 #' @family metrics
 #' @seealso \code{\link{parse_gitlog}}
-productivity_author_commits <- function(project_git_log, quit_lag = 90) {
+productivity_author_commits <- function(project_git_log, lag = 90) {
   author_name_email <- author_datetimetz <- commit_hash <- NULL
 
   # Determine timezone from the author_datetimetz column in project_git_log
   tz_val <- attr(project_git_log$author_datetimetz, "tzone")
-  if (is.null(tz_val)) {
-    tz_val <- Sys.timezone()
-  }
 
   # Coerce project_git_log to a data.table
   dt <- data.table::as.data.table(project_git_log)[, .(
@@ -211,33 +208,33 @@ productivity_author_commits <- function(project_git_log, quit_lag = 90) {
     commit_hash
   )]
 
+  # Order data
   # Order rows by author_name_email and author_datetimetz in ascending order
   data.table::setorder(dt, author_name_email, author_datetimetz)
+  data.table::setkey(dt, author_name_email, author_datetimetz)
 
   # Rolling window
   result <- dt[, {
     window_start <- stringi::stri_datetime_add(
       author_datetimetz,
-      days = -quit_lag,
+      days = -lag,
       tz = tz_val
     )
 
-    # Find the index of the last value in author_datetimetz that is <= the window_start for each row
-    # +1L is used later to get the first value inside the window
-    start_idx <- findInterval(window_start, author_datetimetz)
+    author_total_commits <- dt[.SD,
+      on = .(author_name_email,
+             author_datetimetz >= window_start,
+             author_datetimetz <= author_datetimetz),
+      .(val = data.table::uniqueN(commit_hash)),
+      by = .EACHI]$val
 
-    # Compute the number of unique commits for each row based on rolling window
-    author_total_commits <- vapply(seq_len(.N), function(i) {
-      idx <- seq.int(start_idx[i] + 1L, i)
-      data.table::uniqueN(commit_hash[idx])
-    }, integer(1))
-
-    # Return a data.table with the below columns
-    .(author_name_email = author_name_email,
+    .(
+      author_name_email = author_name_email,
       author_datetimetz = author_datetimetz,
-      author_total_commits = author_total_commits)
+      author_total_commits = author_total_commits
+    )
 
-  }, by = .(author_name_email)]
+  }, by = .(author_name_email, author_datetimetz)]
 
   return(result[])
 }
@@ -247,7 +244,7 @@ productivity_author_commits <- function(project_git_log, quit_lag = 90) {
 #' Calculates the churn per author in a rolling window based on the git log.
 #'
 #' @param project_git_log a parsed git log obtained from \code{\link{parse_gitlog}}
-#' @param quit_lag The number of days to look back for the rolling window (90 day default)
+#' @param lag The number of days to look back for the rolling window (90 day default)
 #' @return a five column data.table of the form author_name_email | author_datetimetz | lines_added | 
 #' lines_removed | author_churn. 
 #' At each timestamp, the lines_added, lines_removed, and author_churn are the totals across all rows 
@@ -255,7 +252,7 @@ productivity_author_commits <- function(project_git_log, quit_lag = 90) {
 #' @export
 #' @family metrics
 #' @seealso \code{\link{parse_gitlog}} to obtain additions and deletions from gitlog
-productivity_author_churn <- function(project_git_log, quit_lag = 90) {
+productivity_author_churn <- function(project_git_log, lag = 90) {
   author_name_email <- author_datetimetz <- lines_added <- lines_removed <- churn <- NULL # due to NSE notes in R CMD check
 
   # Add churn per commit per file row (and filter out "-" rows)
@@ -263,51 +260,42 @@ productivity_author_churn <- function(project_git_log, quit_lag = 90) {
 
   # Determine timezone
   tz_val <- attr(dt$author_datetimetz, "tzone")
-  if (is.null(tz_val)) {
-    tz_val <- Sys.timezone()
-  }
 
   dt[, author_datetimetz := as.POSIXct(author_datetimetz, tz = tz_val)]
 
+  # Order data
   # Order rows by author_name_email and author_datetimetz in ascending order
   data.table::setorder(dt, author_name_email, author_datetimetz)
+  data.table::setkey(dt, author_name_email, author_datetimetz)
 
   # Rolling window
   result <- dt[, {
     window_start <- stringi::stri_datetime_add(
       author_datetimetz,
-      days = -quit_lag,
+      days = -lag,
       tz = tz_val
     )
 
-    # Find the index of the last value in author_datetimetz that is <= the window_start for each row
-    # +1L is used later to get the first value inside the window
-    start_idx <- findInterval(window_start, author_datetimetz)
+    agg <- dt[.SD,
+      on = .(author_name_email,
+             author_datetimetz >= window_start,
+             author_datetimetz <= author_datetimetz),
+      .(
+        lines_added = sum(as.numeric(lines_added), na.rm = TRUE),
+        lines_removed = sum(as.numeric(lines_removed), na.rm = TRUE),
+        author_churn = sum(churn, na.rm = TRUE)
+      ),
+      by = .EACHI]
 
-    # Compute the sum of lines_added, lines_removed, and churn for each row based on the rolling window
-    lines_added_roll <- vapply(seq_len(.N), function(i) {
-      idx <- seq.int(start_idx[i] + 1L, i)
-      sum(as.numeric(lines_added[idx]), na.rm = TRUE)
-    }, numeric(1))
-
-    lines_removed_roll <- vapply(seq_len(.N), function(i) {
-      idx <- seq.int(start_idx[i] + 1L, i)
-      sum(as.numeric(lines_removed[idx]), na.rm = TRUE)
-    }, numeric(1))
-
-    churn_roll <- vapply(seq_len(.N), function(i) {
-      idx <- seq.int(start_idx[i] + 1L, i)
-      sum(churn[idx], na.rm = TRUE)
-    }, numeric(1))
-
-    # Return a data.table with the below columns
-    .(author_name_email = author_name_email,
+    .(
+      author_name_email = author_name_email,
       author_datetimetz = author_datetimetz,
-      lines_added = lines_added_roll,
-      lines_removed = lines_removed_roll,
-      author_churn = churn_roll)
+      lines_added = agg$lines_added,
+      lines_removed = agg$lines_removed,
+      author_churn = agg$author_churn
+    )
 
-  }, by = .(author_name_email)]
+  }, by = .(author_name_email, author_datetimetz)]
 
   return(result[])
 }

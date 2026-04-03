@@ -4,12 +4,12 @@
 \alias{productivity_author_churn}
 \title{Productivity Author Churn}
 \usage{
-productivity_author_churn(project_git_log, quit_lag = 90)
+productivity_author_churn(project_git_log, lag = 90)
 }
 \arguments{
 \item{project_git_log}{a parsed git log obtained from \code{\link{parse_gitlog}}}
 
-\item{quit_lag}{The number of days to look back for the rolling window (90 day default)}
+\item{lag}{The number of days to look back for the rolling window (90 day default)}
 }
 \value{
 a five column data.table of the form author_name_email | author_datetimetz | lines_added | 
