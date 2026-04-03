@@ -2,7 +2,7 @@
 % Please edit documentation in R/metric.R
 \name{engagement_sentiment}
 \alias{engagement_sentiment}
-\title{Engagement Sentiment Metric.}
+\title{Engagement Sentiment Metric}
 \usage{
 engagement_sentiment(
   datetimetz,
@@ -22,7 +22,7 @@ engagement_sentiment(
 \item{quit_lag}{The number of days since a developer's last message}
 
 \item{aggregate_func}{The aggregate function to apply to the polarity values in the windows.
-The default is mean, but it can be overridden.}
+The default is mean, but it can be overridden}
 }
 \description{
 Apply an aggregate function to the sentiment (polarity) for each 

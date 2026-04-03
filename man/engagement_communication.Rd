@@ -2,7 +2,7 @@
 % Please edit documentation in R/metric.R
 \name{engagement_communication}
 \alias{engagement_communication}
-\title{Engagement Communication Metric.}
+\title{Engagement Communication Metric}
 \usage{
 engagement_communication(datetimetz, user_name_email, quit_lag = 90)
 }
@@ -15,7 +15,7 @@ engagement_communication(datetimetz, user_name_email, quit_lag = 90)
 }
 \description{
 Uses a rolling window of 90 days to check, for each 90-day window, how many times
-an author communicated via a message.
+an author communicated via a message
 }
 \references{
 Wouter Mulder (2025). Am I finished yet? A discovery of burnout and
