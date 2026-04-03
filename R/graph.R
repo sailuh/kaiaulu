@@ -216,6 +216,44 @@ model_multimodal_graph <- function(nodes, edgelist){
   return(graph)
 }
 
+#' Extract a bipartite graph from a multimodal graph by edge type
+#'
+#' Slices a \code{\link{model_multimodal_graph}} by a single edge type and
+#' returns the corresponding \code{\link{model_bipartite_graph}}, ready for use
+#' in \code{\link{bipartite_graph_projection}} or
+#' \code{\link{temporal_graph_projection}}.
+#'
+#' The two node types connected by \code{edge_type} become the two partitions
+#' of the returned bipartite graph. The from-side nodes receive \code{type = TRUE}
+#' and the to-side nodes receive \code{type = FALSE}, consistent with the
+#' bipartite graph convention.
+#'
+#' @param graph A multimodal graph returned by \code{\link{model_multimodal_graph}}.
+#' @param edge_type A string specifying which edge type to extract
+#'   (e.g. \code{"authored"}, \code{"changed"}).
+#' @return A \code{bipartite_graph} containing only the nodes and edges of the
+#'   requested edge type.
+#' @export
+superset_bipartite_from_multimodal <- function(graph, edge_type){
+  slice_edges <- graph[["edgelist"]][type == edge_type, .(from, to, weight)]
+
+  if(nrow(slice_edges) == 0){
+    stop(paste0("No edges found with edge_type '", edge_type, "'."))
+  }
+
+  from_type <- unique(graph[["nodes"]][name %in% slice_edges$from]$type)
+  to_type   <- unique(graph[["nodes"]][name %in% slice_edges$to]$type)
+
+  if(length(from_type) != 1 || length(to_type) != 1){
+    stop(paste0("edge_type '", edge_type, "' connects more than two node types - cannot extract bipartite graph."))
+  }
+
+  slice_nodes <- copy(graph[["nodes"]][type %in% c(from_type, to_type)])
+  slice_nodes[, type := (type == from_type)]
+
+  return(model_bipartite_graph(slice_nodes, slice_edges))
+}
+
 #' Apply a bipartite or heterogeneous graph projection (S3 generic)
 #'
 #' A generic projection function that dispatches to the appropriate method based
