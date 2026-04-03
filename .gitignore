@@ -8,3 +8,5 @@ docs
 pkgdown
 rawdata
 .Rproj.user
+venv/
+.venv/
