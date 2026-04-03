@@ -2,25 +2,22 @@
 % Please edit documentation in R/graph.R
 \name{graph_to_dsmj}
 \alias{graph_to_dsmj}
-\alias{graph_to_dsmj.directed_graph}
-\alias{graph_to_dsmj.undirected_graph}
+\alias{graph_to_dsmj.unimodal_graph}
 \alias{graph_to_dsmj.bipartite_graph}
-\alias{graph_to_dsmj.heterogeneous_graph}
+\alias{graph_to_dsmj.multimodal_graph}
 \title{Export a graph as a dsmj (S3 generic)}
 \usage{
 graph_to_dsmj(graph, dsmj_path, dsmj_name, is_sorted = FALSE, ...)
 
-\method{graph_to_dsmj}{directed_graph}(graph, dsmj_path, dsmj_name, is_sorted = FALSE, ...)
-
-\method{graph_to_dsmj}{undirected_graph}(graph, dsmj_path, dsmj_name, is_sorted = FALSE, ...)
+\method{graph_to_dsmj}{unimodal_graph}(graph, dsmj_path, dsmj_name, is_sorted = FALSE, ...)
 
 \method{graph_to_dsmj}{bipartite_graph}(graph, dsmj_path, dsmj_name, is_sorted = FALSE, ...)
 
-\method{graph_to_dsmj}{heterogeneous_graph}(graph, dsmj_path, dsmj_name, is_sorted = FALSE, ...)
+\method{graph_to_dsmj}{multimodal_graph}(graph, dsmj_path, dsmj_name, is_sorted = FALSE, ...)
 }
 \arguments{
-\item{graph}{A graph returned by \code{\link{model_directed_graph}},
-\code{\link{model_undirected_graph}}, or \code{\link{model_bipartite_graph}}.}
+\item{graph}{A graph returned by \code{\link{model_unimodal_graph}},
+\code{\link{model_bipartite_graph}}, or \code{\link{model_multimodal_graph}}.}
 
 \item{dsmj_path}{path to save the dsmj.}
 

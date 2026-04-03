@@ -1059,9 +1059,9 @@ transform_commit_message_id_to_network <- function(project_git, commit_message_i
   return(git_graph)
 }
 
-#' Transform parsed git repo into a heterogeneous network
+#' Transform parsed git repo into a multimodal network
 #'
-#' Combines authors, commits, and files into a single heterogeneous graph
+#' Combines authors, commits, and files into a single multimodal graph
 #' where each node type is labeled and edges carry a type describing the
 #' relationship between the two connected node types.
 #'
@@ -1104,11 +1104,11 @@ transform_commit_message_id_to_network <- function(project_git, commit_message_i
 #'     author-file pair across all commits.
 #' }
 #' Defaults to all three node types and both edge types.
-#' @return a heterogeneous_graph with nodes (name, type, color) and
+#' @return a multimodal_graph with nodes (name, type, color) and
 #' edgelist (from, to, weight, type, color).
 #' @export
 #' @family edgelists
-transform_gitlog_to_heterogeneous_network <- function(project_git,
+transform_gitlog_to_multimodal_network <- function(project_git,
                                                       node_cols = c("author_name_email",
                                                                     "commit_hash",
                                                                     "file_pathname")){
@@ -1169,7 +1169,7 @@ transform_gitlog_to_heterogeneous_network <- function(project_git,
   }
   git_edgelist <- rbindlist(edge_tables)
   # Constructor only wraps pre-built tables and assigns graph type
-  git_network <- model_heterogeneous_graph(git_nodes, git_edgelist)
+  git_network <- model_multimodal_graph(git_nodes, git_edgelist)
   return(git_network)
 }
 

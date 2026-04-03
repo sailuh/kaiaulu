@@ -2,7 +2,7 @@
 % Please edit documentation in R/graph.R
 \name{temporal_graph_projection}
 \alias{temporal_graph_projection}
-\alias{temporal_graph_projection.heterogeneous_graph}
+\alias{temporal_graph_projection.multimodal_graph}
 \alias{temporal_graph_projection.bipartite_graph}
 \title{Apply a temporal graph projection (S3 generic)}
 \usage{
@@ -16,7 +16,7 @@ temporal_graph_projection(
   ...
 )
 
-\method{temporal_graph_projection}{heterogeneous_graph}(
+\method{temporal_graph_projection}{multimodal_graph}(
   graph,
   mode,
   weight_scheme_function = NULL,
@@ -49,14 +49,14 @@ When receiving as parameter \code{\link{weight_scheme_sum_edges}} or
 
 \item{timestamp_column}{a string containing the name of the timestamp variable}
 
-\item{edge_type}{For heterogeneous graphs only: a string specifying which edge type to slice before projecting. Ignored for bipartite graphs.}
+\item{edge_type}{For multimodal graphs only: a string specifying which edge type to slice before projecting. Ignored for bipartite graphs.}
 
 \item{lag}{a string specifying either "one_lag" or "all_lag".}
 
 \item{...}{Additional arguments passed to the method.}
 }
 \value{
-A directed_graph projection.
+A unimodal_graph projection.
 }
 \description{
 A generic temporal projection function that dispatches to the appropriate

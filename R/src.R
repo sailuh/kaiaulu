@@ -416,7 +416,7 @@ transform_understand_dependencies_to_network <- function(parsed, weight_types) {
   # Build edgelist — weight = count of this dependency kind per from-to pair
   depend_edgelist <- edges[, .(weight = .N), by = .(from = label_from, to = label_to, label = dependency_kind)]
 
-  graph <- model_directed_graph(depend_nodes, depend_edgelist)
+  graph <- model_unimodal_graph(depend_nodes, depend_edgelist)
   return(graph)
 }
 
@@ -470,7 +470,7 @@ transform_dependencies_to_network <- function(depends_parsed,weight_types=NA){
   dependency_nodes$type <- FALSE
   dependency_nodes$color <- "#f4dbb5"
   # Constructor only wraps pre-built tables and assigns graph type.
-  depends_network <- model_directed_graph(dependency_nodes, dependency_edgelist)
+  depends_network <- model_unimodal_graph(dependency_nodes, dependency_edgelist)
   return(depends_network)
 }
 #' Transform parsed R dependencies into a graph
@@ -492,7 +492,7 @@ transform_r_dependencies_to_network <- function(r_dependencies_edgelist, depende
   nodes    <- data.table(name = unique(c(r_dependencies_edgelist[[from_col]], r_dependencies_edgelist[[to_col]])), color = color)
   edgelist <- r_dependencies_edgelist[, .(weight = .N), by = c(from_col, to_col)]
   setnames(edgelist, old = c(from_col, to_col), new = c("from", "to"))
-  graph <- model_directed_graph(nodes, edgelist)
+  graph <- model_unimodal_graph(nodes, edgelist)
   return(graph)
 }
 

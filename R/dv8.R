@@ -37,7 +37,7 @@ transform_dependencies_to_sdsmj <- function(project_dependencies, sdsmj_path, is
   setcolorder(project_depends[["edgelist"]], c("from", "to", "weight", "label"))
 
   # This is a directed graph, so no duplication of edges
-  depends_graph <- model_directed_graph(project_depends[["nodes"]], project_depends[["edgelist"]])
+  depends_graph <- model_unimodal_graph(project_depends[["nodes"]], project_depends[["edgelist"]])
   graph_to_dsmj(depends_graph, sdsmj_path, dsmj_name="sdsm", is_sorted=is_sorted)
 }
 

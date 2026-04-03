@@ -11,8 +11,8 @@
 #' Undirected and bipartite graphs double each edge (src/dest switched) per the
 #' DSMJ specification.
 #'
-#' @param graph A graph returned by \code{\link{model_directed_graph}},
-#' \code{\link{model_undirected_graph}}, or \code{\link{model_bipartite_graph}}.
+#' @param graph A graph returned by \code{\link{model_unimodal_graph}},
+#' \code{\link{model_bipartite_graph}}, or \code{\link{model_multimodal_graph}}.
 #' @param dsmj_path path to save the dsmj.
 #' @param dsmj_name name of the dsmj file, passed by the call from an appropriate transform function.
 #' @param is_sorted whether to sort the variables (filenames) in the dsm.json files (optional).
@@ -28,18 +28,12 @@ graph_to_dsmj <- function(graph, dsmj_path, dsmj_name, is_sorted=FALSE, ...) {
 }
 
 #' @rdname graph_to_dsmj
-#' @method graph_to_dsmj directed_graph
+#' @method graph_to_dsmj unimodal_graph
 #' @export
-graph_to_dsmj.directed_graph <- function(graph, dsmj_path, dsmj_name, is_sorted=FALSE, ...){
+graph_to_dsmj.unimodal_graph <- function(graph, dsmj_path, dsmj_name, is_sorted=FALSE, ...){
   .graph_to_dsmj_impl(graph, dsmj_path, dsmj_name, is_directed=TRUE, is_sorted)
 }
 
-#' @rdname graph_to_dsmj
-#' @method graph_to_dsmj undirected_graph
-#' @export
-graph_to_dsmj.undirected_graph <- function(graph, dsmj_path, dsmj_name, is_sorted=FALSE, ...){
-  .graph_to_dsmj_impl(graph, dsmj_path, dsmj_name, is_directed=FALSE, is_sorted)
-}
 
 #' @rdname graph_to_dsmj
 #' @method graph_to_dsmj bipartite_graph
@@ -50,10 +44,10 @@ graph_to_dsmj.bipartite_graph <- function(graph, dsmj_path, dsmj_name, is_sorted
 }
 
 #' @rdname graph_to_dsmj
-#' @method graph_to_dsmj heterogeneous_graph
+#' @method graph_to_dsmj multimodal_graph
 #' @export
-graph_to_dsmj.heterogeneous_graph <- function(graph, dsmj_path, dsmj_name, is_sorted=FALSE, ...){
-  # Heterogeneous graphs have typed directional edges across multiple node types
+graph_to_dsmj.multimodal_graph <- function(graph, dsmj_path, dsmj_name, is_sorted=FALSE, ...){
+  # Multimodal graphs have typed directional edges across multiple node types
   .graph_to_dsmj_impl(graph, dsmj_path, dsmj_name, is_directed=TRUE, is_sorted)
 }
 
@@ -136,28 +130,10 @@ graph_to_dsmj.heterogeneous_graph <- function(graph, dsmj_path, dsmj_name, is_so
   return(dsmj_path)
 }
 
-#' Create a directed graph model
+#' Create a unimodal graph model
 #'
-#' Simplified constructor. The transform function is responsible for building
-#' the nodes and edgelist tables before calling this function.
-#' This function only wraps them into a named list and assigns the graph type.
-#'
-#' @param nodes a data.table with at minimum a `name` column. Type and color
-#' columns should be set by the transform before passing in.
-#' @param edgelist a data.table with at minimum `from`, `to`, and `weight` columns.
-#' Additional columns are preserved as-is.
-#' @return a named list list(nodes, edgelist) with class `directed_graph`.
-#' @export
-model_directed_graph <- function(nodes, edgelist){
-  graph <- list(nodes=nodes, edgelist=edgelist)
-  class(graph) <- c("directed_graph", class(graph))
-  return(graph)
-}
-
-#' Create an undirected graph model
-#'
-#' Simplified constructor for undirected graphs such as co-authorship and
-#' co-change networks where edges have no meaningful direction.
+#' Simplified constructor for unimodal graphs where all nodes are of the same
+#' type (e.g. developer-developer, file-file networks).
 #' The transform function is responsible for building the nodes and edgelist
 #' tables before calling this function.
 #' This function only wraps them into a named list and assigns the graph type.
@@ -166,11 +142,11 @@ model_directed_graph <- function(nodes, edgelist){
 #' columns should be set by the transform before passing in.
 #' @param edgelist a data.table with at minimum `from`, `to`, and `weight` columns.
 #' Additional columns are preserved as-is.
-#' @return a named list list(nodes, edgelist) with class `undirected_graph`.
+#' @return a named list list(nodes, edgelist) with class \code{unimodal_graph}.
 #' @export
-model_undirected_graph <- function(nodes, edgelist){
+model_unimodal_graph <- function(nodes, edgelist){
   graph <- list(nodes=nodes, edgelist=edgelist)
-  class(graph) <- c("undirected_graph", class(graph))
+  class(graph) <- c("unimodal_graph", class(graph))
   return(graph)
 }
 
@@ -195,9 +171,9 @@ model_bipartite_graph <- function(nodes, edgelist){
   return(graph)
 }
 
-#' Create a heterogeneous graph model
+#' Create a multimodal graph model
 #'
-#' Simplified constructor for heterogeneous graphs where there are more than
+#' Simplified constructor for multimodal graphs where there are more than
 #' two node types and edges can connect any combination of those types.
 #' Examples include graphs combining developers, files, commits, and issues
 #' from multiple pipelines into a single network.
@@ -212,7 +188,7 @@ model_bipartite_graph <- function(nodes, edgelist){
 #'   \item \code{name} - unique identifier for each node.
 #'   \item \code{type} - a string label identifying the node type
 #'     (e.g. \code{"author"}, \code{"file"}, \code{"issue"}, \code{"commit"}).
-#'     Unlike bipartite graphs which use TRUE/FALSE, heterogeneous graphs use
+#'     Unlike bipartite graphs which use TRUE/FALSE, multimodal graphs use
 #'     string labels to distinguish more than two node types.
 #'   \item \code{color} - a hex color string per node, assigned by node type
 #'     (e.g. all \code{"author"} nodes share one color, all \code{"file"} nodes share another).
@@ -232,11 +208,11 @@ model_bipartite_graph <- function(nodes, edgelist){
 #' set by the transform before passing in.
 #' @param edgelist a data.table with columns \code{from}, \code{to}, \code{weight},
 #' \code{type}, and optionally \code{color} set by the transform before passing in.
-#' @return a named list list(nodes, edgelist) with class \code{heterogeneous_graph}.
+#' @return a named list list(nodes, edgelist) with class \code{multimodal_graph}.
 #' @export
-model_heterogeneous_graph <- function(nodes, edgelist){
+model_multimodal_graph <- function(nodes, edgelist){
   graph <- list(nodes=nodes, edgelist=edgelist)
-  class(graph) <- c("heterogeneous_graph", class(graph))
+  class(graph) <- c("multimodal_graph", class(graph))
   return(graph)
 }
 
@@ -248,12 +224,12 @@ model_heterogeneous_graph <- function(nodes, edgelist){
 #' call different functions.
 #'
 #' @param graph A graph returned by \code{\link{model_bipartite_graph}} or
-#' \code{\link{model_heterogeneous_graph}}.
+#' \code{\link{model_multimodal_graph}}.
 #' @param mode For \code{bipartite_graph}: \code{TRUE} or \code{FALSE} selecting
-#' which node type to project onto. For \code{heterogeneous_graph}: a string
+#' which node type to project onto. For \code{multimodal_graph}: a string
 #' node type label such as \code{"file"} or \code{"author"}.
 #' @param ... Additional arguments passed to the method. For
-#' \code{heterogeneous_graph}, must include \code{edge_type} specifying which
+#' \code{multimodal_graph}, must include \code{edge_type} specifying which
 #' edge type to project through.
 #' @return A projected graph.
 #' @export
@@ -307,9 +283,9 @@ bipartite_graph_projection.bipartite_graph <- function(graph, mode, weight_schem
 
   graph[["edgelist"]] <- graph[["edgelist"]][complete.cases(graph[["edgelist"]])]
 
-  # Reclassify as undirected_graph since projection collapses the bipartite
+  # Reclassify as unimodal_graph since projection collapses the bipartite
   # structure into a single node type with undirected co-occurrence edges
-  class(graph) <- c("undirected_graph", "list")
+  class(graph) <- c("unimodal_graph", "list")
 
   if(is.null(weight_scheme_function)){
     return(graph)
@@ -318,13 +294,13 @@ bipartite_graph_projection.bipartite_graph <- function(graph, mode, weight_schem
   }
 }
 
-#' @param edge_type A string specifying which edge type in the heterogeneous
+#' @param edge_type A string specifying which edge type in the multimodal
 #' graph to project through (e.g. \code{"changed"} or \code{"authored"}).
 #' @param weight_scheme_function See \code{\link{bipartite_graph_projection}}.
 #' @rdname bipartite_graph_projection
-#' @method bipartite_graph_projection heterogeneous_graph
+#' @method bipartite_graph_projection multimodal_graph
 #' @export
-bipartite_graph_projection.heterogeneous_graph <- function(graph, mode, edge_type, weight_scheme_function=NULL, ...){
+bipartite_graph_projection.multimodal_graph <- function(graph, mode, edge_type, weight_scheme_function=NULL, ...){
   # Extract edgelist for the requested edge type, keeping only from/to/weight
   slice_edges <- graph[["edgelist"]][type == edge_type, .(from, to, weight)]
 
@@ -375,10 +351,10 @@ bipartite_graph_projection.heterogeneous_graph <- function(graph, mode, edge_typ
 #' When receiving as parameter \code{\link{weight_scheme_sum_edges}} or
 #' \code{\link{weight_scheme_count_deleted_nodes}}, the final projection table will be returned instead.
 #' @param timestamp_column a string containing the name of the timestamp variable
-#' @param edge_type For heterogeneous graphs only: a string specifying which edge type to slice before projecting. Ignored for bipartite graphs.
+#' @param edge_type For multimodal graphs only: a string specifying which edge type to slice before projecting. Ignored for bipartite graphs.
 #' @param lag a string specifying either "one_lag" or "all_lag".
 #' @param ... Additional arguments passed to the method.
-#' @return A directed_graph projection.
+#' @return A unimodal_graph projection.
 #' @export
 #' @references M. Joblin, W. Mauerer, S. Apel,
 #' J. Siegmund and D. Riehle, "From Developer Networks
@@ -391,9 +367,9 @@ temporal_graph_projection <- function(graph, mode, weight_scheme_function=NULL, 
 }
 
 #' @rdname temporal_graph_projection
-#' @method temporal_graph_projection heterogeneous_graph
+#' @method temporal_graph_projection multimodal_graph
 #' @export
-temporal_graph_projection.heterogeneous_graph <- function(graph, mode, weight_scheme_function=NULL, timestamp_column, edge_type, lag=c("one_lag","all_lag"), ...){
+temporal_graph_projection.multimodal_graph <- function(graph, mode, weight_scheme_function=NULL, timestamp_column, edge_type, lag=c("one_lag","all_lag"), ...){
   # Extract edgelist for the requested edge type, keeping from/to/weight and timestamp
   slice_edges <- graph[["edgelist"]][type == edge_type, .SD, .SDcols = c("from","to","weight",timestamp_column)]
 
@@ -661,7 +637,7 @@ temporal_graph_projection.bipartite_graph <- function(graph,mode,weight_scheme_f
                                                .SDcols = c("from","weight","datetimetz")]
 
     if(nrow(graph[["edgelist"]]) == 0){
-      class(graph) <- c("directed_graph", "list")
+      class(graph) <- c("unimodal_graph", "list")
       return(graph)
     }else{
       setnames(x = graph[["edgelist"]],
@@ -678,7 +654,7 @@ temporal_graph_projection.bipartite_graph <- function(graph,mode,weight_scheme_f
                                                .SDcols = c("to","weight","datetimetz")]
 
     if(nrow(graph[["edgelist"]]) == 0){
-      class(graph) <- c("directed_graph", "list")
+      class(graph) <- c("unimodal_graph", "list")
       return(graph)
     }else{
       setnames(x = graph[["edgelist"]],
@@ -691,9 +667,9 @@ temporal_graph_projection.bipartite_graph <- function(graph,mode,weight_scheme_f
   # Remove from edgelist the nodes that do not connect to others (e.g. a single file commit)
   graph[["edgelist"]] <- graph[["edgelist"]][complete.cases(graph[["edgelist"]])]
 
-  # Reclassify as directed_graph since temporal projection produces directional edges
+  # Reclassify as unimodal_graph since temporal projection produces directional edges
   # (A -> B means A changed a file after B, i.e. A depends on B's code)
-  class(graph) <- c("directed_graph", "list")
+  class(graph) <- c("unimodal_graph", "list")
 
   # Do not aggregate weights if no weight scheme is specified
   if(is.null(weight_scheme_function)){

@@ -3,14 +3,14 @@
 \name{bipartite_graph_projection}
 \alias{bipartite_graph_projection}
 \alias{bipartite_graph_projection.bipartite_graph}
-\alias{bipartite_graph_projection.heterogeneous_graph}
+\alias{bipartite_graph_projection.multimodal_graph}
 \title{Apply a bipartite or heterogeneous graph projection (S3 generic)}
 \usage{
 bipartite_graph_projection(graph, mode, ...)
 
 \method{bipartite_graph_projection}{bipartite_graph}(graph, mode, weight_scheme_function = NULL, ...)
 
-\method{bipartite_graph_projection}{heterogeneous_graph}(
+\method{bipartite_graph_projection}{multimodal_graph}(
   graph,
   mode,
   edge_type,
@@ -20,19 +20,19 @@ bipartite_graph_projection(graph, mode, ...)
 }
 \arguments{
 \item{graph}{A graph returned by \code{\link{model_bipartite_graph}} or
-\code{\link{model_heterogeneous_graph}}.}
+\code{\link{model_multimodal_graph}}.}
 
 \item{mode}{For \code{bipartite_graph}: \code{TRUE} or \code{FALSE} selecting
-which node type to project onto. For \code{heterogeneous_graph}: a string
+which node type to project onto. For \code{multimodal_graph}: a string
 node type label such as \code{"file"} or \code{"author"}.}
 
 \item{...}{Additional arguments passed to the method. For
-\code{heterogeneous_graph}, must include \code{edge_type} specifying which
+\code{multimodal_graph}, must include \code{edge_type} specifying which
 edge type to project through.}
 
 \item{weight_scheme_function}{See \code{\link{bipartite_graph_projection}}.}
 
-\item{edge_type}{A string specifying which edge type in the heterogeneous
+\item{edge_type}{A string specifying which edge type in the multimodal
 graph to project through (e.g. \code{"changed"} or \code{"authored"}).}
 }
 \value{
