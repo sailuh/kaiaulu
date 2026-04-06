@@ -114,6 +114,11 @@ all_commit_comments <- lapply(all_commit_comments,github_parse_project_commit_co
 all_commit_comments <- rbindlist(all_commit_comments,fill=TRUE)
 
 kable(head(all_commit_comments))
+
+# Save the data table for commit comments as a CSV
+out_csv <- file.path(dirname(save_path_commit_comments), paste0(owner, "_", repo, "_commit_comments.csv"))
+data.table::fwrite(all_commit_comments, out_csv)
+cat("Saved:", out_csv, "\n")
 ```
 
 # Obtaining Issue Assignments from Non-Committers

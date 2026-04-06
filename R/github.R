@@ -1423,9 +1423,6 @@ github_parse_project_commit_comments <- function(api_responses){
     parsed_response[["author_login"]] <- api_response[["user"]][["login"]]
     parsed_response[["author_id"]] <- api_response[["user"]][["id"]]
     parsed_response[["body"]] <- api_response[["body"]]
-    parsed_response[["path"]] <- api_response[["path"]]
-    parsed_response[["position"]] <- api_response[["position"]]
-    parsed_response[["line"]] <- api_response[["line"]]
     parsed_response[["created_at"]] <- api_response[["created_at"]]
     parsed_response[["updated_at"]] <- api_response[["updated_at"]]
 
