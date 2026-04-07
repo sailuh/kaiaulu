@@ -181,6 +181,61 @@ commit_message_id_coverage <- function(git_log,commit_message_id_regex){
                                          pattern = commit_message_id_regex)
   return(length(is_match[is_match]))
 }
+
+#' Jira Developer Communication Count Metric
+#'
+#' Calculates the number of messages/comments a developer has sent in Jira within
+#' a 90-day rolling window.
+#'
+#' @param comments_dt a parsed jira comments table obtained from \code{\link{parse_jira}}
+#' @param comment_created_col the column name in `comments_dt` which contains the comment creation time
+#' @param comment_author_col the column name in `comments_dt` which contains the comment author name
+#' @param lag the number of days to look back for the rolling window (default is 90)
+#' @return A three column data.table of the form datetimetz | comment_author_name | comment_count
+#' @export
+#' @family metrics
+#' @seealso \code{\link{parse_jira}} to obtain the comments table
+jira_developer_communication_count <- function(comments_dt, 
+                                               comment_created_col = "comment_created_datetimetz", 
+                                               comment_author_col = "comment_author_name", 
+                                               lag = 90) {
+
+raw_time   <- comments_dt[[comment_created_col]]
+raw_author <- comments_dt[[comment_author_col]]
+
+tz_val <- "UTC"
+
+dt <- data.table::data.table(
+    datetimetz = as.POSIXct(raw_time, format = "%Y-%m-%dT%H:%M:%OS%z", tz = tz_val),
+    comment_author_name = raw_author
+  )
+
+  data.table::setorder(dt, comment_author_name, datetimetz)
+  data.table::setkey(dt, comment_author_name, datetimetz)
+
+  result <- dt[, {
+    window_start <- stringi::stri_datetime_add(
+      datetimetz, 
+      days = -lag, 
+      tz = tz_val
+    )
+
+    comment_count <- dt[.SD,
+      on = .(comment_author_name,
+             datetimetz >= window_start,
+             datetimetz <= datetimetz),
+      .N,
+      by = .EACHI
+    ]$N
+
+    .(datetimetz = datetimetz,
+      comment_author_name = comment_author_name,
+      comment_count = comment_count)
+  }, by = .(comment_author_name, datetimetz)]
+
+  return(result[])
+}
+
 # Various imports
 #' @importFrom stringi stri_c
 #' @importFrom stringi stri_split_regex
