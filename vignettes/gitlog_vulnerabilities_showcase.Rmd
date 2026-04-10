@@ -40,9 +40,9 @@ file_extensions <- get_file_extensions(conf)
 substring_filepath <- get_substring_filepath(conf)
 ```
 
-"parse_gitlog" reads the entire commit history of the repository and uses the provided regular expression to extract CVE IDs from the commit messages in the local repo.
-
 A CVE (Common Vulnerabilities and Exposures) identifier is a standardized ID for a publicly known cybersecurity vulnerability in software or hardware. It is used to quickly identify, track, and share information about specific security threats across different databases, tools, and vendors to facilitate patching. The format is CVE-YYYY-NNNNNNN.
+
+Using the repository's commit history and the regular expression from the conf.yml file to extract CVE IDs from the local commit messages.
 
 ```{r}
 project_git <- parse_gitlog(perceval_path,git_repo_path,perl_regex = cveid_regex)
@@ -50,7 +50,7 @@ project_git <- parse_gitlog(perceval_path,git_repo_path,perl_regex = cveid_regex
 #project_git <- readRDS(save_path)
 ```
 
-Filter files based on the conf yml.
+Filter files based on the conf.yml to remove irrelevant files (such as .txt, .md, and .html) and exclude specific parts of the repository.
 
 ```{r}
 project_git <- project_git  %>%
@@ -58,7 +58,7 @@ project_git <- project_git  %>%
   filter_by_filepath_substring(substring_filepath,"file_pathname")
 ```
 
-Creates a copy of the filtered table for us to work with.
+Copy of the original table with the filters above applied.
 
 ```{r}
 project_git_slice <- project_git
@@ -66,7 +66,7 @@ project_git_slice <- project_git
 
 # Issue Networks
 
-First, we can check the coverage of commits that contain CVE-ID labels. The formula is: (Total unique commits mentioning a CVE ID) / (Total unique commits in the repo) = Percentage of commits referencing a vulnerability (coverage).
+The "coverage" is the percentage of unique commits in the repository that contain a CVE-ID over the total number of unique CVE-ID. The propose is to get a overview of a repo's vulnerabilities.
 
 ```{r}
 coverage <- commit_message_id_coverage(project_git,cveid_regex)/length(unique(project_git$data.commit))
@@ -89,11 +89,13 @@ If the chosen commit message label is associated to CVEs, one additional metadat
 cve_cwe_mapping <- parse_nvdfeed(nvdfeed_folder_path)
 ```
 
-The Common Weakness Enumeration (CWE) is a community-driven, standardized dictionary of software and hardware security weaknesses used to identify, classify, and prevent vulnerabilities. It acts as a way to understand root causes of flaws, such as buffer overflows or injection issues, before code is deployed. The format is typically CWE-ID (e.g., CWE-79 or CWE-119).
+The Common Weakness Enumeration (CWE) is a community-driven, standardized dictionary of software and hardware security weaknesses used to identify, classify, and prevent vulnerabilities. A "weakness" is a condition in software, firmware, hardware, or a service that under a certain condition/s, can lead to a vulnerability (https://cwe.mitre.org/about/index.html). The format is typically CWE-ID (e.g., CWE-79 or CWE-119).
 
 ```{r}
 cve_cwe_file_network <- transform_cve_cwe_file_to_network(project_commit_message_id_edgelist,cve_cwe_mapping)
 ```
+
+The graph treats CVEs and CWEs as being in a similar group to one another.
 
 ```{r}
 project_commit_message_id_network <- igraph::graph_from_data_frame(d=cve_cwe_file_network[["edgelist"]], 
