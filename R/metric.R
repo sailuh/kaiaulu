@@ -215,26 +215,23 @@ productivity_author_commits <- function(project_git_log, lag = 90) {
 
   # Rolling window
   result <- dt[, {
+    times <- author_datetimetz
     window_start <- stringi::stri_datetime_add(
       author_datetimetz,
-      days = -lag,
+      value = -lag,
+      units = "days",
       tz = tz_val
     )
-
-    author_total_commits <- dt[.SD,
-      on = .(author_name_email,
-             author_datetimetz >= window_start,
-             author_datetimetz <= author_datetimetz),
-      .(val = data.table::uniqueN(commit_hash)),
-      by = .EACHI]$val
+    
+    author_total_commits <- sapply(seq_along(times), function(i) {
+      data.table::uniqueN(commit_hash[times >= window_start[i] & times <= times[i]])
+    })
 
     .(
-      author_name_email = author_name_email,
-      author_datetimetz = author_datetimetz,
-      author_total_commits = author_total_commits
+      author_datetimetz = times,
+      author_total_commits = as.integer(author_total_commits)
     )
-
-  }, by = .(author_name_email, author_datetimetz)]
+  }, by = .(author_name_email)]
 
   return(result[])
 }
@@ -270,32 +267,24 @@ productivity_author_churn <- function(project_git_log, lag = 90) {
 
   # Rolling window
   result <- dt[, {
+    times <- author_datetimetz
     window_start <- stringi::stri_datetime_add(
       author_datetimetz,
-      days = -lag,
+      value = -lag,
+      units = "days",
       tz = tz_val
     )
 
-    agg <- dt[.SD,
-      on = .(author_name_email,
-             author_datetimetz >= window_start,
-             author_datetimetz <= author_datetimetz),
-      .(
-        lines_added = sum(as.numeric(lines_added), na.rm = TRUE),
-        lines_removed = sum(as.numeric(lines_removed), na.rm = TRUE),
-        author_churn = sum(churn, na.rm = TRUE)
-      ),
-      by = .EACHI]
-
-    .(
-      author_name_email = author_name_email,
-      author_datetimetz = author_datetimetz,
-      lines_added = agg$lines_added,
-      lines_removed = agg$lines_removed,
-      author_churn = agg$author_churn
-    )
-
-  }, by = .(author_name_email, author_datetimetz)]
+    data.table::rbindlist(lapply(seq_along(times), function(i) {
+      idx <- times >= window_start[i] & times <= times[i]
+      data.table::data.table(
+        author_datetimetz = times[i],
+        lines_added = sum(as.numeric(lines_added[idx]), na.rm = TRUE),
+        lines_removed = sum(as.numeric(lines_removed[idx]), na.rm = TRUE),
+        author_churn = sum(churn[idx], na.rm = TRUE)
+      )
+    }))
+  }, by = .(author_name_email)]
 
   return(result[])
 }
