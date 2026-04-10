@@ -21,7 +21,8 @@ transform_reply_to_bipartite_network <- function(project_reply, source = NA_char
   to_nodes     <- data.table(name = unique(project_reply[["reply_subject"]]), type = FALSE, color = "lightblue", source = source)
   reply_nodes  <- rbind(from_nodes, to_nodes)
   reply_edgelist <- project_reply[, .(weight = .N), by = .(from = reply_from, to = reply_subject)]
-  reply_edgelist[, source := source]
-  reply_graph  <- model_bipartite_graph(reply_nodes, reply_edgelist)
+  reply_edgelist[, source    := source]
+  reply_edgelist[, direction := "directed"]
+  reply_graph  <- model_multimodal_graph(reply_nodes, reply_edgelist, direction = "directed", is_bipartite = TRUE)
   return(reply_graph)
 }

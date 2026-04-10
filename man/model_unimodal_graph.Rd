@@ -4,22 +4,29 @@
 \alias{model_unimodal_graph}
 \title{Create a unimodal graph model}
 \usage{
-model_unimodal_graph(nodes, edgelist)
+model_unimodal_graph(nodes, edgelist, direction, is_weighted = TRUE)
 }
 \arguments{
-\item{nodes}{a data.table with at minimum a `name` column. Type and color
+\item{nodes}{a data.table with at minimum a \code{name} column. Color
 columns should be set by the transform before passing in.}
 
-\item{edgelist}{a data.table with at minimum `from`, `to`, and `weight` columns.
+\item{edgelist}{a data.table with at minimum \code{from} and \code{to} columns.
 Additional columns are preserved as-is.}
+
+\item{direction}{one of \code{"directed"}, \code{"undirected"}, or \code{"hybrid"}.
+Passed explicitly by the transform.}
+
+\item{is_weighted}{logical. \code{TRUE} if the edgelist has a \code{weight} column.
+Defaults to \code{TRUE}.}
 }
 \value{
-a named list list(nodes, edgelist) with class \code{unimodal_graph}.
+a named list \code{list(nodes, edgelist)} with S3 class
+  \code{c("unimodal", direction, "weighted", "list")} where \code{"weighted"}
+  is omitted when \code{is_weighted = FALSE}.
 }
 \description{
-Simplified constructor for unimodal graphs where all nodes are of the same
-type (e.g. developer-developer, file-file networks).
-The transform function is responsible for building the nodes and edgelist
-tables before calling this function.
-This function only wraps them into a named list and assigns the graph type.
+Constructor for unimodal graphs where all nodes are of the same type
+(e.g. developer-developer, file-file networks).
+The transform is responsible for building the nodes and edgelist tables
+and passing the graph properties explicitly.
 }

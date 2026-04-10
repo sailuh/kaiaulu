@@ -13,12 +13,12 @@ superset_bipartite_from_multimodal(graph, edge_type)
 (e.g. \code{"authored"}, \code{"changed"}).}
 }
 \value{
-A \code{bipartite_graph} containing only the nodes and edges of the
+A bipartite \code{multimodal_graph} containing only the nodes and edges of the
   requested edge type.
 }
 \description{
 Slices a \code{\link{model_multimodal_graph}} by a single edge type and
-returns the corresponding \code{\link{model_bipartite_graph}}, ready for use
+returns a bipartite \code{\link{model_multimodal_graph}}, ready for use
 in \code{\link{bipartite_graph_projection}} or
 \code{\link{temporal_graph_projection}}.
 }

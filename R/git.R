@@ -859,9 +859,10 @@ transform_gitlog_to_temporal_network <- function(project_git, mode = c("author",
     from       = project_git[[from_col]],
     to         = project_git[[to_col]],
     weight     = as.numeric(project_git[["lines_added"]]) + as.numeric(project_git[["lines_removed"]]),
-    datetimetz = project_git[[dt_col]]
+    datetimetz = project_git[[dt_col]],
+    direction  = "directed"
   )
-  git_graph <- model_bipartite_graph(git_nodes, git_edgelist)
+  git_graph <- model_multimodal_graph(git_nodes, git_edgelist, direction = "directed", is_bipartite = TRUE)
   temporal_projection <- temporal_graph_projection(git_graph, mode = TRUE, timestamp_column = "datetimetz",
                                                    weight_scheme_function = weight_scheme_function,
                                                    lag = lag)
@@ -872,7 +873,7 @@ transform_gitlog_to_temporal_network <- function(project_git, mode = c("author",
 #' Constructs a bipartite graph from a parsed git log where one node type
 #' represents authors, committers, or commits and the other represents files.
 #' The transform function is responsible for building the nodes and edgelist
-#' tables before passing them to \code{\link{model_bipartite_graph}}.
+#' tables before passing them to \code{\link{model_multimodal_graph}}.
 #'
 #' @param project_git A parsed git project by \code{\link{parse_gitlog}}.
 #' @param mode The network of interest: author-file, committer-file, commit-file, author-committer
@@ -921,8 +922,9 @@ transform_gitlog_to_bipartite_network <- function(project_git, mode = c("author-
   git_edgelist <- project_git[, .(weight = sum(as.numeric(lines_added) + as.numeric(lines_removed), na.rm=TRUE)),
                                by = c(from_col, to_col)]
   setnames(git_edgelist, old = c(from_col, to_col), new = c("from", "to"))
+  git_edgelist[, direction := "directed"]
   # Constructor only wraps pre-built tables and assigns graph type
-  git_graph <- model_bipartite_graph(git_nodes, git_edgelist)
+  git_graph <- model_multimodal_graph(git_nodes, git_edgelist, direction = "directed", is_bipartite = TRUE)
   return(git_graph)
 }
 
@@ -977,8 +979,9 @@ transform_gitlog_to_entity_bipartite_network <- function(project_git_entity, mod
   git_edgelist <- project_git_entity[, .(weight = sum(weight, na.rm=TRUE)),
                                      by = c(from_col, to_col)]
   setnames(git_edgelist, old = c(from_col, to_col), new = c("from", "to"))
+  git_edgelist[, direction := "directed"]
   # Constructor only wraps pre-built tables and assigns graph type
-  git_graph <- model_bipartite_graph(git_nodes, git_edgelist)
+  git_graph <- model_multimodal_graph(git_nodes, git_edgelist, direction = "directed", is_bipartite = TRUE)
   return(git_graph)
 }
 #' Create time-ordered contribution network
@@ -1025,9 +1028,10 @@ transform_gitlog_to_entity_temporal_network <- function(project_git_entity, mode
     from       = project_git_entity[[from_col]],
     to         = project_git_entity[[to_col]],
     weight     = project_git_entity[["n_lines_changed"]],
-    datetimetz = project_git_entity[[dt_col]]
+    datetimetz = project_git_entity[[dt_col]],
+    direction  = "directed"
   )
-  git_graph <- model_bipartite_graph(git_nodes, git_edgelist)
+  git_graph <- model_multimodal_graph(git_nodes, git_edgelist, direction = "directed", is_bipartite = TRUE)
   temporal_projection <- temporal_graph_projection(git_graph, mode = TRUE, timestamp_column = "datetimetz",
                                                    weight_scheme_function = weight_scheme_function,
                                                    lag = lag)
@@ -1055,7 +1059,8 @@ transform_commit_message_id_to_network <- function(project_git, commit_message_i
   git_nodes  <- rbind(from_nodes, to_nodes)
   # Weight = number of commits linking this issue id to this file
   git_edgelist <- project_git[, .(weight = .N), by = .(from = commit_message_id, to = file_pathname)]
-  git_graph <- model_bipartite_graph(git_nodes, git_edgelist)
+  git_edgelist[, direction := "directed"]
+  git_graph <- model_multimodal_graph(git_nodes, git_edgelist, direction = "directed", is_bipartite = TRUE)
   return(git_graph)
 }
 
@@ -1104,7 +1109,7 @@ transform_commit_message_id_to_network <- function(project_git, commit_message_i
 #'     author-file pair across all commits.
 #' }
 #' Defaults to all three node types and both edge types.
-#' @return a multimodal_graph with nodes (name, type, color) and
+#' @return a multimodal graph with nodes (name, type, color) and
 #' edgelist (from, to, weight, type, color).
 #' @export
 #' @family edgelists
@@ -1139,6 +1144,7 @@ transform_gitlog_to_multimodal_network <- function(project_git,
       weight     = 1L,
       type       = "authored",
       color      = "black",
+      direction  = "directed",
       datetimetz = author_datetimetz
     )])
   }
@@ -1150,6 +1156,7 @@ transform_gitlog_to_multimodal_network <- function(project_git,
       weight     = sum(as.numeric(lines_added) + as.numeric(lines_removed), na.rm = TRUE),
       type       = "changed",
       color      = "#afe569",
+      direction  = "directed",
       datetimetz = author_datetimetz[1]
     ), by = .(from = commit_hash, to = file_pathname)]
   }
@@ -1164,12 +1171,13 @@ transform_gitlog_to_multimodal_network <- function(project_git,
       weight     = sum(as.numeric(lines_added) + as.numeric(lines_removed), na.rm = TRUE),
       type       = "modified",
       color      = "black",
+      direction  = "directed",
       datetimetz = min(author_datetimetz)
     ), by = .(from = author_name_email, to = file_pathname)]
   }
   git_edgelist <- rbindlist(edge_tables)
   # Constructor only wraps pre-built tables and assigns graph type
-  git_network <- model_multimodal_graph(git_nodes, git_edgelist)
+  git_network <- model_multimodal_graph(git_nodes, git_edgelist, direction = "directed")
   return(git_network)
 }
 

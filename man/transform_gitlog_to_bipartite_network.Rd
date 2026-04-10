@@ -18,7 +18,7 @@ transform_gitlog_to_bipartite_network(
 Constructs a bipartite graph from a parsed git log where one node type
 represents authors, committers, or commits and the other represents files.
 The transform function is responsible for building the nodes and edgelist
-tables before passing them to \code{\link{model_bipartite_graph}}.
+tables before passing them to \code{\link{model_multimodal_graph}}.
 }
 \seealso{
 Other edgelists: 

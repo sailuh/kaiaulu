@@ -2,15 +2,15 @@
 % Please edit documentation in R/graph.R
 \name{bipartite_graph_projection}
 \alias{bipartite_graph_projection}
-\alias{bipartite_graph_projection.bipartite_graph}
-\alias{bipartite_graph_projection.multimodal_graph}
+\alias{bipartite_graph_projection.is_bipartite}
+\alias{bipartite_graph_projection.multimodal}
 \title{Apply a bipartite or heterogeneous graph projection (S3 generic)}
 \usage{
 bipartite_graph_projection(graph, mode, ...)
 
-\method{bipartite_graph_projection}{bipartite_graph}(graph, mode, weight_scheme_function = NULL, ...)
+\method{bipartite_graph_projection}{is_bipartite}(graph, mode, weight_scheme_function = NULL, ...)
 
-\method{bipartite_graph_projection}{multimodal_graph}(
+\method{bipartite_graph_projection}{multimodal}(
   graph,
   mode,
   edge_type,
@@ -19,15 +19,14 @@ bipartite_graph_projection(graph, mode, ...)
 )
 }
 \arguments{
-\item{graph}{A graph returned by \code{\link{model_bipartite_graph}} or
-\code{\link{model_multimodal_graph}}.}
+\item{graph}{A graph returned by \code{\link{model_multimodal_graph}}.}
 
-\item{mode}{For \code{bipartite_graph}: \code{TRUE} or \code{FALSE} selecting
-which node type to project onto. For \code{multimodal_graph}: a string
+\item{mode}{For bipartite graphs: \code{TRUE} or \code{FALSE} selecting
+which node type to project onto. For non-bipartite multimodal graphs: a string
 node type label such as \code{"file"} or \code{"author"}.}
 
-\item{...}{Additional arguments passed to the method. For
-\code{multimodal_graph}, must include \code{edge_type} specifying which
+\item{...}{Additional arguments passed to the method. For non-bipartite
+multimodal graphs, must include \code{edge_type} specifying which
 edge type to project through.}
 
 \item{weight_scheme_function}{See \code{\link{bipartite_graph_projection}}.}

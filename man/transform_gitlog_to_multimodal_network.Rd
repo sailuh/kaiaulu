@@ -38,7 +38,7 @@ Supported edges derived from node pairs:
 Defaults to all three node types and both edge types.}
 }
 \value{
-a multimodal_graph with nodes (name, type, color) and
+a multimodal graph with nodes (name, type, color) and
 edgelist (from, to, weight, type, color).
 }
 \description{

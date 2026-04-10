@@ -4,7 +4,13 @@
 \alias{model_multimodal_graph}
 \title{Create a multimodal graph model}
 \usage{
-model_multimodal_graph(nodes, edgelist)
+model_multimodal_graph(
+  nodes,
+  edgelist,
+  direction,
+  is_weighted = TRUE,
+  is_bipartite = FALSE
+)
 }
 \arguments{
 \item{nodes}{a data.table with columns \code{name}, \code{type}, and \code{color}
@@ -12,20 +18,34 @@ set by the transform before passing in.}
 
 \item{edgelist}{a data.table with columns \code{from}, \code{to}, \code{weight},
 \code{type}, and optionally \code{color} set by the transform before passing in.}
+
+\item{direction}{one of \code{"directed"}, \code{"undirected"}, or \code{"hybrid"}.
+Passed explicitly by the transform.}
+
+\item{is_weighted}{logical. \code{TRUE} if the edgelist has a \code{weight} column.
+Defaults to \code{TRUE}.}
+
+\item{is_bipartite}{logical. \code{TRUE} if the graph connects exactly two node types.
+Defaults to \code{FALSE}.}
 }
 \value{
-a named list list(nodes, edgelist) with class \code{multimodal_graph}.
+a named list \code{list(nodes, edgelist)} with S3 class
+  \code{c("multimodal", "is_bipartite", direction, "weighted", "list")} where
+  \code{"is_bipartite"} is omitted when \code{is_bipartite = FALSE} and
+  \code{"weighted"} is omitted when \code{is_weighted = FALSE}.
 }
 \description{
-Simplified constructor for multimodal graphs where there are more than
-two node types and edges can connect any combination of those types.
-Examples include graphs combining developers, files, commits, and issues
-from multiple pipelines into a single network.
-The transform function is responsible for building the nodes and edgelist
-tables before calling this function.
-This function only wraps them into a named list and assigns the graph type.
+Constructor for multimodal graphs where nodes are of two or more distinct
+types and edges can connect any combination of those types. This includes
+bipartite graphs (exactly two node types) as a special case controlled by
+the \code{is_bipartite} parameter.
 }
 \details{
+Examples include author-file networks (bipartite) and graphs combining
+developers, files, commits, and issues from multiple pipelines.
+The transform is responsible for building the nodes and edgelist tables
+and passing the graph properties explicitly.
+
 The transform must set the following columns before calling this constructor:
 
 nodes table:
@@ -33,10 +53,7 @@ nodes table:
   \item \code{name} - unique identifier for each node.
   \item \code{type} - a string label identifying the node type
     (e.g. \code{"author"}, \code{"file"}, \code{"issue"}, \code{"commit"}).
-    Unlike bipartite graphs which use TRUE/FALSE, multimodal graphs use
-    string labels to distinguish more than two node types.
-  \item \code{color} - a hex color string per node, assigned by node type
-    (e.g. all \code{"author"} nodes share one color, all \code{"file"} nodes share another).
+  \item \code{color} - a hex color string per node, assigned by node type.
 }
 
 edgelist table:

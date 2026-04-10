@@ -2,8 +2,8 @@
 % Please edit documentation in R/graph.R
 \name{temporal_graph_projection}
 \alias{temporal_graph_projection}
-\alias{temporal_graph_projection.multimodal_graph}
-\alias{temporal_graph_projection.bipartite_graph}
+\alias{temporal_graph_projection.multimodal}
+\alias{temporal_graph_projection.is_bipartite}
 \title{Apply a temporal graph projection (S3 generic)}
 \usage{
 temporal_graph_projection(
@@ -16,7 +16,7 @@ temporal_graph_projection(
   ...
 )
 
-\method{temporal_graph_projection}{multimodal_graph}(
+\method{temporal_graph_projection}{multimodal}(
   graph,
   mode,
   weight_scheme_function = NULL,
@@ -26,7 +26,7 @@ temporal_graph_projection(
   ...
 )
 
-\method{temporal_graph_projection}{bipartite_graph}(
+\method{temporal_graph_projection}{is_bipartite}(
   graph,
   mode,
   weight_scheme_function = NULL,
@@ -37,7 +37,7 @@ temporal_graph_projection(
 )
 }
 \arguments{
-\item{graph}{A graph returned by \code{\link{model_bipartite_graph}}.}
+\item{graph}{A bipartite graph returned by \code{\link{model_multimodal_graph}}.}
 
 \item{mode}{Which of the two node types to project onto. TRUE or FALSE.}
 
@@ -56,7 +56,7 @@ When receiving as parameter \code{\link{weight_scheme_sum_edges}} or
 \item{...}{Additional arguments passed to the method.}
 }
 \value{
-A unimodal_graph projection.
+A unimodal graph projection.
 }
 \description{
 A generic temporal projection function that dispatches to the appropriate

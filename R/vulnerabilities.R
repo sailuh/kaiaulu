@@ -77,6 +77,7 @@ transform_cve_cwe_file_to_network <- function(project_cve,nvd_feed){
   cwe_edgelist[, weight := 1L]
   # Set union edgelists
   cve_cwe_file_edgelist <- rbind(cve_edgelist, cwe_edgelist)
-  graph <- model_unimodal_graph(cve_cwe_file_nodes, cve_cwe_file_edgelist)
+  cve_cwe_file_edgelist[, direction := "directed"]
+  graph <- model_unimodal_graph(cve_cwe_file_nodes, cve_cwe_file_edgelist, direction = "directed")
   return(graph)
 }
