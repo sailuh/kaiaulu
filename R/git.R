@@ -855,10 +855,12 @@ transform_gitlog_to_temporal_network <- function(project_git, mode = c("author",
   to_nodes   <- data.table(name = unique(project_git[[to_col]]),   type = FALSE, color = to_color)
   git_nodes  <- rbind(from_nodes, to_nodes)
   # Keep one row per git log entry — temporal projection requires individual timestamps
+  # Use pre-computed weight column if present (e.g. lines changed), otherwise default to 1
+  edge_weight <- if ("weight" %in% names(project_git)) project_git[["weight"]] else 1L
   git_edgelist <- data.table(
     from       = project_git[[from_col]],
     to         = project_git[[to_col]],
-    weight     = 1L,
+    weight     = edge_weight,
     datetimetz = project_git[[dt_col]],
     direction  = "directed"
   )
