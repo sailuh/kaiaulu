@@ -13,7 +13,7 @@ bipartite_graph_projection(graph, mode, ...)
 \method{bipartite_graph_projection}{multimodal}(
   graph,
   mode,
-  edge_type,
+  edge_type = NULL,
   weight_scheme_function = NULL,
   ...
 )

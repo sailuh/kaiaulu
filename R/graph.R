@@ -343,7 +343,18 @@ bipartite_graph_projection.is_bipartite <- function(graph, mode, weight_scheme_f
 #' @rdname bipartite_graph_projection
 #' @method bipartite_graph_projection multimodal
 #' @export
-bipartite_graph_projection.multimodal <- function(graph, mode, edge_type, weight_scheme_function=NULL, ...){
+bipartite_graph_projection.multimodal <- function(graph, mode, edge_type=NULL, weight_scheme_function=NULL, ...){
+  if("is_bipartite" %in% class(graph)){
+    return(bipartite_graph_projection.is_bipartite(graph,
+                                                   mode=mode,
+                                                   weight_scheme_function=weight_scheme_function))
+  }
+
+  # Non-bipartite multimodal: slice by edge_type first, then project
+  if(is.null(edge_type)){
+    stop("edge_type is required for non-bipartite multimodal graphs.")
+  }
+
   # Need from_type to map mode string to bool_mode for the is_bipartite method
   slice_edges <- graph[["edgelist"]][type == edge_type, .(from, to)]
   from_type   <- unique(graph[["nodes"]][name %in% slice_edges$from]$type)
@@ -394,9 +405,22 @@ temporal_graph_projection <- function(graph, mode, weight_scheme_function=NULL, 
 #' @rdname temporal_graph_projection
 #' @method temporal_graph_projection multimodal
 #' @export
-temporal_graph_projection.multimodal <- function(graph, mode, weight_scheme_function=NULL, timestamp_column, edge_type, lag=c("one_lag","all_lag"), ...){
+temporal_graph_projection.multimodal <- function(graph, mode, weight_scheme_function=NULL, timestamp_column, edge_type=NULL, lag=c("one_lag","all_lag"), ...){
   if(!(timestamp_column %in% names(graph[["edgelist"]]))){
     stop(paste0("timestamp_column '", timestamp_column, "' not found in edgelist."))
+  }
+
+  if("is_bipartite" %in% class(graph)){
+    return(temporal_graph_projection.is_bipartite(graph,
+                                                  mode=mode,
+                                                  weight_scheme_function=weight_scheme_function,
+                                                  timestamp_column=timestamp_column,
+                                                  lag=lag))
+  }
+
+  # Non-bipartite multimodal: slice by edge_type first, then project
+  if(is.null(edge_type)){
+    stop("edge_type is required for non-bipartite multimodal graphs.")
   }
 
   # Need from_type to map mode string to bool_mode for the is_bipartite method
