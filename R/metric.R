@@ -217,7 +217,7 @@ productivity_author_commits <- function(project_git_log, lag = 90) {
   result <- dt[, {
     times <- author_datetimetz
     window_start <- stringi::stri_datetime_add(
-      author_datetimetz,
+      times,
       value = -lag,
       units = "days",
       tz = tz_val
@@ -269,7 +269,7 @@ productivity_author_churn <- function(project_git_log, lag = 90) {
   result <- dt[, {
     times <- author_datetimetz
     window_start <- stringi::stri_datetime_add(
-      author_datetimetz,
+      times,
       value = -lag,
       units = "days",
       tz = tz_val

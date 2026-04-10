@@ -23,7 +23,6 @@ set.seed(seed)
 ```{r warning=FALSE,message=FALSE}
 require(kaiaulu)
 require(data.table)
-require(igraph)
 require(yaml)
 require(stringi)
 require(knitr)
@@ -81,8 +80,7 @@ This is all the project configuration files are used for. If you inspect the var
 
 # Productivity Metrics
 
-## Construct Collaboration Network
-
+## Obtaining the Git Log
 Our first step is to parse the git log. Many of the variables in Kaiaulu are tables, which makes it easier to export and manually inspect the data at any step of the analysis.
 
 ```{r}
@@ -114,14 +112,14 @@ project_git_log$author_datetimetz <- as.POSIXct(
 )
 ```
 
-Now, we can obtain the output tables from `productivity_author_commits` and `productivity_author_churn`. We will save them to a variable called `productivity_author_commits_output` and `productivity_author_churn_output` respectively and keep the default value of lag to be 90 days (3 months) to define the rolling window. If you want to change the value of lag, you can do so by passing a different value in the function call. For example, if you want to use a 120-day (4 months) rolling window, you can set `lag = 120` in the function call.
+Now, we can obtain the output tables from `productivity_author_commits` and `productivity_author_churn`. We will save them to a variable called `productivity_author_commits_output` and `productivity_author_churn_output` respectively and keep the default value of lag to be 90 days (around 3 months) to define the rolling window. If you want to change the value of lag, you can do so by passing a different value in the function call. For example, if you want to use a 120-day (around 4 months) rolling window, you can set `lag = 120` in the function call.
 
 ```{r}
 productivity_author_commits_output <- productivity_author_commits(project_git_log, lag = 90)
 productivity_author_churn_output <- productivity_author_churn(project_git_log, lag = 90)
 ```
 
-We'll show the head of the output tables below.
+We'll show the head of the output tables for the two functions below.
 ```{r}
 kable(head(productivity_author_commits_output))
 kable(head(productivity_author_churn_output))
@@ -129,7 +127,9 @@ kable(head(productivity_author_churn_output))
 
 ## Visualizing the Output Tables as a Time Series
 
-To visualize the output tables as a time series, we can use the `ggplot2` package. Visualizing the productivity metrics as a time series is useful in observing the engagement of an author over time through the messages they send and their churn. One way to think of it is that in conjunction with the engagement metrics, we can use the productivity metrics to understand if an author is beoming more or less engaged over time with their sentiment scores reflecting such increase or decrease in engagement.
+To visualize the output tables as a time series, we can use the `ggplot2` package. Visualizing the productivity metrics as a time series is useful in observing the engagement of an author over time through the number of messages they send and their churn. One way to think of it is that in conjunction with the engagement metrics, we can use the productivity metrics to understand if an author is becoming more or less engaged over time with their sentiment scores reflecting such increase or decrease in engagement.
+
+### Plotting the Time Series for the Top Authors
 
 We'll select the top 10 authors based on their number of commits and churn, and then plot the time series for these authors.
 
@@ -139,20 +139,25 @@ top_n_authors <- 10
 
 The timeseries below shows the rolling window for author productivity by unique commits.
 
-```{r}
+```{r fig.width=12, fig.height=7}
 # Compute the top authors based on unique commits
 top_authors_commits <- productivity_author_commits_output[
-    ,.(max_commits = max(author_total_commits)),
+    ,.(max_commits = max(author_total_commits, na.rm = TRUE)),
     by = author_name_email
     # Sort max commits in descending order and select the top n authors
 ][order(-max_commits)][1:top_n_authors, author_name_email]
 
 # Select only the rows corresponding to the top authors based on unique commits
-plot_commits_dt <- productivity_author_commits_output[author_name_email %in% top_authors_commits]
+plot_commits_dt <- productivity_author_commits_output[
+    author_name_email %in% top_authors_commits, 
+    # Optional: Collapse duplicate (author, timestamp) rows (caused by per-file gitlog rows) to one point for geom_line().
+    .(author_total_commits = max(author_total_commits, na.rm = TRUE)),
+    by = .(author_name_email, author_datetimetz)
+    ][order(author_name_email, author_datetimetz)]
 
 ggplot(plot_commits_dt, aes(x = author_datetimetz, y = author_total_commits, color = author_name_email)) +
     geom_line() +
-    labs(title = "Rolling Window of Author Productivity by Unique Commits",
+    labs(title = "Time Series of Author Productivity by Unique Commits",
          x = "Date",
          y = "Unique Total Commits in Rolling Window",
          color = "Author"
@@ -160,22 +165,66 @@ ggplot(plot_commits_dt, aes(x = author_datetimetz, y = author_total_commits, col
 ```
 
 The timeseries below shows the rolling window for author productivity by churn.
-```{r}
+```{r fig.width=12, fig.height=7}
 # Compute the top authors based on churn
 top_authors_churn <- productivity_author_churn_output[
-    ,.(max_churn = max(author_churn)),
+    ,.(max_churn = max(author_churn, na.rm = TRUE)),
     by = author_name_email
     # Sort max churn in descending order and select the top n authors
 ][order(-max_churn)][1:top_n_authors, author_name_email]
 
 # Select only the rows corresponding to the top authors based on churn
-plot_churn_dt <- productivity_author_churn_output[author_name_email %in% top_authors_churn]
+plot_churn_dt <- productivity_author_churn_output[
+   author_name_email %in% top_authors_churn,
+  # Optional: Collapse duplicate (author, timestamp) rows (caused by per-file gitlog rows) to one point for geom_line().
+  .(author_churn = max(author_churn, na.rm = TRUE)),
+  by = .(author_name_email, author_datetimetz)
+][order(author_name_email, author_datetimetz)]
+
 
 ggplot(plot_churn_dt, aes(x = author_datetimetz, y = author_churn, color = author_name_email)) +
     geom_line() +
-    labs(title = "Rolling Window of Author Productivity by Churn",
+    labs(title = "Time Series of Author Productivity by Churn",
          x = "Date",
          y = "Total Churn in Rolling Window",
          color = "Author"
          )
+```
+
+### Plotting the Time Series for One Author
+
+If you want to observe the time series for a specific author, you can pass in the author's `author_name_email` to the function call.
+
+For visualizing the unique commits for one author:
+```{r}
+author_of_interest <- "Carlos Paradis <carlosviansi@gmail.com>"
+```
+
+```{r fig.width=12, fig.height=7}
+plot_author_commits <- productivity_author_commits_output[
+  author_name_email == author_of_interest
+][order(author_datetimetz)]
+
+ggplot(plot_author_commits, aes(x = author_datetimetz, y = author_total_commits)) +
+  geom_line() +
+  labs(
+    title = paste("Rolling Window of Author Productivity\ by Unique Commits:", author_of_interest),
+    x = "Date",
+    y = "Unique Total Commits in Rolling Window"
+  )
+```
+
+For visualizing the churn for one author:
+```{r fig.width=12, fig.height=7}
+plot_author_churn <- productivity_author_churn_output[
+  author_name_email == author_of_interest
+][order(author_datetimetz)]
+
+ggplot(plot_author_churn, aes(x = author_datetimetz, y = author_churn)) +
+  geom_line() +
+  labs(
+    title = paste("Rolling Window of Author Productivity\ by Churn:", author_of_interest),
+    x = "Date",
+    y = "Total Churn in Rolling Window"
+  )
 ```
