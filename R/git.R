@@ -833,7 +833,7 @@ git_mv <- function(git_repo, folder_path, old_name, new_name) {
 #' Software Engineering, Florence, 2015, pp. 563-573,
 #' doi: 10.1109/ICSE.2015.73.
 transform_gitlog_to_temporal_network <- function(project_git, mode = c("author","committer"), lag = "one_lag", weight_scheme_function = weight_scheme_sum_edges){
-  author_name_email <- committer_name_email <- file_pathname <- author_datetimetz <- committer_datetimetz <- lines_added <- lines_removed <- NULL # due to NSE notes in R CMD check
+  author_name_email <- committer_name_email <- file_pathname <- author_datetimetz <- committer_datetimetz <- NULL # due to NSE notes in R CMD check
   if(!is.data.table(project_git)){
     stop("project_git must be a data.table returned by parse_gitlog.")
   }
@@ -858,7 +858,7 @@ transform_gitlog_to_temporal_network <- function(project_git, mode = c("author",
   git_edgelist <- data.table(
     from       = project_git[[from_col]],
     to         = project_git[[to_col]],
-    weight     = as.numeric(project_git[["lines_added"]]) + as.numeric(project_git[["lines_removed"]]),
+    weight     = 1L,
     datetimetz = project_git[[dt_col]],
     direction  = "directed"
   )
@@ -918,9 +918,8 @@ transform_gitlog_to_bipartite_network <- function(project_git, mode = c("author-
     color = to_color
   )
   git_nodes <- rbind(from_nodes, to_nodes)
-  # Build edgelist — sum lines changed per unique from-to pair
-  git_edgelist <- project_git[, .(weight = sum(as.numeric(lines_added) + as.numeric(lines_removed), na.rm=TRUE)),
-                               by = c(from_col, to_col)]
+  # Build edgelist — count co-occurrences per unique from-to pair
+  git_edgelist <- project_git[, .(weight = .N), by = c(from_col, to_col)]
   setnames(git_edgelist, old = c(from_col, to_col), new = c("from", "to"))
   git_edgelist[, direction := "directed"]
   # Constructor only wraps pre-built tables and assigns graph type
@@ -975,9 +974,8 @@ transform_gitlog_to_entity_bipartite_network <- function(project_git_entity, mod
     color = to_color
   )
   git_nodes <- rbind(from_nodes, to_nodes)
-  # Build edgelist — sum lines changed per unique from-to pair
-  git_edgelist <- project_git_entity[, .(weight = sum(weight, na.rm=TRUE)),
-                                     by = c(from_col, to_col)]
+  # Build edgelist — count co-occurrences per unique from-to pair
+  git_edgelist <- project_git_entity[, .(weight = .N), by = c(from_col, to_col)]
   setnames(git_edgelist, old = c(from_col, to_col), new = c("from", "to"))
   git_edgelist[, direction := "directed"]
   # Constructor only wraps pre-built tables and assigns graph type
