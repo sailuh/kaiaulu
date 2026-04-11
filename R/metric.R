@@ -182,9 +182,9 @@ commit_message_id_coverage <- function(git_log,commit_message_id_regex){
   return(length(is_match[is_match]))
 }
 
-#' Jira Developer Communication Count Metric
+#' Jira Author Communication Count Metric
 #'
-#' Calculates the number of messages/comments a developer has sent in Jira within
+#' Calculates the number of messages/comments an author has sent in Jira within
 #' a 90-day rolling window.
 #'
 #' @param comments_dt a parsed jira comments table obtained from \code{\link{parse_jira}}
@@ -195,7 +195,7 @@ commit_message_id_coverage <- function(git_log,commit_message_id_regex){
 #' @export
 #' @family metrics
 #' @seealso \code{\link{parse_jira}} to obtain the comments table
-jira_developer_communication_count <- function(comments_dt, 
+jira_author_communication_count <- function(comments_dt, 
                                                comment_created_col = "comment_created_datetimetz", 
                                                comment_author_col = "comment_author_name", 
                                                lag = 90) {
@@ -211,27 +211,26 @@ dt <- data.table::data.table(
   )
 
   data.table::setorder(dt, comment_author_name, datetimetz)
-  data.table::setkey(dt, comment_author_name, datetimetz)
 
   result <- dt[, {
+    times <- datetimetz
     window_start <- stringi::stri_datetime_add(
-      datetimetz, 
-      days = -lag, 
+      times,
+      value = -lag,
+      units = "days",
       tz = tz_val
     )
 
-    comment_count <- dt[.SD,
-      on = .(comment_author_name,
-             datetimetz >= window_start,
-             datetimetz <= datetimetz),
-      .N,
-      by = .EACHI
-    ]$N
+    comment_count <- sapply(seq_along(times), function(i) {
+      sum(times >= window_start[i] & times <= times[i])
+    })
 
-    .(datetimetz = datetimetz,
+    .(
+      datetimetz = times,
       comment_author_name = comment_author_name,
-      comment_count = comment_count)
-  }, by = .(comment_author_name, datetimetz)]
+      comment_count = as.integer(comment_count)
+    )
+  }, by = .(comment_author_name)]
 
   return(result[])
 }

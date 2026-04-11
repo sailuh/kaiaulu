@@ -18,7 +18,7 @@ The total churn of a file
 \seealso{
 Other metrics: 
 \code{\link{commit_message_id_coverage}()},
-\code{\link{jira_developer_communication_count}()},
+\code{\link{jira_author_communication_count}()},
 \code{\link{metric_churn}()},
 \code{\link{metric_churn_per_commit_interval}()},
 \code{\link{metric_churn_per_commit_per_file}()},
