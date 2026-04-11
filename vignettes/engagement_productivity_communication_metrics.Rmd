@@ -161,7 +161,8 @@ ggplot(plot_commits_dt, aes(x = author_datetimetz, y = author_total_commits, col
          x = "Date",
          y = "Unique Total Commits in Rolling Window",
          color = "Author"
-         )
+         ) +
+         theme(plot.title = element_text(hjust = 0.5))
 ```
 
 The timeseries below shows the rolling window for author productivity by churn.
@@ -188,7 +189,8 @@ ggplot(plot_churn_dt, aes(x = author_datetimetz, y = author_churn, color = autho
          x = "Date",
          y = "Total Churn in Rolling Window",
          color = "Author"
-         )
+         ) + 
+         theme(plot.title = element_text(hjust = 0.5))
 ```
 
 ### Plotting the Time Series for One Author
@@ -211,7 +213,8 @@ ggplot(plot_author_commits, aes(x = author_datetimetz, y = author_total_commits)
     title = paste("Rolling Window of Author Productivity\ by Unique Commits:", author_of_interest),
     x = "Date",
     y = "Unique Total Commits in Rolling Window"
-  )
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 For visualizing the churn for one author:
@@ -226,5 +229,6 @@ ggplot(plot_author_churn, aes(x = author_datetimetz, y = author_churn)) +
     title = paste("Rolling Window of Author Productivity\ by Churn:", author_of_interest),
     x = "Date",
     y = "Total Churn in Rolling Window"
-  )
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
