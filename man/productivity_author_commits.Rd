@@ -2,7 +2,7 @@
 % Please edit documentation in R/metric.R
 \name{productivity_author_commits}
 \alias{productivity_author_commits}
-\title{Productivity Author Commits}
+\title{Productivity Author Commits Metric}
 \usage{
 productivity_author_commits(project_git_log, lag = 90)
 }
@@ -17,7 +17,7 @@ For each row (each timestamp in author_datetimetz), author_total_commits is the 
 commits by that author in the preceding 90 days ending at that timestamp.
 }
 \description{
-Counts the unique number of commits per author in a rolling window based on 
+Counts the unique number of commits per author in a rolling window based on
 the git log.
 }
 \seealso{

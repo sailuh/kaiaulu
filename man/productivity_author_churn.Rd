@@ -2,7 +2,7 @@
 % Please edit documentation in R/metric.R
 \name{productivity_author_churn}
 \alias{productivity_author_churn}
-\title{Productivity Author Churn}
+\title{Productivity Author Churn Metric}
 \usage{
 productivity_author_churn(project_git_log, lag = 90)
 }

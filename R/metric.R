@@ -182,9 +182,9 @@ commit_message_id_coverage <- function(git_log,commit_message_id_regex){
   return(length(is_match[is_match]))
 }
 
-#' Productivity Author Commits
+#' Productivity Author Commits Metric
 #'
-#' Counts the unique number of commits per author in a rolling window based on 
+#' Counts the unique number of commits per author in a rolling window based on
 #' the git log.
 #'
 #' @param project_git_log a parsed git log obtained from \code{\link{parse_gitlog}}
@@ -208,10 +208,8 @@ productivity_author_commits <- function(project_git_log, lag = 90) {
     commit_hash
   )]
 
-  # Order data
   # Order rows by author_name_email and author_datetimetz in ascending order
   data.table::setorder(dt, author_name_email, author_datetimetz)
-  data.table::setkey(dt, author_name_email, author_datetimetz)
 
   # Rolling window
   result <- dt[, {
@@ -222,7 +220,7 @@ productivity_author_commits <- function(project_git_log, lag = 90) {
       units = "days",
       tz = tz_val
     )
-    
+
     author_total_commits <- sapply(seq_along(times), function(i) {
       data.table::uniqueN(commit_hash[times >= window_start[i] & times <= times[i]])
     })
@@ -236,7 +234,7 @@ productivity_author_commits <- function(project_git_log, lag = 90) {
   return(result[])
 }
 
-#' Productivity Author Churn
+#' Productivity Author Churn Metric
 #'
 #' Calculates the churn per author in a rolling window based on the git log.
 #'
@@ -260,10 +258,8 @@ productivity_author_churn <- function(project_git_log, lag = 90) {
 
   dt[, author_datetimetz := as.POSIXct(author_datetimetz, tz = tz_val)]
 
-  # Order data
   # Order rows by author_name_email and author_datetimetz in ascending order
   data.table::setorder(dt, author_name_email, author_datetimetz)
-  data.table::setkey(dt, author_name_email, author_datetimetz)
 
   # Rolling window
   result <- dt[, {
