@@ -2,20 +2,26 @@
 % Please edit documentation in R/graph.R
 \name{community_oslom}
 \alias{community_oslom}
-\title{OSLOM Community Detection}
+\alias{community_oslom.unimodal}
+\alias{community_oslom.multimodal}
+\title{OSLOM Community Detection (S3 generic)}
 \usage{
-community_oslom(oslom_bin_dir_undir_path, graph, seed, n_runs, is_weighted)
+community_oslom(oslom_bin_dir_undir_path, graph, seed, n_runs, ...)
+
+\method{community_oslom}{unimodal}(oslom_bin_dir_undir_path, graph, seed, n_runs, ...)
+
+\method{community_oslom}{multimodal}(oslom_bin_dir_undir_path, graph, seed, n_runs, ...)
 }
 \arguments{
 \item{oslom_bin_dir_undir_path}{The path to oslom directed or undirected network binary}
 
-\item{graph}{The graph to be clustered obtained from transform_* functions}
+\item{graph}{A graph returned by \code{\link{model_unimodal_graph}}.}
 
 \item{seed}{An integer specifying the seed to replicate the result}
 
 \item{n_runs}{the number of runs for the first hierarchical level}
 
-\item{is_weighted}{a boolean indicating whether a weight column is available in the data.table}
+\item{...}{Additional arguments passed to the method.}
 }
 \description{
 Wrapper for OSLOM Community Detection \url{http://oslom.org/}

@@ -895,21 +895,29 @@ weight_scheme_pairwise_cum_temporal <- function(temporally_ordered_projected_gra
   return(temporally_ordered_projected_graph)
 }
 
-#' OSLOM Community Detection
+#' OSLOM Community Detection (S3 generic)
 #'
 #' @description Wrapper for OSLOM Community Detection \url{http://oslom.org/}
 #' @param oslom_bin_dir_undir_path The path to oslom directed or undirected network binary
-#' @param graph The graph to be clustered obtained from transform_* functions
+#' @param graph A graph returned by \code{\link{model_unimodal_graph}}.
 #' @param seed An integer specifying the seed to replicate the result
 #' @param n_runs the number of runs for the first hierarchical level
-#' @param is_weighted a boolean indicating whether a weight column is available in the data.table
+#' @param ... Additional arguments passed to the method.
 #' @references Finding statistically significant communities in networks
 #' A. Lancichinetti, F. Radicchi, J.J. Ramasco and
 #' S. Fortunato PLoS ONE 6, e18961 (2011).
 #' @export
 #' @family community
-community_oslom <- function(oslom_bin_dir_undir_path,graph,seed,n_runs,is_weighted){
+community_oslom <- function(oslom_bin_dir_undir_path, graph, seed, n_runs, ...) {
+  UseMethod("community_oslom")
+}
 
+#' @rdname community_oslom
+#' @method community_oslom unimodal
+#' @export
+community_oslom.unimodal <- function(oslom_bin_dir_undir_path, graph, seed, n_runs, ...) {
+
+  is_weighted <- "weighted" %in% class(graph)
   edgelist <- graph[["edgelist"]]
 
   oslom_bin_dir_undir_path <- path.expand(oslom_bin_dir_undir_path)
@@ -998,6 +1006,13 @@ community_oslom <- function(oslom_bin_dir_undir_path,graph,seed,n_runs,is_weight
   cluster[["info"]]$cluster_id <- as.character(as.numeric(cluster[["info"]]$cluster_id) + 1)
 
   return(cluster)
+}
+
+#' @rdname community_oslom
+#' @method community_oslom multimodal
+#' @export
+community_oslom.multimodal <- function(oslom_bin_dir_undir_path, graph, seed, n_runs, ...) {
+  stop("community_oslom does not support multimodal graphs. Project or slice the graph to a unimodal network first using bipartite_graph_projection() or superset_bipartite_from_multimodal().")
 }
 
 #' Re-color OSLOM Community IDs

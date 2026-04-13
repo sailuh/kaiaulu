@@ -2,6 +2,8 @@
 
 S3method(bipartite_graph_projection,is_bipartite)
 S3method(bipartite_graph_projection,multimodal)
+S3method(community_oslom,multimodal)
+S3method(community_oslom,unimodal)
 S3method(graph_to_dsmj,multimodal)
 S3method(graph_to_dsmj,unimodal)
 S3method(temporal_graph_projection,is_bipartite)
