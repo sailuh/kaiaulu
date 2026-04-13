@@ -47,6 +47,39 @@ example_github_issue_no_description <- function(folder_path="/tmp", folder_name)
   return(folder_path)
 }
 
+#' Example Git Blame case with no metadata
+#'
+#' A repo with 2 commits. The first adds test-blame.R with some text and the second
+#' modifies the text. 
+#'
+#' This example is used to test how parse_git_blame handles suppressed metadata Git Blame's Porcelain format. 
+#' It creates an example that produces a Git Blame output broken into chunks. This format will attempt to
+#' suppress repeating metadata for the same commit hash, so the first line's full metadata is displayed, but the third's is suppressed.
+#' This causes it to break into parse_git_blame's Case 1 if statement. 
+#'
+example_git_blame_no_metadata <- function(folder_path,folder_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path,folder_name)
+  git_init(folder_path)
+  git_repo <- file.path(folder_path, '.git')
+  test_path <- file.path(folder_path, "test-blame.R")
+  # Create file
+  io_make_file(test_path, "hi
+               hello
+               hi")
+
+  git_add(git_repo, folder_path, test_path)
+  git_commit(git_repo, folder_path, "First commit!", "First Committer", "firstcommitter@test.com")
+  # Edit file in two nonadjacent lines. 
+  io_make_file(test_path, "bye
+               hello
+               bye")
+
+  git_add(git_repo, folder_path, test_path)
+  git_commit(git_repo, folder_path, "Second commit!", "Second Committer", "secondcommitter@test.com")
+}
+
 #' Example Renamed File Repo
 #'
 #' A repo with 3 commits. The first adds hello.R, , the second
