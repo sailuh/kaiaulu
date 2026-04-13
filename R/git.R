@@ -848,8 +848,8 @@ transform_gitlog_to_temporal_network <- function(project_git, mode = c("author",
     from_col   <- "committer_name_email"
     to_col     <- "file_pathname"
     dt_col     <- "committer_datetimetz"
-    from_color <- "#bed7be"
-    to_color   <- "#f4dbb5"
+    from_color <- "black"
+    to_color   <- "#bed7be"
   }
   from_nodes <- data.table(name = unique(project_git[[from_col]]), type = TRUE,  color = from_color)
   to_nodes   <- data.table(name = unique(project_git[[to_col]]),   type = FALSE, color = to_color)
@@ -1016,10 +1016,10 @@ transform_gitlog_to_entity_temporal_network <- function(project_git_entity, mode
   } else {
     from_col   <- "committer_name_email"
     dt_col     <- "committer_datetimetz"
-    from_color <- "#bed7be"
+    from_color <- "black"
   }
   to_col   <- "entity"
-  to_color <- "#fafad2"
+  to_color <- if (mode == "author") "#fafad2" else "#bed7be"
   from_nodes <- data.table(name = unique(project_git_entity[[from_col]]), type = TRUE,  color = from_color)
   to_nodes   <- data.table(name = unique(project_git_entity[[to_col]]),   type = FALSE, color = to_color)
   git_nodes  <- rbind(from_nodes, to_nodes)
