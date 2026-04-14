@@ -213,7 +213,7 @@ productivity_author_commits <- function(project_git_log, lag = 90) {
 
   # Rolling window
   result <- dt[, {
-    times <- author_datetimetz
+    times <- unique(author_datetimetz)
     window_start <- stringi::stri_datetime_add(
       times,
       value = -lag,
@@ -263,7 +263,7 @@ productivity_author_churn <- function(project_git_log, lag = 90) {
 
   # Rolling window
   result <- dt[, {
-    times <- author_datetimetz
+    times <- unique(author_datetimetz)
     window_start <- stringi::stri_datetime_add(
       times,
       value = -lag,

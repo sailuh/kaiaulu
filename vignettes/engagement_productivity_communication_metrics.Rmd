@@ -115,8 +115,12 @@ project_git_log$author_datetimetz <- as.POSIXct(
 Now, we can obtain the output tables from `productivity_author_commits` and `productivity_author_churn`. We will save them to a variable called `productivity_author_commits_output` and `productivity_author_churn_output` respectively and keep the default value of lag to be 90 days (around 3 months) to define the rolling window. If you want to change the value of lag, you can do so by passing a different value in the function call. For example, if you want to use a 120-day (around 4 months) rolling window, you can set `lag = 120` in the function call.
 
 ```{r}
-productivity_author_commits_output <- productivity_author_commits(project_git_log, lag = 90)
-productivity_author_churn_output <- productivity_author_churn(project_git_log, lag = 90)
+lag = 90
+```
+
+```{r}
+productivity_author_commits_output <- productivity_author_commits(project_git_log, lag = lag)
+productivity_author_churn_output <- productivity_author_churn(project_git_log, lag = lag)
 ```
 
 We'll show the head of the output tables for the two functions below.
@@ -149,19 +153,17 @@ top_authors_commits <- productivity_author_commits_output[
 
 # Select only the rows corresponding to the top authors based on unique commits
 plot_commits_dt <- productivity_author_commits_output[
-    author_name_email %in% top_authors_commits, 
-    # Optional: Collapse duplicate (author, timestamp) rows (caused by per-file gitlog rows) to one point for geom_line().
-    .(author_total_commits = max(author_total_commits, na.rm = TRUE)),
-    by = .(author_name_email, author_datetimetz)
+    author_name_email %in% top_authors_commits
     ][order(author_name_email, author_datetimetz)]
 
 ggplot(plot_commits_dt, aes(x = author_datetimetz, y = author_total_commits, color = author_name_email)) +
     geom_line() +
-    labs(title = "Time Series of Author Productivity by Unique Commits",
+    labs(title = paste0("Author Productivity on ", lag, "-day Time Window"),
          x = "Date",
-         y = "Unique Total Commits in Rolling Window",
+         y = "Number of Commits",
          color = "Author"
          ) +
+         theme_minimal() +
          theme(plot.title = element_text(hjust = 0.5))
 ```
 
@@ -176,59 +178,71 @@ top_authors_churn <- productivity_author_churn_output[
 
 # Select only the rows corresponding to the top authors based on churn
 plot_churn_dt <- productivity_author_churn_output[
-   author_name_email %in% top_authors_churn,
-  # Optional: Collapse duplicate (author, timestamp) rows (caused by per-file gitlog rows) to one point for geom_line().
-  .(author_churn = max(author_churn, na.rm = TRUE)),
-  by = .(author_name_email, author_datetimetz)
-][order(author_name_email, author_datetimetz)]
+   author_name_email %in% top_authors_churn
+   ][order(author_name_email, author_datetimetz)]
 
 
 ggplot(plot_churn_dt, aes(x = author_datetimetz, y = author_churn, color = author_name_email)) +
     geom_line() +
-    labs(title = "Time Series of Author Productivity by Churn",
+    labs(title = paste0("Author Productivity on ", lag, "-day Time Window"),
          x = "Date",
-         y = "Total Churn in Rolling Window",
+         y = "Churn",
          color = "Author"
-         ) + 
+         ) +
+         theme_minimal() +
          theme(plot.title = element_text(hjust = 0.5))
 ```
 
-### Plotting the Time Series for One Author
+### Comparing the Time Series of Different Engagement Metrics
 
-If you want to observe the time series for a specific author, you can pass in the author's `author_name_email` to the function call.
-
-For visualizing the unique commits for one author:
-```{r}
-author_of_interest <- "Carlos Paradis <carlosviansi@gmail.com>"
-```
+We can compare the time series of an author for both their number of commits and their churn across the rolling window. To do this, we will select one author and normalize the values of both metrics to be on the same scale (0-1) using min-max normalization. Then, we will plot both metrics on the same graph to compare their trends over time.
 
 ```{r fig.width=12, fig.height=7}
-plot_author_commits <- productivity_author_commits_output[
-  author_name_email == author_of_interest
+one_author <- "Carlos Paradis <carlosviansi@gmail.com>"
+
+# Filter to one author
+commits_dt <- productivity_author_commits_output[
+  author_name_email == one_author,
+  .(author_datetimetz, author_total_commits)
 ][order(author_datetimetz)]
 
-ggplot(plot_author_commits, aes(x = author_datetimetz, y = author_total_commits)) +
-  geom_line() +
-  labs(
-    title = paste("Rolling Window of Author Productivity\ by Unique Commits:", author_of_interest),
-    x = "Date",
-    y = "Unique Total Commits in Rolling Window"
-  ) +
-  theme(plot.title = element_text(hjust = 0.5))
-```
-
-For visualizing the churn for one author:
-```{r fig.width=12, fig.height=7}
-plot_author_churn <- productivity_author_churn_output[
-  author_name_email == author_of_interest
+churn_dt <- productivity_author_churn_output[
+  author_name_email == one_author,
+  .(author_datetimetz, author_churn)
 ][order(author_datetimetz)]
 
-ggplot(plot_author_churn, aes(x = author_datetimetz, y = author_churn)) +
+# Join on timestamp so both metrics share the same x-axis
+plot_dt <- merge(commits_dt, churn_dt, by = "author_datetimetz", all = TRUE)
+
+# Normalize the values using min-max normalization to bring them to a 0-1 scale
+normalize <- function(x) {
+  if (!is.numeric(x)) return(x)
+  if (all(is.na(x))) return(x)
+
+  x_min <- min(x, na.rm = TRUE)
+  x_max <- max(x, na.rm = TRUE)
+
+  if (x_max == x_min) return(rep(0, length(x)))
+
+  (x - x_min) / (x_max - x_min)
+}
+
+plot_dt_normalized <- as.data.table(lapply(plot_dt, normalize))
+
+# Make long table for plotting both lines
+plot_long <- rbindlist(list(
+  plot_dt_normalized[, .(author_datetimetz, metric = "Commits (normalized)", value = author_total_commits)],
+  plot_dt_normalized[, .(author_datetimetz, metric = "Churn (normalized)",   value = author_churn)]
+))
+
+ggplot(plot_long, aes(x = author_datetimetz, y = value, color = metric)) +
   geom_line() +
   labs(
-    title = paste("Rolling Window of Author Productivity\ by Churn:", author_of_interest),
+    title = paste0("Commits and Churn Productivity on ", lag, "-day Time Window (Normalized): ", one_author),
     x = "Date",
-    y = "Total Churn in Rolling Window"
+    y = "Normalized value (0–1)",
+    color = "Metric"
   ) +
+  theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5))
 ```
