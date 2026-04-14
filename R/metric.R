@@ -205,29 +205,28 @@ engagement_communication <- function(datetimetz, user_name_email, quit_lag = 90)
 
   # Order data
   data.table::setorder(dt, user_name_email, datetimetz)
-  data.table::setkey(dt, user_name_email, datetimetz)
 
   # For each message, count how many messages the same author sent
   # in the rolling window i.e. the prior 90 days up to and including the message timestamp
   result <- dt[, {
+    all_times <- datetimetz
+    unique_times <- unique(datetimetz)
     window_start <- stringi::stri_datetime_add(
-      datetimetz,
-      days = -quit_lag,
+      unique_times,
+      value = -quit_lag,
+      units = "days",
       tz = tz_val
     )
 
-    message_count <- dt[.SD,
-                        on = .(user_name_email,
-                               datetimetz >= window_start,
-                               datetimetz <= datetimetz),
-                        .N,
-                        by = .EACHI]$N
+    message_count <- sapply(seq_along(unique_times), function(i) {
+      sum(all_times >= window_start[i] & all_times <= unique_times[i], na.rm = TRUE)
+    })
 
-    .(datetimetz = datetimetz,
+    .(datetimetz = unique_times,
       user_name_email = user_name_email,
       message_count = message_count)
 
-  }, by = .(user_name_email, datetimetz)]
+  }, by = .(user_name_email)]
 
   return(result[])
 }
@@ -261,26 +260,31 @@ engagement_sentiment <- function(datetimetz, user_name_email, polarity, quit_lag
     polarity = numeric_polarity
   )
 
-  # Order data in non-decreasing order of datetimetz for each user
+  # Order data
   data.table::setorder(dt, user_name_email, datetimetz)
-  data.table::setkey(dt, user_name_email, datetimetz)
 
   # Rolling window and aggregation
   result <- dt[, {
-    window_start <- stringi::stri_datetime_add(datetimetz, days = -quit_lag, tz = tz_val)
+    all_times <- datetimetz
+    all_polarity_values <- polarity
+    unique_times <- unique(datetimetz)
+    window_start <- stringi::stri_datetime_add(
+      unique_times, 
+      value = -quit_lag,
+      units = "days",
+      tz = tz_val
+    )
 
-    aggregate_value <- dt[.SD,
-                    on = .(user_name_email,
-                           datetimetz >= window_start,
-                           datetimetz <= datetimetz),
-                    .(val = aggregate_func(polarity, na.rm = TRUE)),
-                    by = .EACHI]$val
+    aggregate_value <- sapply(seq_along(unique_times), function(i) {
+      idx <- all_times >= window_start[i] & all_times <= unique_times[i]
+      aggregate_func(all_polarity_values[idx], na.rm = TRUE)
+    })
 
-    .(datetimetz = datetimetz,
+    .(datetimetz = unique_times,
       user_name_email = user_name_email,
       aggregate_polarity = aggregate_value)
 
-  }, by = .(user_name_email, datetimetz)]
+  }, by = .(user_name_email)]
 
   return(result[])
 }
