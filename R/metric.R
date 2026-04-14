@@ -213,20 +213,22 @@ dt <- data.table::data.table(
   data.table::setorder(dt, comment_author_name, datetimetz)
 
   result <- dt[, {
-    times <- unique(datetimetz)
+    all_times    <- datetimetz
+    unique_times <- unique(all_times)
+
     window_start <- stringi::stri_datetime_add(
-      times,
+      unique_times,
       value = -lag,
       units = "days",
       tz = tz_val
     )
 
-    comment_count <- sapply(seq_along(times), function(i) {
-      sum(times >= window_start[i] & times <= times[i])
+    comment_count <- sapply(seq_along(unique_times), function(i) {
+      sum(all_times >= window_start[i] & all_times <= unique_times[i], na.rm = TRUE)
     })
 
     .(
-      datetimetz = times,
+      datetimetz = unique_times,
       comment_author_name = comment_author_name,
       comment_count = as.integer(comment_count)
     )
