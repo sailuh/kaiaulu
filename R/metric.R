@@ -211,6 +211,7 @@ engagement_communication <- function(datetimetz, user_name_email, quit_lag = 90)
   result <- dt[, {
     all_times <- datetimetz
     unique_times <- unique(datetimetz)
+
     window_start <- stringi::stri_datetime_add(
       unique_times,
       value = -quit_lag,
@@ -268,6 +269,7 @@ engagement_sentiment <- function(datetimetz, user_name_email, polarity, quit_lag
     all_times <- datetimetz
     all_polarity_values <- polarity
     unique_times <- unique(datetimetz)
+    
     window_start <- stringi::stri_datetime_add(
       unique_times, 
       value = -quit_lag,
