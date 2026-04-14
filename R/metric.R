@@ -213,20 +213,23 @@ productivity_author_commits <- function(project_git_log, lag = 90) {
 
   # Rolling window
   result <- dt[, {
-    times <- unique(author_datetimetz)
+    all_times   <- author_datetimetz
+    unique_times <- unique(all_times)
+    
     window_start <- stringi::stri_datetime_add(
-      times,
+      unique_times,
       value = -lag,
       units = "days",
       tz = tz_val
     )
 
-    author_total_commits <- sapply(seq_along(times), function(i) {
-      data.table::uniqueN(commit_hash[times >= window_start[i] & times <= times[i]])
+    author_total_commits <- sapply(seq_along(unique_times), function(i) {
+      idx <- all_times >= window_start[i] & all_times <= unique_times[i]
+      data.table::uniqueN(commit_hash[idx])
     })
 
     .(
-      author_datetimetz = times,
+      author_datetimetz = unique_times,
       author_total_commits = as.integer(author_total_commits)
     )
   }, by = .(author_name_email)]
@@ -263,18 +266,20 @@ productivity_author_churn <- function(project_git_log, lag = 90) {
 
   # Rolling window
   result <- dt[, {
-    times <- unique(author_datetimetz)
+    all_times    <- author_datetimetz
+    unique_times <- unique(all_times)
+
     window_start <- stringi::stri_datetime_add(
-      times,
+      unique_times,
       value = -lag,
       units = "days",
       tz = tz_val
     )
 
-    data.table::rbindlist(lapply(seq_along(times), function(i) {
-      idx <- times >= window_start[i] & times <= times[i]
+    data.table::rbindlist(lapply(seq_along(unique_times), function(i) {
+      idx <- all_times >= window_start[i] & all_times <= unique_times[i]
       data.table::data.table(
-        author_datetimetz = times[i],
+        author_datetimetz = unique_times[i],
         lines_added = sum(as.numeric(lines_added[idx]), na.rm = TRUE),
         lines_removed = sum(as.numeric(lines_removed[idx]), na.rm = TRUE),
         author_churn = sum(churn[idx], na.rm = TRUE)
