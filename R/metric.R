@@ -213,7 +213,7 @@ dt <- data.table::data.table(
   data.table::setorder(dt, comment_author_name, datetimetz)
 
   result <- dt[, {
-    times <- datetimetz
+    times <- unique(datetimetz)
     window_start <- stringi::stri_datetime_add(
       times,
       value = -lag,
