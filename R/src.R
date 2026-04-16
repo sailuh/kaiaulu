@@ -489,7 +489,7 @@ transform_r_dependencies_to_network <- function(r_dependencies_edgelist, depende
     to_col   <- "src_functions_caller_filename"
     color    <- "#f4dbb5"
   }
-  nodes    <- data.table(name = unique(c(r_dependencies_edgelist[[from_col]], r_dependencies_edgelist[[to_col]])), color = color)
+  nodes    <- data.table(name = unique(c(r_dependencies_edgelist[[from_col]], r_dependencies_edgelist[[to_col]])), type = FALSE, color = color)
   edgelist <- r_dependencies_edgelist[, .(weight = .N), by = c(from_col, to_col)]
   setnames(edgelist, old = c(from_col, to_col), new = c("from", "to"))
   edgelist[, direction := "directed"]

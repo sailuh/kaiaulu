@@ -909,7 +909,7 @@ weight_scheme_pairwise_cum_temporal <- function(temporally_ordered_projected_gra
 #' @export
 #' @family community
 community_oslom <- function(oslom_bin_dir_undir_path, graph, seed, n_runs, ...) {
-  UseMethod("community_oslom")
+  UseMethod("community_oslom", graph)
 }
 
 #' @rdname community_oslom
