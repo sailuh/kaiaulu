@@ -27,8 +27,8 @@
 * `”testthat when parse_gitlog is given valid paths to perceval and a ./git folder, then it returns a data table”`
 * `”testthat when parse_gitlog is given a repository with two branches with one commit each, it extracts only the current branch commit”`
 * `”testthat when parse_gitlog is given a repository with no commits, then a Git command error is thrown”` - Error is not propagated via system call, temporarily caught with ```try catch``` block
-* `”testthat when parse_gitlog is given a renamed file repository, then the renamed file name is parsed to the new file_pathname_renamed column in the data table”`
-* `”testthat when parse_gitlog is given a valid Perl Regex, then the data table has a filtered output resulting from the ”`
+* `”testthat when parse_gitlog is given a renamed file repository, then the renamed file name is parsed to the data table”`
+* `”testthat when parse_gitlog is given a valid Perl Regex, then the data table has a filtered output resulting from the specified Regex”`
 * `”testthat when parse_gitlog is given a repository with a file inside a folder inside another folder, then it will extract the current commit correctly to a data table”`
 
 ## Git Blame
