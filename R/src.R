@@ -410,8 +410,7 @@ transform_understand_dependencies_to_network <- function(parsed, weight_types) {
   # Build nodes table
   depend_nodes <- data.table(
     name  = nodes[["node_label"]],
-    type  = FALSE,
-    color = "#f4dbb5"
+    type  = FALSE
   )
   # Build edgelist — weight = count of this dependency kind per from-to pair
   depend_edgelist <- edges[, .(weight = .N), by = .(from = label_from, to = label_to, label = dependency_kind)]
