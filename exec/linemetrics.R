@@ -14,7 +14,12 @@ USAGE:
   linemetrics.R parse <tools.yml> <project_conf.yml> <save_path>
 
 DESCRIPTION:
-  Analyze line metrics using the SCC tool.
+  Analyze line metrics using the SCC tool. Please see Kaiaulu's README.md for instructions on how to create <tool.yml> and <project_conf.yml>.
+
+ARGUMENTS:
+  <tools.yml>                   path to tools.yml file
+  <project_conf.yml>            path to configuration file for project you want to analyze
+  <save_path>                   file path where output will be saved
 
 OPTIONS:
   -h --help     Show this screen.

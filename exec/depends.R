@@ -17,7 +17,13 @@ USAGE:
   depends.R parse <tools.yml> <project_conf.yml> <node_save_file_name_path> <edge_save_file_name_path>
 
 DESCRIPTION:
-  Parses file dependencies using the Depends tool.
+  Parses file dependencies using the Depends tool. Please see Kaiaulu's README.md for instructions on how to create <tool.yml> and <project_conf.yml>.
+
+ARGUMENTS:
+  <tools.yml>                   path to tools.yml file
+  <project_conf.yml>            path to configuration file for project you want to analyze
+  <node_save_file_name_path>    file path where csv of nodes of the network will be saved
+  <edge_save_file_name_path>    file path where csv of edges of the network will be saved
 
 OPTIONS:
   -h --help     Show this screen.

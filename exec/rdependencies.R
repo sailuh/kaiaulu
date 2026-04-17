@@ -14,7 +14,11 @@ USAGE:
   rdependencies.R parse <folder_path> <save_path>
 
 DESCRIPTION:
-  Analyzes a folder with R project files to return dependencies.
+  Analyzes a folder with R project files to return dependencies. Please see Kaiaulu's README.md for instructions on how to create <tool.yml> and <project_conf.yml>.
+
+ARGUMENTS:
+  <folder_path>                     path to folder where your R project is stored
+  <save_path>                       file path where output will be saved
 
 OPTIONS:
   -h --help     Show this screen.

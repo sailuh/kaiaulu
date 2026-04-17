@@ -18,13 +18,25 @@ USAGE:
   understand.R parse <tools.yml> <project_conf.yml> <node_save_file_name_path> <edge_save_file_name_path> (--class | --file)
 
 DESCRIPTION:
-  Builds then analyzes a project using Scitool's Understand for dependencies between either classes or files.
+  Builds then analyzes a project using Scitool's Understand for dependencies between either classes or files. Please see Kaiaulu's README.md for instructions on how to create <tool.yml> and <project_conf.yml>.
+
+COMMANDS:
+  build                         Builds an analysis of the project in the designated project_path set in the <project_conf.yml>
+  export                        Exports the dependencies to an xml
+  parse.                        Parses the dependencies and saves them to a node csv and an edge csv
+
+ARGUMENTS:
+  <tools.yml>                   path to tools.yml file
+  <project_conf.yml>            path to configuration file for project you want to analyze
+  <save_path>                   file path where output will be saved
+  <node_save_file_name_path>    file path where csv of nodes of the network will be saved
+  <edge_save_file_name_path>    file path where csv of edges of the network will be saved
 
 OPTIONS:
   -h --help     Show this screen.
   --version     Show version.
-  --class       parses class-level dependencies
-  --file        parses file-level dependencies
+  --class       parses/exports class-level dependencies
+  --file        parses/exports file-level dependencies
 "
 
 arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9700')
@@ -56,9 +68,9 @@ if (!arguments[["help"]]) {
 
 # Determine which function to run and save output
 if (arguments[["build"]] & arguments[["help"]]) {
-  cli::cli_alert_info("Builds an analysis of the project in the designated project_path set in the <config_filepath.yml> using build_understand_project()")
+  cli::cli_alert_info("Builds an analysis of the project in the designated project_path set in the <project_conf.yml> using build_understand_project()")
 } else if (arguments[["export"]] & arguments[["help"]]) {
-  cli::cli_alert_info("From the built analysis, exports the dependency types of either files or classes (dependening on supplied flag) using export_understand_dependencies() and saves two xmls at the specified file paths: <node_save_file_name_path> <edge_save_file_name_path>")
+  cli::cli_alert_info("From the built analysis, exports the dependency types of either files or classes (dependening on supplied flag) using export_understand_dependencies() and saves an xml of the dependencies at the specified file path: <save_path>")
 } else if (arguments[["parse"]] & arguments[["help"]]) {
   cli::cli_alert_info("From the built analysis, parses the dependency types of either files or classes (dependening on supplied flag) using parse_understand_dependencies() and saves two csvs at the specified file paths: <node_save_file_name_path> <edge_save_file_name_path>")
 } else if (arguments[["build"]]) {
