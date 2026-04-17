@@ -333,7 +333,9 @@ bipartite_graph_projection.is_bipartite <- function(graph, mode, weight_scheme_f
   if(is.null(weight_scheme_function)){
     return(graph)
   }else{
-    return(weight_scheme_function(graph))
+    graph <- weight_scheme_function(graph)
+    graph[["edgelist"]][, direction := "undirected"]
+    return(graph)
   }
 }
 

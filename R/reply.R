@@ -17,8 +17,8 @@
 #' @family edgelists
 transform_reply_to_bipartite_network <- function(project_reply, source = NA_character_){
   reply_from <- reply_subject <- NULL # due to NSE notes in R CMD check
-  from_nodes   <- data.table(name = unique(project_reply[["reply_from"]]),    type = TRUE,  color = "black",     source = source)
-  to_nodes     <- data.table(name = unique(project_reply[["reply_subject"]]), type = FALSE, color = "lightblue", source = source)
+  from_nodes   <- data.table(name = unique(project_reply[["reply_from"]]),    type = TRUE,  color = "black")
+  to_nodes     <- data.table(name = unique(project_reply[["reply_subject"]]), type = FALSE, color = "lightblue")
   reply_nodes  <- rbind(from_nodes, to_nodes)
   reply_edgelist <- project_reply[, .(weight = .N), by = .(from = reply_from, to = reply_subject)]
   reply_edgelist[, source    := source]
