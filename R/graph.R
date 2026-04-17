@@ -236,7 +236,7 @@ model_multimodal_graph <- function(nodes, edgelist, direction, is_weighted = TRU
 #' @return A bipartite \code{multimodal_graph} containing only the nodes and edges of the
 #'   requested edge type.
 #' @export
-superset_bipartite_from_multimodal <- function(graph, edge_type){
+subset_bipartite_from_multimodal <- function(graph, edge_type){
   slice_edges <- copy(graph[["edgelist"]][type == edge_type])
   slice_edges[, type := NULL]
 
@@ -368,7 +368,7 @@ bipartite_graph_projection.multimodal <- function(graph, mode, edge_type=NULL, w
                 paste(c(from_type, to_type), collapse=", ")))
   }
 
-  bipartite_net <- superset_bipartite_from_multimodal(graph, edge_type)
+  bipartite_net <- subset_bipartite_from_multimodal(graph, edge_type)
   bool_mode <- (from_type == mode)
 
   return(bipartite_graph_projection.is_bipartite(bipartite_net,
@@ -436,7 +436,7 @@ temporal_graph_projection.multimodal <- function(graph, mode, weight_scheme_func
                 paste(c(from_type, to_type), collapse=", ")))
   }
 
-  bipartite_net <- superset_bipartite_from_multimodal(graph, edge_type)
+  bipartite_net <- subset_bipartite_from_multimodal(graph, edge_type)
   bool_mode <- (from_type == mode)
 
   return(temporal_graph_projection.is_bipartite(bipartite_net,
@@ -1014,7 +1014,7 @@ community_oslom.unimodal <- function(oslom_bin_dir_undir_path, graph, seed, n_ru
 #' @method community_oslom multimodal
 #' @export
 community_oslom.multimodal <- function(oslom_bin_dir_undir_path, graph, seed, n_runs, ...) {
-  stop("community_oslom does not support multimodal graphs. Project or slice the graph to a unimodal network first using bipartite_graph_projection() or superset_bipartite_from_multimodal().")
+  stop("community_oslom does not support multimodal graphs. Project or slice the graph to a unimodal network first using bipartite_graph_projection() or subset_bipartite_from_multimodal().")
 }
 
 #' Re-color OSLOM Community IDs
