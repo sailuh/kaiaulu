@@ -177,6 +177,42 @@ head(inline_comments,2)  %>%
   gt(auto_align = FALSE) 
 ```
 
+```{r Coerce list columns before saving}
+## Some columns in inline_comments contain NULL or list-type values that fwrite() can't handle directly
+## We need to coerce those columns to character before writing to CSV
+as_char_or_na <- function(x) {
+  if (is.null(x) || length(x) == 0) return(NA_character_)
+  if (is.list(x)) {
+    return(vapply(x, function(e) {
+      if (is.null(e) || length(e) == 0) NA_character_ else as.character(e[[1]])
+    }, character(1)))
+  }
+  as.character(x)
+}
+as_int_or_na <- function(x) {
+  if (is.null(x) || length(x) == 0) return(NA_integer_)
+  if (is.list(x)) {
+    return(vapply(x, function(e) {
+      if (is.null(e) || length(e) == 0) NA_integer_ else suppressWarnings(as.integer(e[[1]]))
+    }, integer(1)))
+  }
+  suppressWarnings(as.integer(x))
+}
+
+for (nm in intersect(c("file_path","diff_hunk","body","html_url","created_at","updated_at","comment_user_login","author_association","commit_id"), names(inline_comments))) {
+  if (is.list(inline_comments[[nm]])) inline_comments[[nm]] <- as_char_or_na(inline_comments[[nm]])
+}
+for (nm in intersect(c("review_id","comment_id","start_line","line","original_start_line","original_line","position"), names(inline_comments))) {
+  if (is.list(inline_comments[[nm]])) inline_comments[[nm]] <- as_int_or_na(inline_comments[[nm]])
+}
+```
+
+```{r Save PR inline comments to CSV}
+out_csv <- file.path(dirname(save_path_pr_comments), paste0(repo, "_pr_inline_comments.csv"))
+data.table::fwrite(inline_comments, out_csv)
+cat("Saved:", out_csv, "\n")
+```
+
 
 # Putting All Together: Pull Request Conversations Tab
 
