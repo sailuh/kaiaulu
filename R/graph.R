@@ -49,7 +49,12 @@ graph_to_dsmj.multimodal <- function(graph, dsmj_path, dsmj_name, is_sorted=FALS
 
   # Get the nodes and edgelist tables
   nodes_table <- graph[["nodes"]]
-  edgelist_table <- graph[["edgelist"]]
+  edgelist_table <- copy(graph[["edgelist"]])
+
+  # If no label column is present, default to "weight" as the single dependency type
+  if(!"label" %in% colnames(edgelist_table)){
+    edgelist_table[, label := "weight"]
+  }
 
   # Get and sort the file names
   variables <- sort(unique(nodes_table[["name"]]), method="radix")
@@ -80,7 +85,7 @@ graph_to_dsmj.multimodal <- function(graph, dsmj_path, dsmj_name, is_sorted=FALS
     return(list(as.data.frame(s_grouped_cells)))
   }
 
-  edgelist_dcast <- dcast(edgelist_table,formula = from + to ~ label,
+  edgelist_dcast <- data.table::dcast(edgelist_table,formula = from + to ~ label,
                           value.var = "weight")
 
   dsmj_list <- edgelist_dcast[,.(values = convert_to_list_of_dataframes(.SD)),
