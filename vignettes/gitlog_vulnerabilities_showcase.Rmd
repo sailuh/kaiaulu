@@ -40,7 +40,7 @@ file_extensions <- get_file_extensions(conf)
 substring_filepath <- get_substring_filepath(conf)
 ```
 
-A CVE (Common Vulnerabilities and Exposures) identifier is a standardized ID for a publicly known cybersecurity vulnerability in software or hardware. It is used to quickly identify, track, and share information about specific security threats across different databases, tools, and vendors to facilitate patching. The format is CVE-YYYY-NNNNNNN.
+A CVE (Common Vulnerabilities and Exposures) identifier is a standardized ID for a publicly known cybersecurity vulnerability in software or hardware. It is used to quickly identify, track, and share information about specific security threats across different databases, tools, and vendors to facilitate patching. Using the format is CVE-YYYY-NNNNNNN, we can find CVEs in a given repository. In addition, we can graph this data to visualize which CVEs affect multiple files (Clusters), which files connect to many CVE nodes (Hubs), and which files connect separate clusters (Bridges).
 
 Using the repository's commit history and the regular expression from the conf.yml file to extract CVE IDs from the local commit messages.
 
@@ -50,7 +50,7 @@ project_git <- parse_gitlog(perceval_path,git_repo_path,perl_regex = cveid_regex
 #project_git <- readRDS(save_path)
 ```
 
-Filter files based on the conf.yml to remove irrelevant files (such as .txt, .md, and .html) and exclude specific parts of the repository.
+Filter files based on the conf.yml to remove irrelevant files (such as .txt, .md, and .html), path contains the word "test", and exclude specific parts of the repository.
 
 ```{r}
 project_git <- project_git  %>%
@@ -89,7 +89,7 @@ If the chosen commit message label is associated to CVEs, one additional metadat
 cve_cwe_mapping <- parse_nvdfeed(nvdfeed_folder_path)
 ```
 
-The Common Weakness Enumeration (CWE) is a community-driven, standardized dictionary of software and hardware security weaknesses used to identify, classify, and prevent vulnerabilities. A "weakness" is a condition in software, firmware, hardware, or a service that under a certain condition/s, can lead to a vulnerability (https://cwe.mitre.org/about/index.html). The format is typically CWE-ID (e.g., CWE-79 or CWE-119).
+The Common Weakness Enumeration (CWE) is a community-driven, standardized dictionary of software and hardware security weaknesses used to identify, classify, and prevent vulnerabilities. A "weakness" is a condition in software, firmware, hardware, or a service that under a certain condition/s, can lead to a vulnerability (https://cwe.mitre.org/about/index.html). The format is typically CWE-ID (e.g., CWE-79 or CWE-119). We can also graph the clusters, hubs, and bridges.
 
 ```{r}
 cve_cwe_file_network <- transform_cve_cwe_file_to_network(project_commit_message_id_edgelist,cve_cwe_mapping)
