@@ -3,6 +3,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ * Add a showcase notebook title `engagement_productivity_communication_metrics.Rmd` to showcase all the rolling window metrics.
  * Add a communication metric that takes in Jira communication data and outputs a table counting the frequency of messages developers have sent within a 90-day rolling window.
  *  A new capability to export events for process mining has been added. [#301](https://github.com/sailuh/kaiaulu/issues/301)
  * `exec/ghevents.R` has been added. It is a executable CLI (command-line interface) to download and parse Github Issue Events from outside Kaiaulu.

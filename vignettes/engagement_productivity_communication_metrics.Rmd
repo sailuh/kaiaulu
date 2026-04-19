@@ -1,0 +1,248 @@
+---
+title: "Exploring the Engagement, Productivity, and Communication Metrics"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Exploring the Engagement, Productivity, and Communication Metrics}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Introduction
+
+This notebook presents some of the functionality of the following functions from `metric.R`: `engagement_communication`, `engagement_sentiment`, `productivity_author_commits`, `productivity_author_churn`, and `jira_developer_communication_count`.
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(data.table)
+require(yaml)
+require(stringi)
+require(knitr)
+require(magrittr)
+require(ggplot2)
+```
+
+# Project Configuration File
+
+Analyzing open source projects often requires some manual work on your part to find where the open source project hosts its codebase and mailing list. Instead of hard-coding this on Notebooks, we keep this information in a project configuration file. Here's the minimal information this Notebook requires in a project configuration file:
+
+```
+data_path:
+  project_website: https://apr.apache.org/
+  git_url: https://github.com/apache/apr
+  git: ../rawdata/git_repo/APR/.git
+  
+filter:
+  keep_filepaths_ending_with:
+    - cpp
+    - c
+    - h
+    - java
+    - js
+    - py
+    - cc
+  remove_filepaths_containing:
+    - test
+```
+
+As you can see, the project configuration file is a simple bullet list. This is by design: We want the files to be human readable, so you can share by e-mail, include as appendix, or even attach as supplemental material in a conference. To facilitate formatting and commenting on files, we use .YAML, instead of plain .txt or markdown. 
+
+What this file tells the R Notebook is where to find the git log on your computer, and where you got it from in the first place. Currently we don't really use `project_website` nor `git_url` but it is strongly encouraged, as we have encountered in the past projects with multiple mirrors where the git log contained **discrepancies**, making reproducing prior analysis much harder.
+
+In the project configuration file we also specify filters. They tell this notebook what to keep after the `.` in a filename (i.e. what it ends with), and what it should **not** keep based on any word within the entire filepath name. For example, in APR unit tests are prefix with the word `_test`. In trying to reproduce related work, we found neglecting file filters led metrics such as `churn` blow out of proportion, for it include many nonsensical file changes.
+
+The file makes all assumptions explicit to you when using the code. Note these assumptions are not universal: They are particular to this project alone. This is why this lives in a project configuration file, instead of the codebase. Kaiaulu git repository `/conf` folder includes a few existing projects with that information. The idea is that we save time on the long run without having to look again on the project website manually.
+
+The following code block reads the information explained just now:
+
+```{r}
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/kaiaulu.yml")
+perceval_path <- get_tool_project("perceval", tool)
+git_repo_path <- get_git_repo_path(conf)
+git_branch <- get_git_branches(conf)[1]
+nvdfeed_folder_path <- get_nvdfeed_folder_path(conf)
+
+# Filters
+file_extensions <- get_file_extensions(conf)
+substring_filepath <- get_substring_filepath(conf)
+```
+
+This is all the project configuration files are used for. If you inspect the variables above, you will see they are just strings. As a reminder, the tools.yml is where you store the filepaths to third party software in your computer. Please see Kaiaulu's README.md for details. As a rule of thumb, any R Notebooks in Kaiaulu load the project configuration file at the start, much like you would normally initialize variables at the start of your source code.
+
+# Productivity Metrics
+
+## Obtaining the Git Log
+Our first step is to parse the git log. Many of the variables in Kaiaulu are tables, which makes it easier to export and manually inspect the data at any step of the analysis.
+
+```{r}
+git_checkout(git_branch,git_repo_path)
+project_git_log <- parse_gitlog(perceval_path,git_repo_path)
+#project_git <- parse_gitlog(perceval_path,git_repo_path,save_path)
+#project_git <- readRDS(save_path)
+```
+
+## Filter files
+
+We may also want to filter files, to include only source code and exclude test files for example. 
+
+```{r}
+project_git_log <- project_git_log  %>%
+  filter_by_file_extension(file_extensions,"file_pathname")  %>% 
+  filter_by_filepath_substring(substring_filepath,"file_pathname")
+```
+
+## Obtaining the Output Tables
+
+We must first convert all timestamps to the same timezone. Here, we use UTC.
+
+```{r}
+project_git_log$author_datetimetz <- as.POSIXct(
+  project_git_log$author_datetimetz,
+  format = "%a %b %d %H:%M:%S %Y %z",
+  tz = "UTC"
+)
+```
+
+Now, we can obtain the output tables from `productivity_author_commits` and `productivity_author_churn`. We will save them to a variable called `productivity_author_commits_output` and `productivity_author_churn_output` respectively and keep the default value of lag to be 90 days (around 3 months) to define the rolling window. If you want to change the value of lag, you can do so by passing a different value in the function call. For example, if you want to use a 120-day (around 4 months) rolling window, you can set `lag = 120` in the function call.
+
+```{r}
+lag = 90
+```
+
+```{r}
+productivity_author_commits_output <- productivity_author_commits(project_git_log, lag = lag)
+productivity_author_churn_output <- productivity_author_churn(project_git_log, lag = lag)
+```
+
+We'll show the head of the output tables for the two functions below.
+```{r}
+kable(head(productivity_author_commits_output))
+kable(head(productivity_author_churn_output))
+```
+
+## Visualizing the Output Tables as a Time Series
+
+To visualize the output tables as a time series, we can use the `ggplot2` package. Visualizing the productivity metrics as a time series is useful in observing the engagement of an author over time through the number of messages they send and their churn. One way to think of it is that in conjunction with the engagement metrics, we can use the productivity metrics to understand if an author is becoming more or less engaged over time with their sentiment scores reflecting such increase or decrease in engagement.
+
+### Plotting the Time Series for the Top Authors
+
+We'll select the top 10 authors based on their number of commits and churn, and then plot the time series for these authors.
+
+```{r}
+top_n_authors <- 10
+```
+
+The timeseries below shows the rolling window for author productivity by unique commits.
+
+```{r fig.width=12, fig.height=7}
+# Compute the top authors based on unique commits
+top_authors_commits <- productivity_author_commits_output[
+    ,.(max_commits = max(author_total_commits, na.rm = TRUE)),
+    by = author_name_email
+    # Sort max commits in descending order and select the top n authors
+][order(-max_commits)][1:top_n_authors, author_name_email]
+
+# Select only the rows corresponding to the top authors based on unique commits
+plot_commits_dt <- productivity_author_commits_output[
+    author_name_email %in% top_authors_commits
+    ][order(author_name_email, author_datetimetz)]
+
+ggplot(plot_commits_dt, aes(x = author_datetimetz, y = author_total_commits, color = author_name_email)) +
+    geom_line() +
+    labs(title = paste0("Author Productivity on ", lag, "-day Time Window"),
+         x = "Date",
+         y = "Number of Commits",
+         color = "Author"
+         ) +
+         theme_minimal() +
+         theme(plot.title = element_text(hjust = 0.5))
+```
+
+The timeseries below shows the rolling window for author productivity by churn.
+```{r fig.width=12, fig.height=7}
+# Compute the top authors based on churn
+top_authors_churn <- productivity_author_churn_output[
+    ,.(max_churn = max(author_churn, na.rm = TRUE)),
+    by = author_name_email
+    # Sort max churn in descending order and select the top n authors
+][order(-max_churn)][1:top_n_authors, author_name_email]
+
+# Select only the rows corresponding to the top authors based on churn
+plot_churn_dt <- productivity_author_churn_output[
+   author_name_email %in% top_authors_churn
+   ][order(author_name_email, author_datetimetz)]
+
+
+ggplot(plot_churn_dt, aes(x = author_datetimetz, y = author_churn, color = author_name_email)) +
+    geom_line() +
+    labs(title = paste0("Author Productivity on ", lag, "-day Time Window"),
+         x = "Date",
+         y = "Churn",
+         color = "Author"
+         ) +
+         theme_minimal() +
+         theme(plot.title = element_text(hjust = 0.5))
+```
+
+### Comparing the Time Series of Different Engagement Metrics
+
+We can compare the time series of an author for both their number of commits and their churn across the rolling window. To do this, we will select one author and normalize the values of both metrics to be on the same scale (0-1) using min-max normalization. Then, we will plot both metrics on the same graph to compare their trends over time.
+
+```{r fig.width=12, fig.height=7}
+one_author <- "Carlos Paradis <carlosviansi@gmail.com>"
+
+# Filter to one author
+commits_dt <- productivity_author_commits_output[
+  author_name_email == one_author,
+  .(author_datetimetz, author_total_commits)
+][order(author_datetimetz)]
+
+churn_dt <- productivity_author_churn_output[
+  author_name_email == one_author,
+  .(author_datetimetz, author_churn)
+][order(author_datetimetz)]
+
+# Join on timestamp so both metrics share the same x-axis
+plot_dt <- merge(commits_dt, churn_dt, by = "author_datetimetz", all = TRUE)
+
+# Normalize the values using min-max normalization to bring them to a 0-1 scale
+normalize <- function(x) {
+  if (!is.numeric(x)) return(x)
+  if (all(is.na(x))) return(x)
+
+  x_min <- min(x, na.rm = TRUE)
+  x_max <- max(x, na.rm = TRUE)
+
+  if (x_max == x_min) return(rep(0, length(x)))
+
+  (x - x_min) / (x_max - x_min)
+}
+
+plot_dt_normalized <- as.data.table(lapply(plot_dt, normalize))
+
+# Make long table for plotting both lines
+plot_long <- rbindlist(list(
+  plot_dt_normalized[, .(author_datetimetz, metric = "Commits (normalized)", value = author_total_commits)],
+  plot_dt_normalized[, .(author_datetimetz, metric = "Churn (normalized)",   value = author_churn)]
+))
+
+ggplot(plot_long, aes(x = author_datetimetz, y = value, color = metric)) +
+  geom_line() +
+  labs(
+    title = paste0("Commits and Churn Productivity on ", lag, "-day Time Window (Normalized): ", one_author),
+    x = "Date",
+    y = "Normalized value (0–1)",
+    color = "Metric"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
