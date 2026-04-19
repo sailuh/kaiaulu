@@ -1,18 +1,20 @@
 ---
-title: "Exploring the Engagement, Productivity, and Communication Metrics"
+title: "Exploring the Productivity and Communication Metrics"
 output: 
   html_document:
     toc: true
     number_sections: true
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{Exploring the Engagement, Productivity, and Communication Metrics}
+  %\VignetteIndexEntry{Exploring the Productivity and Communication Metrics}
   %\VignetteEncoding{UTF-8}
 ---
 
 # Introduction
 
-This notebook presents some of the functionality of the following functions from `metric.R`: `engagement_communication`, `engagement_sentiment`, `productivity_author_commits`, `productivity_author_churn`, and `jira_developer_communication_count`.
+This notebook presents some of the functionality of the following functions from `metric.R`: `productivity_author_commits`, `productivity_author_churn`, and `jira_developer_communication_count`.
+
+The `engagement_communication` and `engagement_sentiment` metrics are covered in a separate notebook, as they require additional steps to obtain the output tables. Please see `sentiment_analysis.Rmd` for more details.
 
 ```{r}
 rm(list = ls())
