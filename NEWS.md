@@ -3,7 +3,6 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
- * Add a new notebook called `productivity_communication_metrics.Rmd` to showcase the productivity and communication metrics as a time series using ggplot2.
  * Add a communication metric called `jira_author_communication_count` that takes in Jira communication data and outputs a table counting the frequency of messages developers have sent within a 90-day rolling window.
  *  A new capability to export events for process mining has been added. [#301](https://github.com/sailuh/kaiaulu/issues/301)
  * `exec/ghevents.R` has been added. It is a executable CLI (command-line interface) to download and parse Github Issue Events from outside Kaiaulu.
