@@ -75,6 +75,7 @@ transform_cve_cwe_file_to_network <- function(project_cve,nvd_feed){
   # Rename cwe_id to to and add weight for the cwe edgelist
   setnames(cwe_edgelist, "cwe_id", "to")
   cwe_edgelist[, weight := 1L]
+  cwe_edgelist[, direction := "directed"]
   # Set union edgelists
   cve_cwe_file_edgelist <- rbind(cve_edgelist, cwe_edgelist)
   cve_cwe_file_edgelist[, direction := "directed"]
