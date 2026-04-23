@@ -20,12 +20,15 @@ Calculates the churn metric for a sequence of commits
 
 Other metrics: 
 \code{\link{commit_message_id_coverage}()},
-\code{\link{metric_churn_per_commit_per_file}()},
+\code{\link{jira_author_communication_count}()},
 \code{\link{metric_churn}()},
+\code{\link{metric_churn_per_commit_per_file}()},
 \code{\link{metric_file_bug_churn}()},
 \code{\link{metric_file_bug_frequency}()},
 \code{\link{metric_file_churn}()},
 \code{\link{metric_file_non_bug_churn}()},
-\code{\link{metric_file_non_bug_frequency}()}
+\code{\link{metric_file_non_bug_frequency}()},
+\code{\link{productivity_author_churn}()},
+\code{\link{productivity_author_commits}()}
 }
 \concept{metrics}

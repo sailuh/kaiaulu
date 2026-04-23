@@ -242,6 +242,10 @@ reference:
   - metric_churn_per_commit_per_file
   - commit_message_id_coverage
   - metric_churn
+  - engagement_communication
+  - productivity_author_commits
+  - productivity_author_churn
+  - jira_author_communication_count
 - title: __Graph__
   desc:  Provide graph models to construct networks and algorithms for graph analysis.
 - contents:
