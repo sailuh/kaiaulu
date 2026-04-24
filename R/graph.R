@@ -47,7 +47,7 @@ graph_to_dsmj.unimodal <- function(graph, dsmj_path, dsmj_name, is_sorted=FALSE,
 #' @export
 graph_to_dsmj.multimodal <- function(graph, dsmj_path, dsmj_name, is_sorted=FALSE, edge_type = NULL, mode = TRUE, ...){
   projected <- bipartite_graph_projection(graph, mode = mode, edge_type = edge_type)
-  is_directed <- "directed" %in% class(graph)
+  is_directed <- "directed" %in% class(projected)
   .graph_to_dsmj_impl(projected, dsmj_path, dsmj_name, is_directed=is_directed, is_sorted)
 }
 
@@ -57,6 +57,13 @@ graph_to_dsmj.multimodal <- function(graph, dsmj_path, dsmj_name, is_sorted=FALS
   # Get the nodes and edgelist tables
   nodes_table <- graph[["nodes"]]
   edgelist_table <- copy(graph[["edgelist"]])
+
+  # Normalize projection column names if coming from bipartite_graph_projection without a weight scheme
+  if("from_projection" %in% colnames(edgelist_table)){
+    setnames(edgelist_table, old = c("from_projection", "to_projection"), new = c("from", "to"))
+    edgelist_table[, weight := from_weight + to_weight]
+    edgelist_table <- edgelist_table[, .(weight = sum(weight)), by = .(from, to)]
+  }
 
   # If no label column is present, default to "weight" as the single dependency type
   if(!"label" %in% colnames(edgelist_table)){
@@ -933,6 +940,11 @@ community_oslom.unimodal <- function(oslom_bin_dir_undir_path, graph, seed, n_ru
 
   is_weighted <- "weighted" %in% class(graph)
   edgelist <- graph[["edgelist"]]
+  if("from_projection" %in% colnames(edgelist)){
+    setnames(edgelist, old = c("from_projection", "to_projection"), new = c("from", "to"))
+    edgelist[, weight := from_weight + to_weight]
+    edgelist <- edgelist[, .(weight = sum(weight)), by = .(from, to)]
+  }
 
   oslom_bin_dir_undir_path <- path.expand(oslom_bin_dir_undir_path)
   mapping_names <- unique(c(as.character(edgelist$from),edgelist$to))
