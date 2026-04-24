@@ -10,7 +10,15 @@ graph_to_dsmj(graph, dsmj_path, dsmj_name, is_sorted = FALSE, ...)
 
 \method{graph_to_dsmj}{unimodal}(graph, dsmj_path, dsmj_name, is_sorted = FALSE, ...)
 
-\method{graph_to_dsmj}{multimodal}(graph, dsmj_path, dsmj_name, is_sorted = FALSE, ...)
+\method{graph_to_dsmj}{multimodal}(
+  graph,
+  dsmj_path,
+  dsmj_name,
+  is_sorted = FALSE,
+  edge_type = NULL,
+  mode = TRUE,
+  ...
+)
 }
 \arguments{
 \item{graph}{A graph returned by \code{\link{model_unimodal_graph}} or
@@ -23,6 +31,14 @@ graph_to_dsmj(graph, dsmj_path, dsmj_name, is_sorted = FALSE, ...)
 \item{is_sorted}{whether to sort the variables (filenames) in the dsm.json files (optional).}
 
 \item{...}{Additional arguments passed to the method.}
+
+\item{edge_type}{A string specifying which edge type to slice from a non-bipartite multimodal
+graph before projecting. Passed to \code{\link{bipartite_graph_projection}}. Defaults to
+\code{NULL}, which is valid when the graph is already bipartite.}
+
+\item{mode}{A boolean specifying which partition to project onto: \code{TRUE} for the
+\code{type = TRUE} partition, \code{FALSE} for the \code{type = FALSE} partition.
+Defaults to \code{TRUE}.}
 }
 \value{
 the path to the dsm.json file saved.

@@ -36,12 +36,19 @@ graph_to_dsmj.unimodal <- function(graph, dsmj_path, dsmj_name, is_sorted=FALSE,
 }
 
 
+#' @param edge_type A string specifying which edge type to slice from a non-bipartite multimodal
+#'   graph before projecting. Passed to \code{\link{bipartite_graph_projection}}. Defaults to
+#'   \code{NULL}, which is valid when the graph is already bipartite.
+#' @param mode A boolean specifying which partition to project onto: \code{TRUE} for the
+#'   \code{type = TRUE} partition, \code{FALSE} for the \code{type = FALSE} partition.
+#'   Defaults to \code{TRUE}.
 #' @rdname graph_to_dsmj
 #' @method graph_to_dsmj multimodal
 #' @export
-graph_to_dsmj.multimodal <- function(graph, dsmj_path, dsmj_name, is_sorted=FALSE, ...){
+graph_to_dsmj.multimodal <- function(graph, dsmj_path, dsmj_name, is_sorted=FALSE, edge_type = NULL, mode = TRUE, ...){
+  projected <- bipartite_graph_projection(graph, mode = mode, edge_type = edge_type)
   is_directed <- "directed" %in% class(graph)
-  .graph_to_dsmj_impl(graph, dsmj_path, dsmj_name, is_directed=is_directed, is_sorted)
+  .graph_to_dsmj_impl(projected, dsmj_path, dsmj_name, is_directed=is_directed, is_sorted)
 }
 
 # Internal implementation shared by all graph_to_dsmj methods.
@@ -1015,11 +1022,18 @@ community_oslom.unimodal <- function(oslom_bin_dir_undir_path, graph, seed, n_ru
   return(cluster)
 }
 
+#' @param edge_type A string specifying which edge type to slice from a non-bipartite multimodal
+#'   graph before projecting. Passed to \code{\link{bipartite_graph_projection}}. Defaults to
+#'   \code{NULL}, which is valid when the graph is already bipartite.
+#' @param mode A boolean specifying which partition to project onto: \code{TRUE} for the
+#'   \code{type = TRUE} partition, \code{FALSE} for the \code{type = FALSE} partition.
+#'   Defaults to \code{TRUE}.
 #' @rdname community_oslom
 #' @method community_oslom multimodal
 #' @export
-community_oslom.multimodal <- function(oslom_bin_dir_undir_path, graph, seed, n_runs, ...) {
-  stop("community_oslom does not support multimodal graphs. Project or slice the graph to a unimodal network first using bipartite_graph_projection() or subset_bipartite_from_multimodal().")
+community_oslom.multimodal <- function(oslom_bin_dir_undir_path, graph, seed, n_runs, edge_type = NULL, mode = TRUE, ...) {
+  projected <- bipartite_graph_projection(graph, mode = mode, edge_type = edge_type)
+  community_oslom(oslom_bin_dir_undir_path, projected, seed, n_runs, ...)
 }
 
 #' Re-color OSLOM Community IDs
