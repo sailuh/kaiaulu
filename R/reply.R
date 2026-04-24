@@ -22,6 +22,9 @@ transform_reply_to_bipartite_network <- function(project_reply, weight = NULL){
   if(is.null(weight)){
     reply_edgelist <- project_reply[, .(weight = .N), by = .(from = reply_from, to = reply_subject)]
   } else {
+    if(!weight %in% colnames(project_reply)){
+      stop("Column '", weight, "' not found in project_reply.")
+    }
     weight_col <- weight
     reply_edgelist <- project_reply[, .(weight = .SD[[weight_col]]),
                                     by = .(from = reply_from, to = reply_subject),
