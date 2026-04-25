@@ -1036,9 +1036,8 @@ community_oslom.unimodal <- function(oslom_bin_dir_undir_path, graph, seed, n_ru
 #' @rdname community_oslom
 #' @method community_oslom multimodal
 #' @export
-community_oslom.multimodal <- function(oslom_bin_dir_undir_path, graph, seed, n_runs, edge_type = NULL, mode = TRUE, ...) {
-  projected <- bipartite_graph_projection(graph, mode = mode, edge_type = edge_type)
-  community_oslom(oslom_bin_dir_undir_path, projected, seed, n_runs, ...)
+community_oslom.multimodal <- function(oslom_bin_dir_undir_path, graph, seed, n_runs, ...) {
+  community_oslom.unimodal(oslom_bin_dir_undir_path, graph, seed, n_runs, ...)
 }
 
 #' Re-color OSLOM Community IDs
