@@ -10,15 +10,7 @@ community_oslom(oslom_bin_dir_undir_path, graph, seed, n_runs, ...)
 
 \method{community_oslom}{unimodal}(oslom_bin_dir_undir_path, graph, seed, n_runs, ...)
 
-\method{community_oslom}{multimodal}(
-  oslom_bin_dir_undir_path,
-  graph,
-  seed,
-  n_runs,
-  edge_type = NULL,
-  mode = TRUE,
-  ...
-)
+\method{community_oslom}{multimodal}(oslom_bin_dir_undir_path, graph, seed, n_runs, ...)
 }
 \arguments{
 \item{oslom_bin_dir_undir_path}{The path to oslom directed or undirected network binary}
