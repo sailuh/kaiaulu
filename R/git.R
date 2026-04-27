@@ -1212,7 +1212,7 @@ transform_gitlog_to_multimodal_network <- function(project_git,
   }
   git_edgelist <- rbindlist(edge_tables)
   # Constructor only wraps pre-built tables and assigns graph type
-  git_network <- model_multimodal_graph(git_nodes, git_edgelist, direction = "directed")
-  return(git_network)
+  git_graph <- model_multimodal_graph(git_nodes, git_edgelist, direction = "directed")
+  return(git_graph)
 }
 

@@ -385,16 +385,16 @@ parse_r_dependencies <- function(folder_path){
 #'
 #' @description This function subsets a parsed table from parse_understand_dependencies
 #'
-#' @param parsed Parsed table from \code{\link{parse_understand_dependencies}}
+#' @param understand_parsed Parsed table from \code{\link{parse_understand_dependencies}}
 #' @param weight_types The weight types as defined in Depends. Accepts single string and vector input
 #' @param weight A string naming a numeric column in the parsed edge list to use as the edge weight. When \code{NULL} (default), edges are weighted by dependency occurrence count.
 #' @param weight_agg A function to aggregate the weight column across multiple rows sharing the same \code{from}/\code{to} pair. Defaults to \code{mean}.
 #' @export
 #' @family edgelists
-transform_understand_dependencies_to_network <- function(parsed, weight_types, weight = NULL, weight_agg = mean) {
+transform_understand_dependencies_to_network <- function(understand_parsed, weight_types, weight = NULL, weight_agg = mean) {
   dependency_kind <- node_label <- id <- label_from <- id_from <- label_to <- id_to <- NULL # due to NSE notes in R CMD check
-  nodes <- parsed[["node_list"]]
-  edges <- parsed[["edge_list"]]
+  nodes <- understand_parsed[["node_list"]]
+  edges <- understand_parsed[["edge_list"]]
 
   # Disambiguate node labels with their ID since the same label may appear in multiple contexts
   nodes[, node_label := stringi::stri_c(node_label, "|", id)]
@@ -427,8 +427,8 @@ transform_understand_dependencies_to_network <- function(parsed, weight_types, w
                               .SDcols = weight_col]
   }
   depend_edgelist[, direction := "directed"]
-  graph <- model_unimodal_graph(depend_nodes, depend_edgelist, direction = "directed")
-  return(graph)
+  understand_graph <- model_unimodal_graph(depend_nodes, depend_edgelist, direction = "directed")
+  return(understand_graph)
 }
 
 #' Transform parsed dependencies into a network
@@ -482,8 +482,8 @@ transform_dependencies_to_network <- function(depends_parsed,weight_types=NA){
   dependency_nodes$color <- "#f4dbb5"
   # Constructor only wraps pre-built tables and assigns graph type.
   dependency_edgelist[, direction := "directed"]
-  depends_network <- model_unimodal_graph(dependency_nodes, dependency_edgelist, direction = "directed")
-  return(depends_network)
+  depends_graph <- model_unimodal_graph(dependency_nodes, dependency_edgelist, direction = "directed")
+  return(depends_graph)
 }
 #' Transform parsed R dependencies into a graph
 #' @param r_dependencies_edgelist A parsed R folder by \code{\link{parse_r_dependencies}}.
@@ -517,8 +517,8 @@ transform_r_dependencies_to_network <- function(r_dependencies_edgelist, depende
   }
   setnames(edgelist, old = c(from_col, to_col), new = c("from", "to"))
   edgelist[, direction := "directed"]
-  graph <- model_unimodal_graph(nodes, edgelist, direction = "directed")
-  return(graph)
+  r_dependencies_graph <- model_unimodal_graph(nodes, edgelist, direction = "directed")
+  return(r_dependencies_graph)
 }
 
 
