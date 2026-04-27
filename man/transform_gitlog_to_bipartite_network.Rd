@@ -15,6 +15,10 @@ transform_gitlog_to_bipartite_network(
 \item{project_git}{A parsed git project by \code{\link{parse_gitlog}}.}
 
 \item{mode}{The network of interest: author-file, committer-file, commit-file, author-committer}
+
+\item{weight}{A string naming a numeric column in \code{project_git} to use as the edge weight. When \code{NULL} (default), edges are weighted by commit co-occurrence count.}
+
+\item{weight_agg}{A function to aggregate the weight column across multiple rows sharing the same \code{from}/\code{to} pair. Defaults to \code{mean}.}
 }
 \description{
 Constructs a bipartite graph from a parsed git log where one node type

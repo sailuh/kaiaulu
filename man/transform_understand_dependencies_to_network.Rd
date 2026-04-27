@@ -15,6 +15,10 @@ transform_understand_dependencies_to_network(
 \item{parsed}{Parsed table from \code{\link{parse_understand_dependencies}}}
 
 \item{weight_types}{The weight types as defined in Depends. Accepts single string and vector input}
+
+\item{weight}{A string naming a numeric column in the parsed edge list to use as the edge weight. When \code{NULL} (default), edges are weighted by dependency occurrence count.}
+
+\item{weight_agg}{A function to aggregate the weight column across multiple rows sharing the same \code{from}/\code{to} pair. Defaults to \code{mean}.}
 }
 \description{
 This function subsets a parsed table from parse_understand_dependencies

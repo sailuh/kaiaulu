@@ -22,14 +22,6 @@ community_oslom(oslom_bin_dir_undir_path, graph, seed, n_runs, ...)
 \item{n_runs}{the number of runs for the first hierarchical level}
 
 \item{...}{Additional arguments passed to the method.}
-
-\item{edge_type}{A string specifying which edge type to slice from a non-bipartite multimodal
-graph before projecting. Passed to \code{\link{bipartite_graph_projection}}. Defaults to
-\code{NULL}, which is valid when the graph is already bipartite.}
-
-\item{mode}{A boolean specifying which partition to project onto: \code{TRUE} for the
-\code{type = TRUE} partition, \code{FALSE} for the \code{type = FALSE} partition.
-Defaults to \code{TRUE}.}
 }
 \description{
 Wrapper for OSLOM Community Detection \url{http://oslom.org/}

@@ -387,6 +387,8 @@ parse_r_dependencies <- function(folder_path){
 #'
 #' @param parsed Parsed table from \code{\link{parse_understand_dependencies}}
 #' @param weight_types The weight types as defined in Depends. Accepts single string and vector input
+#' @param weight A string naming a numeric column in the parsed edge list to use as the edge weight. When \code{NULL} (default), edges are weighted by dependency occurrence count.
+#' @param weight_agg A function to aggregate the weight column across multiple rows sharing the same \code{from}/\code{to} pair. Defaults to \code{mean}.
 #' @export
 #' @family edgelists
 transform_understand_dependencies_to_network <- function(parsed, weight_types, weight = NULL, weight_agg = mean) {
@@ -486,6 +488,8 @@ transform_dependencies_to_network <- function(depends_parsed,weight_types=NA){
 #' Transform parsed R dependencies into a graph
 #' @param r_dependencies_edgelist A parsed R folder by \code{\link{parse_r_dependencies}}.
 #' @param dependency_type The type of dependency to be parsed: Function or File
+#' @param weight A string naming a numeric column in \code{r_dependencies_edgelist} to use as the edge weight. When \code{NULL} (default), edges are weighted by dependency occurrence count.
+#' @param weight_agg A function to aggregate the weight column across multiple rows sharing the same \code{from}/\code{to} pair. Defaults to \code{mean}.
 #' @export
 transform_r_dependencies_to_network <- function(r_dependencies_edgelist, dependency_type=c("function","file"), weight = NULL, weight_agg = mean){
   src_functions_call_name <- src_functions_caller_name <- src_functions_call_filename <- src_functions_caller_filename <- NULL # due to NSE notes in R CMD check

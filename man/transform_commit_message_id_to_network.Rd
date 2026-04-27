@@ -15,6 +15,10 @@ transform_commit_message_id_to_network(
 \item{project_git}{A parsed git project by \code{\link{parse_gitlog}}.}
 
 \item{commit_message_id_regex}{the regex to extract the id from the commit message}
+
+\item{weight}{A string naming a numeric column in \code{project_git} to use as the edge weight. When \code{NULL} (default), edges are weighted by commit count per issue-file pair.}
+
+\item{weight_agg}{A function to aggregate the weight column across multiple rows sharing the same \code{from}/\code{to} pair. Defaults to \code{mean}.}
 }
 \description{
 Transform parsed git repo commit messages id and files into an edgelist

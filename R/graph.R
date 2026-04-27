@@ -1027,12 +1027,6 @@ community_oslom.unimodal <- function(oslom_bin_dir_undir_path, graph, seed, n_ru
   return(cluster)
 }
 
-#' @param edge_type A string specifying which edge type to slice from a non-bipartite multimodal
-#'   graph before projecting. Passed to \code{\link{bipartite_graph_projection}}. Defaults to
-#'   \code{NULL}, which is valid when the graph is already bipartite.
-#' @param mode A boolean specifying which partition to project onto: \code{TRUE} for the
-#'   \code{type = TRUE} partition, \code{FALSE} for the \code{type = FALSE} partition.
-#'   Defaults to \code{TRUE}.
 #' @rdname community_oslom
 #' @method community_oslom multimodal
 #' @export

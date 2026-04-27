@@ -15,6 +15,10 @@ transform_gitlog_to_entity_bipartite_network(
 \item{project_git_entity}{A parsed git project by \code{\link{parse_gitlog_entity}}.}
 
 \item{mode}{The network of interest: author-entity, committer-entity, commit-entity, author-committer}
+
+\item{weight}{A string naming a numeric column in \code{project_git_entity} to use as the edge weight. When \code{NULL} (default), edges are weighted by commit co-occurrence count.}
+
+\item{weight_agg}{A function to aggregate the weight column across multiple rows sharing the same \code{from}/\code{to} pair. Defaults to \code{mean}.}
 }
 \description{
 Transform parsed git repo into an edgelist

@@ -879,6 +879,8 @@ transform_gitlog_to_temporal_network <- function(project_git, mode = c("author",
 #'
 #' @param project_git A parsed git project by \code{\link{parse_gitlog}}.
 #' @param mode The network of interest: author-file, committer-file, commit-file, author-committer
+#' @param weight A string naming a numeric column in \code{project_git} to use as the edge weight. When \code{NULL} (default), edges are weighted by commit co-occurrence count.
+#' @param weight_agg A function to aggregate the weight column across multiple rows sharing the same \code{from}/\code{to} pair. Defaults to \code{mean}.
 #' @export
 #' @family edgelists
 transform_gitlog_to_bipartite_network <- function(project_git, mode = c("author-file","committer-file","commit-file","author-committer"), weight = NULL, weight_agg = mean){
@@ -942,6 +944,8 @@ transform_gitlog_to_bipartite_network <- function(project_git, mode = c("author-
 #'
 #' @param project_git_entity A parsed git project by \code{\link{parse_gitlog_entity}}.
 #' @param mode The network of interest: author-entity, committer-entity, commit-entity, author-committer
+#' @param weight A string naming a numeric column in \code{project_git_entity} to use as the edge weight. When \code{NULL} (default), edges are weighted by commit co-occurrence count.
+#' @param weight_agg A function to aggregate the weight column across multiple rows sharing the same \code{from}/\code{to} pair. Defaults to \code{mean}.
 #' @export
 #' @family edgelists
 transform_gitlog_to_entity_bipartite_network <- function(project_git_entity, mode = c("author-entity","committer-entity","commit-entity","author-committer"), weight = NULL, weight_agg = mean){
@@ -1061,6 +1065,8 @@ transform_gitlog_to_entity_temporal_network <- function(project_git_entity, mode
 #'
 #' @param project_git A parsed git project by \code{\link{parse_gitlog}}.
 #' @param commit_message_id_regex the regex to extract the id from the commit message
+#' @param weight A string naming a numeric column in \code{project_git} to use as the edge weight. When \code{NULL} (default), edges are weighted by commit count per issue-file pair.
+#' @param weight_agg A function to aggregate the weight column across multiple rows sharing the same \code{from}/\code{to} pair. Defaults to \code{mean}.
 #' @export
 #' @family edgelists
 transform_commit_message_id_to_network <- function(project_git, commit_message_id_regex, weight = NULL, weight_agg = mean){
