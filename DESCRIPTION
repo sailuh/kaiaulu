@@ -27,7 +27,8 @@ Authors@R: c(
     person('Ryan', 'Seng', role = c('ctb')),
     person('Raven', 'Quiddaoen', role= c('ctb')),
     person('Connor', 'Narowetz', role= c('ctb')),
-    person('Gerald', 'Huff', role= c('ctb'))
+    person('Gerald', 'Huff', role= c('ctb')),
+    person('Jared', 'Seto', role= c('ctb'))
     )
 Maintainer: Carlos Paradis <cvas@hawaii.edu>
 License: MPL-2.0 | file LICENSE
