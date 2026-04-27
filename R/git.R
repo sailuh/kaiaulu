@@ -881,7 +881,7 @@ transform_gitlog_to_temporal_network <- function(project_git, mode = c("author",
 #' @param mode The network of interest: author-file, committer-file, commit-file, author-committer
 #' @export
 #' @family edgelists
-transform_gitlog_to_bipartite_network <- function(project_git, mode = c("author-file","committer-file","commit-file","author-committer")){
+transform_gitlog_to_bipartite_network <- function(project_git, mode = c("author-file","committer-file","commit-file","author-committer"), weight = NULL, weight_agg = mean){
   author_name_email <- committer_name_email <- commit_hash <- file_pathname <- lines_added <- lines_removed <- NULL # due to NSE notes in R CMD check
   if(!is.data.table(project_git)){
     stop("project_git must be a data.table returned by parse_gitlog.")
@@ -920,8 +920,17 @@ transform_gitlog_to_bipartite_network <- function(project_git, mode = c("author-
     color = to_color
   )
   git_nodes <- rbind(from_nodes, to_nodes)
-  # Build edgelist — count co-occurrences per unique from-to pair
-  git_edgelist <- project_git[, .(weight = .N), by = c(from_col, to_col)]
+  if(is.null(weight)){
+    git_edgelist <- project_git[, .(weight = .N), by = c(from_col, to_col)]
+  } else {
+    if(!weight %in% colnames(project_git)){
+      stop("Column '", weight, "' not found in project_git.")
+    }
+    weight_col <- weight
+    git_edgelist <- project_git[, .(weight = weight_agg(.SD[[weight_col]])),
+                                 by = c(from_col, to_col),
+                                 .SDcols = weight_col]
+  }
   setnames(git_edgelist, old = c(from_col, to_col), new = c("from", "to"))
   git_edgelist[, direction := "directed"]
   # Constructor only wraps pre-built tables and assigns graph type
@@ -935,7 +944,7 @@ transform_gitlog_to_bipartite_network <- function(project_git, mode = c("author-
 #' @param mode The network of interest: author-entity, committer-entity, commit-entity, author-committer
 #' @export
 #' @family edgelists
-transform_gitlog_to_entity_bipartite_network <- function(project_git_entity, mode = c("author-entity","committer-entity","commit-entity","author-committer")){
+transform_gitlog_to_entity_bipartite_network <- function(project_git_entity, mode = c("author-entity","committer-entity","commit-entity","author-committer"), weight = NULL, weight_agg = mean){
   author_name_email <- committer_name_email <- commit_hash <- entity <- weight <- NULL # due to NSE notes in R CMD check
   if(!is.data.table(project_git_entity)){
     stop("project_git_entity must be a data.table returned by parse_gitlog_entity.")
@@ -977,7 +986,17 @@ transform_gitlog_to_entity_bipartite_network <- function(project_git_entity, mod
   )
   git_nodes <- rbind(from_nodes, to_nodes)
   # Build edgelist — count co-occurrences per unique from-to pair
-  git_edgelist <- project_git_entity[, .(weight = .N), by = c(from_col, to_col)]
+  if(is.null(weight)){
+    git_edgelist <- project_git_entity[, .(weight = .N), by = c(from_col, to_col)]
+  } else {
+    if(!weight %in% colnames(project_git_entity)){
+      stop("Column '", weight, "' not found in project_git_entity.")
+    }
+    weight_col <- weight
+    git_edgelist <- project_git_entity[, .(weight = weight_agg(.SD[[weight_col]])),
+                                        by = c(from_col, to_col),
+                                        .SDcols = weight_col]
+  }
   setnames(git_edgelist, old = c(from_col, to_col), new = c("from", "to"))
   git_edgelist[, direction := "directed"]
   # Constructor only wraps pre-built tables and assigns graph type
@@ -1044,7 +1063,7 @@ transform_gitlog_to_entity_temporal_network <- function(project_git_entity, mode
 #' @param commit_message_id_regex the regex to extract the id from the commit message
 #' @export
 #' @family edgelists
-transform_commit_message_id_to_network <- function(project_git, commit_message_id_regex){
+transform_commit_message_id_to_network <- function(project_git, commit_message_id_regex, weight = NULL, weight_agg = mean){
   commit_message_id <- file_pathname <- NULL # due to NSE notes in R CMD check
   if(!is.data.table(project_git)){
     stop("project_git must be a data.table returned by parse_gitlog.")
@@ -1057,8 +1076,18 @@ transform_commit_message_id_to_network <- function(project_git, commit_message_i
   from_nodes <- data.table(name = unique(project_git[["commit_message_id"]]), type = TRUE,  color = "#0052cc")
   to_nodes   <- data.table(name = unique(project_git[["file_pathname"]]),     type = FALSE, color = "#f4dbb5")
   git_nodes  <- rbind(from_nodes, to_nodes)
-  # Weight = number of commits linking this issue id to this file
-  git_edgelist <- project_git[, .(weight = .N), by = .(from = commit_message_id, to = file_pathname)]
+  # Weight = number of commits linking this issue id to this file, or custom column if provided
+  if(is.null(weight)){
+    git_edgelist <- project_git[, .(weight = .N), by = .(from = commit_message_id, to = file_pathname)]
+  } else {
+    if(!weight %in% colnames(project_git)){
+      stop("Column '", weight, "' not found in project_git.")
+    }
+    weight_col <- weight
+    git_edgelist <- project_git[, .(weight = weight_agg(.SD[[weight_col]])),
+                                 by = .(from = commit_message_id, to = file_pathname),
+                                 .SDcols = weight_col]
+  }
   git_edgelist[, direction := "directed"]
   git_graph <- model_multimodal_graph(git_nodes, git_edgelist, direction = "directed", is_bipartite = TRUE)
   return(git_graph)

@@ -389,7 +389,7 @@ parse_r_dependencies <- function(folder_path){
 #' @param weight_types The weight types as defined in Depends. Accepts single string and vector input
 #' @export
 #' @family edgelists
-transform_understand_dependencies_to_network <- function(parsed, weight_types) {
+transform_understand_dependencies_to_network <- function(parsed, weight_types, weight = NULL, weight_agg = mean) {
   dependency_kind <- node_label <- id <- label_from <- id_from <- label_to <- id_to <- NULL # due to NSE notes in R CMD check
   nodes <- parsed[["node_list"]]
   edges <- parsed[["edge_list"]]
@@ -412,8 +412,18 @@ transform_understand_dependencies_to_network <- function(parsed, weight_types) {
     name  = nodes[["node_label"]],
     type  = FALSE
   )
-  # Build edgelist — weight = count of this dependency kind per from-to pair
-  depend_edgelist <- edges[, .(weight = .N), by = .(from = label_from, to = label_to, label = dependency_kind)]
+  # Build edgelist — weight = count of this dependency kind per from-to pair, or custom column if provided
+  if(is.null(weight)){
+    depend_edgelist <- edges[, .(weight = .N), by = .(from = label_from, to = label_to, label = dependency_kind)]
+  } else {
+    if(!weight %in% colnames(edges)){
+      stop("Column '", weight, "' not found in parsed edge list.")
+    }
+    weight_col <- weight
+    depend_edgelist <- edges[, .(weight = weight_agg(.SD[[weight_col]])),
+                              by = .(from = label_from, to = label_to, label = dependency_kind),
+                              .SDcols = weight_col]
+  }
   depend_edgelist[, direction := "directed"]
   graph <- model_unimodal_graph(depend_nodes, depend_edgelist, direction = "directed")
   return(graph)
@@ -477,7 +487,7 @@ transform_dependencies_to_network <- function(depends_parsed,weight_types=NA){
 #' @param r_dependencies_edgelist A parsed R folder by \code{\link{parse_r_dependencies}}.
 #' @param dependency_type The type of dependency to be parsed: Function or File
 #' @export
-transform_r_dependencies_to_network <- function(r_dependencies_edgelist, dependency_type=c("function","file")){
+transform_r_dependencies_to_network <- function(r_dependencies_edgelist, dependency_type=c("function","file"), weight = NULL, weight_agg = mean){
   src_functions_call_name <- src_functions_caller_name <- src_functions_call_filename <- src_functions_caller_filename <- NULL # due to NSE notes in R CMD check
   mode <- match.arg(dependency_type)
   if(mode == "function"){
@@ -490,7 +500,17 @@ transform_r_dependencies_to_network <- function(r_dependencies_edgelist, depende
     color    <- "#f4dbb5"
   }
   nodes    <- data.table(name = unique(c(r_dependencies_edgelist[[from_col]], r_dependencies_edgelist[[to_col]])), type = FALSE, color = color)
-  edgelist <- r_dependencies_edgelist[, .(weight = .N), by = c(from_col, to_col)]
+  if(is.null(weight)){
+    edgelist <- r_dependencies_edgelist[, .(weight = .N), by = c(from_col, to_col)]
+  } else {
+    if(!weight %in% colnames(r_dependencies_edgelist)){
+      stop("Column '", weight, "' not found in r_dependencies_edgelist.")
+    }
+    weight_col <- weight
+    edgelist <- r_dependencies_edgelist[, .(weight = weight_agg(.SD[[weight_col]])),
+                                         by = c(from_col, to_col),
+                                         .SDcols = weight_col]
+  }
   setnames(edgelist, old = c(from_col, to_col), new = c("from", "to"))
   edgelist[, direction := "directed"]
   graph <- model_unimodal_graph(nodes, edgelist, direction = "directed")
