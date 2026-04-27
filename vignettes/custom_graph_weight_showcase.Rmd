@@ -1,0 +1,87 @@
+---
+title: "Custom Graph Weight Showcase"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Custom Graph Weight Showcase}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(igraph)
+require(visNetwork)
+require(data.table)
+require(yaml)
+require(stringi)
+require(knitr)
+```
+
+# Introduction
+
+This notebook demonstrates how to assign custom numeric values as edge weights when transforming raw data into a graph object. Specifically, it uses sentiment polarity scores from GitHub commit comments as edge weights in a bipartite author-to-commit network, and visualizes the resulting network with edges colored by sentiment.
+
+Sentiment labels (`positive`, `neutral`, `negative`) are first converted to integers (`1`, `0`, `-1`) before being passed to `transform_reply_to_bipartite_network()` via the `weight` parameter. The `weight_agg` parameter controls how multiple comments between the same author and commit are aggregated — defaulting to `mean`.
+
+# Load Data
+
+The input is a CSV of CakePHP GitHub commit comments joined with sentiment labels from the MSR14 gold standard dataset.
+
+```{r}
+dt <- fread("rawdata/github/cakephp_sentiment_commit_comments_joined.csv")
+kable(head(dt))
+```
+
+# Prepare Data
+
+Rename columns to match the expected `reply_from` and `reply_subject` format, and convert polarity strings to integers.
+
+```{r}
+dt[, reply_from    := author_login_kaiaulu]
+dt[, reply_subject := commit_id]
+dt[, polarity_int  := fcase(
+  polarity == "positive",  1L,
+  polarity == "neutral",   0L,
+  polarity == "negative", -1L
+)]
+kable(head(dt[, .(reply_from, reply_subject, polarity_int)]))
+```
+
+# Build Weighted Bipartite Network
+
+Transform the reply table into a bipartite graph using sentiment polarity as the edge weight, aggregated by mean across multiple comments between the same author and commit.
+
+```{r}
+reply_graph <- transform_reply_to_bipartite_network(dt, weight = "polarity_int", weight_agg = mean)
+kable(head(reply_graph[["nodes"]]))
+kable(head(reply_graph[["edgelist"]]))
+```
+
+# Visualize Network
+
+Edge color reflects the mean sentiment between an author and a commit: green for positive, black for neutral, and red for negative.
+
+```{r}
+nodes <- reply_graph[["nodes"]]
+edges <- reply_graph[["edgelist"]]
+
+edges[, color := fcase(
+  weight > 0,  "green",
+  weight == 0, "black",
+  weight < 0,  "red"
+)]
+
+plot_reply_graph <- igraph::graph_from_data_frame(d = edges,
+                                                  directed = TRUE,
+                                                  vertices = nodes)
+visIgraph(plot_reply_graph, randomSeed = 1)
+```

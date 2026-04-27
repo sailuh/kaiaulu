@@ -4,13 +4,20 @@
 \alias{transform_reply_to_bipartite_network}
 \title{Transform parsed mbox or parsed jira replies into a network}
 \usage{
-transform_reply_to_bipartite_network(project_reply, weight = NULL)
+transform_reply_to_bipartite_network(
+  project_reply,
+  weight = NULL,
+  weight_agg = mean
+)
 }
 \arguments{
 \item{project_reply}{A parsed mbox by \code{\link{parse_mbox}} or \code{\link{parse_jira_replies}}.}
 
 \item{weight}{A string naming a numeric column in \code{project_reply} to use as the edge
 weight. When \code{NULL} (default), edges are weighted by message count.}
+
+\item{weight_agg}{A function to aggregate the weight column across multiple messages
+sharing the same \code{from}/\code{to} pair. Defaults to \code{mean}.}
 }
 \description{
 Transform parsed mbox or parsed jira replies into a network
