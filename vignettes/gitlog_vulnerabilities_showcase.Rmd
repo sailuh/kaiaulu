@@ -50,7 +50,7 @@ project_git <- parse_gitlog(perceval_path,git_repo_path,perl_regex = cveid_regex
 #project_git <- readRDS(save_path)
 ```
 
-Filter files based on the conf.yml to remove irrelevant files (such as .txt, .md, and .html), path contains the word "test", and exclude specific parts of the repository.
+Filter files based on the conf.yml to remove irrelevant files (such as .txt, .md, and .html), drops paths containing the word "test", and excludes specific parts of the repository.
 
 ```{r}
 project_git <- project_git  %>%
@@ -58,7 +58,7 @@ project_git <- project_git  %>%
   filter_by_filepath_substring(substring_filepath,"file_pathname")
 ```
 
-Copy of the original table with the filters above applied.
+Copy of the original table with the filters above applied for downstream analysis.
 
 ```{r}
 project_git_slice <- project_git
@@ -66,7 +66,7 @@ project_git_slice <- project_git
 
 # Issue Networks
 
-The "coverage" is the percentage of unique commits in the repository that contain a CVE-ID over the total number of unique CVE-ID. The propose is to get a overview of a repo's vulnerabilities.
+The "coverage" is the percentage of unique commits in the repository that contain a CVE-ID over the total number of unique CVE-IDs. The purpose is to get a high-level overview of a repository's vulnerabilities.
 
 ```{r}
 coverage <- commit_message_id_coverage(project_git,cveid_regex)/length(unique(project_git$data.commit))
@@ -82,20 +82,20 @@ project_commit_message_id_network <- igraph::graph_from_data_frame(d=project_com
 visIgraph(project_commit_message_id_network,randomSeed = 1)
 ```
 
-If the chosen commit message label is associated to CVEs, one additional metadata of interest to CVEs are their weaknesses. Weaknesses groups related CVE ids. We can obtain the mapping from CVE to CWEs from [NVD Feeds](https://nvd.nist.gov/vuln/data-feeds)
+If the chosen commit message label is associated to CVEs, one additional metadata of interest to CVEs are their weaknesses. Weaknesses group related CVE ids. We can obtain the mapping from CVE to CWEs from [NVD Feeds](https://nvd.nist.gov/vuln/data-feeds)
 
 ```{r}
 # This can take a few minutes!
 cve_cwe_mapping <- parse_nvdfeed(nvdfeed_folder_path)
 ```
 
-The Common Weakness Enumeration (CWE) is a community-driven, standardized dictionary of software and hardware security weaknesses used to identify, classify, and prevent vulnerabilities. A "weakness" is a condition in software, firmware, hardware, or a service that under a certain condition/s, can lead to a vulnerability (https://cwe.mitre.org/about/index.html). The format is typically CWE-ID (e.g., CWE-79 or CWE-119). We can also graph the clusters, hubs, and bridges.
+The Common Weakness Enumeration (CWE) is a community-driven, standardized dictionary of software and hardware security weaknesses used to identify, classify, and prevent vulnerabilities. A "weakness" is a condition in software, firmware, hardware, or a service that, under certain conditions, can lead to a vulnerability (https://cwe.mitre.org/about/index.html). The format is typically CWE-ID (e.g., CWE-79 or CWE-119).
 
 ```{r}
 cve_cwe_file_network <- transform_cve_cwe_file_to_network(project_commit_message_id_edgelist,cve_cwe_mapping)
 ```
 
-The graph treats CVEs and CWEs as being in a similar group to one another.
+The resulting graph treats CVEs and CWEs as being in a similar group to one another. This allows us to map the clusters, hubs, and bridges not just by specific exposures, but by the underlying architectural weaknesses.
 
 ```{r}
 project_commit_message_id_network <- igraph::graph_from_data_frame(d=cve_cwe_file_network[["edgelist"]], 
