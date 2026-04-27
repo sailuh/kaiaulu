@@ -4,7 +4,12 @@
 \alias{transform_understand_dependencies_to_network}
 \title{Transform Understand Dependencies}
 \usage{
-transform_understand_dependencies_to_network(parsed, weight_types)
+transform_understand_dependencies_to_network(
+  parsed,
+  weight_types,
+  weight = NULL,
+  weight_agg = mean
+)
 }
 \arguments{
 \item{parsed}{Parsed table from \code{\link{parse_understand_dependencies}}}

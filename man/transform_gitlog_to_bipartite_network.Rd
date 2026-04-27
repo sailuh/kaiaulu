@@ -6,7 +6,9 @@
 \usage{
 transform_gitlog_to_bipartite_network(
   project_git,
-  mode = c("author-file", "committer-file", "commit-file", "author-committer")
+  mode = c("author-file", "committer-file", "commit-file", "author-committer"),
+  weight = NULL,
+  weight_agg = mean
 )
 }
 \arguments{

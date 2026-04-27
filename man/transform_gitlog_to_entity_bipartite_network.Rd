@@ -6,7 +6,9 @@
 \usage{
 transform_gitlog_to_entity_bipartite_network(
   project_git_entity,
-  mode = c("author-entity", "committer-entity", "commit-entity", "author-committer")
+  mode = c("author-entity", "committer-entity", "commit-entity", "author-committer"),
+  weight = NULL,
+  weight_agg = mean
 )
 }
 \arguments{

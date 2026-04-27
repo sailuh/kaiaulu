@@ -6,7 +6,9 @@
 \usage{
 transform_r_dependencies_to_network(
   r_dependencies_edgelist,
-  dependency_type = c("function", "file")
+  dependency_type = c("function", "file"),
+  weight = NULL,
+  weight_agg = mean
 )
 }
 \arguments{

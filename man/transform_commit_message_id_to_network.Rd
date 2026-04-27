@@ -4,7 +4,12 @@
 \alias{transform_commit_message_id_to_network}
 \title{Transform parsed git repo commit messages id and files into an edgelist}
 \usage{
-transform_commit_message_id_to_network(project_git, commit_message_id_regex)
+transform_commit_message_id_to_network(
+  project_git,
+  commit_message_id_regex,
+  weight = NULL,
+  weight_agg = mean
+)
 }
 \arguments{
 \item{project_git}{A parsed git project by \code{\link{parse_gitlog}}.}
