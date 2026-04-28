@@ -80,8 +80,9 @@ edges[, color := fcase(
   weight < 0,  "red"
 )]
 
+is_directed <- any(edges[["direction"]] == "directed")
 plot_reply_graph <- igraph::graph_from_data_frame(d = edges,
-                                                  directed = TRUE,
+                                                  directed = is_directed,
                                                   vertices = nodes)
 visIgraph(plot_reply_graph, randomSeed = 1)
 ```
