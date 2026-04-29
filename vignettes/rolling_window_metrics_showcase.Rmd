@@ -30,6 +30,7 @@ require(stringi)
 require(knitr)
 require(magrittr)
 require(ggplot2)
+require(lubridate)
 ```
 
 # Project Configuration File
@@ -80,6 +81,79 @@ substring_filepath <- get_substring_filepath(conf)
 
 This is all the project configuration files are used for. If you inspect the variables above, you will see they are just strings. As a reminder, the tools.yml is where you store the filepaths to third party software in your computer. Please see Kaiaulu's README.md for details. As a rule of thumb, any R Notebooks in Kaiaulu load the project configuration file at the start, much like you would normally initialize variables at the start of your source code.
 
+# Engagement Metric
+
+```{r}
+owner <- "sailuh"
+repo <- "kaiaulu"
+token <- Sys.getenv("token")
+```
+
+```{r}
+github_api_project_commit_comments <- function(owner, repo, token){
+  gh::gh("GET /repos/{owner}/{repo}/comments",
+         owner = owner,
+         repo = repo,
+         page = 1,
+         per_page = 100,
+         .token = token)
+}
+```
+
+```{r}
+github_parse_project_commit_comments <- function(api_responses){
+  parse_response <- function(api_response){
+    parsed_response <- list()
+    parsed_response[["comment_id"]] <- api_response[["id"]]
+    parsed_response[["commit_id"]] <- api_response[["commit_id"]]
+    parsed_response[["author_login"]] <- api_response[["user"]][["login"]]
+    parsed_response[["author_id"]] <- api_response[["user"]][["id"]]
+    parsed_response[["body"]] <- api_response[["body"]]
+    parsed_response[["created_at"]] <- api_response[["created_at"]]
+    parsed_response[["updated_at"]] <- api_response[["updated_at"]]
+
+    parsed_response <- as.data.table(parsed_response)
+
+    return(parsed_response)
+  }
+  rbindlist(lapply(api_responses, parse_response), fill = TRUE)
+}
+```
+
+```{r}
+comments_dt <- github_parse_project_commit_comments(
+  github_api_project_commit_comments(owner, repo, token)
+)
+```
+
+```{r}
+comments_dt[, created_at := as.POSIXct(
+  created_at,
+  format = "%Y-%m-%dT%H:%M:%SZ", 
+  tz = "UTC"
+  )]
+```
+
+```{r}
+kable(head(comments_dt))
+```
+
+```{r}
+quit_lag = 90
+```
+```{r}
+engagement_communication_output <- engagement_communication(
+  datetimetz = comments_dt$created_at,
+  user_name_email = comments_dt$author_login,
+  quit_lag = quit_lag
+)
+```
+
+```{r}
+kable(head(engagement_communication_output))
+```
+
+
 # Productivity Metrics
 
 ## Obtaining the Git Log
@@ -87,7 +161,7 @@ Our first step is to parse the git log. Many of the variables in Kaiaulu are tab
 
 ```{r}
 git_checkout(git_branch,git_repo_path)
-project_git_log <- parse_gitlog(perceval_path,git_repo_path)
+project_git <- parse_gitlog(perceval_path,git_repo_path)
 #project_git <- parse_gitlog(perceval_path,git_repo_path,save_path)
 #project_git <- readRDS(save_path)
 ```
@@ -97,7 +171,7 @@ project_git_log <- parse_gitlog(perceval_path,git_repo_path)
 We may also want to filter files, to include only source code and exclude test files for example. 
 
 ```{r}
-project_git_log <- project_git_log  %>%
+project_git <- project_git  %>%
   filter_by_file_extension(file_extensions,"file_pathname")  %>% 
   filter_by_filepath_substring(substring_filepath,"file_pathname")
 ```
@@ -107,8 +181,8 @@ project_git_log <- project_git_log  %>%
 We must first convert all timestamps to the same timezone. Here, we use UTC.
 
 ```{r}
-project_git_log$author_datetimetz <- as.POSIXct(
-  project_git_log$author_datetimetz,
+project_git$author_datetimetz <- as.POSIXct(
+  project_git$author_datetimetz,
   format = "%a %b %d %H:%M:%S %Y %z",
   tz = "UTC"
 )
@@ -121,8 +195,8 @@ lag = 90
 ```
 
 ```{r}
-productivity_author_commits_output <- productivity_author_commits(project_git_log, lag = lag)
-productivity_author_churn_output <- productivity_author_churn(project_git_log, lag = lag)
+productivity_author_commits_output <- productivity_author_commits(project_git, lag = lag)
+productivity_author_churn_output <- productivity_author_churn(project_git, lag = lag)
 ```
 
 We'll show the head of the output tables for the two functions below.

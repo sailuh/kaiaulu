@@ -2,6 +2,7 @@ Rproj.user
 .Rhistory
 .RData
 .Ruserdata
+.Renviron
 depends.log
 .DS_Store
 docs
