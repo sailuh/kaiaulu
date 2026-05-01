@@ -226,7 +226,7 @@ engagement_communication <- function(datetimetz, user_name_email, quit_lag = 90)
     .(datetimetz = unique_times,
       message_count = message_count)
 
-  }, by = .(user_name_email)]
+  }, by = list(user_name_email)]
 
   return(result[])
 }
@@ -388,7 +388,9 @@ dt <- data.table::data.table(
       datetimetz = unique_times,
       comment_count = as.integer(comment_count)
     )
-  }, by = .(comment_author_name)]
+  }, by = .(author = comment_author_name)]
+
+  data.table::setnames(result, "author", "comment_author_name")
 
   return(result[])
 }
