@@ -181,6 +181,65 @@ commit_message_id_coverage <- function(git_log,commit_message_id_regex){
                                          pattern = commit_message_id_regex)
   return(length(is_match[is_match]))
 }
+
+#' Engagement Sentiment Metric
+#'
+#' @description Apply an aggregate function to the sentiment (polarity) for each 
+#' 90 day window (quit_lag) from the author (user_name_email)
+#' @param datetimetz A data table column indicating the timestamp of an author's message
+#' @param user_name_email A data table column indicating the author of a message
+#' @param quit_lag The number of days since a developer's last message
+#' @param polarity A data table column indicating the sentiment of a message
+#' @param aggregate_func The aggregate function to apply to the polarity values in the windows.
+#' The default is mean, but it can be overridden
+#' @export
+#' @references Wouter Mulder (2025). Am I finished yet? A discovery of burnout and
+#' ragequits within open-source projects. (Master thesis, Jheronimus Academy of Data Science).
+engagement_sentiment <- function(datetimetz, user_name_email, polarity, quit_lag = 90, aggregate_func = mean) {
+
+  # Convert polarity strings to numeric representation: positive = 1, negative = -1, neutral = 0
+  numeric_polarity <- data.table::fifelse(polarity == "positive", 1,
+                                          data.table::fifelse(polarity == "negative", -1, 0))
+
+  # Determine timezone
+  tz_val <- attr(datetimetz, "tzone")
+
+  # Create data table
+  dt <- data.table::data.table(
+    datetimetz = as.POSIXct(datetimetz, tz = tz_val),
+    user_name_email = user_name_email,
+    polarity = numeric_polarity
+  )
+
+  # Order data
+  data.table::setorder(dt, user_name_email, datetimetz)
+
+  # Rolling window and aggregation
+  result <- dt[, {
+    all_times <- datetimetz
+    all_polarity_values <- polarity
+    unique_times <- unique(datetimetz)
+    
+    window_start <- stringi::stri_datetime_add(
+      unique_times, 
+      value = -quit_lag,
+      units = "days",
+      tz = tz_val
+    )
+
+    aggregate_value <- sapply(seq_along(unique_times), function(i) {
+      idx <- all_times >= window_start[i] & all_times <= unique_times[i]
+      aggregate_func(all_polarity_values[idx], na.rm = TRUE)
+    })
+
+    .(datetimetz = unique_times,
+      aggregate_polarity = aggregate_value)
+
+  }, by = .(user_name_email)]
+
+  return(result[])
+}
+
 # Various imports
 #' @importFrom stringi stri_c
 #' @importFrom stringi stri_split_regex
