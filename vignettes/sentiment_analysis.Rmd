@@ -476,3 +476,31 @@ pred_dt <- pysenti_predict(
 pred_dt %>%
   gt(auto_align = FALSE)
 ```
+
+# Engagement Sentiment Analysis
+
+We can utilize `engagement_sentiment()` to analyze how developers, on aggregate, feel within a rolling window. This function takes polarity labels (positive, negative, neutral), converts them to numeric values (1, -1, 0) for each message and aggregates them over a rolling window. These polarity values are associated with a developer's particular message within a project. The function calculates the average, by default, sentiment within a specified window size. This can help us understand how sentiment fluctuates over time and identify periods of high or low engagement sentiment.
+
+By default, the window size is set to 90 days, and the aggregate function is set to mean, which calculates the average sentiment within that window. However, you can adjust these parameters based on your needs. For example, a smaller window size may capture more immediate sentiment changes, while a larger window size may provide a broader view of sentiment trends.
+
+```{r}
+quit_lag <- 90
+aggregate_func <- mean
+```
+
+```{r}
+scored_dt <- data.table::copy(reply_dt)
+scored_dt[, polarity := as.character(pred_dt$polarity)]
+
+engagement_sentiment_dt <- engagement_sentiment(
+  datetimetz      = scored_dt$reply_datetimetz,
+  user_name_email = scored_dt$reply_from,
+  polarity        = scored_dt$polarity,
+  quit_lag        = quit_lag,
+  aggregate_func  = aggregate_func
+)
+```
+
+```{r}
+print(head(engagement_sentiment_dt))
+```
