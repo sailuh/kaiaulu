@@ -201,8 +201,17 @@ parse_dependencies <- function(depends_jar_path,git_repo_path,language,output_di
                    '--format=json'),
           stdout = FALSE,
           stderr = FALSE)
-  # Construct /output_dir/ file path
-  output_path <- stri_c(output_dir, project_name,"-file.json")
+  # Construct /output_dir/ file path — older Depends versions produce <name>.json,
+  # newer versions produce <name>-file.json
+  output_path_file <- stri_c(output_dir, project_name, "-file.json")
+  output_path_plain <- stri_c(output_dir, project_name, ".json")
+  if(file.exists(output_path_file)){
+    output_path <- output_path_file
+  } else if(file.exists(output_path_plain)){
+    output_path <- output_path_plain
+  } else {
+    stop("Depends output not found. Expected: ", output_path_file, " or ", output_path_plain)
+  }
   # Parsed JSON output.
   depends_parsed <- jsonlite::read_json(output_path)
   # The JSON has two main parts. The first is a vector of all file names.
