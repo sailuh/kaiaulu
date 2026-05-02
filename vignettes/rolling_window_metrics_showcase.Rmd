@@ -59,7 +59,7 @@ As you can see, the project configuration file is a simple bullet list. This is 
 
 What this file tells the R Notebook is where to find the git log on your computer, and where you got it from in the first place. Currently we don't really use `project_website` nor `git_url` but it is strongly encouraged, as we have encountered in the past projects with multiple mirrors where the git log contained **discrepancies**, making reproducing prior analysis much harder.
 
-In the project configuration file we also specify filters. They tell this notebook what to keep after the `.` in a filename (i.e. what it ends with), and what it should **not** keep based on any word within the entire filepath name. For example, in APR unit tests are prefix with the word `_test`. In trying to reproduce related work, we found neglecting file filters led metrics such as `churn` blow out of proportion, for it include many nonsensical file changes.
+In the project configuration file we also specify filters. They tell this notebook what to keep after the `.` in a filename (i.e. what it ends with), and what it should **not** keep based on any word within the entire filepath name. For example, in APR unit tests are prefix with the word `_test`. In trying to reproduce related work, we found neglecting file filters led metrics such as `churn` blown out of proportion, for it includes many nonsensical file changes.
 
 The file makes all assumptions explicit to you when using the code. Note these assumptions are not universal: They are particular to this project alone. This is why this lives in a project configuration file, instead of the codebase. Kaiaulu git repository `/conf` folder includes a few existing projects with that information. The idea is that we save time on the long run without having to look again on the project website manually.
 
@@ -78,7 +78,7 @@ file_extensions <- get_file_extensions(conf)
 substring_filepath <- get_substring_filepath(conf)
 ```
 
-This is all the project configuration files are used for. If you inspect the variables above, you will see they are just strings. As a reminder, the tools.yml is where you store the filepaths to third party software in your computer. Please see Kaiaulu's README.md for details. As a rule of thumb, any R Notebooks in Kaiaulu load the project configuration file at the start, much like you would normally initialize variables at the start of your source code.
+This is all the project configuration files are used for. If you inspect the variables above, you will see they are just strings. As a reminder, the `tools.yml` is where you store the file paths to third party software on your computer. Please see Kaiaulu's `README.md` for details. As a rule of thumb, any R Notebooks in Kaiaulu load the project configuration file at the start, much like you would normally initialize variables at the start of your source code.
 
 # Engagement Metric
 
@@ -142,37 +142,11 @@ kable(head(comments_dt))
 ```
 
 Here, we will define the rolling window as 90 days (around 3 months), which is the default value for the `quit_lag` parameter in the `engagement_communication()` function. If you want to change the value of lag, you can do so by passing a different value in the function call. Afterwards, we will call `engagement_communication()` to obtain the output table and save it to a variable called `engagement_communication_output`. We pass in the relevant columns containing the timestamp, the user of a comment, as well as the value of the lag. The output table will contain the number of messages sent by each user in the past 90 days at each point in time, which is one way to  measure their engagement with the project. Note that the `engagement_communication()` function can be used with any type of communication data, such as issue comments or pull request comments.
-```{r}
-quit_lag = 90
-```
 
-```{r}
-engagement_communication_output <- engagement_communication(
-  datetimetz = comments_dt$created_at,
-  user_name_email = comments_dt$author_login,
-  quit_lag = quit_lag
-)
-```
 
-```{r}
-kable(head(engagement_communication_output))
-```
 
 ## Visualizing the Output Tables as a Time Series
 
-To visualize the output tables as a time series, we can use the `ggplot2` package. Visualizing the engagement metrics as a time series is useful in obersving the trends of engagement of an author over time though the number of messages they have sent.
-
-```{r fig.width=12, fig.height=7}
-ggplot(engagement_communication_output, aes(x = datetimetz, y = message_count, color = user_name_email)) +
-  geom_line() +
-  labs(title = paste0("Author Engagement on ", quit_lag, "-day Time Window"),
-       x = "Date",
-       y = "Number of Messages",
-       color = "Author"
-       ) +
-       theme_minimal() +
-       theme(plot.title = element_text(hjust = 0.5))
-```
 
 
 # Productivity Metrics
@@ -188,7 +162,6 @@ project_git <- parse_gitlog(perceval_path,git_repo_path)
 ```
 
 ## Filter files
-
 We may also want to filter files, to include only source code and exclude test files for example. 
 
 ```{r}
@@ -198,7 +171,6 @@ project_git <- project_git  %>%
 ```
 
 ## Obtaining the Output Tables
-
 We must first convert all timestamps to the same timezone. Here, we use UTC.
 
 ```{r}
@@ -227,11 +199,9 @@ kable(head(productivity_author_churn_output))
 ```
 
 ## Visualizing the Output Tables as a Time Series
-
 To visualize the output tables as a time series, we can use the `ggplot2` package. Visualizing the productivity metrics as a time series is useful in observing the engagement of an author over time through the number of messages they send and their churn. One way to think of it is that in conjunction with the engagement metrics, we can use the productivity metrics to understand if an author is becoming more or less engaged over time with their sentiment scores reflecting such increase or decrease in engagement.
 
 ### Plotting the Time Series for the Top Authors
-
 We'll select the top 10 authors based on their number of commits and churn, and then plot the time series for these authors.
 
 ```{r}
@@ -291,20 +261,12 @@ ggplot(plot_churn_dt, aes(x = author_datetimetz, y = author_churn, color = autho
 ```
 
 # Comparing the Time Series of Different Engagement Metrics
-
 We can compare the time series of an author for all of the metrics across the rolling window. To do this, we will select one author and normalize the values of the metrics metrics to be on the same scale (0-1) using min-max normalization. Then, we will plot the metrics on the same graph to compare their trends over time.
 
 ```{r fig.width=12, fig.height=7}
 one_author <- "Carlos Paradis <carlosviansi@gmail.com>"
 
 # Filter to one author
-engagement_dt <- engagement_communication_output[
-  user_name_email == one_author,
-  .(datetimetz, message_count)
-][order(datetimetz)]
-engagement_dt[, author_datetimetz := datetimetz]
-engagement_dt[, datetimetz := NULL]
-
 commits_dt <- productivity_author_commits_output[
   author_name_email == one_author,
   .(author_datetimetz, author_total_commits)
@@ -317,7 +279,6 @@ churn_dt <- productivity_author_churn_output[
 
 # Join on timestamp so all metrics share the same x-axis
 plot_dt <- merge(commits_dt, churn_dt, by = "author_datetimetz", all = TRUE)
-plot_dt <- merge(plot_dt, engagement_dt, by = "author_datetimetz", all = TRUE)
 
 # Normalize the values using min-max normalization to bring them to a 0-1 scale
 normalize <- function(x) {
@@ -336,7 +297,6 @@ plot_dt_normalized <- as.data.table(lapply(plot_dt, normalize))
 
 # Make long table for plotting all metrics
 plot_long <- rbindlist(list(
-  plot_dt_normalized[, .(author_datetimetz, metric = "Engagement (normalized)", value = message_count)],
   plot_dt_normalized[, .(author_datetimetz, metric = "Commits (normalized)", value = author_total_commits)],
   plot_dt_normalized[, .(author_datetimetz, metric = "Churn (normalized)",   value = author_churn)]
 ))
