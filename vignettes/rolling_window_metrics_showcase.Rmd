@@ -154,12 +154,6 @@ engagement_communication_output <- engagement_communication(
   quit_lag = quit_lag
 )
 ```
-```{r}
-data.table::setnames(
-  engagement_communication_output,
-  make.unique(names(engagement_communication_output))
-)
-```
 
 ```{r}
 kable(head(engagement_communication_output))
@@ -388,10 +382,7 @@ out[order(comment_author_name, datetimetz)]
 We can plot the output table as a time series using `ggplot2`. This will allow us to observe the trends of communication of different authors over time through the number of comments they have sent, particularly in Jira. This can be useful in understanding how different authors are engaging with a project over time, and if there are any patterns in their communication behavior. For example, we may observe that certain authors become more active during certain periods, or that there are fluctuations in communication around major releases or events. You can adjust the `lag` parameter above to see how the communication trends change with different rolling window sizes.
 
 ```{r fig.width=12, fig.height=7}
-plot_dt <- as.data.table(out)
-plot_dt <- plot_dt[, !duplicated(names(plot_dt)), with = FALSE]
-
-ggplot(plot_dt, aes(x = datetimetz, y = comment_count, color = comment_author_name)) +
+ggplot(out, aes(x = datetimetz, y = comment_count, color = comment_author_name)) +
   geom_line() +
   labs(title = paste0("Author Communication on ", lag, "-day Time Window"),
        x = "Date",
