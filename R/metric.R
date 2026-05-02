@@ -190,10 +190,10 @@ commit_message_id_coverage <- function(git_log,commit_message_id_regex){
 #' @param author_login a data table column indicating the author of a message
 #' @param quit_lag the number of days since an author's last message
 #' @export
+#' @family metrics
 #' @references Wouter Mulder (2025). Am I finished yet? A discovery of burnout and
 #' ragequits within open-source projects. (Master thesis, Jheronimus Academy of Data Science).
 engagement_communication <- function(timestamp, author_login, quit_lag = 90) {
-  
   # Determine timezone
   tz_val <- attr(timestamp, "tzone")
 
@@ -233,19 +233,18 @@ engagement_communication <- function(timestamp, author_login, quit_lag = 90) {
 
 #' Productivity Author Commits Metric
 #'
-#' Counts the unique number of commits per author in a rolling window based on
-#' the git log.
-#'
+#' @description Counts the unique number of commits per author in a rolling window based on
+#' a project's git log.
 #' @param project_git a parsed git log obtained from \code{\link{parse_gitlog}}
 #' @param lag the number of days to look back for the rolling window (90 day default)
 #' @return a three column data.table of the form author_name_email | author_datetimetz | author_total_commits.
 #' For each row (each timestamp in author_datetimetz), author_total_commits is the number of unique 
-#' commits by that author in the preceding 90 days ending at that timestamp.
+#' commits by that author in the preceding number of `lag` days, ending at that timestamp.
 #' @export
 #' @family metrics
 #' @seealso \code{\link{parse_gitlog}}
 productivity_author_commits <- function(project_git, lag = 90) {
-  author_name_email <- author_datetimetz <- commit_hash <- NULL
+  author_name_email <- author_datetimetz <- commit_hash <- NULL # due to NSE notes in R CMD check
 
   # Determine timezone from the author_datetimetz column in project_git
   tz_val <- attr(project_git$author_datetimetz, "tzone")
@@ -288,14 +287,13 @@ productivity_author_commits <- function(project_git, lag = 90) {
 
 #' Productivity Author Churn Metric
 #'
-#' Calculates the churn per author in a rolling window based on the git log.
-#'
+#' @description Calculates the churn per author in a rolling window based on a project's git log.
 #' @param project_git a parsed git log obtained from \code{\link{parse_gitlog}}
 #' @param lag the number of days to look back for the rolling window (90 day default)
 #' @return a five column data.table of the form author_name_email | author_datetimetz | lines_added | 
 #' lines_removed | author_churn. 
 #' At each timestamp, the lines_added, lines_removed, and author_churn are the totals across all rows 
-#' for that author within the prior 90 days ending at that timestamp.
+#' for that author within the prior `lag` days, ending at that timestamp.
 #' @export
 #' @family metrics
 #' @seealso \code{\link{parse_gitlog}} to obtain additions and deletions from gitlog
@@ -335,62 +333,6 @@ productivity_author_churn <- function(project_git, lag = 90) {
       )
     }))
   }, by = .(author_name_email)]
-
-  return(result[])
-}
-
-#' Jira Author Communication Count Metric
-#'
-#' Calculates the number of messages/comments an author has sent in Jira within
-#' a 90-day rolling window.
-#'
-#' @param comments_dt a parsed jira comments table obtained from \code{\link{parse_jira}}
-#' @param comment_created_col the column name in `comments_dt` which contains the comment creation time
-#' @param comment_author_col the column name in `comments_dt` which contains the comment author name
-#' @param lag the number of days to look back for the rolling window (default is 90)
-#' @return a three column data.table of the form datetimetz | comment_author_name | comment_count
-#' @export
-#' @family metrics
-#' @seealso \code{\link{parse_jira}} to obtain the comments table
-jira_author_communication_count <- function(comments_dt, 
-                                               comment_created_col = "comment_created_datetimetz", 
-                                               comment_author_col = "comment_author_name", 
-                                               lag = 90) {
-
-raw_time   <- comments_dt[[comment_created_col]]
-raw_author <- comments_dt[[comment_author_col]]
-
-tz_val <- "UTC"
-
-dt <- data.table::data.table(
-    datetimetz = as.POSIXct(raw_time, format = "%Y-%m-%dT%H:%M:%OS%z", tz = tz_val),
-    comment_author_name = raw_author
-  )
-
-  data.table::setorder(dt, comment_author_name, datetimetz)
-
-  result <- dt[, {
-    all_times    <- datetimetz
-    unique_times <- unique(all_times)
-
-    window_start <- stringi::stri_datetime_add(
-      unique_times,
-      value = -lag,
-      units = "days",
-      tz = tz_val
-    )
-
-    comment_count <- sapply(seq_along(unique_times), function(i) {
-      sum(all_times >= window_start[i] & all_times <= unique_times[i], na.rm = TRUE)
-    })
-
-    .(
-      datetimetz = unique_times,
-      comment_count = as.integer(comment_count)
-    )
-  }, by = .(author = comment_author_name)]
-
-  data.table::setnames(result, "author", "comment_author_name")
 
   return(result[])
 }

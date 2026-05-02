@@ -12,7 +12,7 @@ vignette: >
 
 # Introduction
 
-This notebook presents some of the functionality of the following functions from `metric.R` that measure developer engagement: `engagement_communication()`, `productivity_author_commits()`, `productivity_author_churn()`, and `jira_developer_communication_count()`.
+This notebook presents the functionality of the following functions from `metric.R` that measure developer engagement: `engagement_communication()`, `productivity_author_commits()`, and `productivity_author_churn()`.
 
 The `engagement_sentiment()` metric is covered separately in `sentiment_analysis.Rmd`, as it requires an additional pipeline to obtain the data.
 
@@ -30,7 +30,6 @@ require(stringi)
 require(knitr)
 require(magrittr)
 require(ggplot2)
-require(lubridate)
 ```
 
 # Project Configuration File
@@ -291,109 +290,6 @@ ggplot(plot_churn_dt, aes(x = author_datetimetz, y = author_churn, color = autho
          theme(plot.title = element_text(hjust = 0.5))
 ```
 
-# Communication Metric
-
-## Minimal Example Shaped Like the Comments Table Returned by `parse_jira()`
-The communication metric `jira_developer_communication_count()` is designed to work with data in the same format as the comments table returned by `parse_jira()`. This means that the input data table should have columns for issue key, comment ID, comment creation timestamp, comment author, and comment body. Below is a minimal example of how to create a data table with this format to test the `jira_developer_communication_count()` function.
-```{r}
-comments_dt <- data.table(
-  issue_key = c(
-    "PROJ-1","PROJ-1","PROJ-1",
-    "PROJ-2","PROJ-2","PROJ-2",
-    "PROJ-3","PROJ-3","PROJ-3",
-    "PROJ-4","PROJ-4"
-  ),
-  comment_id = c(
-    "10001","10002","10003",
-    "20001","20002","20003",
-    "30001","30002","30003",
-    "40001","40002"
-  ),
-  comment_created_datetimetz = c(
-    # 2022
-    "2022-01-15T10:00:00.000+0000",
-    "2022-03-20T12:30:00.000+0000",
-    "2022-11-05T09:10:00.000+0000",
-
-    # 2023
-    "2023-02-10T14:05:10.000+0000",
-    "2023-06-01T08:45:00.000+0000",
-    "2023-12-18T16:20:00.000+0000",
-
-    # 2024
-    "2024-01-08T11:00:00.000+0000",
-    "2024-04-22T19:10:00.000+0000",
-    "2024-09-30T07:55:00.000+0000",
-
-    # 2025
-    "2025-02-14T13:40:00.000+0000",
-    "2025-10-03T21:15:00.000+0000"
-  ),
-  comment_author_name = c(
-    "Alice Doe <alice@example.com>",
-    "Alice Doe <alice@example.com>",
-    "Alice Doe <alice@example.com>",
-    "John Smith <john@example.com>",
-    "John Smith <john@example.com>",
-    "John Smith <john@example.com>",
-    "Alice Doe <alice@example.com>",
-    "Mary Major <mary@example.com>",
-    "Mary Major <mary@example.com>",
-    "John Smith <john@example.com>",
-    "Alice Doe <alice@example.com>"
-  ),
-  comment_body = c(
-    "Initial report",
-    "Can reproduce",
-    "Still happening in latest release",
-    "Investigating",
-    "Patch posted for review",
-    "Confirmed fixed on main",
-    "Regression found",
-    "Any updates?",
-    "I tested the fix; looks good",
-    "Follow-up: additional edge case",
-    "Closing the loop on this issue"
-  )
-)
-```
-
-## Run the Metric
-
-```{r}
-lag <- 90
-```
-
-```{r}
-out <- jira_author_communication_count(
-  comments_dt,
-  comment_created_col = "comment_created_datetimetz",
-  comment_author_col = "comment_author_name",
-  lag = lag
-)
-```
-
-```{r}
-out[order(comment_author_name, datetimetz)]
-```
-
-## Visualizing the Output Table as a Time Series
-
-We can plot the output table as a time series using `ggplot2`. This will allow us to observe the trends of communication of different authors over time through the number of comments they have sent, particularly in Jira. This can be useful in understanding how different authors are engaging with a project over time, and if there are any patterns in their communication behavior. For example, we may observe that certain authors become more active during certain periods, or that there are fluctuations in communication around major releases or events. You can adjust the `lag` parameter above to see how the communication trends change with different rolling window sizes.
-
-```{r fig.width=12, fig.height=7}
-ggplot(out, aes(x = datetimetz, y = comment_count, color = comment_author_name)) +
-  geom_line() +
-  labs(title = paste0("Author Communication on ", lag, "-day Time Window"),
-       x = "Date",
-       y = "Number of Comments",
-       color = "Author"
-       ) +
-       theme_minimal() +
-       theme(plot.title = element_text(hjust = 0.5))
-```
-
-
 # Comparing the Time Series of Different Engagement Metrics
 
 We can compare the time series of an author for all of the metrics across the rolling window. To do this, we will select one author and normalize the values of the metrics metrics to be on the same scale (0-1) using min-max normalization. Then, we will plot the metrics on the same graph to compare their trends over time.
@@ -402,6 +298,13 @@ We can compare the time series of an author for all of the metrics across the ro
 one_author <- "Carlos Paradis <carlosviansi@gmail.com>"
 
 # Filter to one author
+engagement_dt <- engagement_communication_output[
+  user_name_email == one_author,
+  .(datetimetz, message_count)
+][order(datetimetz)]
+engagement_dt[, author_datetimetz := datetimetz]
+engagement_dt[, datetimetz := NULL]
+
 commits_dt <- productivity_author_commits_output[
   author_name_email == one_author,
   .(author_datetimetz, author_total_commits)
@@ -412,25 +315,9 @@ churn_dt <- productivity_author_churn_output[
   .(author_datetimetz, author_churn)
 ][order(author_datetimetz)]
 
-engagement_dt <- engagement_communication_output[
-  user_name_email == one_author,
-  .(datetimetz, message_count)
-][order(datetimetz)]
-engagement_dt[, author_datetimetz := datetimetz]
-engagement_dt[, datetimetz := NULL]
-
-communication_dt <- out[
-  comment_author_name == one_author,
-  .(datetimetz, comment_count)
-][order(datetimetz)]
-communication_dt[, author_datetimetz := datetimetz]
-communication_dt[, datetimetz := NULL]
-
 # Join on timestamp so all metrics share the same x-axis
 plot_dt <- merge(commits_dt, churn_dt, by = "author_datetimetz", all = TRUE)
 plot_dt <- merge(plot_dt, engagement_dt, by = "author_datetimetz", all = TRUE)
-plot_dt <- merge(plot_dt, communication_dt, by = "author_datetimetz", all = TRUE)
-
 
 # Normalize the values using min-max normalization to bring them to a 0-1 scale
 normalize <- function(x) {
@@ -449,16 +336,15 @@ plot_dt_normalized <- as.data.table(lapply(plot_dt, normalize))
 
 # Make long table for plotting all metrics
 plot_long <- rbindlist(list(
-  plot_dt_normalized[, .(author_datetimetz, metric = "Commits (normalized)", value = author_total_commits)],
-  plot_dt_normalized[, .(author_datetimetz, metric = "Churn (normalized)",   value = author_churn)],
   plot_dt_normalized[, .(author_datetimetz, metric = "Engagement (normalized)", value = message_count)],
-  plot_dt_normalized[, .(author_datetimetz, metric = "Communication (normalized)", value = comment_count)]
+  plot_dt_normalized[, .(author_datetimetz, metric = "Commits (normalized)", value = author_total_commits)],
+  plot_dt_normalized[, .(author_datetimetz, metric = "Churn (normalized)",   value = author_churn)]
 ))
 
 ggplot(plot_long, aes(x = author_datetimetz, y = value, color = metric)) +
   geom_line() +
   labs(
-    title = paste0("Commits and Churn Productivity on ", lag, "-day Time Window (Normalized): ", one_author),
+    title = paste0("Rolling Window Metrics on ", lag, "-day Time Window (Normalized): ", one_author),
     x = "Date",
     y = "Normalized value (0–1)",
     color = "Metric"

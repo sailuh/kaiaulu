@@ -245,7 +245,6 @@ reference:
   - engagement_communication
   - productivity_author_commits
   - productivity_author_churn
-  - jira_author_communication_count
 - title: __Graph__
   desc:  Provide graph models to construct networks and algorithms for graph analysis.
 - contents:

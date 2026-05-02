@@ -15,17 +15,17 @@ productivity_author_churn(project_git, lag = 90)
 a five column data.table of the form author_name_email | author_datetimetz | lines_added | 
 lines_removed | author_churn. 
 At each timestamp, the lines_added, lines_removed, and author_churn are the totals across all rows 
-for that author within the prior 90 days ending at that timestamp.
+for that author within the prior `lag` days, ending at that timestamp.
 }
 \description{
-Calculates the churn per author in a rolling window based on the git log.
+Calculates the churn per author in a rolling window based on a project's git log.
 }
 \seealso{
 \code{\link{parse_gitlog}} to obtain additions and deletions from gitlog
 
 Other metrics: 
 \code{\link{commit_message_id_coverage}()},
-\code{\link{jira_author_communication_count}()},
+\code{\link{engagement_communication}()},
 \code{\link{metric_churn}()},
 \code{\link{metric_churn_per_commit_interval}()},
 \code{\link{metric_churn_per_commit_per_file}()},

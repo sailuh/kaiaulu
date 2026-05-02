@@ -14,18 +14,18 @@ productivity_author_commits(project_git, lag = 90)
 \value{
 a three column data.table of the form author_name_email | author_datetimetz | author_total_commits.
 For each row (each timestamp in author_datetimetz), author_total_commits is the number of unique 
-commits by that author in the preceding 90 days ending at that timestamp.
+commits by that author in the preceding number of `lag` days, ending at that timestamp.
 }
 \description{
 Counts the unique number of commits per author in a rolling window based on
-the git log.
+a project's git log.
 }
 \seealso{
 \code{\link{parse_gitlog}}
 
 Other metrics: 
 \code{\link{commit_message_id_coverage}()},
-\code{\link{jira_author_communication_count}()},
+\code{\link{engagement_communication}()},
 \code{\link{metric_churn}()},
 \code{\link{metric_churn_per_commit_interval}()},
 \code{\link{metric_churn_per_commit_per_file}()},
