@@ -185,32 +185,32 @@ commit_message_id_coverage <- function(git_log,commit_message_id_regex){
 #' Engagement Communication Metric
 #'
 #' @description Uses a rolling window of 90 days to check, for each 90-day window, how many times
-#' an author communicated via a message
-#' @param datetimetz a data table column indicating the timestamp of an author's message
-#' @param user_name_email a data table column indicating the author of a message
-#' @param quit_lag the number of days since a developer's last message
+#' an author communicated via a message.
+#' @param timestamp a data table column indicating the timestamp of an author's message
+#' @param author_login a data table column indicating the author of a message
+#' @param quit_lag the number of days since an author's last message
 #' @export
 #' @references Wouter Mulder (2025). Am I finished yet? A discovery of burnout and
 #' ragequits within open-source projects. (Master thesis, Jheronimus Academy of Data Science).
-engagement_communication <- function(datetimetz, user_name_email, quit_lag = 90) {
+engagement_communication <- function(timestamp, author_login, quit_lag = 90) {
   
   # Determine timezone
-  tz_val <- attr(datetimetz, "tzone")
+  tz_val <- attr(timestamp, "tzone")
 
   # Create data table
   dt <- data.table::data.table(
-    datetimetz = as.POSIXct(datetimetz, tz = tz_val),
-    user_name_email = user_name_email
+    timestamp = as.POSIXct(timestamp, tz = tz_val),
+    author_login = author_login
   )
 
   # Order data
-  data.table::setorder(dt, user_name_email, datetimetz)
+  data.table::setorder(dt, author_login, timestamp)
 
   # For each message, count how many messages the same author sent
   # in the rolling window i.e. the prior 90 days up to and including the message timestamp
   result <- dt[, {
-    all_times <- datetimetz
-    unique_times <- unique(datetimetz)
+    all_times <- timestamp
+    unique_times <- unique(timestamp)
 
     window_start <- stringi::stri_datetime_add(
       unique_times,
@@ -223,10 +223,10 @@ engagement_communication <- function(datetimetz, user_name_email, quit_lag = 90)
       sum(all_times >= window_start[i] & all_times <= unique_times[i], na.rm = TRUE)
     })
 
-    .(datetimetz = unique_times,
+    .(timestamp = unique_times,
       message_count = message_count)
 
-  }, by = list(user_name_email)]
+  }, by = .(author_login)]
 
   return(result[])
 }

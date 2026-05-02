@@ -4,18 +4,18 @@
 \alias{engagement_communication}
 \title{Engagement Communication Metric}
 \usage{
-engagement_communication(datetimetz, user_name_email, quit_lag = 90)
+engagement_communication(timestamp, author_login, quit_lag = 90)
 }
 \arguments{
-\item{datetimetz}{a data table column indicating the timestamp of an author's message}
+\item{timestamp}{a data table column indicating the timestamp of an author's message}
 
-\item{user_name_email}{a data table column indicating the author of a message}
+\item{author_login}{a data table column indicating the author of a message}
 
-\item{quit_lag}{the number of days since a developer's last message}
+\item{quit_lag}{the number of days since an author's last message}
 }
 \description{
 Uses a rolling window of 90 days to check, for each 90-day window, how many times
-an author communicated via a message
+an author communicated via a message.
 }
 \references{
 Wouter Mulder (2025). Am I finished yet? A discovery of burnout and
