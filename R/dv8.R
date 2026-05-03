@@ -701,21 +701,21 @@ dv8_mdsmb_to_hierclsxb <- function(dv8_path,
                                    modules=FALSE,
                                    recursive=FALSE) {
   dv8_path <- path.expand(dv8_path)
-  output_file_arg <- sprintf("-outputFile %s", hierclsxb_path)
-  max_depth_arg <- ""
-  modules_arg <- ""
-  recursive_arg <- ""
+  hierclsxb_path <- path.expand(hierclsxb_path)
+  max_depth_arg <- c()
+  modules_arg <- c()
+  recursive_arg <- c()
 
-  if (max_depth_arg != "") {
-    max_depth_arg <- sprintf("-maxDepth %i ", max_depth)
+  if (max_depth != "") {
+    max_depth_arg <- c("-maxDepth", max_depth)
   }
 
   if (modules) {
-    modules_arg <- "-modules "
+    modules_arg <- "-modules"
   }
 
   if (recursive) {
-    recursive_arg <- "-recursive "
+    recursive_arg <- "-recursive"
   }
 
   system2(command=dv8_path,
@@ -723,9 +723,9 @@ dv8_mdsmb_to_hierclsxb <- function(dv8_path,
                  max_depth_arg,
                  modules_arg,
                  recursive_arg,
-                 output_file_arg,
+                 "-outputFile", hierclsxb_path,
                  mdsmb_path),
-          stdout=hierclsxb_path)
+          stdout=FALSE)
 
   return(hierclsxb_path)
 }
