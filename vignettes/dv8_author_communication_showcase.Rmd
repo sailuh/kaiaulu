@@ -1,0 +1,146 @@
+---
+title: "DV8 DR Space Clustering — Author Communication Network"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{DV8 DR Space Clustering — Author Communication Network}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(visNetwork)
+require(data.table)
+require(igraph)
+require(yaml)
+require(stringi)
+require(knitr)
+```
+
+# Introduction
+
+This notebook demonstrates the first end-to-end pipeline from raw mailing list data to DV8 DR Space clustering applied to an author communication network in Kaiaulu. Prior use of DV8 in Kaiaulu focused on source code dependency structure. Here, the same clustering infrastructure is applied to a social network of developers derived from mbox data.
+
+DR Space (Dependency and Ratio Space) is a hierarchical clustering algorithm implemented in DV8. It groups nodes based on the density and balance of their connections. In a code dependency context, this identifies architectural modules. Applied to an author communication network, it identifies cohesive communication clusters among developers.
+
+The pipeline proceeds as follows:
+
+1. Parse mbox files into a reply table
+2. Build a bipartite author-subject network
+3. Project to a unimodal author-author network
+4. Export as a DV8 DSM JSON file
+5. Convert to DV8 binary format
+6. Run DR Space hierarchical clustering
+7. Parse and inspect the resulting cluster assignments
+
+# Project Configuration File
+
+```{r}
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/helix.yml")
+
+perceval_path <- get_tool_project("perceval", tool)
+dv8_path      <- get_tool_project("dv8", tool)
+
+mbox_path <- get_mbox_path(conf, "project_key_1")
+dv8_out   <- get_dv8_folder_path(conf)
+```
+
+# Parse Mbox
+
+Parse all mbox files in the configured folder into a single reply table.
+
+```{r}
+mbox_files  <- list.files(mbox_path, full.names = TRUE)
+mbox_files  <- mbox_files[file.size(mbox_files) > 0]
+project_mbox <- rbindlist(
+  lapply(mbox_files, function(f) parse_mbox(perceval_path, f)),
+  fill = TRUE
+)
+nrow(project_mbox)
+kable(head(project_mbox[, .(reply_from, reply_subject)]))
+```
+
+# Build Author-Subject Bipartite Graph
+
+Transform the reply table into a bipartite graph where one node type represents authors and the other represents mail subjects (threads).
+
+```{r}
+bipartite_graph <- transform_reply_to_bipartite_network(project_mbox)
+kable(head(bipartite_graph[["nodes"]]))
+kable(head(bipartite_graph[["edgelist"]]))
+```
+
+# Project to Author-Author Unimodal Graph
+
+Project the bipartite graph onto the author node type to obtain a unimodal author-author co-communication network. An edge between two authors indicates they participated in the same thread.
+
+```{r}
+author_graph <- bipartite_graph_projection(bipartite_graph, mode = TRUE,
+                                           weight_scheme_function = weight_scheme_sum_edges)
+kable(head(author_graph[["nodes"]]))
+kable(head(author_graph[["edgelist"]]))
+```
+
+## Visualize Author-Author Network
+
+```{r fig.width=10, fig.height=7}
+author_edges <- author_graph[["edgelist"]][, .(from, to, weight)]
+is_directed  <- any(author_graph[["edgelist"]][["direction"]] == "directed")
+i_author_graph <- igraph::graph_from_data_frame(
+  d        = author_edges,
+  directed = FALSE,
+  vertices = author_graph[["nodes"]]
+)
+visIgraph(i_author_graph, randomSeed = seed)
+```
+
+# Export DSM and Convert to DV8 Binary
+
+Export the author-author graph as a DSM JSON file and convert it to the DV8 binary format required for clustering.
+
+```{r}
+dir.create(dv8_out, showWarnings = FALSE, recursive = TRUE)
+
+adsmj_path <- file.path(dv8_out, "helix-author-hdsm.json")
+graph_to_dsmj(author_graph, dsmj_path = adsmj_path, dsmj_name = "helix-author-hdsm")
+
+adsmb_path <- file.path(dv8_out, "helix-author-hdsm.dv8-dsm")
+dv8_dsmj_to_dsmb(dv8_path = dv8_path, dsmj_path = adsmj_path, dsmb_path = adsmb_path)
+```
+
+# Run DR Space Hierarchical Clustering
+
+Run DV8's DR Space hierarchical clustering on the author-author DSM binary.
+
+```{r}
+clsx_path <- file.path(dv8_out, "helix-author-clsx.dv8-clsx")
+dv8_mdsmb_to_hierclsxb(dv8_path = dv8_path, mdsmb_path = adsmb_path, hierclsxb_path = clsx_path)
+```
+
+# Parse Cluster Assignments
+
+Convert the binary cluster file to JSON and parse the cluster assignments into a data table.
+
+```{r}
+clsxj_path <- file.path(dv8_out, "helix-author-clsx.json")
+dv8_clsxb_to_clsxj(dv8_path = dv8_path, clsxb_path = clsx_path, clsxj_path = clsxj_path)
+
+cluster_table <- parse_dv8_clusters(clsxj_path)
+kable(head(cluster_table))
+```
+
+## Module Summary
+
+```{r}
+kable(cluster_table[, .N, by = module][order(module)])
+```

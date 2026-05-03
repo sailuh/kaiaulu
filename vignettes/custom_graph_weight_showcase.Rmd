@@ -37,7 +37,7 @@ Sentiment labels (`positive`, `neutral`, `negative`) are first converted to inte
 The input is a CSV of CakePHP GitHub commit comments joined with sentiment labels from the MSR14 gold standard dataset.
 
 ```{r}
-dt <- fread("rawdata/github/cakephp_sentiment_commit_comments_joined.csv")
+dt <- fread("https://github.com/user-attachments/files/27313855/cakephp_sentiment_commit_comments_joined.csv")
 kable(head(dt))
 ```
 
@@ -85,4 +85,115 @@ plot_reply_graph <- igraph::graph_from_data_frame(d = edges,
                                                   directed = is_directed,
                                                   vertices = nodes)
 visIgraph(plot_reply_graph, randomSeed = 1)
+```
+
+# Emotion Graph
+
+This section demonstrates using binary emotion labels as edge weights in a bipartite author-to-issue network. The dataset contains JIRA comments from the Apache Harmony project, each annotated with six binary emotion labels: `love`, `joy`, `sadness`, `anger`, `surprise`, and `fear`.
+
+Each emotion is visualized as a separate graph. The `weight` parameter is set to the emotion column, and `weight_agg = mean` aggregates multiple comments between the same author and issue into a proportion (0 = no comments with that emotion, 1 = all comments with that emotion). Only edges with weight > 0 are shown. Edge color encodes intensity using three levels — light, medium, dark — and edge labels show the rounded weight value.
+
+## Load Emotion Data
+
+```{r}
+emotion_dt <- as.data.table(read.csv("https://github.com/user-attachments/files/27313854/harmony_emotion_comments_joined.csv"))
+kable(head(emotion_dt[, .(comment_id, issue_key, author_login, author_name, love, joy, sadness, anger, surprise, fear)]))
+```
+
+## Prepare Data
+
+```{r}
+emotion_dt[, reply_from    := author_login]
+emotion_dt[, reply_subject := issue_key]
+kable(head(emotion_dt[, .(reply_from, reply_subject, love, joy, sadness, anger, surprise, fear)]))
+```
+
+## Love
+
+```{r fig.width=10, fig.height=7}
+love_graph <- transform_reply_to_bipartite_network(emotion_dt, weight = "love", weight_agg = mean)
+nodes <- love_graph[["nodes"]]
+edges <- love_graph[["edgelist"]]
+if (nrow(edges) > 0) {
+  edges[, color := "hotpink"]
+  edges[, label := as.character(round(weight, 2))]
+  is_directed <- any(love_graph[["edgelist"]][["direction"]] == "directed")
+  visIgraph(igraph::graph_from_data_frame(d = edges, directed = is_directed, vertices = nodes), randomSeed = seed) |>
+    visEdges(font = list(align = "horizontal", background = "white", strokeWidth = 0))
+}
+```
+
+## Joy
+
+```{r fig.width=10, fig.height=7}
+joy_graph <- transform_reply_to_bipartite_network(emotion_dt, weight = "joy", weight_agg = mean)
+nodes <- joy_graph[["nodes"]]
+edges <- joy_graph[["edgelist"]]
+if (nrow(edges) > 0) {
+  edges[, color := "darkorange"]
+  edges[, label := as.character(round(weight, 2))]
+  is_directed <- any(joy_graph[["edgelist"]][["direction"]] == "directed")
+  visIgraph(igraph::graph_from_data_frame(d = edges, directed = is_directed, vertices = nodes), randomSeed = seed) |>
+    visEdges(font = list(align = "horizontal", background = "white", strokeWidth = 0))
+}
+```
+
+## Sadness
+
+```{r fig.width=10, fig.height=7}
+sadness_graph <- transform_reply_to_bipartite_network(emotion_dt, weight = "sadness", weight_agg = mean)
+nodes <- sadness_graph[["nodes"]]
+edges <- sadness_graph[["edgelist"]]
+if (nrow(edges) > 0) {
+  edges[, color := "steelblue"]
+  edges[, label := as.character(round(weight, 2))]
+  is_directed <- any(sadness_graph[["edgelist"]][["direction"]] == "directed")
+  visIgraph(igraph::graph_from_data_frame(d = edges, directed = is_directed, vertices = nodes), randomSeed = seed) |>
+    visEdges(font = list(align = "horizontal", background = "white", strokeWidth = 0))
+}
+```
+
+## Anger
+
+```{r fig.width=10, fig.height=7}
+anger_graph <- transform_reply_to_bipartite_network(emotion_dt, weight = "anger", weight_agg = mean)
+nodes <- anger_graph[["nodes"]]
+edges <- anger_graph[["edgelist"]]
+if (nrow(edges) > 0) {
+  edges[, color := "darkred"]
+  edges[, label := as.character(round(weight, 2))]
+  is_directed <- any(anger_graph[["edgelist"]][["direction"]] == "directed")
+  visIgraph(igraph::graph_from_data_frame(d = edges, directed = is_directed, vertices = nodes), randomSeed = seed) |>
+    visEdges(font = list(align = "horizontal", background = "white", strokeWidth = 0))
+}
+```
+
+## Surprise
+
+```{r fig.width=10, fig.height=7}
+surprise_graph <- transform_reply_to_bipartite_network(emotion_dt, weight = "surprise", weight_agg = mean)
+nodes <- surprise_graph[["nodes"]]
+edges <- surprise_graph[["edgelist"]]
+if (nrow(edges) > 0) {
+  edges[, color := "darkcyan"]
+  edges[, label := as.character(round(weight, 2))]
+  is_directed <- any(surprise_graph[["edgelist"]][["direction"]] == "directed")
+  visIgraph(igraph::graph_from_data_frame(d = edges, directed = is_directed, vertices = nodes), randomSeed = seed) |>
+    visEdges(font = list(align = "horizontal", background = "white", strokeWidth = 0))
+}
+```
+
+## Fear
+
+```{r fig.width=10, fig.height=7}
+fear_graph <- transform_reply_to_bipartite_network(emotion_dt, weight = "fear", weight_agg = mean)
+nodes <- fear_graph[["nodes"]]
+edges <- fear_graph[["edgelist"]]
+if (nrow(edges) > 0) {
+  edges[, color := "mediumpurple"]
+  edges[, label := as.character(round(weight, 2))]
+  is_directed <- any(fear_graph[["edgelist"]][["direction"]] == "directed")
+  visIgraph(igraph::graph_from_data_frame(d = edges, directed = is_directed, vertices = nodes), randomSeed = seed) |>
+    visEdges(font = list(align = "horizontal", background = "white", strokeWidth = 0))
+}
 ```
