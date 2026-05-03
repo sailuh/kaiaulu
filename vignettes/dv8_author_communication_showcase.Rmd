@@ -46,13 +46,15 @@ The pipeline proceeds as follows:
 
 ```{r}
 tool <- parse_config("../tools.yml")
-conf <- parse_config("../conf/helix.yml")
+conf <- parse_config("../conf/openssl.yml")
 
 perceval_path <- get_tool_project("perceval", tool)
 dv8_path      <- get_tool_project("dv8", tool)
 
-mbox_path <- get_mbox_path(conf, "project_key_1")
+mbox_path <- get_pipermail_path(conf, "project_key_1")
 dv8_out   <- get_dv8_folder_path(conf)
+project_name <- stringi::stri_split_regex(dv8_out, pattern = "/")[[1]]
+project_name <- project_name[length(project_name)]
 ```
 
 # Parse Mbox
@@ -111,10 +113,10 @@ Export the author-author graph as a DSM JSON file and convert it to the DV8 bina
 ```{r}
 dir.create(dv8_out, showWarnings = FALSE, recursive = TRUE)
 
-adsmj_path <- file.path(dv8_out, "helix-author-hdsm.json")
-graph_to_dsmj(author_graph, dsmj_path = adsmj_path, dsmj_name = "helix-author-hdsm")
+adsmj_path <- file.path(dv8_out, paste0(project_name, "-author-hdsm.json"))
+graph_to_dsmj(author_graph, dsmj_path = adsmj_path, dsmj_name = paste0(project_name, "-author-hdsm"))
 
-adsmb_path <- file.path(dv8_out, "helix-author-hdsm.dv8-dsm")
+adsmb_path <- file.path(dv8_out, paste0(project_name, "-author-hdsm.dv8-dsm"))
 dv8_dsmj_to_dsmb(dv8_path = dv8_path, dsmj_path = adsmj_path, dsmb_path = adsmb_path)
 ```
 
@@ -123,7 +125,7 @@ dv8_dsmj_to_dsmb(dv8_path = dv8_path, dsmj_path = adsmj_path, dsmb_path = adsmb_
 Run DV8's DR Space hierarchical clustering on the author-author DSM binary.
 
 ```{r}
-clsx_path <- file.path(dv8_out, "helix-author-clsx.dv8-clsx")
+clsx_path <- file.path(dv8_out, paste0(project_name, "-author-clsx.dv8-clsx"))
 dv8_mdsmb_to_hierclsxb(dv8_path = dv8_path, mdsmb_path = adsmb_path, hierclsxb_path = clsx_path)
 ```
 
@@ -132,7 +134,7 @@ dv8_mdsmb_to_hierclsxb(dv8_path = dv8_path, mdsmb_path = adsmb_path, hierclsxb_p
 Convert the binary cluster file to JSON and parse the cluster assignments into a data table.
 
 ```{r}
-clsxj_path <- file.path(dv8_out, "helix-author-clsx.json")
+clsxj_path <- file.path(dv8_out, paste0(project_name, "-author-clsx.json"))
 dv8_clsxb_to_clsxj(dv8_path = dv8_path, clsxb_path = clsx_path, clsxj_path = clsxj_path)
 
 cluster_table <- parse_dv8_clusters(clsxj_path)

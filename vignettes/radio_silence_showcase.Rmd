@@ -1,0 +1,126 @@
+---
+title: "Radio Silence Showcase"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Radio Silence Showcase}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(igraph)
+require(visNetwork)
+require(data.table)
+require(yaml)
+require(stringi)
+require(knitr)
+```
+
+# Introduction
+
+This notebook demonstrates how to compute radio silence — a social smell that identifies developers who act as sole bridges between otherwise disconnected communication communities. The pipeline uses the OpenSSL project's pipermail mailing list data.
+
+Radio silence boundary spanners are authors who are the only link between two distinct developer communities. If they stop communicating, the communities lose contact entirely, creating a coordination risk.
+
+The pipeline proceeds as follows:
+
+1. Parse pipermail mbox files into a reply table
+2. Transform into a bipartite author-thread network
+3. Project to a unimodal author-author network
+4. Detect communities with OSLOM
+5. Count radio silence boundary spanners with `smell_radio_silence`
+
+# Project Configuration
+
+```{r}
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/openssl.yml")
+
+oslom_undir_path <- get_tool_project("oslom_undir", tool)
+perceval_path    <- get_tool_project("perceval", tool)
+
+mbox_path <- get_pipermail_path(conf, "project_key_1")
+```
+
+# Parse Mbox Replies
+
+Parse all pipermail mbox files into a unified reply table. Empty files are skipped.
+
+```{r}
+project_mbox <- data.table()
+mbox_files <- list.files(mbox_path, full.names = TRUE)
+mbox_files <- mbox_files[file.size(mbox_files) > 0]
+for (mbox_file_path in mbox_files) {
+  project_mbox <- rbind(project_mbox, parse_mbox(perceval_path, mbox_file_path), fill = TRUE)
+}
+
+project_mbox$reply_datetimetz <- as.POSIXct(project_mbox$reply_datetimetz,
+                                             format = "%a, %d %b %Y %H:%M:%S %z", tz = "UTC")
+
+kable(head(project_mbox[, .(reply_from, reply_subject, reply_datetimetz)]))
+```
+
+# Build Bipartite Author-Thread Network
+
+Transform the reply table into a bipartite graph where one node type represents authors and the other represents mail threads (subjects).
+
+```{r}
+reply_network <- transform_reply_to_bipartite_network(project_mbox)
+kable(head(reply_network[["nodes"]]))
+kable(head(reply_network[["edgelist"]]))
+```
+
+# Project to Author-Author Network
+
+Project the bipartite graph onto the author node type to obtain a unimodal author-author co-communication network. An edge between two authors means they both posted in the same thread.
+
+```{r}
+author_network <- bipartite_graph_projection(reply_network, mode = TRUE,
+                                             weight_scheme_function = weight_scheme_sum_edges)
+kable(head(author_network[["nodes"]]))
+kable(head(author_network[["edgelist"]]))
+```
+
+## Visualize Author-Author Network
+
+```{r fig.width=10, fig.height=7}
+is_directed <- any(author_network[["edgelist"]][["direction"]] == "directed")
+i_author_graph <- igraph::graph_from_data_frame(
+  d        = author_network[["edgelist"]],
+  directed = is_directed,
+  vertices = author_network[["nodes"]]
+)
+visIgraph(i_author_graph, randomSeed = seed)
+```
+
+# Community Detection
+
+Detect communication communities using OSLOM. Each cluster groups authors who communicate densely with one another.
+
+```{r}
+mail_clusters <- community_oslom(oslom_undir_path, author_network, seed = seed, n_runs = 1000)
+kable(mail_clusters[["assignment"]])
+kable(mail_clusters[["info"]])
+```
+
+# Radio Silence
+
+Count the number of boundary spanners — authors who are the sole bridge between otherwise disconnected communities. An output of 0 means all communities are either well-connected or isolated with no single bottleneck author.
+
+```{r}
+brokers <- smell_radio_silence(mail.graph = author_network, clusters = mail_clusters)
+cat("Number of radio silence boundary spanners:", length(brokers), "\n")
+if (length(brokers) > 0) {
+  kable(data.table(boundary_spanner = brokers))
+}
+```
