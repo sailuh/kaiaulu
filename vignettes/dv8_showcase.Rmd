@@ -276,13 +276,14 @@ hierclsxj_path <- dv8_clsxb_to_clsxj(dv8_path,
                                      clsxj_path = file.path(project_path,paste0(project_name,
                                                                                 "-clsxj.json")))
 hierclsxj_table <- parse_dv8_clusters(hierclsxj_path)
-kable(head(hierclsxj_table))
+top_hierclsxj_table <- hierclsxj_table[!grepl("/", layer)]
+kable(head(top_hierclsxj_table))
 ```
 
 We can now combine this information to the mapping obtained before by simple joining both tables:
 
 ```{r}
-file_to_flaws_to_cluster_map <- merge(file_to_flaws_map,hierclsxj_table,by="file_path",all.x=TRUE,all.y=TRUE)
+file_to_flaws_to_cluster_map <- merge(file_to_flaws_map,top_hierclsxj_table,by="file_path",all.x=TRUE,all.y=TRUE)
 
 kable(head(file_to_flaws_to_cluster_map))
 ```

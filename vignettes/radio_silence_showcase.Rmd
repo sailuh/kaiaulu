@@ -48,8 +48,14 @@ conf <- parse_config("../conf/openssl.yml")
 
 oslom_undir_path <- get_tool_project("oslom_undir", tool)
 perceval_path    <- get_tool_project("perceval", tool)
+dv8_path         <- get_tool_project("dv8", tool)
 
 mbox_path <- get_pipermail_path(conf, "project_key_1")
+
+# DV8 parameters
+project_path <- get_dv8_folder_path(conf)
+project_name <- stringi::stri_split_regex(project_path, pattern = "/")[[1]]
+project_name <- project_name[length(project_name)]
 ```
 
 # Parse Mbox Replies
@@ -122,5 +128,67 @@ brokers <- smell_radio_silence(mail.graph = author_network, clusters = mail_clus
 cat("Number of radio silence boundary spanners:", length(brokers), "\n")
 if (length(brokers) > 0) {
   kable(data.table(boundary_spanner = brokers))
+}
+```
+
+# Radio Silence via DV8 DR Space Clustering
+
+This section repeats the pipeline above but replaces OSLOM community detection with DV8 DR Space hierarchical clustering. The author-author network is exported as a DSM, clustered by DR Space, and radio silence is computed per layer using module assignments.
+
+## Export DSM and Run DR Space
+
+```{r}
+dir.create(path.expand(project_path), showWarnings = FALSE, recursive = TRUE)
+
+adsmj_path <- file.path(project_path, paste0(project_name, "-author-hdsm.json"))
+graph_to_dsmj(author_network, dsmj_path = adsmj_path,
+              dsmj_name = paste0(project_name, "-author-hdsm"))
+
+adsmb_path <- file.path(project_path, paste0(project_name, "-author-hdsm.dv8-dsm"))
+dv8_dsmj_to_dsmb(dv8_path = dv8_path, dsmj_path = adsmj_path, dsmb_path = adsmb_path)
+
+clsx_path <- file.path(project_path, paste0(project_name, "-author-clsx.dv8-clsx"))
+dv8_mdsmb_to_hierclsxb(dv8_path = dv8_path, mdsmb_path = adsmb_path,
+                        hierclsxb_path = clsx_path, recursive = TRUE)
+
+clsxj_path <- file.path(project_path, paste0(project_name, "-author-clsx.json"))
+dv8_clsxb_to_clsxj(dv8_path = dv8_path, clsxb_path = clsx_path, clsxj_path = clsxj_path)
+
+cluster_table <- parse_dv8_clusters(clsxj_path)
+kable(cluster_table[, .N, by = .(layer, module)][order(layer, module)])
+```
+
+## Radio Silence per Layer
+
+For each layer in the DR Space hierarchy, call radio silence using the module assignments as communities. Layers with fewer than two distinct non-Isolated modules are skipped.
+
+```{r}
+for (lyr in unique(cluster_table$layer)) {
+  layer_dt       <- cluster_table[layer == lyr]
+  active_modules <- setdiff(unique(layer_dt$module), "Isolated")
+  if (length(active_modules) < 2) next
+
+  cat("\n### Layer:", lyr, "\n")
+
+  module_levels <- unique(layer_dt$module)
+  module_to_id  <- seq_along(module_levels)
+  names(module_to_id) <- module_levels
+
+  assignment <- data.table(node_id    = layer_dt$file_path,
+                           cluster_id = as.character(module_to_id[layer_dt$module]))
+  info_dt    <- assignment[, .(cluster_size = .N), by = cluster_id]
+  layer_clusters <- list(assignment = assignment, info = info_dt)
+
+  layer_nodes    <- layer_dt$file_path
+  layer_network  <- author_network
+  layer_network[["nodes"]]    <- author_network[["nodes"]][author_network[["nodes"]]$name %in% layer_nodes, ]
+  layer_network[["edgelist"]] <- author_network[["edgelist"]][author_network[["edgelist"]]$from %in% layer_nodes &
+                                                                author_network[["edgelist"]]$to   %in% layer_nodes, ]
+
+  brokers <- smell_radio_silence(mail.graph = layer_network, clusters = layer_clusters)
+  cat("Radio silence boundary spanners:", length(brokers), "\n")
+  if (length(brokers) > 0) {
+    print(kable(data.table(layer = lyr, boundary_spanner = brokers)))
+  }
 }
 ```
