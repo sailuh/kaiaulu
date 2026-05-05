@@ -28,13 +28,13 @@ require(knitr)
 
 # Introduction
 
-This notebook demonstrates how to compute radio silence — a social smell that identifies developers who act as sole bridges between otherwise disconnected communication communities. The pipeline uses the OpenSSL project's pipermail mailing list data.
+This notebook demonstrates how to compute radio silence — a social smell that identifies developers who act as sole bridges between otherwise disconnected communication communities. The pipeline uses GitHub issue and pull request reply data.
 
 Radio silence boundary spanners are authors who are the only link between two distinct developer communities. If they stop communicating, the communities lose contact entirely, creating a coordination risk.
 
 The pipeline proceeds as follows:
 
-1. Parse pipermail mbox files into a reply table
+1. Parse GitHub issue and pull request replies into a reply table
 2. Transform into a bipartite author-thread network
 3. Project to a unimodal author-author network
 4. Detect communities with OSLOM
@@ -44,13 +44,16 @@ The pipeline proceeds as follows:
 
 ```{r}
 tool <- parse_config("../tools.yml")
-conf <- parse_config("../conf/openssl.yml")
+conf <- parse_config("../conf/kaiaulu.yml")
 
-oslom_undir_path <- get_tool_project("oslom_undir", tool)
-perceval_path    <- get_tool_project("perceval", tool)
-dv8_path         <- get_tool_project("dv8", tool)
+oslom_undir_path           <- get_tool_project("oslom_undir", tool)
+dv8_path                   <- get_tool_project("dv8", tool)
 
-mbox_path <- get_pipermail_path(conf, "project_key_1")
+github_issue_path          <- get_github_issue_path(conf, "project_key_1")
+github_pull_request_path   <- get_github_pull_request_path(conf, "project_key_1")
+github_reply_path          <- get_github_issue_or_pr_comment_path(conf, "project_key_1")
+github_commit_path         <- get_github_commit_path(conf, "project_key_1")
+github_pr_comments_path    <- get_github_pr_comments_path(conf, "project_key_1")
 
 # DV8 parameters
 project_path <- get_dv8_folder_path(conf)
@@ -58,37 +61,35 @@ project_name <- stringi::stri_split_regex(project_path, pattern = "/")[[1]]
 project_name <- project_name[length(project_name)]
 ```
 
-# Parse Mbox Replies
+# Parse GitHub Replies
 
-Parse all pipermail mbox files into a unified reply table. Empty files are skipped.
+Parse all GitHub issues, pull requests, and comments into a single reply table.
 
 ```{r}
-project_mbox <- data.table()
-mbox_files <- list.files(mbox_path, full.names = TRUE)
-mbox_files <- mbox_files[file.size(mbox_files) > 0]
-for (mbox_file_path in mbox_files) {
-  project_mbox <- rbind(project_mbox, parse_mbox(perceval_path, mbox_file_path), fill = TRUE)
-}
-
-project_mbox$reply_datetimetz <- as.POSIXct(project_mbox$reply_datetimetz,
-                                             format = "%a, %d %b %Y %H:%M:%S %z", tz = "UTC")
-
-kable(head(project_mbox[, .(reply_from, reply_subject, reply_datetimetz)]))
+project_github_replies <- parse_github_replies(
+  issues_json_folder_path        = github_issue_path,
+  pull_requests_json_folder_path = github_pull_request_path,
+  comments_json_folder_path      = github_reply_path,
+  commit_json_folder_path        = github_commit_path,
+  pr_comments_json_folder_path   = github_pr_comments_path
+)
+nrow(project_github_replies)
+kable(head(project_github_replies[, .(reply_from, reply_subject)]))
 ```
 
 # Build Bipartite Author-Thread Network
 
-Transform the reply table into a bipartite graph where one node type represents authors and the other represents mail threads (subjects).
+Transform the reply table into a bipartite graph where one node type represents authors and the other represents issue/PR threads.
 
 ```{r}
-reply_network <- transform_reply_to_bipartite_network(project_mbox)
+reply_network <- transform_reply_to_bipartite_network(project_github_replies)
 kable(head(reply_network[["nodes"]]))
 kable(head(reply_network[["edgelist"]]))
 ```
 
 # Project to Author-Author Network
 
-Project the bipartite graph onto the author node type to obtain a unimodal author-author co-communication network. An edge between two authors means they both posted in the same thread.
+Project the bipartite graph onto the author node type to obtain a unimodal author-author co-communication network. An edge between two authors indicates they participated in the same thread.
 
 ```{r}
 author_network <- bipartite_graph_projection(reply_network, mode = TRUE,
@@ -163,6 +164,8 @@ kable(cluster_table[, .N, by = .(layer, module)][order(layer, module)])
 For each layer in the DR Space hierarchy, call radio silence using the module assignments as communities. Layers with fewer than two distinct non-Isolated modules are skipped.
 
 ```{r}
+all_brokers <- character(0)
+
 for (lyr in unique(cluster_table$layer)) {
   layer_dt       <- cluster_table[layer == lyr]
   active_modules <- setdiff(unique(layer_dt$module), "Isolated")
@@ -189,6 +192,26 @@ for (lyr in unique(cluster_table$layer)) {
   cat("Radio silence boundary spanners:", length(brokers), "\n")
   if (length(brokers) > 0) {
     print(kable(data.table(layer = lyr, boundary_spanner = brokers)))
+    all_brokers <- union(all_brokers, brokers)
   }
 }
+```
+
+## Boundary Spanner Neighborhood
+
+Visualize the 1-hop neighborhood of all boundary spanners in the full author-author network. Each spanner node and its direct connections are shown.
+
+```{r fig.width=10, fig.height=7}
+htmltools::tagList(lapply(all_brokers, function(broker) {
+  broker_edges <- author_network[["edgelist"]][
+    author_network[["edgelist"]]$from == broker |
+    author_network[["edgelist"]]$to   == broker, ]
+  broker_nodes   <- unique(c(broker_edges$from, broker_edges$to))
+  broker_node_dt <- author_network[["nodes"]][author_network[["nodes"]]$name %in% broker_nodes, ]
+  igraph::graph_from_data_frame(
+    d        = broker_edges,
+    directed = FALSE,
+    vertices = broker_node_dt
+  ) |> visIgraph(randomSeed = seed)
+}))
 ```

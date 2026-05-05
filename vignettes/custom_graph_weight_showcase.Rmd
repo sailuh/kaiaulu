@@ -28,37 +28,37 @@ require(knitr)
 
 # Introduction
 
-This notebook demonstrates how to assign custom numeric values as edge weights when transforming raw data into a graph object. Specifically, it uses sentiment polarity scores from GitHub commit comments as edge weights in a bipartite author-to-commit network, and visualizes the resulting network with edges colored by sentiment.
+This notebook demonstrates how to assign custom numeric values as edge weights when transforming raw data into a graph object. Specifically, it uses sentiment polarity scores from GitHub issue comments as edge weights in a bipartite author-to-issue network, and visualizes the resulting network with edges colored by sentiment.
 
-Sentiment labels (`positive`, `neutral`, `negative`) are first converted to integers (`1`, `0`, `-1`) before being passed to `transform_reply_to_bipartite_network()` via the `weight` parameter. The `weight_agg` parameter controls how multiple comments between the same author and commit are aggregated — defaulting to `mean`.
+Polarity integers (`0` = neutral, `1` = positive, `2` = negative) are remapped to (`0`, `1`, `-1`) before being passed to `transform_reply_to_bipartite_network()` via the `weight` parameter. The `weight_agg` parameter controls how multiple comments between the same author and issue are aggregated — defaulting to `mean`.
 
 # Load Data
 
-The input is a CSV of CakePHP GitHub commit comments joined with sentiment labels from the MSR14 gold standard dataset.
+The input is a CSV of Kaiaulu GitHub issue comments with predicted sentiment polarity labels.
 
 ```{r}
-dt <- fread("https://github.com/user-attachments/files/27313855/cakephp_sentiment_commit_comments_joined.csv")
-kable(head(dt))
+dt <- fread("https://github.com/user-attachments/files/27417102/kaiaulu_predictions.csv")
+kable(head(dt[, .(comment_id, issue_url, comment_user_login, polarity)]))
 ```
 
 # Prepare Data
 
-Rename columns to match the expected `reply_from` and `reply_subject` format, and convert polarity strings to integers.
+Rename columns to match the expected `reply_from` and `reply_subject` format, and remap polarity integers (0 = neutral, 1 = positive, 2 = negative) to signed weights (0, 1, -1).
 
 ```{r}
-dt[, reply_from    := author_login_kaiaulu]
-dt[, reply_subject := commit_id]
+dt[, reply_from    := comment_user_login]
+dt[, reply_subject := sub(".*/issues/", "#", issue_url)]
 dt[, polarity_int  := fcase(
-  polarity == "positive",  1L,
-  polarity == "neutral",   0L,
-  polarity == "negative", -1L
+  polarity == 1L,  1L,
+  polarity == 0L,  0L,
+  polarity == 2L, -1L
 )]
 kable(head(dt[, .(reply_from, reply_subject, polarity_int)]))
 ```
 
 # Build Weighted Bipartite Network
 
-Transform the reply table into a bipartite graph using sentiment polarity as the edge weight, aggregated by mean across multiple comments between the same author and commit.
+Transform the reply table into a bipartite graph using sentiment polarity as the edge weight, aggregated by mean across multiple comments between the same author and issue.
 
 ```{r}
 reply_graph <- transform_reply_to_bipartite_network(dt, weight = "polarity_int", weight_agg = mean)

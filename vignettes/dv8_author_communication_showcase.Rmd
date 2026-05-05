@@ -34,24 +34,28 @@ DR Space (Dependency and Ratio Space) is a hierarchical clustering algorithm imp
 
 The pipeline proceeds as follows:
 
-1. Parse mbox files into a reply table
-2. Build a bipartite author-subject network
-3. Project to a unimodal author-author network
-4. Export as a DV8 DSM JSON file
-5. Convert to DV8 binary format
-6. Run DR Space hierarchical clustering
-7. Parse and inspect the resulting cluster assignments
+1. Parse git issue comments into a reply table
+2. Parse mbox files into a reply table
+3. Build a bipartite author-subject network
+4. Project to a unimodal author-author network
+5. Export as a DV8 DSM JSON file
+6. Convert to DV8 binary format
+7. Run DR Space hierarchical clustering
+8. Parse and inspect the resulting cluster assignments
 
 # Project Configuration File
 
 ```{r}
 tool <- parse_config("../tools.yml")
-conf <- parse_config("../conf/openssl.yml")
+conf <- parse_config("../conf/kaiaulu.yml")
 
-perceval_path <- get_tool_project("perceval", tool)
 dv8_path      <- get_tool_project("dv8", tool)
 
-mbox_path <- get_pipermail_path(conf, "project_key_1")
+github_issue_path          <- get_github_issue_path(conf, "project_key_1")
+github_pull_request_path   <- get_github_pull_request_path(conf, "project_key_1")
+github_reply_path          <- get_github_issue_or_pr_comment_path(conf, "project_key_1")
+github_commit_path         <- get_github_commit_path(conf, "project_key_1")
+github_pr_comments_path    <- get_github_pr_comments_path(conf, "project_key_1")
 
 # DV8 parameters
 project_path <- get_dv8_folder_path(conf)
@@ -59,27 +63,28 @@ project_name <- stringi::stri_split_regex(project_path, pattern = "/")[[1]]
 project_name <- project_name[length(project_name)]
 ```
 
-# Parse Mbox
+# Parse GitHub Replies
 
-Parse all mbox files in the configured folder into a single reply table.
+Parse all GitHub issues, pull requests, and comments into a single reply table.
 
 ```{r}
-mbox_files  <- list.files(mbox_path, full.names = TRUE)
-mbox_files  <- mbox_files[file.size(mbox_files) > 0]
-project_mbox <- rbindlist(
-  lapply(mbox_files, function(f) parse_mbox(perceval_path, f)),
-  fill = TRUE
+project_github_replies <- parse_github_replies(
+  issues_json_folder_path        = github_issue_path,
+  pull_requests_json_folder_path = github_pull_request_path,
+  comments_json_folder_path      = github_reply_path,
+  commit_json_folder_path        = github_commit_path,
+  pr_comments_json_folder_path   = github_pr_comments_path
 )
-nrow(project_mbox)
-kable(head(project_mbox[, .(reply_from, reply_subject)]))
+nrow(project_github_replies)
+kable(head(project_github_replies[, .(reply_from, reply_subject)]))
 ```
 
 # Build Author-Subject Bipartite Graph
 
-Transform the reply table into a bipartite graph where one node type represents authors and the other represents mail subjects (threads).
+Transform the reply table into a bipartite graph where one node type represents authors and the other represents issue/PR threads.
 
 ```{r}
-bipartite_graph <- transform_reply_to_bipartite_network(project_mbox)
+bipartite_graph <- transform_reply_to_bipartite_network(project_github_replies)
 kable(head(bipartite_graph[["nodes"]]))
 kable(head(bipartite_graph[["edgelist"]]))
 ```
