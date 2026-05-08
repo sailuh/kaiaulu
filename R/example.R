@@ -55,7 +55,7 @@ example_github_issue_no_description <- function(folder_path="/tmp", folder_name)
 #' This example is used to test how parse_git_blame handles suppressed metadata Git Blame's Porcelain format. 
 #' It creates an example that produces a Git Blame output broken into chunks. This format will attempt to
 #' suppress repeating metadata for the same commit hash, so the first line's full metadata is displayed, but the third's is suppressed.
-#' This causes it to break into parse_git_blame's Case 1 if statement. 
+#' This causes it to break into parse_git_blame's Case 1(n_lines_content == 2) if statement. 
 #'
 example_git_blame_no_metadata <- function(folder_path,folder_name) {
 
@@ -79,7 +79,41 @@ example_git_blame_no_metadata <- function(folder_path,folder_name) {
   git_add(git_repo, folder_path, test_path)
   git_commit(git_repo, folder_path, "Second commit!", "Second Committer", "secondcommitter@test.com")
 }
+#' Example Nested Folder Case
+#'
+#' This function creates a repo that has a file at the /.git folder level, as well as a file in a folder
+#' that is also at the ./git folder level. This could be useful for testing that the git parsers can
+#' recursively search for files in a repo.
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @param subfolder_name The name of the subfolder
+#' @return git_repo_path of newly created empty repo
+#' @export
+#' @keywords internal
+example_nested_folder_case <- function(folder_path, folder_name, subfolder_name) {
 
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path, folder_name)
+  git_init(folder_path)
+  git_repo <- file.path(folder_path, ".git")
+
+  # Create subfolder inside repo
+  subfolder_path <- file.path(folder_path, subfolder_name)
+  dir.create(subfolder_path, recursive = TRUE)
+
+  # Create file inside the subfolder
+  file_path <- file.path(subfolder_path, "Hello.R")
+  io_make_file(file_path, "Hello from subfolder")
+
+  # Add & commit
+  git_add(git_repo, folder_path, file_path)
+  git_commit(
+    git_repo,
+    folder_path, "Add subfolder with file", "John Doe", "JohnDoe@test.com")
+
+  return(folder_path)
+}
 #' Example Renamed File Repo
 #'
 #' A repo with 3 commits. The first adds hello.R, , the second
