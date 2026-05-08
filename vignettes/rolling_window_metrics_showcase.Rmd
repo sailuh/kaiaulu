@@ -29,6 +29,7 @@ require(yaml)
 require(stringi)
 require(knitr)
 require(magrittr)
+require(jsonlite)
 require(ggplot2)
 ```
 
@@ -82,72 +83,67 @@ This is all the project configuration files are used for. If you inspect the var
 
 # Engagement Metric
 
-## Obtaining the Output Table
-We can obtain commit comments using downloader function `github_api_project_commit_comments()` utilizing the GitHub API. We then parse the output of the functionnusing `github_parse_project_commit_comments()` to obtain a data table with information on commit commnets for a given project. Here, we show an example of how to obtain commit comments for the Kaiaulu project itself. You can change the `owner` and `repo` variables to obtain commit comments for any other public GitHub repository. Note that you will need a GitHub token with the appropriate permissions to access the API.
-```{r}
-owner <- "sailuh"
-repo <- "kaiaulu"
-token <- Sys.getenv("token")
-```
+## Obtaining the Input Data
+We can obtain commit comments, such as those from GitHub, by following `download_github_issue_comments.Rmd`. We will focus on "Issues and PR Comments by Date Range" for the Kaiaulu repository. The `updated_lower_bound_comment` was set to "2026-01-23" so that we can grab issue and PR comments from Kaiaulu since that date. You can change the value of `updated_lower_bound_comment` to obtain comments from a different date range. We'll read in the json files we downloaded as data tables and bind them to one data table as our input data for the `engagement_communication()` function. You can change the `save_path_issue_or_pr_comments` variable to the path where you saved the json files for issue and PR comments on your computer.
 
 ```{r}
-github_api_project_commit_comments <- function(owner, repo, token){
-  gh::gh("GET /repos/{owner}/{repo}/comments",
-         owner = owner,
-         repo = repo,
-         page = 1,
-         per_page = 100,
-         .token = token)
-}
-```
+# Set the path to the folder where you saved the json files for issue and PR comments
+save_path_issue_or_pr_comments <- "/home/vboxuser/kaiaulu/data/github_comments_json/"
 
-```{r}
-github_parse_project_commit_comments <- function(api_responses){
-  parse_response <- function(api_response){
-    parsed_response <- list()
-    parsed_response[["comment_id"]] <- api_response[["id"]]
-    parsed_response[["commit_id"]] <- api_response[["commit_id"]]
-    parsed_response[["author_login"]] <- api_response[["user"]][["login"]]
-    parsed_response[["author_id"]] <- api_response[["user"]][["id"]]
-    parsed_response[["body"]] <- api_response[["body"]]
-    parsed_response[["created_at"]] <- api_response[["created_at"]]
-    parsed_response[["updated_at"]] <- api_response[["updated_at"]]
-
-    parsed_response <- as.data.table(parsed_response)
-
-    return(parsed_response)
-  }
-  rbindlist(lapply(api_responses, parse_response), fill = TRUE)
-}
-```
-
-We can save the output to a variable called `comments_dt` and convert the timezones from the `created_at` variable to the same timezone. Here, we use UTC.
-```{r}
-comments_dt <- github_parse_project_commit_comments(
-  github_api_project_commit_comments(owner, repo, token)
+comment_files <- list.files(
+  save_path_issue_or_pr_comments,
+  full.names = TRUE,
+  pattern = "\\.json$"
 )
+
+comment_json_list <- lapply(comment_files, jsonlite::read_json)
+comment_dt_list <- lapply(comment_json_list, kaiaulu::github_parse_project_issue_or_pr_comments)
+all_issue_or_pr_comments <- data.table::rbindlist(comment_dt_list, fill = TRUE)
 ```
 
 ```{r}
-comments_dt[, created_at := as.POSIXct(
-  created_at,
-  format = "%Y-%m-%dT%H:%M:%SZ", 
-  tz = "UTC"
-  )]
+# Ensure UTC timestamp type
+all_issue_or_pr_comments[, created_at := as.POSIXct(created_at, tz = "UTC")]
 ```
 
-We'll show the head of the output table for the function below.
 ```{r}
-kable(head(comments_dt))
+# If you want to see the head of the table for our comments data below
+# kable(head(all_issue_or_pr_comments, 2))
 ```
 
-Here, we will define the rolling window as 90 days (around 3 months), which is the default value for the `quit_lag` parameter in the `engagement_communication()` function. If you want to change the value of lag, you can do so by passing a different value in the function call. Afterwards, we will call `engagement_communication()` to obtain the output table and save it to a variable called `engagement_communication_output`. We pass in the relevant columns containing the timestamp, the user of a comment, as well as the value of the lag. The output table will contain the number of messages sent by each user in the past 90 days at each point in time, which is one way to  measure their engagement with the project. Note that the `engagement_communication()` function can be used with any type of communication data, such as issue comments or pull request comments.
+## Obtaining the Output Table
+Here, we will define the rolling window as 90 days (around 3 months), which is the default value for the `quit_lag` parameter in the `engagement_communication()` function. If you want to change the value of lag, you can do so by passing a different value in the function call. The output table will contain the number of messages sent by each developer in the past 90 days at each point in time, which is one way to  measure their engagement with the project. Note that the `engagement_communication()` function can be used with any type of communication data, such as issue comments or pull request comments.
 
+```{r}
+quit_lag = 90
+```
 
+```{r}
+engagement_communication_output <- engagement_communication(
+  timestamp = all_issue_or_pr_comments$created_at,
+  author_login = all_issue_or_pr_comments$comment_user_login,
+  quit_lag = quit_lag
+)
+``` 
+
+```{r}
+kable(head(engagement_communication_output))
+```
 
 ## Visualizing the Output Tables as a Time Series
+To visualize the output table as a time series, we can use the `ggplot2` package. Visualizing the `engagement_communication()` metric as a time series is useful in observing the engagement of an author over time through the number of messages they send. One way to think of it is that in conjunction with the productivity metrics, we can use the engagement metrics to understand if an author is becoming more or less engaged over time with their sentiment scores reflecting such increase or decrease in engagement. Reminder that the data in the time series below covers the communication data we obtained from GitHub issue and PR comments since "2026-01-23" as explained in the previous section.
 
-
+```{r fig.width=12, fig.height=7}
+ggplot(engagement_communication_output, aes(x = timestamp, y = message_count, color = author_login)) +
+  geom_line() +
+  labs(title = paste0("Author Engagement on ", quit_lag, "-day Time Window"),
+       x = "Date",
+       y = "Number of Messages",
+       color = "Author"
+       ) +
+       theme_minimal() +
+       theme(plot.title = element_text(hjust = 0.5))
+```
 
 # Productivity Metrics
 
@@ -265,13 +261,21 @@ We can compare the time series of an author for all of the metrics across the ro
 
 ```{r fig.width=12, fig.height=7}
 one_author <- "Carlos Paradis <carlosviansi@gmail.com>"
+one_author_login <-"carlosparadis"
 
-# Filter to one author
+# Filter to one author for engagement communication
+engagement_dt <- engagement_communication_output[
+  author_login == one_author_login,
+  .(author_datetimetz = timestamp, author_total_messages = message_count)
+][order(author_datetimetz)]
+
+# Filter to one author for commits
 commits_dt <- productivity_author_commits_output[
   author_name_email == one_author,
   .(author_datetimetz, author_total_commits)
 ][order(author_datetimetz)]
 
+# Filter to one author for churn
 churn_dt <- productivity_author_churn_output[
   author_name_email == one_author,
   .(author_datetimetz, author_churn)
@@ -279,6 +283,7 @@ churn_dt <- productivity_author_churn_output[
 
 # Join on timestamp so all metrics share the same x-axis
 plot_dt <- merge(commits_dt, churn_dt, by = "author_datetimetz", all = TRUE)
+plot_dt <- merge(plot_dt, engagement_dt, by = "author_datetimetz", all = TRUE)
 
 # Normalize the values using min-max normalization to bring them to a 0-1 scale
 normalize <- function(x) {
@@ -297,6 +302,7 @@ plot_dt_normalized <- as.data.table(lapply(plot_dt, normalize))
 
 # Make long table for plotting all metrics
 plot_long <- rbindlist(list(
+  plot_dt_normalized[, .(author_datetimetz, metric = "Communication - Messages (normalized)", value = author_total_messages)],
   plot_dt_normalized[, .(author_datetimetz, metric = "Commits (normalized)", value = author_total_commits)],
   plot_dt_normalized[, .(author_datetimetz, metric = "Churn (normalized)",   value = author_churn)]
 ))
