@@ -575,7 +575,7 @@ example_jira_issue_comments <- function(folder_path, folder_name) {
 
   return(folder_path)
 }
-
+############################ Example mail.R ############################
 #' Two Thread and Three Replies Mailing List
 #'
 #' Create a mailing list of two e-mail threads, with
@@ -622,6 +622,172 @@ example_mailing_list_two_threads <- function(folder_path, folder_name, file_name
 
   # Step 2: Concatenate each reply into the replies variable
   replies <- c(thread_1_reply_1, thread_1_reply_2, thread_2_reply_1)
+
+  # Create mbox file from the list of replies
+  mbox_path <- make_mbox_mailing_list(replies = replies, folder_path = folder_path, file_name = file_name)
+
+  return(mbox_path)
+}
+#' Mbox Backslash
+#'
+#' Create a mailing list of one email thread, with one reply from a developer
+#' that contains an escape backslash.
+#'
+#' @param folder_path The folder path to create the example
+#' @param folder_name Name of the example folder
+#' @param file_name Name of the file where .mbox will be stored
+#' @return Folder path of .mbox sample file that was created
+#' @export
+#' @keywords internal
+example_mbox_backslash <- function(folder_path, folder_name, file_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)
+
+  # Step 1: Create fake mbox replies and assign them to variables for easy editing
+  thread_1_reply_1 <- make_mbox_reply(mailing_list="test-list",
+                                      reply_from_author = "John Doe", reply_from_email = "johndoe@example.com",
+                                      reply_to_author = "Dev 1", reply_to_email =  "dev@test-list.com",
+                                      reply_cc_author = "Smithsonian Doe", reply_cc_email = "smith_doe@example.com",
+                                      reply_datetime = "2023-01-15T08:30:00", timezone = "EST",
+                                      reply_subject = "Subject 1",
+                                      reply_body = "This \\n should not add a newline")
+
+  # Step 2: Concatenate each reply into the replies variable
+  replies <- c(thread_1_reply_1)
+
+  # Create mbox file from the list of replies
+  mbox_path <- make_mbox_mailing_list(replies = replies, folder_path = folder_path, file_name = file_name)
+
+  return(mbox_path)
+}
+#' Mbox Missing Subject Body
+#'
+#' Create a mailing list of one email thread, with a missing subject
+#' and body field.
+#'
+#' @param folder_path The folder path to create the example
+#' @param folder_name Name of the example folder
+#' @param file_name Name of the file where .mbox will be stored
+#' @return Folder path of .mbox sample file that was created
+#' @export
+#' @keywords internal
+example_mbox_missing_subject_body <- function(folder_path, folder_name, file_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)
+
+  # Step 1: Create fake mbox replies and assign them to variables for easy editing
+  thread_1_reply_1 <- make_mbox_reply(mailing_list="test-list",
+                                      reply_from_author = "John Doe", reply_from_email = "johndoe@example.com",
+                                      reply_to_author = "Dev 1", reply_to_email =  "dev@test-list.com",
+                                      reply_cc_author = "Smithsonian Doe", reply_cc_email = "smith_doe@example.com",
+                                      reply_datetime = "2023-01-15T08:30:00", timezone = "EST",
+                                      reply_subject = "",
+                                      reply_body = "")
+
+
+
+  # Step 2: Concatenate each reply into the replies variable
+  replies <- c(thread_1_reply_1)
+
+  # Create mbox file from the list of replies
+  mbox_path <- make_mbox_mailing_list(replies = replies, folder_path = folder_path, file_name = file_name)
+
+  return(mbox_path)
+}
+#' Mbox Malformed Date
+#'
+#' Create a mailing list of one email thread, with a malformed date field.
+#'
+#' @param folder_path The folder path to create the example
+#' @param folder_name Name of the example folder
+#' @param file_name Name of the file where .mbox will be stored
+#' @return Folder path of .mbox sample file that was created
+#' @export
+#' @keywords internal
+example_mbox_malformed_date <- function(folder_path, folder_name, file_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)
+
+  # Step 1: Create fake mbox replies and assign them to variables for easy editing
+  thread_1_reply_1 <- make_mbox_reply(mailing_list="test-list",
+                                      reply_from_author = "John Doe", reply_from_email = "johndoe@example.com",
+                                      reply_to_author = "Dev 1", reply_to_email =  "dev@test-list.com",
+                                      reply_cc_author = "Smithsonian Doe", reply_cc_email = "smith_doe@example.com",
+                                      reply_datetime = "20XX-150-40:30:00", timezone = "EST",
+                                      reply_subject = "Subject 1",
+                                      reply_body = "This is a reply with a malformed date")
+
+  # Step 2: Concatenate each reply into the replies variable
+  replies <- c(thread_1_reply_1)
+
+  # Create mbox file from the list of replies
+  mbox_path <- make_mbox_mailing_list(replies = replies, folder_path = folder_path, file_name = file_name)
+
+  return(mbox_path)
+}
+#' Mbox Missing Subject Body
+#'
+#' Create a mailing list of one email thread with two recipeients being replied
+#' to.
+#'
+#' @param folder_path The folder path to create the example
+#' @param folder_name Name of the example folder
+#' @param file_name Name of the file where .mbox will be stored
+#' @return Folder path of .mbox sample file that was created
+#' @export
+#' @keywords internal
+example_mbox_two_recipients <- function(folder_path, folder_name, file_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)
+
+  # Step 1: Create fake mbox replies and assign them to variables for easy editing
+  thread_1_reply_1 <- make_mbox_reply(mailing_list="test-list",
+                                      reply_from_author = "John Doe", reply_from_email = "johndoe@example.com",
+                                      reply_to_author = c("Dev 1", "Dev 2"), reply_to_email = c("dev1@test-list.com", "dev1@test-list.com"),
+                                      reply_cc_author = "Smithsonian Doe", reply_cc_email = "smith_doe@example.com",
+                                      reply_datetime = "2023-01-15T08:30:00", timezone = "EST",
+                                      reply_subject = "Subject 1",
+                                      reply_body = "This has two reply_to_author and emails")
+
+  # Step 2: Concatenate each reply into the replies variable
+  replies <- c(thread_1_reply_1)
+
+  # Create mbox file from the list of replies
+  mbox_path <- make_mbox_mailing_list(replies = replies, folder_path = folder_path, file_name = file_name)
+
+  return(mbox_path)
+}
+#' Mbox Missing Subject Body
+#'
+#' Create a mailing list of one email thread, with unicode characters in its
+#' reply_body.
+#'
+#' @param folder_path The folder path to create the example
+#' @param folder_name Name of the example folder
+#' @param file_name Name of the file where .mbox will be stored
+#' @return Folder path of .mbox sample file that was created
+#' @export
+#' @keywords internal
+example_mbox_unicode_characters <- function(folder_path, folder_name, file_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)
+
+  # Step 1: Create fake mbox replies and assign them to variables for easy editing
+  thread_1_reply_1 <- make_mbox_reply(mailing_list="test-list",
+                                      reply_from_author = "John Doe", reply_from_email = "johndoe@example.com",
+                                      reply_to_author = "Dev 1", reply_to_email =  "dev@test-list.com",
+                                      reply_cc_author = "Smithsonian Doe", reply_cc_email = "smith_doe@example.com",
+                                      reply_datetime = "2023-01-15T08:30:00", timezone = "EST",
+                                      reply_subject = "Subject 1",
+                                      reply_body = "今日は😎. This is a test for unicode characters.")
+
+  # Step 2: Concatenate each reply into the replies variable
+  replies <- c(thread_1_reply_1)
 
   # Create mbox file from the list of replies
   mbox_path <- make_mbox_mailing_list(replies = replies, folder_path = folder_path, file_name = file_name)
