@@ -204,7 +204,11 @@ parse_dependencies <- function(depends_jar_path,git_repo_path,language,output_di
   # Construct /output_dir/ file path
   output_path <- stri_c(output_dir, project_name,".json")
   # Parsed JSON output.
-  depends_parsed <- jsonlite::read_json(output_path)
+  tryCatch({
+    depends_parsed <- jsonlite::read_json(output_path)
+  }, error = function(e) {
+    stop("JSON parsing failed.")
+  })
   # The JSON has two main parts. The first is a vector of all file names.
   file_names <- unlist(depends_parsed[["variables"]])
   # Depends will create full filepaths, but folder_path may be a relative path.
@@ -270,7 +274,12 @@ parse_java_code_refactoring_json <- function(rminer_path,git_repo_path,start_com
                            stdout = TRUE,
                            stderr = FALSE)
   # Parsed JSON output as a data.table.
-  rminer_parsed <- jsonlite::parse_json(rminer_output)
+  tryCatch({
+    rminer_parsed <- jsonlite::parse_json(rminer_output)
+  }, error = function(e) {
+    stop("JSON parsing failed.")
+  })
+
   return(rminer_parsed)
 }
 #' Parse File Line Metrics
@@ -292,11 +301,15 @@ parse_line_metrics <- function(scc_path,git_repo_path){
     stdout = TRUE,
     stderr = FALSE
   )
+  tryCatch({
   line_metrics <- fread(stri_c(stdout,collapse = "\n"))
   # /Users/user/git_repos/APR/xml/apr_xml_xmllite.c => "xml/apr_xml_xmllite.c"
   line_metrics$Location <- stri_replace_first(line_metrics$Location,
                                               replacement="",
                                               regex=folder_path)
+  }, error = function(e) {
+    stop("scc parsing failed.")
+  })
   return(line_metrics)
 }
 #' Parse File Line Type
