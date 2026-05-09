@@ -257,7 +257,7 @@ ggplot(plot_churn_dt, aes(x = author_datetimetz, y = author_churn, color = autho
 ```
 
 # Comparing the Time Series of Different Engagement Metrics
-We can compare the time series of an author for all of the metrics across the rolling window. To do this, we will select one author and normalize the values of the metrics metrics to be on the same scale (0-1) using min-max normalization. Then, we will plot the metrics on the same graph to compare their trends over time.
+We can compare the time series of an author for all of the metrics across the rolling window. To do this, we will first select one author. Then, we will plot the metrics on the same graph to compare their trends over time.
 
 ```{r fig.width=12, fig.height=7}
 one_author <- "Carlos Paradis <carlosviansi@gmail.com>"
@@ -285,34 +285,19 @@ churn_dt <- productivity_author_churn_output[
 plot_dt <- merge(commits_dt, churn_dt, by = "author_datetimetz", all = TRUE)
 plot_dt <- merge(plot_dt, engagement_dt, by = "author_datetimetz", all = TRUE)
 
-# Normalize the values using min-max normalization to bring them to a 0-1 scale
-normalize <- function(x) {
-  if (!is.numeric(x)) return(x)
-  if (all(is.na(x))) return(x)
-
-  x_min <- min(x, na.rm = TRUE)
-  x_max <- max(x, na.rm = TRUE)
-
-  if (x_max == x_min) return(rep(0, length(x)))
-
-  (x - x_min) / (x_max - x_min)
-}
-
-plot_dt_normalized <- as.data.table(lapply(plot_dt, normalize))
-
 # Make long table for plotting all metrics
 plot_long <- rbindlist(list(
-  plot_dt_normalized[, .(author_datetimetz, metric = "Communication - Messages (normalized)", value = author_total_messages)],
-  plot_dt_normalized[, .(author_datetimetz, metric = "Commits (normalized)", value = author_total_commits)],
-  plot_dt_normalized[, .(author_datetimetz, metric = "Churn (normalized)",   value = author_churn)]
+  plot_dt[, .(author_datetimetz, metric = "Communication - Messages", value = author_total_messages)],
+  plot_dt[, .(author_datetimetz, metric = "Commits", value = author_total_commits)],
+  plot_dt[, .(author_datetimetz, metric = "Churn",   value = author_churn)]
 ))
 
 ggplot(plot_long, aes(x = author_datetimetz, y = value, color = metric)) +
   geom_line() +
   labs(
-    title = paste0("Rolling Window Metrics on ", lag, "-day Time Window (Normalized): ", one_author),
+    title = paste0("Rolling Window Metrics on ", lag, "-day Time Window: ", one_author),
     x = "Date",
-    y = "Normalized value (0–1)",
+    y = "Count",
     color = "Metric"
   ) +
   theme_minimal() +
