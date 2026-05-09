@@ -36,8 +36,8 @@ tool <- parse_config("../tools.yml")
 # conf <- parse_config("../conf/kaiaulu.yml")
 
 # Reads 2 configs
-project <- parse_config("../conf/kaiaulu_immutable.yml")
-analysis <- parse_config("../conf/analysis1.yml")
+project <- parse_config("../conf/kaiaulu_project.yml")
+analysis <- parse_config("../conf/analysisH.yml")
 
 # 3rd Party Tools
 perceval_path <- get_tool_project("perceval", tool)

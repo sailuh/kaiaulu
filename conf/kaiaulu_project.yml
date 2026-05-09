@@ -45,7 +45,7 @@ issue_tracker:
 vulnerabilities:
   # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
   # Download at: https://nvd.nist.gov/vuln/data-feeds
-  nvd_feed: rawdata/nvdfeed
+  nvd_feed: rawdata/nvdfeed (original)
 
 # Commit message CVE or Issue Regular Expression (regex)
 # See project's commit message for examples to create the regex
