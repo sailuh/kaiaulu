@@ -37,8 +37,8 @@ scitools_path <- get_tool_project("scitools", tool)
 # conf <- parse_config("../conf/helix.yml")
 
 # Reads 2 configs
-project <- parse_config("../conf/helix_immutable.yml")
-analysis <- parse_config("../conf/analysis1.yml")
+project <- parse_config("../conf/helix_project.yml")
+analysis <- parse_config("../conf/analysisF.yml")
 
 # Used for analysis.yml
 project_path <- get_understand_project_path(analysis)

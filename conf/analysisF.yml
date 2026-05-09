@@ -1,9 +1,8 @@
 # -*- yaml -*-
-# Analysis specific configuration
+# Analysis specific configuration (helix)
 
 filter:
   keep_filepaths_ending_with:
-    - R
     - cpp
     - c
     - h
@@ -13,7 +12,8 @@ filter:
     - cc
   remove_filepaths_containing:
     - test
-
+  # remove_filepaths_on_commit_size_greather_than:
+    # - 30
 
 # Third Party Tools Configuration #
 #
@@ -84,24 +84,6 @@ tool:
         - f # functions
       r:
         - f # functions
-  understand:
-    # Accepts one language at a time: ada, assembly, c/c++, c#, fortran, java, jovial, delphi/pascal, python, vhdl, basic, javascript
-    code_language: java
-    # Specify which types of Dependencies to keep
-    keep_dependencies_type:
-      - Import
-      - Call
-      - Create
-      - Use
-      - Type GenericArgument
-    # Where the files to analyze should be stored
-    project_path: /home/giyoung7/helix
-    # Where the output for the understands analysis is stored
-    output_path: analysis/helix/understand/
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
   # # srcML allow to parse src code as text (e.g. identifiers)
   # srcml:
   #   # The file path to where you wish to store the srcml output of the project
@@ -118,18 +100,53 @@ tool:
   #     3. Use sudo ./gradlew build
   #     4. After building, locate the engine class files and specify as the class_folder_path:
   #        in this case they are in: /path/to/junit5/analysis/junit-platform-engine/build/classes/java/main/org/junit/platform/engine/
-
+  # understand:
+  #   # Accepts one language at a time: ada, assembly, c/c++, c#, fortran, java, jovial, delphi/pascal, python, vhdl, basic, javascript
+  #   code_language: java
+  #   # Specify which types of Dependencies to keep
+  #   keep_dependencies_type:
+  #     - Import
+  #     - Call
+  #     - Create
+  #     - Use
+  #     - Type GenericArgument
+  #   # Where the files to analyze should be stored
+  #   project_path: ../../rawdata/kaiaulu/git_repo/understand/
+  #   # Where the output for the understands analysis is stored
+  #   output_path: ../../analysis/kaiaulu/understand/
+  understand:
+    # Accepts one language at a time: ada, assembly, c/c++, c#, fortran, java, jovial, delphi/pascal, python, vhdl, basic, javascript
+    code_language: java
+    # Specify which types of Dependencies to keep
+    keep_dependencies_type:
+      - Import
+      - Call
+      - Create
+      - Use
+      - Type GenericArgument
+    # Where the files to analyze should be stored
+    project_path: /home/giyoung7/helix
+    # Where the output for the understands analysis is stored
+    output_path: analysis/helix/understand/
 # Analysis Configuration #
 analysis:
+  # A list of topic and keywords (see src_text_showcase.Rmd).
+  # topics:
+    # topic_1:
+      # - Parser
+      # - Lexer
+    # topic_2:
+      # - Python
+      # - Ruby
   # You can specify the intervals in 2 ways: window, or enumeration
   window:
     # If using gitlog, use start_commit and end_commit. Timestamp is inferred from gitlog
-    start_commit: 224a729f44f554af311ca52cf01b105ded87499b
-    end_commit: 74cd4d4835a02e01e310476c6776192ad0d97173
+    start_commit: e43c65b797842d2a1f01405c73cc040c44670b5e
+    end_commit: 6e07a024796ebc1a86c10fa10c7bb799a716b393
     # Use datetime only if no gitlog is used in the analysis.
     #start_datetime: 2013-05-01 00:00:00
     #end_datetime: 2013-11-01 00:00:00
-    size_days: 30
+    size_days: 90
 #  enumeration:
      # If using gitlog, specify the commits
 #    commit:

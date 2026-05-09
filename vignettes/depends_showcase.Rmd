@@ -34,8 +34,8 @@ tool <- parse_config("../tools.yml")
 # git_repo_path <- get_git_repo_path(conf)
 
 # Reads 2 configs
-project <- parse_config("../conf/helix_immutable.yml")
-analysis <- parse_config("../conf/analysis1.yml")
+project <- parse_config("../conf/helix_project.yml")
+analysis <- parse_config("../conf/analysisF.yml")
 
 # Used for project.yml
 git_repo_path <- get_git_repo_path(project)
