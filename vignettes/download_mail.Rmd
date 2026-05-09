@@ -87,8 +87,13 @@ tools <- parse_config("../tools.yml")
 parse_perceval_path <- get_tool_project("perceval", tools)
 
 # Load project configuration
-conf <- parse_config("../conf/helix.yml")
-mbox_file_path <- get_mbox_path(conf, "project_key_1")
+# conf <- parse_config("../conf/helix.yml")
+# mbox_file_path <- get_mbox_path(conf, "project_key_1")
+
+# Reads 2 configs
+project <- parse_config("../conf/helix_project.yml")
+# analysis <- parse_config("../conf/analysisF.yml")
+mbox_file_path <- get_mbox_path(project, "project_key_1")
 ```
 
 # Downloaders and Refreshers
@@ -104,9 +109,15 @@ For Pipermail, we need to specify the project key, which is used to retrieve the
 Now, we can use the getter functions to retrieve the configuration parameters for the specified project key.
 
 ```{r}
-conf <- parse_config("../conf/openssl.yml")
-pipermail_mailing_list <- get_pipermail_domain(conf, "project_key_1")
-pipermail_save_folder_path <- get_pipermail_path(conf, "project_key_1")
+# conf <- parse_config("../conf/openssl.yml")
+# pipermail_mailing_list <- get_pipermail_domain(conf, "project_key_1")
+# pipermail_save_folder_path <- get_pipermail_path(conf, "project_key_1")
+
+# Reads 2 configs
+project <- parse_config("../conf/openssl_project.yml")
+# analysis <- parse_config("../conf/analysisI.yml")
+pipermail_mailing_list <- get_pipermail_domain(project, "project_key_1")
+pipermail_save_folder_path <- get_pipermail_path(project, "project_key_1")
 
 # Define the date range
 pipermail_start_year_month <- 202310
@@ -145,9 +156,13 @@ parsed_mail %>%
 The download_mod_mbox() function downloads Mod Mbox archives from a specified Apache Pony Mail mailing list over a given date range. We obtain the required parameters from the project configuration file, as done before:
 
 ```{r eval=FALSE}
-conf <- parse_config("../conf/helix.yml")
-mbox_mailing_list <- get_mbox_domain(conf, "project_key_1")
-mbox_save_folder_path <- get_mbox_path(conf, "project_key_1")
+# conf <- parse_config("../conf/helix.yml")
+# mbox_mailing_list <- get_mbox_domain(conf, "project_key_1")
+# mbox_save_folder_path <- get_mbox_path(conf, "project_key_1")
+
+project <- parse_config("../conf/helix_project.yml")
+mbox_mailing_list <- get_mbox_domain(project, "project_key_1")
+mbox_save_folder_path <- get_mbox_path(project, "project_key_1")
 
 # Define the date range
 mbox_start_year_month <- 202310
