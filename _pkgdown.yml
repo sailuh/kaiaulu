@@ -62,6 +62,7 @@ reference:
   - parse_gitlog_entity
   - parse_commit_message_id
   - transform_gitlog_to_bipartite_network
+  - transform_gitlog_to_multimodal_network
   - transform_gitlog_to_temporal_network
   - transform_gitlog_to_entity_bipartite_network
   - transform_gitlog_to_entity_temporal_network
@@ -245,7 +246,10 @@ reference:
 - title: __Graph__
   desc:  Provide graph models to construct networks and algorithms for graph analysis.
 - contents:
-  - model_directed_graph
+  - model_unimodal_graph
+  - model_multimodal_graph
+  - subset_bipartite_from_multimodal
+  - get_bidirected_edges
   - bipartite_graph_projection
   - temporal_graph_projection
   - weight_scheme_sum_edges
