@@ -75,6 +75,7 @@ __kaiaulu 0.0.0.9700 (in development)__
  * Improved the documentation of the line metrics Notebook[#240](https://github.com/sailuh/kaiaulu/issues/240)
  * Documentation was improved for the Causal Flaws Notebook [#220](https://github.com/sailuh/kaiaulu/issues/220)
  * Moved learning resources to the wiki. Minor editing to guidelines for clarity and common mistakes. [#150](https://github.com/sailuh/kaiaulu/issues/150)
+ * Improved the documentation of the gitlog vulnerabilities Notebook. [#392](https://github.com/sailuh/kaiaulu/issues/392)
 
 
 __kaiaulu [0.0.0.9600](https://github.com/sailuh/kaiaulu/milestone/5) __
