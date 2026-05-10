@@ -46,7 +46,7 @@ keep_dependencies_type <- get_depends_keep_dependencies_type(conf)
 # DV8 parameters 
 project_path <- get_dv8_folder_path(conf)
 project_name <- stringi::stri_split_regex(project_path,pattern = "/")[[1]]
-project_name <- project_name[length(project_name)]
+project_name <- project_name[length(project_name)-1]
 
 flaws_params <- get_dv8_flaws_params(conf)
 
