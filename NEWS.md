@@ -3,6 +3,10 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ * `exec/depends.R` has been added. It is an executable CLI to parse project dependencies using the Depends tool. [#368](https://github.com/sailuh/kaiaulu/issues/368)
+ * `exec/linemetrics.R` has been added. It is an executable CLI to analyze line metrics using SCC. [#368](https://github.com/sailuh/kaiaulu/issues/368)
+ * `exec/rdependencies.R` has been added. It is an executable CLI to parse project dependencies of R projects. [#368](https://github.com/sailuh/kaiaulu/issues/368)
+ * `exec/understand.R` has been added. It is an executable CLI to parse file and class dependencies using Scitool's Understand tool. [#368](https://github.com/sailuh/kaiaulu/issues/368)
  *  A new capability to export events for process mining has been added. [#301](https://github.com/sailuh/kaiaulu/issues/301)
  * `exec/ghevents.R` has been added. It is a executable CLI (command-line interface) to download and parse Github Issue Events from outside Kaiaulu.
  * All GitHub Pull Request Comments are able to be downloaded in the Pull Request Comments notebook. [342](https://github.com/sailuh/kaiaulu/issues/342)
