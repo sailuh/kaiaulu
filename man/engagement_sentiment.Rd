@@ -8,25 +8,26 @@ engagement_sentiment(
   datetimetz,
   user_name_email,
   polarity,
-  quit_lag = 90,
+  lag = 90,
   aggregate_func = mean
 )
 }
 \arguments{
-\item{datetimetz}{A data table column indicating the timestamp of an author's message}
+\item{datetimetz}{A POSIXct data table column indicating the timestamp of an author's message}
 
 \item{user_name_email}{A data table column indicating the author of a message}
 
 \item{polarity}{A data table column indicating the sentiment of a message}
 
-\item{quit_lag}{The number of days since a developer's last message}
+\item{lag}{The number of days for each rolling window (90 day default)}
 
 \item{aggregate_func}{The aggregate function to apply to the polarity values in the windows.
 The default is mean, but it can be overridden}
 }
 \description{
 Apply an aggregate function to the sentiment (polarity) for each 
-90 day window (quit_lag) from the author (user_name_email)
+rolling window (lag days) from the author (user_name_email).
+Creates consecutive non-overlapping windows and only includes complete windows.
 }
 \references{
 Wouter Mulder (2025). Am I finished yet? A discovery of burnout and

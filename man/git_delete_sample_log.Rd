@@ -20,7 +20,7 @@ that manipulates git logs.
 A folder kaiaulu_sample is assumed to have been created by \code{\link{git_create_sample_log}}, and is deleted by this function.
 }
 \seealso{
-Other unittest: 
-\code{\link{git_create_sample_log}()}
+Other unittest:
+\code{\link[=git_create_sample_log]{git_create_sample_log()}}
 }
 \concept{unittest}

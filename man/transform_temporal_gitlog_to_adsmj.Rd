@@ -25,33 +25,33 @@ In the adsm.json, the Variables are all the authors under analysis
 \code{\link{transform_dependencies_to_sdsmj}} to perform a similar transformation into a *-dsm.json using dependencies from Depends,
 \code{\link{graph_to_dsmj}} to generate a *-dsm.json file.
 
-Other edgelists: 
-\code{\link{transform_commit_message_id_to_network}()},
-\code{\link{transform_cve_cwe_file_to_network}()},
-\code{\link{transform_dependencies_to_network}()},
-\code{\link{transform_dependencies_to_sdsmj}()},
-\code{\link{transform_gitlog_to_bipartite_network}()},
-\code{\link{transform_gitlog_to_entity_bipartite_network}()},
-\code{\link{transform_gitlog_to_entity_temporal_network}()},
-\code{\link{transform_gitlog_to_hdsmj}()},
-\code{\link{transform_gitlog_to_temporal_network}()},
-\code{\link{transform_reply_to_bipartite_network}()},
-\code{\link{transform_understand_dependencies_to_network}()}
+Other edgelists:
+\code{\link[=transform_commit_message_id_to_network]{transform_commit_message_id_to_network()}},
+\code{\link[=transform_cve_cwe_file_to_network]{transform_cve_cwe_file_to_network()}},
+\code{\link[=transform_dependencies_to_network]{transform_dependencies_to_network()}},
+\code{\link[=transform_dependencies_to_sdsmj]{transform_dependencies_to_sdsmj()}},
+\code{\link[=transform_gitlog_to_bipartite_network]{transform_gitlog_to_bipartite_network()}},
+\code{\link[=transform_gitlog_to_entity_bipartite_network]{transform_gitlog_to_entity_bipartite_network()}},
+\code{\link[=transform_gitlog_to_entity_temporal_network]{transform_gitlog_to_entity_temporal_network()}},
+\code{\link[=transform_gitlog_to_hdsmj]{transform_gitlog_to_hdsmj()}},
+\code{\link[=transform_gitlog_to_temporal_network]{transform_gitlog_to_temporal_network()}},
+\code{\link[=transform_reply_to_bipartite_network]{transform_reply_to_bipartite_network()}},
+\code{\link[=transform_understand_dependencies_to_network]{transform_understand_dependencies_to_network()}}
 
-Other dv8: 
-\code{\link{dependencies_to_sdsmj}()},
-\code{\link{dv8_clsxb_to_clsxj}()},
-\code{\link{dv8_clsxj_to_clsxb}()},
-\code{\link{dv8_depends_to_sdsmj}()},
-\code{\link{dv8_dsmj_to_dsmb}()},
-\code{\link{dv8_hdsmb_sdsmb_to_mdsmb}()},
-\code{\link{dv8_mdsmb_to_flaws}()},
-\code{\link{gitlog_to_hdsmj}()},
-\code{\link{graph_to_dsmj}()},
-\code{\link{parse_dv8_architectural_flaws}()},
-\code{\link{parse_dv8_clusters}()},
-\code{\link{transform_dependencies_to_sdsmj}()},
-\code{\link{transform_gitlog_to_hdsmj}()}
+Other dv8:
+\code{\link[=dependencies_to_sdsmj]{dependencies_to_sdsmj()}},
+\code{\link[=dv8_clsxb_to_clsxj]{dv8_clsxb_to_clsxj()}},
+\code{\link[=dv8_clsxj_to_clsxb]{dv8_clsxj_to_clsxb()}},
+\code{\link[=dv8_depends_to_sdsmj]{dv8_depends_to_sdsmj()}},
+\code{\link[=dv8_dsmj_to_dsmb]{dv8_dsmj_to_dsmb()}},
+\code{\link[=dv8_hdsmb_sdsmb_to_mdsmb]{dv8_hdsmb_sdsmb_to_mdsmb()}},
+\code{\link[=dv8_mdsmb_to_flaws]{dv8_mdsmb_to_flaws()}},
+\code{\link[=gitlog_to_hdsmj]{gitlog_to_hdsmj()}},
+\code{\link[=graph_to_dsmj]{graph_to_dsmj()}},
+\code{\link[=parse_dv8_architectural_flaws]{parse_dv8_architectural_flaws()}},
+\code{\link[=parse_dv8_clusters]{parse_dv8_clusters()}},
+\code{\link[=transform_dependencies_to_sdsmj]{transform_dependencies_to_sdsmj()}},
+\code{\link[=transform_gitlog_to_hdsmj]{transform_gitlog_to_hdsmj()}}
 }
 \concept{dv8}
 \concept{edgelists}

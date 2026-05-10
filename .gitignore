@@ -10,3 +10,4 @@ pkgdown
 rawdata
 .Rproj.user
 /.venv
+/data

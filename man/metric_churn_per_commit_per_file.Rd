@@ -18,14 +18,14 @@ Calculates the churn metric for a sequence of commits per commit per file
 \seealso{
 \code{\link{parse_gitlog}} to obtain `git_log`
 
-Other metrics: 
-\code{\link{commit_message_id_coverage}()},
-\code{\link{metric_churn}()},
-\code{\link{metric_churn_per_commit_interval}()},
-\code{\link{metric_file_bug_churn}()},
-\code{\link{metric_file_bug_frequency}()},
-\code{\link{metric_file_churn}()},
-\code{\link{metric_file_non_bug_churn}()},
-\code{\link{metric_file_non_bug_frequency}()}
+Other metrics:
+\code{\link[=commit_message_id_coverage]{commit_message_id_coverage()}},
+\code{\link[=metric_churn]{metric_churn()}},
+\code{\link[=metric_churn_per_commit_interval]{metric_churn_per_commit_interval()}},
+\code{\link[=metric_file_bug_churn]{metric_file_bug_churn()}},
+\code{\link[=metric_file_bug_frequency]{metric_file_bug_frequency()}},
+\code{\link[=metric_file_churn]{metric_file_churn()}},
+\code{\link[=metric_file_non_bug_churn]{metric_file_non_bug_churn()}},
+\code{\link[=metric_file_non_bug_frequency]{metric_file_non_bug_frequency()}}
 }
 \concept{metrics}

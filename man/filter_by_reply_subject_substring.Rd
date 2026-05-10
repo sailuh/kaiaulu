@@ -20,13 +20,13 @@ A filtered data.table without matching subjects.
 Removes rows where the subject contains certain substrings.
 }
 \seealso{
-Other filters: 
-\code{\link{filter_by_commit_interval}()},
-\code{\link{filter_by_commit_size}()},
-\code{\link{filter_by_file_extension}()},
-\code{\link{filter_by_filepath_substring}()},
-\code{\link{filter_by_reply_author_substring}()},
-\code{\link{filter_by_reply_body_substring}()},
-\code{\link{replace_token_regex_with}()}
+Other filters:
+\code{\link[=filter_by_commit_interval]{filter_by_commit_interval()}},
+\code{\link[=filter_by_commit_size]{filter_by_commit_size()}},
+\code{\link[=filter_by_file_extension]{filter_by_file_extension()}},
+\code{\link[=filter_by_filepath_substring]{filter_by_filepath_substring()}},
+\code{\link[=filter_by_reply_author_substring]{filter_by_reply_author_substring()}},
+\code{\link[=filter_by_reply_body_substring]{filter_by_reply_body_substring()}},
+\code{\link[=replace_token_regex_with]{replace_token_regex_with()}}
 }
 \concept{filters}
