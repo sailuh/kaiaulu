@@ -106,8 +106,7 @@ all_issue_or_pr_comments[, created_at := as.POSIXct(created_at, tz = "UTC")]
 ```
 
 ```{r}
-# If you want to see the head of the table for our comments data below
-# kable(head(all_issue_or_pr_comments, 2))
+kable(head(all_issue_or_pr_comments))
 ```
 
 ## Obtaining the Output Table
@@ -256,16 +255,17 @@ churn_dt <- productivity_author_churn_output[
 plot_dt <- merge(commits_dt, churn_dt, by = "author_datetimetz", all = TRUE)
 plot_dt <- merge(plot_dt, engagement_dt, by = "author_datetimetz", all = TRUE)
 
-# Make long table for plotting all metrics
+# Make long table with panel grouping: (Commits + Communication) vs Churn
 plot_long <- rbindlist(list(
-  plot_dt[, .(author_datetimetz, metric = "Communication - Messages", value = author_total_messages)],
-  plot_dt[, .(author_datetimetz, metric = "Commits", value = author_total_commits)],
-  plot_dt[, .(author_datetimetz, metric = "Churn",   value = author_churn)]
+  plot_dt[, .(author_datetimetz, metric = "Communication - Messages", value = author_total_messages, panel = "Commits + Communication")],
+  plot_dt[, .(author_datetimetz, metric = "Commits", value = author_total_commits, panel = "Commits + Communication")],
+  plot_dt[, .(author_datetimetz, metric = "Churn", value = author_churn, panel = "Churn")]
 ))
 
 ggplot(plot_long, aes(x = author_datetimetz, y = value, color = metric)) +
   geom_point(alpha = 0.7) +
   geom_line() +
+  facet_wrap(~ panel, ncol = 1, scales = "free_y") + 
   labs(
     title = paste0("Rolling Window Metrics on ", lag, "-day Time Window: ", one_author),
     x = "Date",
@@ -273,5 +273,9 @@ ggplot(plot_long, aes(x = author_datetimetz, y = value, color = metric)) +
     color = "Metric"
   ) +
   theme_minimal() +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    strip.text = element_text(face = "bold", size = 12),
+    panel.spacing = unit(2, "lines")
+    )
 ```
