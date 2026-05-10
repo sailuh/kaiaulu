@@ -33,12 +33,6 @@ require(markdown)
 require(XML)
 ```
 
-source("../R/config.R")
-source("../R/sentiment.R")
-source("../R/filter.R")
-source("../R/github.R")
-source("../R/jira.R")
-source("../R/mail.R")
 
 ```{r}
 tool <- parse_config("../tools.yml")
