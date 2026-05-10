@@ -3,7 +3,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
- *  Added new tests and their example functions for the src parser and transform functions in ```test-src.R``` and ```R/Example.R``` respectively. 
+ *  Added new tests and their example functions for the src parser and transform functions in ```test-src.R``` and ```R/Example.R``` respectively. [#369](https://github.com/sailuh/kaiaulu/issues/369)
  *  Added ```try catch``` statements in ```parse_dependencies()```,  ```parse_java_code_refactoring_json()```, and  ```parse_line_metrics()``` in ```R/src.R``` to catch erroneous output    from their respective third party tools. [#369](https://github.com/sailuh/kaiaulu/issues/369)
  *  A new capability to export events for process mining has been added. [#301](https://github.com/sailuh/kaiaulu/issues/301)
  * `exec/ghevents.R` has been added. It is a executable CLI (command-line interface) to download and parse Github Issue Events from outside Kaiaulu.
