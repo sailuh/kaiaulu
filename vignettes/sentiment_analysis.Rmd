@@ -131,7 +131,9 @@ github_api_iterate_pages(token,gh_response,
                          save_path_issue_or_pr_comments,
                          prefix="issue",
                          verbose=TRUE)
+```
 
+```{r}
 
 all_issue_or_pr_comments <- lapply(list.files(save_path_issue_or_pr_comments,
                                      full.names = TRUE),read_json)
@@ -161,13 +163,15 @@ github_api_iterate_pages(token,gh_response,
                          save_path_pull_request,
                          prefix="pull_request"
                          verbose=TRUE)
+```
 
+```{r}
 all_pr <- lapply(list.files(save_path_pull_request,
                                      full.names = TRUE),read_json)
 all_pr <- lapply(all_pr,
                                    github_parse_project_pull_request)
 all_pr <- rbindlist(all_pr,fill=TRUE)
-names(all_pr)
+
 all_pr <- all_pr[,.(reply_id=issue_id,
                       in_reply_to_id=NA_character_,
                       reply_datetimetz=created_at,
@@ -232,7 +236,7 @@ head(mail_replies, 3) %>%
 
 # Download and parse jira
 
-```{r}
+```{r eval = FALSE}
 conf <- parse_config("../conf/kaiaulu.yml")
 # Specify project_key_index in get_jira_domain() (e.g. "project_key_1")
 issue_tracker_domain <- get_jira_domain(conf, "project_key_1")
@@ -368,12 +372,17 @@ jira_replies <- parse_jira_replies(parsed_jira_issues)
 
 We will now combine all of our parsed reply data.tables into a single, unified reply data.table.  By consolidating all sources into one table, we can apply the same preprocessing steps consistently across all data, ensuring that the subsequent sentiment training and prediction functions operate on a uniform dataset. 
 
-```{r}
+```{r eval = FALSE}
 reply_dt <- rbindlist(
   list(jira_replies, github_replies, mail_replies),
   fill = TRUE
 )
 ```
+
+```{r}
+reply_dt <- github_replies
+```
+
 
 When data is parsed, their can exist entries that have NA. Since our sentiment analysis relies on reading human-generated text, these rows are dropped.  
 
