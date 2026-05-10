@@ -40,7 +40,6 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### MINOR IMPROVEMENTS
 
-
  * `parse_mbox_latest_date()` now uses the new mbox naming convention for the latest date. [#284](https://github.com/sailuh/kaiaulu/issues/284)
  * All mailing list documentation can now be found in `download_mail.Rmd`. [#284](https://github.com/sailuh/kaiaulu/issues/284)
  * `download_pipermail()` now downloads all the txt and txt.gz files in the accessed pipermail archive as mbox files. [#284](https://github.com/sailuh/kaiaulu/issues/284)
@@ -71,6 +70,8 @@ __kaiaulu 0.0.0.9700 (in development)__
  * Fixes mismatch of filepath due to leading `/` remaining in relative filepath of `parse_dependencies()`. [#219](https://github.com/sailuh/kaiaulu/issues/219)
 
 ### DOCUMENTATION FIXES
+
+ * `exec/github.R`, `exec/ghevents.R`, `exec/smells.R`, and `exec/mailinglist.R` now have standardized documentation to be consistent with new executable documentation. [#401](https://github.com/sailuh/kaiaulu/issues/401)
  * A few unit tests have been added to sanity check the metrics module as a consequence of bug 244. [#244](https://github.com/sailuh/kaiaulu/issues/244)
  * Improved the documentation of the line metrics Notebook[#240](https://github.com/sailuh/kaiaulu/issues/240)
  * Documentation was improved for the Causal Flaws Notebook [#220](https://github.com/sailuh/kaiaulu/issues/220)

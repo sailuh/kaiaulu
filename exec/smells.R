@@ -18,8 +18,8 @@ require(cli,quietly=TRUE)
 
 doc <- "
 USAGE:
-  smells.R tabulate help
-  smells.R all_branches <tools.yml> <project_conf.yml> <save_file_name_path>
+  smells.R parse help
+  smells.R parse <tools.yml> <project_conf.yml> <save_file_name_path>
   smells.R (-h | --help)
   smells.R --version
 
@@ -28,6 +28,10 @@ DESCRIPTION:
   Kaiaulu's README.md for instructions on how to create <tool.yml>
   and <project_conf.yml>.
 
+ARGUMENTS:
+  <tools.yml>                   path to tools.yml file
+  <project_conf.yml>            path to configuration file for project you want to analyze
+  <save_file_name_path>         file path where output will be saved
 
 OPTIONS:
   -h --help     Show this screen.
@@ -35,11 +39,10 @@ OPTIONS:
 "
 
 
-
 arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9600')
-if(arguments[["all_branches"]] & arguments[["help"]]){
-  cli_alert_info("Tabulates smells of all branches (see social smells notebook for details).")
-}else if(arguments[["all_branches"]]){
+if(arguments[["parse"]] & arguments[["help"]]){
+  cli_alert_info("Parses smells of all branches (see social smells notebook for details).")
+}else if(arguments[["parse"]]){
 
   # Load Config Parameters
   tools_path <- arguments[["<tools.yml>"]]
@@ -338,7 +341,7 @@ if(arguments[["all_branches"]] & arguments[["help"]]){
 
   # End all branches Smell Calculation #
 
-  cli_alert_success(paste0("Tabulated smells of all branches was saved at: ",save_path))
+  cli_alert_success(paste0("Parsed smells of all branches was saved at: ",save_path))
 
   data.table::fwrite(all_branches_smells_interval,save_path)
 }

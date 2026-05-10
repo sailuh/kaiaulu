@@ -17,14 +17,24 @@ source("R/config.R")
 doc <- "
 USAGE:
   github_events.R download help
-  github_events.R download <config_path> --token_path=<path>
+  github_events.R download <project_conf.yml> <token_path>
   github_events.R parse help
-  github_events.R parse <config_path> <output_file>
+  github_events.R parse <project_conf.yml> <save_path>
   github_events.R (-h | --help)
   github_events.R --version
 
 DESCRIPTION:
-  Download and parse GitHub event data via CLI.
+  Download and parse GitHub event data via CLI. Please see
+  Kaiaulu's README.md for instructions on how to create <project_conf.yml>.
+
+COMMANDS:
+  download                    Downloads github project issue events to folder specified in <project_conf.yml> using github_api_project_issue_events()
+  parse                       Parses github project issue events and saves them as a csv to <save_path>
+
+ARGUMENTS:
+  <project_conf.yml>          path to configuration file for project you want to analyze
+  <save_path>                 file path where output will be saved
+  <token_path>                file path to a file which contains your GitHub api token
 
 OPTIONS:
   -h --help     Show this screen.
@@ -37,22 +47,18 @@ arguments <- docopt::docopt(doc, version = 'Kaiaulu 0.0.0.9700')
 if (arguments[["download"]] & arguments[["help"]]) {
   cli::cli_alert_info("Downloads Github Events using R/github.R")
 } else if (arguments[["download"]]) {
-  # owner <- get_github_owner()
-  # repo <- arguments[["<repo>"]]
-  # save_path <- arguments[["<output_folder>"]]
-
-  config_path = arguments[["config_path"]]
+  config_path = arguments[["project_conf.yml"]]
   conf <- parse_config(config_path)
 
   owner <- get_github_owner(conf, "project_key_1")
   repo <- get_github_repo(conf, "project_key_1")
   save_path <- get_github_issue_event_path(conf, "project_key_1")
 
-  token_path <- arguments[["--token_path"]]
+  token_path <- arguments[["token_path"]]
   token <- scan(token_path, what="character", quiet = TRUE)
 
   if (any(sapply(list(owner, repo, save_path, token_path, token), is.null))) {
-    cli::cli_abort("Error: Missing required arguments. Please provide: <config_path> and --token_path.")
+    cli::cli_abort("Error: Missing required arguments. Please provide: <project_conf.yml> and <token_path>.")
   }
 
   if (!dir.exists(save_path)) {
@@ -74,14 +80,14 @@ if (arguments[["parse"]] & arguments[["help"]]) {
   cli::cli_alert_info("Parses GitHub event data from JSON files in input folder and saves it as a CSV")
 } else if (arguments[["parse"]]) {
 
-  config_path = arguments[["config_path"]]
-  output_file = arguments[["output_file"]]
+  config_path = arguments[["project_conf.yml"]]
+  output_file = arguments[["save_path"]]
   conf <- parse_config(config_path)
 
   input_dir <- get_github_issue_event_path(conf, "project_key_1")
 
   if (any(sapply(list(input_dir, output_file), is.null)) || !file.exists(input_dir)) {
-    cli::cli_abort("Error: Missing required arguments. Please provide: <config_path> and <output_file>.")
+    cli::cli_abort("Error: Missing required arguments. Please provide: <project_conf.yml> and <save_path>.")
   }
 
   cli::cli_alert_info("Parsing Github issue events from {input_dir}")
