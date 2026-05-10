@@ -23,7 +23,7 @@ require(visNetwork)
 require(data.table)
 require(yaml)
 require(stringi)
-require(knitr)
+require(gt)
 ```
 
 # Introduction
@@ -38,7 +38,8 @@ The input is a CSV of Kaiaulu GitHub issue comments with predicted sentiment pol
 
 ```{r}
 dt <- fread("https://github.com/user-attachments/files/27417102/kaiaulu_predictions.csv")
-kable(head(dt[, .(comment_id, issue_url, comment_user_login, polarity)]))
+head(dt[, .(comment_id, issue_url, comment_user_login, polarity)]) %>%
+  gt(auto_align = FALSE)
 ```
 
 # Prepare Data
@@ -53,7 +54,8 @@ dt[, polarity_int  := fcase(
   polarity == 0L,  0L,
   polarity == 2L, -1L
 )]
-kable(head(dt[, .(reply_from, reply_subject, polarity_int)]))
+head(dt[, .(reply_from, reply_subject, polarity_int)]) %>%
+  gt(auto_align = FALSE)
 ```
 
 # Build Weighted Bipartite Network
@@ -62,8 +64,10 @@ Transform the reply table into a bipartite graph using sentiment polarity as the
 
 ```{r}
 reply_graph <- transform_reply_to_bipartite_network(dt, weight = "polarity_int", weight_agg = mean)
-kable(head(reply_graph[["nodes"]]))
-kable(head(reply_graph[["edgelist"]]))
+head(reply_graph[["nodes"]]) %>%
+  gt(auto_align = FALSE)
+head(reply_graph[["edgelist"]]) %>%
+  gt(auto_align = FALSE)
 ```
 
 # Visualize Network
@@ -97,7 +101,8 @@ Each emotion is visualized as a separate graph. The `weight` parameter is set to
 
 ```{r}
 emotion_dt <- as.data.table(read.csv("https://github.com/user-attachments/files/27313854/harmony_emotion_comments_joined.csv"))
-kable(head(emotion_dt[, .(comment_id, issue_key, author_login, author_name, love, joy, sadness, anger, surprise, fear)]))
+head(emotion_dt[, .(comment_id, issue_key, author_login, author_name, love, joy, sadness, anger, surprise, fear)]) %>%
+  gt(auto_align = FALSE)
 ```
 
 ## Prepare Data
@@ -105,7 +110,8 @@ kable(head(emotion_dt[, .(comment_id, issue_key, author_login, author_name, love
 ```{r}
 emotion_dt[, reply_from    := author_login]
 emotion_dt[, reply_subject := issue_key]
-kable(head(emotion_dt[, .(reply_from, reply_subject, love, joy, sadness, anger, surprise, fear)]))
+head(emotion_dt[, .(reply_from, reply_subject, love, joy, sadness, anger, surprise, fear)]) %>%
+  gt(auto_align = FALSE)
 ```
 
 ## Love

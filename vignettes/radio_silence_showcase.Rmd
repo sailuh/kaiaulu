@@ -23,7 +23,7 @@ require(visNetwork)
 require(data.table)
 require(yaml)
 require(stringi)
-require(knitr)
+require(gt)
 ```
 
 # Introduction
@@ -74,7 +74,8 @@ project_github_replies <- parse_github_replies(
   pr_comments_json_folder_path   = github_pr_comments_path
 )
 nrow(project_github_replies)
-kable(head(project_github_replies[, .(reply_from, reply_subject)]))
+head(project_github_replies[, .(reply_from, reply_subject)]) %>%
+  gt(auto_align = FALSE)
 ```
 
 # Build Bipartite Author-Thread Network
@@ -83,8 +84,10 @@ Transform the reply table into a bipartite graph where one node type represents 
 
 ```{r}
 reply_network <- transform_reply_to_bipartite_network(project_github_replies)
-kable(head(reply_network[["nodes"]]))
-kable(head(reply_network[["edgelist"]]))
+head(reply_network[["nodes"]]) %>%
+  gt(auto_align = FALSE)
+head(reply_network[["edgelist"]]) %>%
+  gt(auto_align = FALSE)
 ```
 
 # Project to Author-Author Network
@@ -94,8 +97,10 @@ Project the bipartite graph onto the author node type to obtain a unimodal autho
 ```{r}
 author_network <- bipartite_graph_projection(reply_network, mode = TRUE,
                                              weight_scheme_function = weight_scheme_sum_edges)
-kable(head(author_network[["nodes"]]))
-kable(head(author_network[["edgelist"]]))
+head(author_network[["nodes"]]) %>%
+  gt(auto_align = FALSE)
+head(author_network[["edgelist"]]) %>%
+  gt(auto_align = FALSE)
 ```
 
 ## Visualize Author-Author Network
@@ -116,8 +121,10 @@ Detect communication communities using OSLOM. Each cluster groups authors who co
 
 ```{r}
 mail_clusters <- community_oslom(oslom_undir_path, author_network, seed = seed, n_runs = 1000)
-kable(mail_clusters[["assignment"]])
-kable(mail_clusters[["info"]])
+mail_clusters[["assignment"]] %>%
+  gt(auto_align = FALSE)
+mail_clusters[["info"]] %>%
+  gt(auto_align = FALSE)
 ```
 
 # Radio Silence
@@ -128,7 +135,8 @@ Count the number of boundary spanners — authors who are the sole bridge betwee
 brokers <- smell_radio_silence(mail.graph = author_network, clusters = mail_clusters)
 cat("Number of radio silence boundary spanners:", length(brokers), "\n")
 if (length(brokers) > 0) {
-  kable(data.table(boundary_spanner = brokers))
+  data.table(boundary_spanner = brokers) %>%
+  gt(auto_align = FALSE)
 }
 ```
 
@@ -156,7 +164,8 @@ clsxj_path <- file.path(project_path, paste0(project_name, "-author-clsx.json"))
 dv8_clsxb_to_clsxj(dv8_path = dv8_path, clsxb_path = clsx_path, clsxj_path = clsxj_path)
 
 cluster_table <- parse_dv8_clusters(clsxj_path)
-kable(cluster_table[, .N, by = .(layer, module)][order(layer, module)])
+cluster_table[, .N, by = .(layer, module)][order(layer, module)] %>%
+  gt(auto_align = FALSE)
 ```
 
 ## Radio Silence per Layer
@@ -191,7 +200,8 @@ for (lyr in unique(cluster_table$layer)) {
   brokers <- smell_radio_silence(mail.graph = layer_network, clusters = layer_clusters)
   cat("Radio silence boundary spanners:", length(brokers), "\n")
   if (length(brokers) > 0) {
-    print(kable(data.table(layer = lyr, boundary_spanner = brokers)))
+    data.table(layer = lyr, boundary_spanner = brokers) %>%
+  gt(auto_align = FALSE) %>% print()
     all_brokers <- union(all_brokers, brokers)
   }
 }

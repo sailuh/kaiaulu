@@ -23,7 +23,7 @@ require(data.table)
 require(igraph)
 require(yaml)
 require(stringi)
-require(knitr)
+require(gt)
 ```
 
 # Introduction
@@ -76,7 +76,8 @@ project_github_replies <- parse_github_replies(
   pr_comments_json_folder_path   = github_pr_comments_path
 )
 nrow(project_github_replies)
-kable(head(project_github_replies[, .(reply_from, reply_subject)]))
+head(project_github_replies[, .(reply_from, reply_subject)]) %>%
+  gt(auto_align = FALSE)
 ```
 
 # Build Author-Subject Bipartite Graph
@@ -85,8 +86,10 @@ Transform the reply table into a bipartite graph where one node type represents 
 
 ```{r}
 bipartite_graph <- transform_reply_to_bipartite_network(project_github_replies)
-kable(head(bipartite_graph[["nodes"]]))
-kable(head(bipartite_graph[["edgelist"]]))
+head(bipartite_graph[["nodes"]]) %>%
+  gt(auto_align = FALSE)
+head(bipartite_graph[["edgelist"]]) %>%
+  gt(auto_align = FALSE)
 ```
 
 # Project to Author-Author Unimodal Graph
@@ -96,8 +99,10 @@ Project the bipartite graph onto the author node type to obtain a unimodal autho
 ```{r}
 author_graph <- bipartite_graph_projection(bipartite_graph, mode = TRUE,
                                            weight_scheme_function = weight_scheme_sum_edges)
-kable(head(author_graph[["nodes"]]))
-kable(head(author_graph[["edgelist"]]))
+head(author_graph[["nodes"]]) %>%
+  gt(auto_align = FALSE)
+head(author_graph[["edgelist"]]) %>%
+  gt(auto_align = FALSE)
 ```
 
 ## Visualize Author-Author Network
@@ -147,11 +152,13 @@ dv8_clsxb_to_clsxj(dv8_path = dv8_path, clsxb_path = clsx_path, clsxj_path = cls
 
 cluster_table <- parse_dv8_clusters(clsxj_path)
 top_cluster_table <- cluster_table[!grepl("/", layer)]
-kable(head(top_cluster_table))
+head(top_cluster_table) %>%
+  gt(auto_align = FALSE)
 ```
 
 ## Module Summary
 
 ```{r}
-kable(top_cluster_table[, .N, by = module][order(module == "Isolated", module)])
+top_cluster_table[, .N, by = module][order(module == "Isolated", module)] %>%
+  gt(auto_align = FALSE)
 ```
