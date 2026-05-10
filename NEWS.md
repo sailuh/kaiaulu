@@ -3,6 +3,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ * `exec/jira.R` has been added. It is a executable CLI to refresh and download JIRA issue data. [#385](https://github.com/sailuh/kaiaulu/issues/385)
  *  A new capability to export events for process mining has been added. [#301](https://github.com/sailuh/kaiaulu/issues/301)
  * `exec/ghevents.R` has been added. It is a executable CLI (command-line interface) to download and parse Github Issue Events from outside Kaiaulu.
  * All GitHub Pull Request Comments are able to be downloaded in the Pull Request Comments notebook. [342](https://github.com/sailuh/kaiaulu/issues/342)
@@ -71,6 +72,8 @@ __kaiaulu 0.0.0.9700 (in development)__
  * Fixes mismatch of filepath due to leading `/` remaining in relative filepath of `parse_dependencies()`. [#219](https://github.com/sailuh/kaiaulu/issues/219)
 
 ### DOCUMENTATION FIXES
+
+ * `exec/mailinglist.R` has new documentation to be standard with new executables. [#385](https://github.com/sailuh/kaiaulu/issues/385)
  * A few unit tests have been added to sanity check the metrics module as a consequence of bug 244. [#244](https://github.com/sailuh/kaiaulu/issues/244)
  * Improved the documentation of the line metrics Notebook[#240](https://github.com/sailuh/kaiaulu/issues/240)
  * Documentation was improved for the Causal Flaws Notebook [#220](https://github.com/sailuh/kaiaulu/issues/220)
