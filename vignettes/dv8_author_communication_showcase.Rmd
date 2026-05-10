@@ -60,7 +60,7 @@ github_pr_comments_path    <- get_github_pr_comments_path(conf, "project_key_1")
 # DV8 parameters
 project_path <- get_dv8_folder_path(conf)
 project_name <- stringi::stri_split_regex(project_path, pattern = "/")[[1]]
-project_name <- project_name[length(project_name)]
+project_name <- project_name[length(project_name)-1]
 ```
 
 # Parse GitHub Replies
@@ -120,10 +120,10 @@ Export the author-author graph as a DSM JSON file and convert it to the DV8 bina
 ```{r}
 dir.create(project_path, showWarnings = FALSE, recursive = TRUE)
 
-adsmj_path <- file.path(project_path, paste0(project_name, "-author-hdsm.json"))
-graph_to_dsmj(author_graph, dsmj_path = adsmj_path, dsmj_name = paste0(project_name, "-author-hdsm"))
+adsmj_path <- file.path(project_path, paste0(project_name, "-adsm.json"))
+graph_to_dsmj(author_graph, dsmj_path = adsmj_path, dsmj_name = paste0(project_name, "-adsm"))
 
-adsmb_path <- file.path(project_path, paste0(project_name, "-author-hdsm.dv8-dsm"))
+adsmb_path <- file.path(project_path, paste0(project_name, "-adsm.dv8-dsm"))
 dv8_dsmj_to_dsmb(dv8_path = dv8_path, dsmj_path = adsmj_path, dsmb_path = adsmb_path)
 ```
 
@@ -132,7 +132,7 @@ dv8_dsmj_to_dsmb(dv8_path = dv8_path, dsmj_path = adsmj_path, dsmb_path = adsmb_
 Run DV8's DR Space hierarchical clustering on the author-author DSM binary.
 
 ```{r}
-clsx_path <- file.path(project_path, paste0(project_name, "-author-clsx.dv8-clsx"))
+clsx_path <- file.path(project_path, paste0(project_name, "-clsx.dv8-clsx"))
 dv8_mdsmb_to_hierclsxb(dv8_path = dv8_path, mdsmb_path = adsmb_path, hierclsxb_path = clsx_path,
                         recursive = TRUE)
 ```
@@ -142,7 +142,7 @@ dv8_mdsmb_to_hierclsxb(dv8_path = dv8_path, mdsmb_path = adsmb_path, hierclsxb_p
 Convert the binary cluster file to JSON and parse the cluster assignments into a data table.
 
 ```{r}
-clsxj_path <- file.path(project_path, paste0(project_name, "-author-clsx.json"))
+clsxj_path <- file.path(project_path, paste0(project_name,"-clsxj.json"))
 dv8_clsxb_to_clsxj(dv8_path = dv8_path, clsxb_path = clsx_path, clsxj_path = clsxj_path)
 
 cluster_table <- parse_dv8_clusters(clsxj_path)
