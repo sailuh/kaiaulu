@@ -3,6 +3,9 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ *  Added new tests and their example functions for Git parser and transform functions in ```test-git.R``` and ```R/Example.R``` respectively
+ *  Added new tests for ```model_directed_graph()``` and ```bipartite_graph_projection ()``` in ```test-graph.R```
+ *  Added a ```try catch``` statement in ```parse_gitlog()``` in ```R/git.R``` to catch erroneous output from perceval. [#356](https://github.com/sailuh/kaiaulu/issues/356)
  *  A new capability to export events for process mining has been added. [#301](https://github.com/sailuh/kaiaulu/issues/301)
  * `exec/ghevents.R` has been added. It is a executable CLI (command-line interface) to download and parse Github Issue Events from outside Kaiaulu.
  * All GitHub Pull Request Comments are able to be downloaded in the Pull Request Comments notebook. [342](https://github.com/sailuh/kaiaulu/issues/342)
