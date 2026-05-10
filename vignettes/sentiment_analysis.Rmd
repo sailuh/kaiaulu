@@ -209,9 +209,9 @@ Users must specify a model to train such as "bert-base-cased". Other text models
 
 The train function fine-tunes the model by training it on the labeled dataset. During training, the model makes predictions on the same training data and compares them to the ground-truth labels. It evaluates its accuracy, and keeps track of the best-performing version. The version with the highest accuracy on this dataset is saved to the `model_save_path` folder and the file is named the model you specified (e.g., bert-base-cased)
 
-Add the CSV of the labeled data you would like to train here:
+The input is a CSV of labeled Github commit comments from [sailuh/sentiment_github_dataset](https://github.com/sailuh/sentiment_github_dataset/blob/4ad05b680d7870308539b6e41e916d6b9077c16f/data/commit%20comments/akka_commit_comments.csv):
 ```{r}
-train_df <- fread("../train_df_final.csv")
+train_df <- fread("https://github.com/user-attachments/files/27574331/akka_sentiment_commit_comments_joined.csv")
 ```
 
 ```{r}
@@ -233,9 +233,9 @@ timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
 
 Once a model is trained, it can be applied to any filtered reply data.tables that has the `text` column to generate sentiment predictions. The generated prediction reply data.table is then saved to our `prediction_save_path` folder.
 
-Add the CSV of the unlabeled data you would like to train here:
+The input is a CSV of unlabeled Kaiaulu PR inline comments. Running pysenti_predict on this file will attach a predicted sentiment polarity label to each comment.
 ```{r}
-reply_dt <- fread("../predict_comments.csv")
+reply_dt <- fread("https://github.com/user-attachments/files/27574385/kaiaulu_pr_inline_comments.csv")
 reply_dt <- setnames(reply_dt, "body", "text")
 reply_dt[, polarity := 0] # Add polarity column placeholder
 ```
@@ -284,4 +284,18 @@ engagement_sentiment_dt <- engagement_sentiment(
 
 ```{r}
 print(head(engagement_sentiment_dt))
+```
+
+This plot visualizes each author's aggregate sentiment polarity over the engagement_sentiment time window.
+
+```{r fig.width=12, fig.height=7}
+ggplot(engagement_sentiment_dt, aes(x = datetimetz, y = aggregate_polarity, group = user_name_email, color = user_name_email)) +
+  geom_line() +
+  labs(title = paste0("Author Engagement on ", quit_lag, "-day Time Window"),
+       x = "Date",
+       y = "Aggregate Sentiment",
+       color = "Author"
+       ) +
+       theme_minimal() +
+       theme(plot.title = element_text(hjust = 0.0))
 ```
