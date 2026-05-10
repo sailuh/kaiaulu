@@ -427,7 +427,484 @@ example_notebook_alternating_function_in_files <- function(folder_path, folder_n
 
   return(git_repo_path)
 }
+#' Example Src Java Code Dependencies
+#'
+#' This function creates a repo that has three java files. These are Helper.java, Utils.java, and Main.java.
+#' This could be useful for testing that the parsers in src.R can correctly detect file dependencies.
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return git_repo_path of newly created empty repo
+#' @export
+#' @keywords internal
+example_src_java_code_dependencies <- function(folder_path, folder_name) {
 
+  folder_path <- io_make_folder(folder_path, folder_name)
+  git_init(folder_path)
+  git_repo <- file.path(folder_path, '.git')
+
+  # Helper.java
+  helper_path <- file.path(folder_path, "Helper.java")
+  io_make_file(helper_path,
+               "public class Helper {
+                  public static void help() {
+                    System.out.println(\"Helping...\");
+                    process();
+                  }
+
+                  public static void process() {
+                    System.out.println(\"Processing...\");
+                  }
+                }"
+  )
+  git_add(git_repo, folder_path, helper_path)
+  git_commit(git_repo, folder_path, "Add Helper class", "John Doe", "JohnDoe@test.com")
+
+  # Utils.java adds cross-file dependencies
+  utils_path <- file.path(folder_path, "Utils.java")
+  io_make_file(utils_path,
+               "public class Utils {
+                  public static void doWork() {
+                    Helper.process();
+                  }
+                }"
+  )
+  git_add(git_repo, folder_path, utils_path)
+  git_commit(git_repo, folder_path, "Add Utils class calling Helper", "John Doe", "JohnDoe@test.com")
+
+  # Main.java depends on both Helper and Utils
+  main_path <- file.path(folder_path, "Main.java")
+  io_make_file(main_path,
+               "public class Main {
+                  public static void main(String[] args) {
+                    Helper.help();
+                    Utils.doWork();
+                  }
+                }"
+  )
+  git_add(git_repo, folder_path, main_path)
+  git_commit(git_repo, folder_path, "Add Main using Helper and Utils", "John Doe", "JohnDoe@test.com")
+}
+#' Example Src Nested Java Code Dependencies
+#'
+#' This function creates a repo that has a java file at the /.git folder level, as well as a java file in a folder
+#' that is at the ./git folder level, which calls the former java file. This could be useful for testing that the
+#' src parsers can recursively search for files through folders.
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return git_repo_path of newly created empty repo
+#' @export
+#' @keywords internal
+example_src_java_nested_code_dependencies <- function(folder_path, folder_name) {
+
+  folder_path <- io_make_folder(folder_path, folder_name)
+  git_init(folder_path)
+  git_repo <- file.path(folder_path, '.git')
+
+  # Create nested folder
+  nested_folder <- file.path(folder_path, "nested_folder")
+  dir.create(nested_folder, recursive = TRUE)
+
+  # Helper.java at repo level
+  helper_path <- file.path(folder_path, "Helper.java")
+  io_make_file(
+    helper_path,
+    "public class Helper {
+       public static void help() {
+         System.out.println(\"Helping...\");
+       }
+     }"
+  )
+
+  git_add(git_repo, folder_path, helper_path)
+  git_commit(git_repo, folder_path, "Add Helper file and class", "John Doe", "JohnDoe@test.com")
+
+  # Main.java inside nested folder
+  main_path <- file.path(nested_folder, "Main.java")
+  io_make_file(
+    main_path,
+    "public class Main {
+      public static void main(String[] args) {
+        Helper.help();
+      }
+    }"
+  )
+
+  git_add(git_repo, folder_path, main_path)
+  git_commit(git_repo, folder_path, "Add Main file", "John Doe", "JohnDoe@test.com")
+}
+#' Example Src Java And Python Files
+#'
+#' This function creates a repo that has two java files and a python file. These are Helper.java, Utils.java,
+#' and Hello.py. This could be useful for testing that the parsers in src.R can filter out files.
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return git_repo_path of newly created empty repo
+#' @export
+#' @keywords internal
+example_src_java_and_python_files <- function(folder_path, folder_name) {
+
+  folder_path <- io_make_folder(folder_path, folder_name)
+  git_init(folder_path)
+  git_repo <- file.path(folder_path, '.git')
+
+  # Main.java at repo level
+  main_path <- file.path(folder_path, "Main.java")
+  io_make_file(
+    main_path,
+    "public class Main {
+      public static void main(String[] args) {
+        Helper.help();
+      }
+    }"
+  )
+
+  git_add(git_repo, folder_path, main_path)
+  git_commit(git_repo, folder_path, "Add Main file", "John Doe", "JohnDoe@test.com")
+
+  # Helper.java at repo level
+  helper_path <- file.path(folder_path, "Helper.java")
+  io_make_file(
+    helper_path,
+    "public class Helper {
+       public static void help() {
+         System.out.println(\"Helping...\");
+       }
+     }"
+  )
+
+  git_add(git_repo, folder_path, helper_path)
+  git_commit(git_repo, folder_path, "Add Helper file and class", "John Doe", "JohnDoe@test.com")
+
+  # Hello.py at repo level
+  py_path <- file.path(folder_path, "Hello.py")
+  io_make_file(
+    py_path,
+    "class myClass:
+      x = 5"
+  )
+
+  git_add(git_repo, folder_path, py_path)
+  git_commit(git_repo, folder_path, "Add Python file", "John Doe", "JohnDoe@test.com")
+}
+#' Example Src Java Circular Dependencies
+#'
+#' This function creates a repo that has two java files which call each other. These are Helper.java and Utils.java.
+#' This could be useful for testing that the parsers in src.R can handle circular file dependencies.
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return git_repo_path of newly created empty repo
+#' @export
+#' @keywords internal
+example_src_java_circular_dependencies <- function(folder_path, folder_name) {
+
+  folder_path <- io_make_folder(folder_path, folder_name)
+  git_init(folder_path)
+  git_repo <- file.path(folder_path, '.git')
+
+  # Main.java at repo level
+  utils_path <- file.path(folder_path, "Utils.java")
+  io_make_file(utils_path,
+               "public class Utils {
+                  public static void doWork() {
+                    System.out.println(\"Processing...\");
+                  }
+                Helper.help();
+                }"
+  )
+
+  git_add(git_repo, folder_path, utils_path)
+  git_commit(git_repo, folder_path, "Add Utils file", "John Doe", "JohnDoe@test.com")
+
+  # Helper.java
+  helper_path <- file.path(folder_path, "Helper.java")
+  io_make_file(
+    helper_path,
+    "public class Helper {
+       public static void help() {
+         System.out.println(\"Helping...\");
+       }
+    Utils.doWork();
+     }"
+  )
+
+  git_add(git_repo, folder_path, helper_path)
+  git_commit(git_repo, folder_path, "Add Helper file", "John Doe", "JohnDoe@test.com")
+
+}
+#' Example Src Xml From Java Code
+#'
+#' This function creates a repo that has one .XML file. This contains information from example_src_java_code_dependencies,
+#' after it has been ran by both build_understand_project and export_understand_dependencies. This is used to test for
+#' parse_understand_dependencies, and would make future changes to the .XML format from Scitools more obvious.
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return git_repo_path of newly created empty repo
+#' @export
+#' @keywords internal
+example_src_xml_from_java_code <- function(folder_path, folder_name) {
+  folder_path <- io_make_folder(folder_path, folder_name)
+  git_init(folder_path)
+  git_repo <- file.path(folder_path, '.git')
+
+  java_path <- file.path(folder_path, "example.xml")
+  io_make_file(java_path,
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+     <graph xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:cy=\"http://www.cytoscape.org\" xmlns=\"http://www.cs.rpi.edu/XGMML\" label=\" File Dependencies\" Directed=\"0\" Graphic=\"0\" Layout=\"Circular\">
+       <att name=\"documentVersion\" value=\"1.1\"/>
+       <att name=\"networkMetadata\">
+               <rdf:RDF>
+                       <rdf:Description rdf:about=\"http://www.cytoscape.org/\">
+                               <dc:type>File Dependencies</dc:type>
+                               <dc:description/>
+                               <dc:identifier>-</dc:identifier>
+                               <dc:date/>
+                               <dc:title/>
+                               <dc:source>http://localhost/?p=</dc:source>
+                               <dc:format>Cytoscape-XGMML</dc:format>
+                       </rdf:Description>
+               </rdf:RDF>
+      </att>
+      <node id=\"1\" label=\"Helper.java id:1\">
+           <att type=\"string\" name=\"node.shape\" value=\"rect\"/>
+           <att type=\"string\" name=\"node.fontSize\" value=\"5\"/>
+           <att type=\"string\" name=\"node.label\" value=\"Helper.java\"/>
+           <att type=\"string\" name=\"longName\" value=\"/tmp/test_example_java_code/Helper.java\"/>
+           <graphics type=\"RECTANGLE\" h=\"35\" w=\"35\" x=\"0\" y=\"0\" fill=\"#ffffff\" width=\"1\" outline=\"#000000\" cy:nodeTransparency=\"1.0\" cy:nodeLabelFont=\"Default-0-8\" cy:borderLineType=\"solid\"/>
+      </node>
+      <node id=\"15\" label=\"Main.java id:15\">
+           <att type=\"string\" name=\"node.shape\" value=\"rect\"/>
+           <att type=\"string\" name=\"node.fontSize\" value=\"5\"/>
+           <att type=\"string\" name=\"node.label\" value=\"Main.java\"/>
+           <att type=\"string\" name=\"longName\" value=\"/tmp/test_example_java_code/Main.java\"/>
+           <graphics type=\"RECTANGLE\" h=\"35\" w=\"35\" x=\"0\" y=\"115\" fill=\"#ffffff\" width=\"1\" outline=\"#000000\" cy:nodeTransparency=\"1.0\" cy:nodeLabelFont=\"Default-0-8\" cy:borderLineType=\"solid\"/>
+      </node>
+      <node id=\"21\" label=\"Utils.java id:21\">
+           <att type=\"string\" name=\"node.shape\" value=\"rect\"/>
+           <att type=\"string\" name=\"node.fontSize\" value=\"5\"/>
+           <att type=\"string\" name=\"node.label\" value=\"Utils.java\"/>
+           <att type=\"string\" name=\"longName\" value=\"/tmp/test_example_java_code/Utils.java\"/>
+           <graphics type=\"RECTANGLE\" h=\"35\" w=\"35\" x=\"0\" y=\"230\" fill=\"#ffffff\" width=\"1\" outline=\"#000000\" cy:nodeTransparency=\"1.0\" cy:nodeLabelFont=\"Default-0-8\" cy:borderLineType=\"solid\"/>
+      </node>
+      <edge source=\"15\" target=\"21\" label=\"Main.java(Depends On)Utils.java\">
+             <att type=\"string\" name=\"edge.targetArrowShape\" value=\"ARROW\"/>
+             <att type=\"string\" name=\"edge.color\" value=\"#0000FF\"/>
+             <att type=\"string\" name=\"canonicalName\" value=\"Main.java(Depends On)Utils.java\"/>
+             <att type=\"string\" name=\"interaction\" value=\"Depends On\"/>
+             <att type=\"string\" name=\"dependency kind\" value=\"Call\"/>
+      </edge>
+      <edge source=\"15\" target=\"1\" label=\"Main.java(Depends On)Helper.java\">
+             <att type=\"string\" name=\"edge.targetArrowShape\" value=\"ARROW\"/>
+             <att type=\"string\" name=\"edge.color\" value=\"#0000FF\"/>
+             <att type=\"string\" name=\"canonicalName\" value=\"Main.java(Depends On)Helper.java\"/>
+             <att type=\"string\" name=\"interaction\" value=\"Depends On\"/>
+             <att type=\"string\" name=\"dependency kind\" value=\"Call\"/>
+      </edge>
+      <edge source=\"21\" target=\"1\" label=\"Utils.java(Depends On)Helper.java\">
+             <att type=\"string\" name=\"edge.targetArrowShape\" value=\"ARROW\"/>
+             <att type=\"string\" name=\"edge.color\" value=\"#0000FF\"/>
+             <att type=\"string\" name=\"canonicalName\" value=\"Utils.java(Depends On)Helper.java\"/>
+             <att type=\"string\" name=\"interaction\" value=\"Depends On\"/>
+             <att type=\"string\" name=\"dependency kind\" value=\"Call\"/>
+      </edge>
+      </graph>"
+  )
+  git_add(git_repo, folder_path, java_path)
+  git_commit(git_repo, folder_path, "Added XML example file", "John Doe", "JohnDoe@test.com")
+}
+#' Example R Code Dependencies
+#'
+#' This function creates a repo that has three R files. These are Helper.R, Utils.R, and Main.R.
+#' This could be useful for testing that the parse_r_dependencies parser in src.R can correctly
+#' detect file dependencies.
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return git_repo_path of newly created empty repo
+#' @export
+#' @keywords internal
+example_r_code_dependencies <- function(folder_path, folder_name) {
+  folder_path <- io_make_folder(folder_path, folder_name)
+  git_init(folder_path)
+  git_repo <- file.path(folder_path, '.git')
+
+  helper_path <- file.path(folder_path, "Helper.R")
+  io_make_file(helper_path,
+             "helper_process <- function() {
+                print(\"processing\")
+              }"
+              )
+  git_add(git_repo, folder_path, helper_path)
+  git_commit(git_repo, folder_path, "Add Helper.R", "John Doe", "JohnDoe@test.com")
+
+  utils_path <- file.path(folder_path, "Utils.R")
+  io_make_file(utils_path,
+              "source(\"Helper.R\")
+
+               utils_do_work <- function() {
+                  helper_process()
+              }"
+              )
+  git_add(git_repo, folder_path, utils_path)
+  git_commit(git_repo, folder_path, "Add Utils.R", "John Doe", "JohnDoe@test.com")
+
+  main_path <- file.path(folder_path, "Main.R")
+
+  io_make_file(main_path,
+             "source(\"Helper.R\")
+              source(\"Utils.R\")
+
+              main <- function() {
+                  helper_process()
+                  utils_do_work()
+              }
+
+              main()"
+              )
+  git_add(git_repo, folder_path, main_path)
+  git_commit(git_repo, folder_path, "Add Main.R", "John Doe", "JohnDoe@test.com")
+}
+#' Example Src R Nested Code Dependencies
+#'
+#' This function creates a repo that has an R file at the /.git folder level, as well as an R file in a folder
+#' that is at the ./git folder level, which calls the former R file. This could be useful for testing that
+#' r_parse_dependencies can recursively search for files through folders.
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return git_repo_path of newly created empty repo
+#' @export
+#' @keywords internal
+example_src_r_nested_code_dependencies <- function(folder_path, folder_name) {
+  folder_path <- io_make_folder(folder_path, folder_name)
+
+  git_init(folder_path)
+
+  git_repo <- file.path(folder_path, ".git")
+
+  # Create nested folder
+  nested_folder <- file.path(folder_path, "utils")
+  dir.create(nested_folder, recursive = TRUE)
+
+  # Helper.R
+  helper_path <- file.path(folder_path, "Helper.R")
+
+  io_make_file(
+    helper_path,
+    "helper_process <- function() {
+       print(\"processing\")
+     }"
+  )
+
+  git_add(git_repo, folder_path, helper_path)
+  git_commit(git_repo, folder_path, "Add Helper.R", "John Doe","JohnDoe@test.com")
+
+  # Nested Utils.R
+  utils_path <- file.path(nested_folder, "Utils.R")
+
+  io_make_file(
+    utils_path,
+    "source(\"Helper.R\")
+
+     utils_do_work <- function() {
+       helper_process()
+     }"
+    )
+
+  git_add(git_repo, folder_path, utils_path)
+  git_commit(git_repo, folder_path, "Add Utils.R depending on Helper.R", "John Doe", "JohnDoe@test.com")
+}
+#' Example Src R And Python Files
+#'
+#' This function creates a repo that has two R files and a python file. These are Helper.R, Utils.R,
+#' and Hello.py. This could be useful for testing that parse_r_dependencies in src.R can filter out non-R
+#' files.
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return git_repo_path of newly created empty repo
+#' @export
+#' @keywords internal
+example_src_r_and_python_files <- function(folder_path, folder_name) {
+  folder_path <- io_make_folder(folder_path, folder_name)
+  git_init(folder_path)
+  git_repo <- file.path(folder_path, '.git')
+
+  helper_path <- file.path(folder_path, "Helper.R")
+  io_make_file(helper_path,
+               "helper_process <- function() {
+                  print(\"processing\")
+              }"
+  )
+
+  git_add(git_repo, folder_path, helper_path)
+  git_commit(git_repo, folder_path, "Add Helper.R", "John Doe", "JohnDoe@test.com")
+
+  utils_path <- file.path(folder_path, "Utils.R")
+  io_make_file(utils_path,
+              "source(\"Helper.R\")
+
+               utils_do_work <- function() {
+                 helper_process()
+               }"
+  )
+
+  git_add(git_repo, folder_path, utils_path)
+  git_commit(git_repo, folder_path, "Add Utils.R", "John Doe", "JohnDoe@test.com")
+
+  py_path <- file.path(folder_path, "Hello.py")
+  io_make_file(py_path,
+               "class myClass:
+                  x = 5"
+  )
+
+  git_add(git_repo, folder_path, py_path)
+  git_commit(git_repo, folder_path, "Add Hello.py", "John Doe", "JohnDoe@test.com")
+
+}
+#' Example Src R Circular Dependencies
+#'
+#' This function creates a repo that has two R files which import each other. These are Helper.R and Utils.R.
+#' This could be useful for testing that parse_r_dependencies in src.R can handle circular R file dependencies.
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return git_repo_path of newly created empty repo
+#' @export
+#' @keywords internal
+example_src_r_circular_dependencies <- function(folder_path, folder_name) {
+  folder_path <- io_make_folder(folder_path, folder_name)
+  git_init(folder_path)
+  git_repo <- file.path(folder_path, '.git')
+
+  helper_path <- file.path(folder_path, "Helper.R")
+  io_make_file(helper_path,
+               "source(\"Utils.R\")
+
+               helper_process <- function() {
+                  utils_do_work()
+               }"
+  )
+
+  git_add(git_repo, folder_path, helper_path)
+  git_commit(git_repo, folder_path, "Add Helper.R", "John Doe", "JohnDoe@test.com")
+
+  utils_path <- file.path(folder_path, "Utils.R")
+  io_make_file(utils_path,
+               "source(\"Helper.R\")
+
+               utils_do_work <- function() {
+                 helper_process()
+               }"
+  )
+
+  git_add(git_repo, folder_path, utils_path)
+  git_commit(git_repo, folder_path, "Add Utils.R", "John Doe", "JohnDoe@test.com")
+}
 #' Create one No-Comment Issue with Two Components
 #'
 #' This example can be used to evaluate the parser does not replicate
