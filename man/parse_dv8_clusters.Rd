@@ -13,40 +13,40 @@ parse_dv8_clusters(clsxj_path)
 Parses a cluster *-clsx.json into a data table.
 }
 \seealso{
-Other parsers: 
-\code{\link{build_understand_project}()},
-\code{\link{export_understand_dependencies}()},
-\code{\link{parse_bugzilla_perceval_rest_issue_comments}()},
-\code{\link{parse_bugzilla_perceval_traditional_issue_comments}()},
-\code{\link{parse_bugzilla_rest_comments}()},
-\code{\link{parse_bugzilla_rest_issues}()},
-\code{\link{parse_bugzilla_rest_issues_comments}()},
-\code{\link{parse_commit_message_id}()},
-\code{\link{parse_dependencies}()},
-\code{\link{parse_github_latest_date}()},
-\code{\link{parse_gitlog}()},
-\code{\link{parse_jira}()},
-\code{\link{parse_jira_latest_date}()},
-\code{\link{parse_jira_rss_xml}()},
-\code{\link{parse_mbox}()},
-\code{\link{parse_mbox_latest_date}()},
-\code{\link{parse_nvdfeed}()},
-\code{\link{parse_understand_dependencies}()}
+Other parsers:
+\code{\link[=build_understand_project]{build_understand_project()}},
+\code{\link[=export_understand_dependencies]{export_understand_dependencies()}},
+\code{\link[=parse_bugzilla_perceval_rest_issue_comments]{parse_bugzilla_perceval_rest_issue_comments()}},
+\code{\link[=parse_bugzilla_perceval_traditional_issue_comments]{parse_bugzilla_perceval_traditional_issue_comments()}},
+\code{\link[=parse_bugzilla_rest_comments]{parse_bugzilla_rest_comments()}},
+\code{\link[=parse_bugzilla_rest_issues]{parse_bugzilla_rest_issues()}},
+\code{\link[=parse_bugzilla_rest_issues_comments]{parse_bugzilla_rest_issues_comments()}},
+\code{\link[=parse_commit_message_id]{parse_commit_message_id()}},
+\code{\link[=parse_dependencies]{parse_dependencies()}},
+\code{\link[=parse_github_latest_date]{parse_github_latest_date()}},
+\code{\link[=parse_gitlog]{parse_gitlog()}},
+\code{\link[=parse_jira]{parse_jira()}},
+\code{\link[=parse_jira_latest_date]{parse_jira_latest_date()}},
+\code{\link[=parse_jira_rss_xml]{parse_jira_rss_xml()}},
+\code{\link[=parse_mbox]{parse_mbox()}},
+\code{\link[=parse_mbox_latest_date]{parse_mbox_latest_date()}},
+\code{\link[=parse_nvdfeed]{parse_nvdfeed()}},
+\code{\link[=parse_understand_dependencies]{parse_understand_dependencies()}}
 
-Other dv8: 
-\code{\link{dependencies_to_sdsmj}()},
-\code{\link{dv8_clsxb_to_clsxj}()},
-\code{\link{dv8_clsxj_to_clsxb}()},
-\code{\link{dv8_depends_to_sdsmj}()},
-\code{\link{dv8_dsmj_to_dsmb}()},
-\code{\link{dv8_hdsmb_sdsmb_to_mdsmb}()},
-\code{\link{dv8_mdsmb_to_flaws}()},
-\code{\link{gitlog_to_hdsmj}()},
-\code{\link{graph_to_dsmj}()},
-\code{\link{parse_dv8_architectural_flaws}()},
-\code{\link{transform_dependencies_to_sdsmj}()},
-\code{\link{transform_gitlog_to_hdsmj}()},
-\code{\link{transform_temporal_gitlog_to_adsmj}()}
+Other dv8:
+\code{\link[=dependencies_to_sdsmj]{dependencies_to_sdsmj()}},
+\code{\link[=dv8_clsxb_to_clsxj]{dv8_clsxb_to_clsxj()}},
+\code{\link[=dv8_clsxj_to_clsxb]{dv8_clsxj_to_clsxb()}},
+\code{\link[=dv8_depends_to_sdsmj]{dv8_depends_to_sdsmj()}},
+\code{\link[=dv8_dsmj_to_dsmb]{dv8_dsmj_to_dsmb()}},
+\code{\link[=dv8_hdsmb_sdsmb_to_mdsmb]{dv8_hdsmb_sdsmb_to_mdsmb()}},
+\code{\link[=dv8_mdsmb_to_flaws]{dv8_mdsmb_to_flaws()}},
+\code{\link[=gitlog_to_hdsmj]{gitlog_to_hdsmj()}},
+\code{\link[=graph_to_dsmj]{graph_to_dsmj()}},
+\code{\link[=parse_dv8_architectural_flaws]{parse_dv8_architectural_flaws()}},
+\code{\link[=transform_dependencies_to_sdsmj]{transform_dependencies_to_sdsmj()}},
+\code{\link[=transform_gitlog_to_hdsmj]{transform_gitlog_to_hdsmj()}},
+\code{\link[=transform_temporal_gitlog_to_adsmj]{transform_temporal_gitlog_to_adsmj()}}
 }
 \concept{dv8}
 \concept{parsers}

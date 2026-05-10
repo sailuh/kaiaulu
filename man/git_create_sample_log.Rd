@@ -23,7 +23,7 @@ Git init is performed, the file is git add, and commit to
 the git log.
 }
 \seealso{
-Other unittest: 
-\code{\link{git_delete_sample_log}()}
+Other unittest:
+\code{\link[=git_delete_sample_log]{git_delete_sample_log()}}
 }
 \concept{unittest}

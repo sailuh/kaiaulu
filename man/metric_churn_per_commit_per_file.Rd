@@ -18,17 +18,17 @@ Calculates the churn metric for a sequence of commits per commit per file
 \seealso{
 \code{\link{parse_gitlog}} to obtain `git_log`
 
-Other metrics: 
-\code{\link{commit_message_id_coverage}()},
-\code{\link{engagement_communication}()},
-\code{\link{metric_churn}()},
-\code{\link{metric_churn_per_commit_interval}()},
-\code{\link{metric_file_bug_churn}()},
-\code{\link{metric_file_bug_frequency}()},
-\code{\link{metric_file_churn}()},
-\code{\link{metric_file_non_bug_churn}()},
-\code{\link{metric_file_non_bug_frequency}()},
-\code{\link{productivity_author_churn}()},
-\code{\link{productivity_author_commits}()}
+Other metrics:
+\code{\link[=commit_message_id_coverage]{commit_message_id_coverage()}},
+\code{\link[=engagement_communication]{engagement_communication()}},
+\code{\link[=metric_churn]{metric_churn()}},
+\code{\link[=metric_churn_per_commit_interval]{metric_churn_per_commit_interval()}},
+\code{\link[=metric_file_bug_churn]{metric_file_bug_churn()}},
+\code{\link[=metric_file_bug_frequency]{metric_file_bug_frequency()}},
+\code{\link[=metric_file_churn]{metric_file_churn()}},
+\code{\link[=metric_file_non_bug_churn]{metric_file_non_bug_churn()}},
+\code{\link[=metric_file_non_bug_frequency]{metric_file_non_bug_frequency()}},
+\code{\link[=productivity_author_churn]{productivity_author_churn()}},
+\code{\link[=productivity_author_commits]{productivity_author_commits()}}
 }
 \concept{metrics}

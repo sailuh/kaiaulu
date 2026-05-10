@@ -72,7 +72,6 @@ conf <- parse_config("../conf/kaiaulu.yml")
 perceval_path <- get_tool_project("perceval", tool)
 git_repo_path <- get_git_repo_path(conf)
 git_branch <- get_git_branches(conf)[1]
-nvdfeed_folder_path <- get_nvdfeed_folder_path(conf)
 
 # Filters
 file_extensions <- get_file_extensions(conf)
@@ -88,7 +87,7 @@ We can obtain commit comments, such as those from GitHub, by following `download
 
 ```{r}
 # Set the path to the folder where you saved the json files for issue and PR comments
-save_path_issue_or_pr_comments <- "/home/vboxuser/kaiaulu/data/github_comments_json/"
+save_path_issue_or_pr_comments <- "../../rawdata/kaiaulu/github/sailuh_kaiaulu/issue_or_pr_comment/"
 
 comment_files <- list.files(
   save_path_issue_or_pr_comments,
@@ -112,17 +111,17 @@ all_issue_or_pr_comments[, created_at := as.POSIXct(created_at, tz = "UTC")]
 ```
 
 ## Obtaining the Output Table
-Here, we will define the rolling window as 90 days (around 3 months), which is the default value for the `quit_lag` parameter in the `engagement_communication()` function. If you want to change the value of lag, you can do so by passing a different value in the function call. The output table will contain the number of messages sent by each developer in the past 90 days at each point in time, which is one way to  measure their engagement with the project. Note that the `engagement_communication()` function can be used with any type of communication data, such as issue comments or pull request comments.
+Here, we will define the rolling window as 90 days (around 3 months), which is the default value for the `lag` parameter in the `engagement_communication()` function. If you want to change the value of lag, you can do so by passing a different value in the function call. The output table will contain the number of messages sent by each developer in the past 90 days at each point in time, which is one way to  measure their engagement with the project. Note that the `engagement_communication()` function can be used with any type of communication data, such as issue comments or pull request comments.
 
 ```{r}
-quit_lag = 90
+lag = 90
 ```
 
 ```{r}
 engagement_communication_output <- engagement_communication(
   timestamp = all_issue_or_pr_comments$created_at,
   author_login = all_issue_or_pr_comments$comment_user_login,
-  quit_lag = quit_lag
+  lag = lag
 )
 ``` 
 
@@ -134,15 +133,39 @@ kable(head(engagement_communication_output))
 To visualize the output table as a time series, we can use the `ggplot2` package. Visualizing the `engagement_communication()` metric as a time series is useful in observing the engagement of an author over time through the number of messages they send. One way to think of it is that in conjunction with the productivity metrics, we can use the engagement metrics to understand if an author is becoming more or less engaged over time with their sentiment scores reflecting such increase or decrease in engagement. Reminder that the data in the time series below covers the communication data we obtained from GitHub issue and PR comments since "2026-01-23" as explained in the previous section.
 
 ```{r fig.width=12, fig.height=7}
-ggplot(engagement_communication_output, aes(x = timestamp, y = message_count, color = author_login)) +
-  geom_line() +
-  labs(title = paste0("Author Engagement on ", quit_lag, "-day Time Window"),
-       x = "Date",
-       y = "Number of Messages",
-       color = "Author"
-       ) +
-       theme_minimal() +
-       theme(plot.title = element_text(hjust = 0.5))
+# For sparse rolling window data, filter to authors with multiple observations
+authors_with_multiple_windows <- engagement_communication_output[
+  , .N, by = author_login
+][N > 1, author_login]
+
+plot_data <- engagement_communication_output[author_login %in% authors_with_multiple_windows]
+
+if (nrow(plot_data) > 0) {
+  ggplot(plot_data, aes(x = timestamp, y = message_count, color = author_login)) +
+    geom_point() +
+    geom_line() +
+    labs(title = paste0("Author Engagement on ", lag, "-day Rolling Window"),
+         x = "Date",
+         y = "Number of Messages",
+         color = "Author"
+         ) +
+         theme_minimal() +
+         theme(plot.title = element_text(hjust = 0.5))
+} else {
+  message("Note: No authors have multiple complete rolling windows in the data.")
+  message("Extend the date range or reduce the lag parameter for multiple windows per author.")
+  
+  # Show all data points even if only one per author
+  ggplot(engagement_communication_output, aes(x = timestamp, y = message_count, color = author_login)) +
+    geom_point(size = 3) +
+    labs(title = paste0("Author Engagement on ", lag, "-day Rolling Window (Single Windows)"),
+         x = "Date",
+         y = "Number of Messages",
+         color = "Author"
+         ) +
+         theme_minimal() +
+         theme(plot.title = element_text(hjust = 0.5))
+}
 ```
 
 # Productivity Metrics
@@ -209,51 +232,60 @@ The timeseries below shows the rolling window for author productivity by unique 
 ```{r fig.width=12, fig.height=7}
 # Compute the top authors based on unique commits
 top_authors_commits <- productivity_author_commits_output[
-    ,.(max_commits = max(author_total_commits, na.rm = TRUE)),
+    ,.(max_commits = max(author_total_commits, na.rm = TRUE), n_windows = .N),
     by = author_name_email
     # Sort max commits in descending order and select the top n authors
-][order(-max_commits)][1:top_n_authors, author_name_email]
+][order(-max_commits)][1:min(top_n_authors, .N), author_name_email]
 
 # Select only the rows corresponding to the top authors based on unique commits
 plot_commits_dt <- productivity_author_commits_output[
     author_name_email %in% top_authors_commits
     ][order(author_name_email, author_datetimetz)]
 
-ggplot(plot_commits_dt, aes(x = author_datetimetz, y = author_total_commits, color = author_name_email)) +
-    geom_line() +
-    labs(title = paste0("Author Productivity on ", lag, "-day Time Window"),
-         x = "Date",
-         y = "Number of Commits",
-         color = "Author"
-         ) +
-         theme_minimal() +
-         theme(plot.title = element_text(hjust = 0.5))
+if (nrow(plot_commits_dt) > 0) {
+  ggplot(plot_commits_dt, aes(x = author_datetimetz, y = author_total_commits, color = author_name_email)) +
+      geom_point() +
+      geom_line() +
+      labs(title = paste0("Author Productivity on ", lag, "-day Rolling Window"),
+           x = "Date",
+           y = "Number of Commits",
+           color = "Author"
+           ) +
+           theme_minimal() +
+           theme(plot.title = element_text(hjust = 0.5))
+} else {
+  message("No data available for top authors.")
+}
 ```
 
 The timeseries below shows the rolling window for author productivity by churn.
 ```{r fig.width=12, fig.height=7}
 # Compute the top authors based on churn
 top_authors_churn <- productivity_author_churn_output[
-    ,.(max_churn = max(author_churn, na.rm = TRUE)),
+    ,.(max_churn = max(author_churn, na.rm = TRUE), n_windows = .N),
     by = author_name_email
     # Sort max churn in descending order and select the top n authors
-][order(-max_churn)][1:top_n_authors, author_name_email]
+][order(-max_churn)][1:min(top_n_authors, .N), author_name_email]
 
 # Select only the rows corresponding to the top authors based on churn
 plot_churn_dt <- productivity_author_churn_output[
    author_name_email %in% top_authors_churn
    ][order(author_name_email, author_datetimetz)]
 
-
-ggplot(plot_churn_dt, aes(x = author_datetimetz, y = author_churn, color = author_name_email)) +
-    geom_line() +
-    labs(title = paste0("Author Productivity on ", lag, "-day Time Window"),
-         x = "Date",
-         y = "Churn",
-         color = "Author"
-         ) +
-         theme_minimal() +
-         theme(plot.title = element_text(hjust = 0.5))
+if (nrow(plot_churn_dt) > 0) {
+  ggplot(plot_churn_dt, aes(x = author_datetimetz, y = author_churn, color = author_name_email)) +
+      geom_point() +
+      geom_line() +
+      labs(title = paste0("Author Productivity on ", lag, "-day Rolling Window"),
+           x = "Date",
+           y = "Churn",
+           color = "Author"
+           ) +
+           theme_minimal() +
+           theme(plot.title = element_text(hjust = 0.5))
+} else {
+  message("No data available for top authors.")
+}
 ```
 
 # Comparing the Time Series of Different Engagement Metrics

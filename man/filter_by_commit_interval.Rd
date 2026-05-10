@@ -22,9 +22,9 @@ Filters a data.table by with author or commit datetime using the specified start
 \seealso{
 \code{\link{parse_gitlog}} to create git_log
 
-Other filters: 
-\code{\link{filter_by_commit_size}()},
-\code{\link{filter_by_file_extension}()},
-\code{\link{filter_by_filepath_substring}()}
+Other filters:
+\code{\link[=filter_by_commit_size]{filter_by_commit_size()}},
+\code{\link[=filter_by_file_extension]{filter_by_file_extension()}},
+\code{\link[=filter_by_filepath_substring]{filter_by_filepath_substring()}}
 }
 \concept{filters}

@@ -22,9 +22,9 @@ to decrease threats to validity on "migration commits" when performing a graph p
 on a file-commit network to obtain co-change.(e.g. \code{\link{transform_gitlog_to_hdsmj}}).
 }
 \seealso{
-Other filters: 
-\code{\link{filter_by_commit_interval}()},
-\code{\link{filter_by_file_extension}()},
-\code{\link{filter_by_filepath_substring}()}
+Other filters:
+\code{\link[=filter_by_commit_interval]{filter_by_commit_interval()}},
+\code{\link[=filter_by_file_extension]{filter_by_file_extension()}},
+\code{\link[=filter_by_filepath_substring]{filter_by_filepath_substring()}}
 }
 \concept{filters}

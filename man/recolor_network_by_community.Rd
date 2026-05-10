@@ -20,7 +20,7 @@ A. Lancichinetti, F. Radicchi, J.J. Ramasco and
 S. Fortunato PLoS ONE 6, e18961 (2011).
 }
 \seealso{
-Other community: 
-\code{\link{community_oslom}()}
+Other community:
+\code{\link[=community_oslom]{community_oslom()}}
 }
 \concept{community}

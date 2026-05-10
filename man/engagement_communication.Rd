@@ -4,14 +4,14 @@
 \alias{engagement_communication}
 \title{Engagement Communication Metric}
 \usage{
-engagement_communication(timestamp, author_login, quit_lag = 90)
+engagement_communication(timestamp, author_login, lag = 90)
 }
 \arguments{
-\item{timestamp}{a data table column indicating the timestamp of an author's message}
+\item{timestamp}{a data table column indicating the POSIXct timestamp of an author's message}
 
 \item{author_login}{a data table column indicating the author of a message}
 
-\item{quit_lag}{the number of days since an author's last message}
+\item{lag}{the number of days since an author's last message}
 }
 \description{
 Uses a rolling window of 90 days to check, for each 90-day window, how many times
@@ -22,17 +22,17 @@ Wouter Mulder (2025). Am I finished yet? A discovery of burnout and
 ragequits within open-source projects. (Master thesis, Jheronimus Academy of Data Science).
 }
 \seealso{
-Other metrics: 
-\code{\link{commit_message_id_coverage}()},
-\code{\link{metric_churn}()},
-\code{\link{metric_churn_per_commit_interval}()},
-\code{\link{metric_churn_per_commit_per_file}()},
-\code{\link{metric_file_bug_churn}()},
-\code{\link{metric_file_bug_frequency}()},
-\code{\link{metric_file_churn}()},
-\code{\link{metric_file_non_bug_churn}()},
-\code{\link{metric_file_non_bug_frequency}()},
-\code{\link{productivity_author_churn}()},
-\code{\link{productivity_author_commits}()}
+Other metrics:
+\code{\link[=commit_message_id_coverage]{commit_message_id_coverage()}},
+\code{\link[=metric_churn]{metric_churn()}},
+\code{\link[=metric_churn_per_commit_interval]{metric_churn_per_commit_interval()}},
+\code{\link[=metric_churn_per_commit_per_file]{metric_churn_per_commit_per_file()}},
+\code{\link[=metric_file_bug_churn]{metric_file_bug_churn()}},
+\code{\link[=metric_file_bug_frequency]{metric_file_bug_frequency()}},
+\code{\link[=metric_file_churn]{metric_file_churn()}},
+\code{\link[=metric_file_non_bug_churn]{metric_file_non_bug_churn()}},
+\code{\link[=metric_file_non_bug_frequency]{metric_file_non_bug_frequency()}},
+\code{\link[=productivity_author_churn]{productivity_author_churn()}},
+\code{\link[=productivity_author_commits]{productivity_author_commits()}}
 }
 \concept{metrics}

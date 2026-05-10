@@ -186,15 +186,16 @@ commit_message_id_coverage <- function(git_log,commit_message_id_regex){
 #'
 #' @description Uses a rolling window of 90 days to check, for each 90-day window, how many times
 #' an author communicated via a message.
-#' @param timestamp a data table column indicating the timestamp of an author's message
+#' @param timestamp a data table column indicating the POSIXct timestamp of an author's message
 #' @param author_login a data table column indicating the author of a message
-#' @param quit_lag the number of days since an author's last message
+#' @param lag the number of days since an author's last message
 #' @export
 #' @family metrics
 #' @references Wouter Mulder (2025). Am I finished yet? A discovery of burnout and
 #' ragequits within open-source projects. (Master thesis, Jheronimus Academy of Data Science).
-engagement_communication <- function(timestamp, author_login, quit_lag = 90) {
-  # Determine timezone
+engagement_communication <- function(timestamp, author_login, lag = 90) {
+  # Extract timezone attribute from POSIXct timestamp vector
+  # timestamp should be POSIXct; tz_val becomes a character string (e.g., "UTC")
   tz_val <- attr(timestamp, "tzone")
 
   # Create data table
@@ -206,25 +207,54 @@ engagement_communication <- function(timestamp, author_login, quit_lag = 90) {
   # Order data
   data.table::setorder(dt, author_login, timestamp)
 
-  # For each message, count how many messages the same author sent
-  # in the rolling window i.e. the prior 90 days up to and including the message timestamp
+  # For each author, implement a rolling window:
+  # Create consecutive non-overlapping windows of lag days and count messages in each
   result <- dt[, {
     all_times <- timestamp
-    unique_times <- unique(timestamp)
-
-    window_start <- stringi::stri_datetime_add(
-      unique_times,
-      value = -quit_lag,
-      units = "days",
-      tz = tz_val
-    )
-
-    message_count <- sapply(seq_along(unique_times), function(i) {
-      sum(all_times >= window_start[i] & all_times <= unique_times[i], na.rm = TRUE)
-    })
-
-    .(timestamp = unique_times,
-      message_count = message_count)
+    
+    if (length(all_times) == 0) {
+      return(data.table::data.table(
+        timestamp = as.POSIXct(character(), tz = tz_val),
+        message_count = integer()
+      ))
+    }
+    
+    min_time <- min(all_times, na.rm = TRUE)
+    max_time <- max(all_times, na.rm = TRUE)
+    
+    # Create window boundaries using a list of data.tables to preserve POSIXct class
+    window_results <- list()
+    current_start <- min_time
+    
+    while (current_start < max_time) {
+      current_end <- stringi::stri_datetime_add(
+        current_start,
+        value = lag,
+        units = "days",
+        tz = tz_val
+      )
+      
+      # Count messages in this window [current_start, current_end)
+      # Only include complete windows
+      if (current_end <= max_time) {
+        count <- sum(all_times >= current_start & all_times < current_end, na.rm = TRUE)
+        window_results[[length(window_results) + 1]] <- data.table::data.table(
+          timestamp = current_end,
+          message_count = as.integer(count)
+        )
+      }
+      
+      current_start <- current_end
+    }
+    
+    if (length(window_results) > 0) {
+      data.table::rbindlist(window_results)
+    } else {
+      data.table::data.table(
+        timestamp = as.POSIXct(character(), tz = tz_val),
+        message_count = integer()
+      )
+    }
 
   }, by = .(author_login)]
 
@@ -246,7 +276,8 @@ engagement_communication <- function(timestamp, author_login, quit_lag = 90) {
 productivity_author_commits <- function(project_git, lag = 90) {
   author_name_email <- author_datetimetz <- commit_hash <- NULL # due to NSE notes in R CMD check
 
-  # Determine timezone from the author_datetimetz column in project_git
+  # Extract timezone attribute from POSIXct author_datetimetz column
+  # author_datetimetz should be POSIXct; tz_val becomes a character string (e.g., "UTC")
   tz_val <- attr(project_git$author_datetimetz, "tzone")
 
   # Coerce project_git to a data.table
@@ -259,27 +290,58 @@ productivity_author_commits <- function(project_git, lag = 90) {
   # Order rows by author_name_email and author_datetimetz in ascending order
   data.table::setorder(dt, author_name_email, author_datetimetz)
 
-  # Rolling window
+  # Rolling window: create consecutive non-overlapping windows of lag days
   result <- dt[, {
-    all_times   <- author_datetimetz
-    unique_times <- unique(all_times)
+    all_times <- author_datetimetz
+    all_hashes <- commit_hash
     
-    window_start <- stringi::stri_datetime_add(
-      unique_times,
-      value = -lag,
-      units = "days",
-      tz = tz_val
-    )
-
-    author_total_commits <- sapply(seq_along(unique_times), function(i) {
-      idx <- all_times >= window_start[i] & all_times <= unique_times[i]
-      data.table::uniqueN(commit_hash[idx])
-    })
-
-    .(
-      author_datetimetz = unique_times,
-      author_total_commits = as.integer(author_total_commits)
-    )
+    if (length(all_times) == 0) {
+      return(data.table::data.table(
+        author_datetimetz = as.POSIXct(character(), tz = tz_val),
+        author_total_commits = integer()
+      ))
+    }
+    
+    min_time <- min(all_times, na.rm = TRUE)
+    max_time <- max(all_times, na.rm = TRUE)
+    
+    # Create window boundaries using a list of data.tables to preserve POSIXct class
+    window_results <- list()
+    current_start <- min_time
+    
+    while (current_start < max_time) {
+      current_end <- stringi::stri_datetime_add(
+        current_start,
+        value = lag,
+        units = "days",
+        tz = tz_val
+      )
+      
+      # Get unique commits in this window [current_start, current_end)
+      # Only include complete windows
+      if (current_end <= max_time) {
+        idx <- all_times >= current_start & all_times < current_end
+        unique_commits <- data.table::uniqueN(all_hashes[idx])
+        
+        if (any(idx)) {
+          window_results[[length(window_results) + 1]] <- data.table::data.table(
+            author_datetimetz = current_end,
+            author_total_commits = as.integer(unique_commits)
+          )
+        }
+      }
+      
+      current_start <- current_end
+    }
+    
+    if (length(window_results) > 0) {
+      data.table::rbindlist(window_results)
+    } else {
+      data.table::data.table(
+        author_datetimetz = as.POSIXct(character(), tz = tz_val),
+        author_total_commits = integer()
+      )
+    }
   }, by = .(author_name_email)]
 
   return(result[])
@@ -303,7 +365,8 @@ productivity_author_churn <- function(project_git, lag = 90) {
   # Add churn per commit per file row (and filter out "-" rows)
   dt <- metric_churn_per_commit_per_file(data.table::as.data.table(project_git))
 
-  # Determine timezone
+  # Extract timezone attribute from POSIXct author_datetimetz column
+  # author_datetimetz should be POSIXct; tz_val becomes a character string (e.g., "UTC")
   tz_val <- attr(dt$author_datetimetz, "tzone")
 
   dt[, author_datetimetz := as.POSIXct(author_datetimetz, tz = tz_val)]
@@ -311,27 +374,65 @@ productivity_author_churn <- function(project_git, lag = 90) {
   # Order rows by author_name_email and author_datetimetz in ascending order
   data.table::setorder(dt, author_name_email, author_datetimetz)
 
-  # Rolling window
+  # Rolling window: create consecutive non-overlapping windows of lag days
   result <- dt[, {
-    all_times    <- author_datetimetz
-    unique_times <- unique(all_times)
-
-    window_start <- stringi::stri_datetime_add(
-      unique_times,
-      value = -lag,
-      units = "days",
-      tz = tz_val
-    )
-
-    data.table::rbindlist(lapply(seq_along(unique_times), function(i) {
-      idx <- all_times >= window_start[i] & all_times <= unique_times[i]
-      data.table::data.table(
-        author_datetimetz = unique_times[i],
-        lines_added = sum(as.numeric(lines_added[idx]), na.rm = TRUE),
-        lines_removed = sum(as.numeric(lines_removed[idx]), na.rm = TRUE),
-        author_churn = sum(churn[idx], na.rm = TRUE)
+    all_times <- author_datetimetz
+    all_added <- lines_added
+    all_removed <- lines_removed
+    all_churn <- churn
+    
+    if (length(all_times) == 0) {
+      return(data.table::data.table(
+        author_datetimetz = as.POSIXct(character(), tz = tz_val),
+        lines_added = numeric(),
+        lines_removed = numeric(),
+        author_churn = numeric()
+      ))
+    }
+    
+    min_time <- min(all_times, na.rm = TRUE)
+    max_time <- max(all_times, na.rm = TRUE)
+    
+    # Create window boundaries and sum churn metrics in each
+    window_results <- list()
+    current_start <- min_time
+    
+    while (current_start < max_time) {
+      current_end <- stringi::stri_datetime_add(
+        current_start,
+        value = lag,
+        units = "days",
+        tz = tz_val
       )
-    }))
+      
+      # Get churn metrics in this window [current_start, current_end)
+      # Only include complete windows
+      if (current_end <= max_time) {
+        idx <- all_times >= current_start & all_times < current_end
+        
+        if (any(idx)) {
+          window_results[[length(window_results) + 1]] <- data.table::data.table(
+            author_datetimetz = current_end,
+            lines_added = sum(as.numeric(all_added[idx]), na.rm = TRUE),
+            lines_removed = sum(as.numeric(all_removed[idx]), na.rm = TRUE),
+            author_churn = sum(all_churn[idx], na.rm = TRUE)
+          )
+        }
+      }
+      
+      current_start <- current_end
+    }
+    
+    if (length(window_results) > 0) {
+      data.table::rbindlist(window_results)
+    } else {
+      data.table::data.table(
+        author_datetimetz = as.POSIXct(character(), tz = tz_val),
+        lines_added = numeric(),
+        lines_removed = numeric(),
+        author_churn = numeric()
+      )
+    }
   }, by = .(author_name_email)]
 
   return(result[])
