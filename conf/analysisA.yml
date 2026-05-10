@@ -2,7 +2,7 @@
 # Analysis specific configuration (apr)
 
 filter:
- keep_filepaths_ending_with:
+  keep_filepaths_ending_with:
     - cpp
     - c
     - h
