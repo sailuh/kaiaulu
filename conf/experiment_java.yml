@@ -1,0 +1,21 @@
+# -*- yaml -*-
+# This experiment .yml file contains only projects that use/support Java.
+# It shows which project configurations are paired with which analysis configurations.
+
+projects:
+ calculator_project.yml:
+    - analysisB.yml
+ camel_project.yml:
+     - analysisC.yml
+ chromium_project.yml:
+     - analysisD.yml
+ geronimo_project.yml:
+     - analysisE.yml
+ helix_project.yml:
+     - analysisF.yml
+ junit5_project.yml:
+     - analysisG.yml
+ kaiaulu_project.yml:
+     - analysisH.yml
+ tomcat_project.yml:
+     - analysisJ.yml

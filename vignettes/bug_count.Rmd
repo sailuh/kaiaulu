@@ -37,19 +37,33 @@ As usual, the first step is to load the project configuration file.
 
 ```{r}
 tool <- parse_config("../tools.yml")
-conf <- parse_config("../conf/geronimo.yml")
+# conf <- parse_config("../conf/geronimo.yml")
+
+# Reads 2 configs
+project <- parse_config("../conf/geronimo_immutable.yml")
+analysis <- parse_config("../conf/analysis1.yml")
 perceval_path <- get_tool_project("perceval", tool)
-git_repo_path <- get_git_repo_path(conf)
+
+# Used for project.yml
+git_repo_path <- get_git_repo_path(project)
+issue_id_regex <- get_issue_id_regex(project)
+jira_issues_path <- get_jira_issues_path(project, "project_key_1")
+
+# Used for analysis.yml
+file_extensions <- get_file_extensions(analysis)
+substring_filepath <- get_substring_filepath(analysis)
+
+# git_repo_path <- get_git_repo_path(conf)
 
 # Issue ID Regex on Commit Messages
-issue_id_regex <- get_issue_id_regex(conf)
+# issue_id_regex <- get_issue_id_regex(conf)
 # Path to Jira Issues (obtained using `download_jira_data Notebook`)
 # Specify project_key_index in get_jira_issues_path() (e.g. "project_key_1")
-jira_issues_path <- get_jira_issues_path(conf, "project_key_1")
+# jira_issues_path <- get_jira_issues_path(conf, "project_key_1")
 
 # Filters
-file_extensions <- get_file_extensions(conf)
-substring_filepath <- get_substring_filepath(conf)
+# file_extensions <- get_file_extensions(conf)
+# substring_filepath <- get_substring_filepath(conf)
 ```
 
 To establish bug count, we must map each file to its associated issue. In general (but not always), an open source project will adopt a commit message convention to label issue ids. For example, Kaiaulu uses `i #<issue number>`. JIRA dictates issue ids in the format PROJECT-<issue-number>. We can use this assumption to find the issues that the git log commits are trying to fix. You can create your own regular expression by manually inspecting some of the commit messages (for example, compare the regular expression from the geronimo project used here against [its commit message](https://github.com/apache/geronimo/commits/trunk)).
