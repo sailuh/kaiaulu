@@ -5,26 +5,29 @@
 \title{Predict sentiment using a trained PySenti model}
 \usage{
 pysenti_predict(
+  conda_path = "",
+  pysenti_conda_env_name = "",
   pysenti_path,
   reply_dt,
   model_save_path,
   prediction_save_path,
-  model_name,
-  timestamp
+  model_name
 )
 }
 \arguments{
+\item{conda_path}{Path to conda if pysenti is setup in a conda env (optional)}
+
+\item{pysenti_conda_env_name}{pysenti conda env name if pysenti is setup in a conda env (required only if conda path specified)}
+
 \item{pysenti_path}{Path to the PySenti Python script.}
 
 \item{reply_dt}{A data.table containing a `text` column.}
 
 \item{model_save_path}{Path to the trained model folder.}
 
-\item{timestamp}{Character string representing the current time, formatted as "YYYYMMDD_HHMMSS", used to append to the prediction file name for uniqueness.}
+\item{model_name}{Model architecture name; `"bert-base-cased"`, `"xlnet-base-cased", etc.}
 
 \item{prediction_path}{Directory where the prediction CSV will be written.}
-
-\item{model}{Model architecture name; `"bert-base-cased"`, `"xlnet-base-cased", etc.}
 }
 \value{
 A data.table containing predicted sentiment labels.

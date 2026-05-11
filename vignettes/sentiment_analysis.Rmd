@@ -36,15 +36,23 @@ require(ggplot2)
 
 
 ```{r}
+# Paths to Sentiment Classifier -- see sailuh/sentiment_classifier
 tool <- parse_config("../tools.yml")
+pysenti_path <- get_pysenti_path(tool)        
+pysenti_conda_env_name <- get_pysenti_conda_env_name(tool)
+conda_path <- get_conda_path(tool)
+
+# GitHub Dataset for Prediction
 conf <- parse_config("../conf/kaiaulu.yml")
 authors <- get_filter_by_reply_author_substring(conf)
 subjects <- get_filter_by_reply_subject_substring(conf)
 body <- get_filter_by_reply_body_substring(conf)
 token_replacements <- get_replace_token_regex_with(conf)
-pysenti_path <- get_pysenti_path(tool)               
-model_save_path <- get_sentiment_model_folder_path(conf)     
-prediction_save_path <- get_sentiment_prediction_folder_path(conf) 
+
+# Sentiment Classifier Params
+training_dataset_filepath <- get_sentiment_training_dataset_filepath(conf)
+model_save_path <- get_trained_model_path(conf)     
+prediction_save_path <- get_prediction_dataset_filepath(conf) 
 ```
 
 # Preparing Dataset
@@ -211,45 +219,53 @@ Users must specify a model to train such as "bert-base-cased". Other text models
 The train function fine-tunes the model by training it on the labeled dataset. During training, the model makes predictions on the same training data and compares them to the ground-truth labels. It evaluates its accuracy, and keeps track of the best-performing version. The version with the highest accuracy on this dataset is saved to the `model_save_path` folder and the file is named the model you specified (e.g., bert-base-cased)
 
 Training data comes from [sailuh/sentiment_github_dataset](https://github.com/sailuh/sentiment_github_dataset), a labeled GitHub dataset of developer comments. The repository provides several CSV options depending on your goal. Change the `fread()` URL below to select the setup you want:
-```{r}
+
+```{r Download Novielli's Dataset}
 train_df <- fread("https://github.com/user-attachments/files/27577408/combined_all_comments.csv")
 ```
 
-```{r}
+```{r Training Step}
+
+fwrite(train_df[1:20],training_dataset_filepath)
+
 pysenti_train_model(
-  pysenti_path    = pysenti_path,
-  reply_dt        = train_df,
-  model_save_path = model_save_path,
-  model_name      = "bert"
+  conda_path             = conda_path,
+  pysenti_conda_env_name = pysenti_conda_env_name,  
+  pysenti_path           = pysenti_path,
+  train_data_path        = training_dataset_filepath,
+  model_save_path        = model_save_path,
+  model_name            = "bert-base-cased"
 )
 ```
 
 # Prediction
 
-Since we've previously renamed one of our columns to `text`, the predict function can now be used. We will also get the current time and save it to a variable so when we call the predict function, it appends that timestamp to the `model_name` we pass in to ensure that subsequent runs of the function does not overwrite previously saved predicted tables. (e.g., "bert-base-cased_20251209_171858.csv")
-
-```{r}
-timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
-```
+Since we've previously renamed one of our columns to `text`, the predict function can now be used. 
 
 Once a model is trained, it can be applied to any filtered reply data.tables that has the `text` column to generate sentiment predictions. The generated prediction reply data.table is then saved to our `prediction_save_path` folder.
 
 We use the `github_replies` table built earlier in this notebook. We rename `reply_body` to `text` and add a `polarity` placeholder column, which is what the predict function expects.
+
 ```{r}
 reply_dt <- data.table::copy(github_replies)
 reply_dt <- setnames(reply_dt, "reply_body", "text")
 reply_dt[, polarity := 0]
 ```
 
-```{r}
+
+
+
+```{r Predict Step}
 pred_dt <- pysenti_predict(
-  pysenti_path    = pysenti_path,
-  reply_dt        = reply_dt,
-  model_save_path = model_save_path,
-  model_name      = "bert",
-  prediction_save_path = prediction_save_path,
-  timestamp = timestamp
+  conda_path             = conda_path,
+  pysenti_conda_env_name = pysenti_conda_env_name,
+  pysenti_path           = pysenti_path,  
+  reply_dt               = reply_dt[1:20],
+  model_save_path        = model_save_path,
+  model_name             = "bert-base-cased",
+  prediction_save_path   = prediction_save_path
 )
+data.table::fwrite(reply_dt, prediction_save_path)
 
 pred_dt %>%
   gt(auto_align = FALSE)
@@ -271,8 +287,19 @@ aggregate_func <- mean
 ```
 
 ```{r}
-scored_dt <- data.table::copy(reply_dt)
+scored_dt <- data.table::copy(reply_dt[1:20])
 scored_dt[, polarity := as.character(pred_dt$polarity)]
+
+#scored_dt <- fread("~/Downloads/kaiaulu_predictions.csv")
+#engagement_sentiment_dt <- engagement_sentiment(
+  #datetimetz      = scored_dt$reply_datetimetz,
+#  datetimetz      = scored_dt$created_at,
+  #user_name_email = scored_dt$reply_from,
+#  user_name_email = scored_dt$comment_user_login,
+#  polarity        = scored_dt$polarity,
+#  lag             = lag,
+#  aggregate_func  = aggregate_func
+#)
 
 engagement_sentiment_dt <- engagement_sentiment(
   datetimetz      = scored_dt$reply_datetimetz,
@@ -284,7 +311,8 @@ engagement_sentiment_dt <- engagement_sentiment(
 ```
 
 ```{r}
-print(head(engagement_sentiment_dt))
+engagement_sentiment_dt %>%
+  gt(auto_align = FALSE)
 ```
 
 This plot visualizes each author's aggregate sentiment polarity over the engagement_sentiment time window.

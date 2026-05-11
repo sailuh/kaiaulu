@@ -159,8 +159,10 @@ filter:
 # See Kaiaulu's README.md for details on how to setup these tools.
 tool:
   sentiment:
-    model: ../../rawdata/kaiaulu/sentiment/sentiment_classifier/model/
-    prediction: ../../rawdata/kaiaulu/sentiment/sentiment_classifier/prediction/
+    train_dataset_filepath: ../../rawdata/kaiaulu/sentiment/sentiment_classifier/train_dataset/github_novielli.csv
+    trained_model_filepath: ../../rawdata/kaiaulu/sentiment/sentiment_classifier/model/github-novielli-bert-base-cased
+    #model: /Users/cvp/Downloads/model
+    prediction_dataset_filepath: ../../rawdata/kaiaulu/sentiment/sentiment_classifier/prediction/kaiaulu_comment_sentiments.csv
   # Depends allow to parse file-file static dependencies.
   depends:
     # accepts one language at a time: cpp, java, ruby, python, pom

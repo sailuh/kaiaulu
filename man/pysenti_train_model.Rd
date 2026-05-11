@@ -4,16 +4,16 @@
 \alias{pysenti_train_model}
 \title{Train a sentiment model using PySenti}
 \usage{
-pysenti_train_model(pysenti_path, reply_dt, model_save_path, model_name)
+pysenti_train_model(pysenti_path, train_data_path, model_save_path, model_name)
 }
 \arguments{
 \item{pysenti_path}{Path to the PySenti Python script.}
 
-\item{reply_dt}{A data.table with at least `text` and `polarity` columns.}
+\item{train_data_path}{Path to the model train .csv with at least `text` and `polarity` columns.}
 
 \item{model_save_path}{Directory where the trained model will be stored.}
 
-\item{model}{Model architecture name; `"bert-base-cased"`, `"xlnet-base-cased", etc.}
+\item{model_name}{Model architecture name; `"bert-base-cased"`, `"xlnet-base-cased", etc.}
 }
 \value{
 Character vector containing stdout/stderr from the Python process.

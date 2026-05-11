@@ -66,15 +66,15 @@ For further details on the `issueKey` JQL Query see [the associated JIRA API doc
 
 \code{\link{refresh_jira_issues}} to obtain more recent data from any of the downloader functions
 
-Other jira:
-\code{\link[=download_jira_issues]{download_jira_issues()}},
-\code{\link[=download_jira_issues_by_date]{download_jira_issues_by_date()}},
-\code{\link[=refresh_jira_issues]{refresh_jira_issues()}}
+Other jira: 
+\code{\link{download_jira_issues_by_date}()},
+\code{\link{download_jira_issues}()},
+\code{\link{refresh_jira_issues}()}
 
-Other downloaders:
-\code{\link[=download_jira_issues]{download_jira_issues()}},
-\code{\link[=download_jira_issues_by_date]{download_jira_issues_by_date()}},
-\code{\link[=refresh_jira_issues]{refresh_jira_issues()}}
+Other downloaders: 
+\code{\link{download_jira_issues_by_date}()},
+\code{\link{download_jira_issues}()},
+\code{\link{refresh_jira_issues}()}
 }
 \concept{downloaders}
 \concept{jira}

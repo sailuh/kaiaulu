@@ -14,10 +14,10 @@ A simple factory function to generate available
 motifs.
 }
 \seealso{
-Other motif:
-\code{\link[=motif_factory_anti_square]{motif_factory_anti_square()}},
-\code{\link[=motif_factory_anti_triangle]{motif_factory_anti_triangle()}},
-\code{\link[=motif_factory_square]{motif_factory_square()}},
-\code{\link[=motif_factory_triangle]{motif_factory_triangle()}}
+Other motif: 
+\code{\link{motif_factory_anti_square}()},
+\code{\link{motif_factory_anti_triangle}()},
+\code{\link{motif_factory_square}()},
+\code{\link{motif_factory_triangle}()}
 }
 \concept{motif}

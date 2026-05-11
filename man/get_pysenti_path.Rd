@@ -13,8 +13,8 @@ get_pysenti_path(config_file)
 The file path to the PySenti script as a string.
 }
 \description{
-This function retrieves the path to the PySenti Python script 
-from a parsed configuration file. The input `config_file` must be a parsed 
-configuration file (from \code{\link{parse_config}}). If the attribute does 
+This function retrieves the path to the PySenti Python script
+from a parsed configuration file. The input `config_file` must be a parsed
+configuration file (from \code{\link{parse_config}}). If the attribute does
 not exist, a warning is issued.
 }

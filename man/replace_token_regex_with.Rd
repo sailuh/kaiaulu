@@ -20,13 +20,13 @@ The data.table with regex matches replaced by token names.
 Replaces patterns in a specified column of a data.table with token placeholders.
 }
 \seealso{
-Other filters:
-\code{\link[=filter_by_commit_interval]{filter_by_commit_interval()}},
-\code{\link[=filter_by_commit_size]{filter_by_commit_size()}},
-\code{\link[=filter_by_file_extension]{filter_by_file_extension()}},
-\code{\link[=filter_by_filepath_substring]{filter_by_filepath_substring()}},
-\code{\link[=filter_by_reply_author_substring]{filter_by_reply_author_substring()}},
-\code{\link[=filter_by_reply_body_substring]{filter_by_reply_body_substring()}},
-\code{\link[=filter_by_reply_subject_substring]{filter_by_reply_subject_substring()}}
+Other filters: 
+\code{\link{filter_by_commit_interval}()},
+\code{\link{filter_by_commit_size}()},
+\code{\link{filter_by_file_extension}()},
+\code{\link{filter_by_filepath_substring}()},
+\code{\link{filter_by_reply_author_substring}()},
+\code{\link{filter_by_reply_body_substring}()},
+\code{\link{filter_by_reply_subject_substring}()}
 }
 \concept{filters}

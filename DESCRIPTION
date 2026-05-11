@@ -58,3 +58,4 @@ VignetteBuilder: knitr
 URL: https://github.com/sailuh/kaiaulu
 BugReports: https://github.com/sailuh/kaiaulu/issues
 Config/roxygen2/version: 8.0.0
+RoxygenNote: 7.2.3

@@ -21,19 +21,19 @@ Converts a clustering binary in the dv8 format *-clsx.dv8-cslx into a
  *-clsx.json.
 }
 \seealso{
-Other dv8:
-\code{\link[=dependencies_to_sdsmj]{dependencies_to_sdsmj()}},
-\code{\link[=dv8_clsxj_to_clsxb]{dv8_clsxj_to_clsxb()}},
-\code{\link[=dv8_depends_to_sdsmj]{dv8_depends_to_sdsmj()}},
-\code{\link[=dv8_dsmj_to_dsmb]{dv8_dsmj_to_dsmb()}},
-\code{\link[=dv8_hdsmb_sdsmb_to_mdsmb]{dv8_hdsmb_sdsmb_to_mdsmb()}},
-\code{\link[=dv8_mdsmb_to_flaws]{dv8_mdsmb_to_flaws()}},
-\code{\link[=gitlog_to_hdsmj]{gitlog_to_hdsmj()}},
-\code{\link[=graph_to_dsmj]{graph_to_dsmj()}},
-\code{\link[=parse_dv8_architectural_flaws]{parse_dv8_architectural_flaws()}},
-\code{\link[=parse_dv8_clusters]{parse_dv8_clusters()}},
-\code{\link[=transform_dependencies_to_sdsmj]{transform_dependencies_to_sdsmj()}},
-\code{\link[=transform_gitlog_to_hdsmj]{transform_gitlog_to_hdsmj()}},
-\code{\link[=transform_temporal_gitlog_to_adsmj]{transform_temporal_gitlog_to_adsmj()}}
+Other dv8: 
+\code{\link{dependencies_to_sdsmj}()},
+\code{\link{dv8_clsxj_to_clsxb}()},
+\code{\link{dv8_depends_to_sdsmj}()},
+\code{\link{dv8_dsmj_to_dsmb}()},
+\code{\link{dv8_hdsmb_sdsmb_to_mdsmb}()},
+\code{\link{dv8_mdsmb_to_flaws}()},
+\code{\link{gitlog_to_hdsmj}()},
+\code{\link{graph_to_dsmj}()},
+\code{\link{parse_dv8_architectural_flaws}()},
+\code{\link{parse_dv8_clusters}()},
+\code{\link{transform_dependencies_to_sdsmj}()},
+\code{\link{transform_gitlog_to_hdsmj}()},
+\code{\link{transform_temporal_gitlog_to_adsmj}()}
 }
 \concept{dv8}

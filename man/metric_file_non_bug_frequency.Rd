@@ -18,14 +18,14 @@ a two column data.table of the form file_pathname | non_file_bug_frequency
 The total number of commits of all closed non-bug type issues the file was involved.
 }
 \seealso{
-Other metrics:
-\code{\link[=commit_message_id_coverage]{commit_message_id_coverage()}},
-\code{\link[=metric_churn]{metric_churn()}},
-\code{\link[=metric_churn_per_commit_interval]{metric_churn_per_commit_interval()}},
-\code{\link[=metric_churn_per_commit_per_file]{metric_churn_per_commit_per_file()}},
-\code{\link[=metric_file_bug_churn]{metric_file_bug_churn()}},
-\code{\link[=metric_file_bug_frequency]{metric_file_bug_frequency()}},
-\code{\link[=metric_file_churn]{metric_file_churn()}},
-\code{\link[=metric_file_non_bug_churn]{metric_file_non_bug_churn()}}
+Other metrics: 
+\code{\link{commit_message_id_coverage}()},
+\code{\link{metric_churn_per_commit_interval}()},
+\code{\link{metric_churn_per_commit_per_file}()},
+\code{\link{metric_churn}()},
+\code{\link{metric_file_bug_churn}()},
+\code{\link{metric_file_bug_frequency}()},
+\code{\link{metric_file_churn}()},
+\code{\link{metric_file_non_bug_churn}()}
 }
 \concept{metrics}
