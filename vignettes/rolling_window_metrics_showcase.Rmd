@@ -265,7 +265,8 @@ plot_long <- rbindlist(list(
 ggplot(plot_long, aes(x = author_datetimetz, y = value, color = metric)) +
   geom_point(alpha = 0.7) +
   geom_line() +
-  facet_wrap(~ panel, ncol = 1, scales = "free_y") + 
+  facet_wrap(~ panel, ncol = 1, scales = "free_y") +
+  scale_x_datetime(date_breaks = "3 months", date_labels = "%b %Y") +
   labs(
     title = paste0("Rolling Window Metrics on ", lag, "-day Time Window: ", one_author),
     x = "Date",
@@ -276,6 +277,7 @@ ggplot(plot_long, aes(x = author_datetimetz, y = value, color = metric)) +
   theme(
     plot.title = element_text(hjust = 0.5),
     strip.text = element_text(face = "bold", size = 12),
-    panel.spacing = unit(2, "lines")
+    panel.spacing = unit(2, "lines"),
+    axis.text.x = element_text(angle = 45, hjust = 1)
     )
 ```
