@@ -162,7 +162,7 @@ gh_response <- github_api_project_pull_request_refresh(owner,repo,token, save_pa
 dir.create(save_path_pull_request)
 github_api_iterate_pages(token,gh_response,
                          save_path_pull_request,
-                         prefix="pull_request"
+                         prefix="pull_request",
                          verbose=TRUE)
 ```
 

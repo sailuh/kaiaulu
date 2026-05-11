@@ -217,7 +217,7 @@ engagement_sentiment <- function(datetimetz, user_name_email, polarity, lag = 90
   # Order data
   data.table::setorder(dt, user_name_email, datetimetz)
 
-  # True rolling window: create consecutive non-overlapping windows of lag days
+  # Rolling window: create consecutive non-overlapping windows of lag days
   result <- dt[, {
     all_times <- datetimetz
     all_polarity_values <- polarity
