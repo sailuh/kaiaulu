@@ -33,21 +33,33 @@ require(knitr)
 
 ```{r}
 tool <- parse_config("../tools.yml")
-conf <- parse_config("../conf/kaiaulu.yml")
+# conf <- parse_config("../conf/kaiaulu.yml")
+
+# Reads 2 configs
+project <- parse_config("../conf/kaiaulu_project.yml")
+analysis <- parse_config("../conf/analysisH.yml")
 
 # 3rd Party Tools
 perceval_path <- get_tool_project("perceval", tool)
 utags_path <- get_tool_project("utags", tool)
 
+# Used for project.yml
+git_repo_path <- get_git_repo_path(project)
+
+# Used for analysis.yml
+kinds <- get_uctags_line_types(analysis)
+file_extensions <- get_file_extensions(analysis)
+substring_filepath <- get_substring_filepath(analysis)
+
 # Ctags Line Types
-kinds <- get_uctags_line_types(conf)
+# kinds <- get_uctags_line_types(conf)
 
 # Local Git Repo Folder Path
-git_repo_path <- get_git_repo_path(conf)
+# git_repo_path <- get_git_repo_path(conf)
 
 # File Filters
-file_extensions <- get_file_extensions(conf)
-substring_filepath <- get_substring_filepath(conf)
+# file_extensions <- get_file_extensions(conf)
+# substring_filepath <- get_substring_filepath(conf)
 ```
 
 # Construct Collaboration Network

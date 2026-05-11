@@ -8,3 +8,22 @@ docs
 pkgdown
 rawdata
 .Rproj.user
+
+# R Markdown knitted outputs
+vignettes/*.html
+vignettes/*_files/
+
+# Analysis output folders
+analysis/
+vignettes/analysis/
+
+# SciTools Understand databases/artifacts
+*.und
+**/Understand.und/
+
+# Generated XML exports
+*_dependencies.xml
+
+# RStudio project user settings
+.Rproj.user/
+al-ctags
