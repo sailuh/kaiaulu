@@ -205,6 +205,7 @@ engagement_sentiment <- function(datetimetz, user_name_email, polarity, lag = 90
   # Extract timezone attribute from POSIXct datetimetz vector
   # datetimetz should be POSIXct; tz_val becomes a character string (e.g., "UTC")
   tz_val <- attr(datetimetz, "tzone")
+  if (is.null(tz_val) || tz_val == "") tz_val <- "UTC"
 
   # Create data table
   dt <- data.table::data.table(

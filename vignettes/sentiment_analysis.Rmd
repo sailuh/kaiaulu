@@ -31,6 +31,7 @@ require(gt)
 require(stringi)
 require(markdown)
 require(XML)
+require(ggplot2)
 ```
 
 
@@ -94,7 +95,7 @@ github_api_iterate_pages(token,gh_response,
 
 The downloaded data will then be parsed and formatted into a reply data.table. 
 
-```{r, eval = FALSE}
+```{r}
 # Read all JSON files from the directory
 all_issue_files <- lapply(list.files(save_path_issue_refresh, full.names = TRUE), read_json)
 
@@ -203,15 +204,15 @@ dir.create(model_save_path, recursive = TRUE, showWarnings = FALSE)
 dir.create(prediction_save_path, recursive = TRUE, showWarnings = FALSE)
 ```
 
-We will now train the sentiment model. As previously stated, you must provide your own filtered reply data.table that goes through the similar process of filtering above. The train function expects both `text` and `polarity` columns. Currently we renamed `reply_body` to `text`, but have not made added a `polarity` column. You must add and fill the polarity values column with ground-truth labels (values of either 0, 1, or 2) in order to properly train the model to make accurate sentiment predictions. 0 being neutral sentiment, 1 being positive sentiment, and 2 being negative sentiment. 
+We will now train the sentiment model. The train function expects a data.table with `text` (the comment body) and `polarity` (`0` = neutral, `1` = positive, `2` = negative) columns.
 
 Users must specify a model to train such as "bert-base-cased". Other text models, but not all, are available for use on the huggingface website [Here](https://huggingface.co/docs/transformers/en/model_doc/bert). To determine if a text model may work, it must be compatible with AutoTokenizer and AutoForSequenceClassification classes (e.g, For `bert-base-cased` model, BertTokenizer and BertForSequenceClassification must appear in the text models documentation) Note, a text model that is not compatible with these classes will not work, and not all text models that are compatible with it can be used. (More research is necessary)
 
 The train function fine-tunes the model by training it on the labeled dataset. During training, the model makes predictions on the same training data and compares them to the ground-truth labels. It evaluates its accuracy, and keeps track of the best-performing version. The version with the highest accuracy on this dataset is saved to the `model_save_path` folder and the file is named the model you specified (e.g., bert-base-cased)
 
-The input is a CSV of labeled Github commit comments from [sailuh/sentiment_github_dataset](https://github.com/sailuh/sentiment_github_dataset/blob/4ad05b680d7870308539b6e41e916d6b9077c16f/data/commit%20comments/akka_commit_comments.csv):
+Training data comes from [sailuh/sentiment_github_dataset](https://github.com/sailuh/sentiment_github_dataset), a labeled GitHub dataset of developer comments. The repository provides several CSV options depending on your goal. Change the `fread()` URL below to select the setup you want:
 ```{r}
-train_df <- fread("https://github.com/user-attachments/files/27574331/akka_sentiment_commit_comments_joined.csv")
+train_df <- fread("https://github.com/user-attachments/files/27577408/combined_all_comments.csv")
 ```
 
 ```{r}
@@ -219,7 +220,7 @@ pysenti_train_model(
   pysenti_path    = pysenti_path,
   reply_dt        = train_df,
   model_save_path = model_save_path,
-  model_name      = "bert-base-cased"
+  model_name      = "bert"
 )
 ```
 
@@ -233,11 +234,11 @@ timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
 
 Once a model is trained, it can be applied to any filtered reply data.tables that has the `text` column to generate sentiment predictions. The generated prediction reply data.table is then saved to our `prediction_save_path` folder.
 
-The input is a CSV of unlabeled Kaiaulu PR inline comments. Running pysenti_predict on this file will attach a predicted sentiment polarity label to each comment.
+We use the `github_replies` table built earlier in this notebook. We rename `reply_body` to `text` and add a `polarity` placeholder column, which is what the predict function expects.
 ```{r}
-reply_dt <- fread("https://github.com/user-attachments/files/27574385/kaiaulu_pr_inline_comments.csv")
-reply_dt <- setnames(reply_dt, "body", "text")
-reply_dt[, polarity := 0] # Add polarity column placeholder
+reply_dt <- data.table::copy(github_replies)
+reply_dt <- setnames(reply_dt, "reply_body", "text")
+reply_dt[, polarity := 0]
 ```
 
 ```{r}
@@ -245,7 +246,7 @@ pred_dt <- pysenti_predict(
   pysenti_path    = pysenti_path,
   reply_dt        = reply_dt,
   model_save_path = model_save_path,
-  model_name      = "bert-base-cased",
+  model_name      = "bert",
   prediction_save_path = prediction_save_path,
   timestamp = timestamp
 )
@@ -291,11 +292,11 @@ This plot visualizes each author's aggregate sentiment polarity over the engagem
 ```{r fig.width=12, fig.height=7}
 ggplot(engagement_sentiment_dt, aes(x = datetimetz, y = aggregate_polarity, group = user_name_email, color = user_name_email)) +
   geom_line() +
-  labs(title = paste0("Author Engagement on ", quit_lag, "-day Time Window"),
+  labs(title = paste0("Author Engagement on ", lag, "-day Time Window"),
        x = "Date",
        y = "Aggregate Sentiment",
        color = "Author"
        ) +
        theme_minimal() +
-       theme(plot.title = element_text(hjust = 0.0))
+       theme(plot.title = element_text(hjust = 0.5))
 ```
