@@ -30,10 +30,16 @@ Load config file.
 
 ```{r}
 tool <- parse_config("../tools.yml")
-conf <- parse_config("../conf/helix.yml")
+# conf <- parse_config("../conf/helix.yml")
 perceval_path <- get_tool_project("perceval", tool)
-mbox_path <- get_mbox_path(conf, "project_key_1")
-jira_issue_comments_path <- get_jira_issues_comments_path(conf, "project_key_1")
+# mbox_path <- get_mbox_path(conf, "project_key_1")
+# jira_issue_comments_path <- get_jira_issues_comments_path(conf, "project_key_1")
+
+# Reads 2 configs
+project <- parse_config("../conf/helix_project.yml")
+# analysis <- parse_config("../conf/analysisF.yml")
+mbox_path <- get_mbox_path(project, "project_key_1")
+jira_issue_comments_path <- get_jira_issues_comments_path(project, "project_key_1")
 ```
 
 

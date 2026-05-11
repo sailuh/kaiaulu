@@ -45,26 +45,38 @@ To try out this Notebook, try the geronimo configuration file, and follow along 
 First, we will load the Kaiaulu configuration file:
 
 ```{r}
-conf <- parse_config("../conf/kaiaulu.yml")
+# conf <- parse_config("../conf/kaiaulu.yml")
+# conf <- parse_config("../conf/geronimo.yml")
+
+# Reads 2 configs
+project <- parse_config("../conf/geronimo_project.yml")
+# analysis <- parse_config("../conf/analysisE.yml")
+
+# Used for project.yml
+issue_tracker_domain <- get_jira_domain(project, "project_key_1")
+issue_tracker_project_key <- get_jira_project_key_name(project, "project_key_1")
+save_path_issue_tracker_issues <- get_jira_issues_path(project, "project_key_1")
+save_path_issue_tracker_issue_comments <- get_jira_issues_comments_path(project, "project_key_1")
+refresh_issues <- get_jira_issues_path(project, "project_key_1")
 
 # Project domain
 # Specify project_key_index in get_jira_domain() (e.g. "project_key_1")
-issue_tracker_domain <- get_jira_domain(conf, "project_key_1")
+# issue_tracker_domain <- get_jira_domain(conf, "project_key_1")
 
 # Project key
 # Specify project_key_index in get_jira_project_key_name() (e.g. "project_key_1")
-issue_tracker_project_key <- get_jira_project_key_name(conf, "project_key_1")
+# issue_tracker_project_key <- get_jira_project_key_name(conf, "project_key_1")
 
 # Altered save paths. Important for naming conventions
 # Specify project_key_index in get_jira_issues_path() (e.g. "project_key_1")
-save_path_issue_tracker_issues <- get_jira_issues_path(conf, "project_key_1")
+# save_path_issue_tracker_issues <- get_jira_issues_path(conf, "project_key_1")
 
 # Specify project_key_index in get_jira_issues_comments_path() (e.g. "project_key_1")
-save_path_issue_tracker_issue_comments <- get_jira_issues_comments_path(conf, "project_key_1")
+# save_path_issue_tracker_issue_comments <- get_jira_issues_comments_path(conf, "project_key_1")
 
 # Unaltered save paths from config file for use with refresh function
 # Specify project_key_index in get_jira_issues_path() (e.g. "project_key_1")
-refresh_issues <- get_jira_issues_path(conf, "project_key_1")
+# refresh_issues <- get_jira_issues_path(conf, "project_key_1")
 ```
 
 If authentication is needed, save your username (e-mail) and password (API token) in a file, e.g. atlassian_credentials, where the first line is the username, and the second the API token, e.g.
