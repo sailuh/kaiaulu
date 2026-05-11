@@ -24,7 +24,13 @@ require(knitr)
 # Parse R Package 
 
 ```{r}
-folder_path <- "../R"
+# folder_path <- "../R"
+project <- parse_config("../conf/kaiaulu_project.yml")
+
+git_repo_path <- get_git_repo_path(project)
+path_split <- stringi::stri_split_regex(git_repo_path, pattern = "/")[[1]]
+path_split <- path_split[path_split != ".git"]
+folder_path <- paste(c(path_split, "R"), collapse = "/")
 ```
 
 # Dependencies
