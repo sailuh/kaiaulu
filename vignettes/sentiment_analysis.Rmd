@@ -290,6 +290,14 @@ aggregate_func <- mean
 scored_dt <- data.table::copy(reply_dt[1:20])
 scored_dt[, polarity := as.character(pred_dt$polarity)]
 
+# Map 2/1/0 -> label strings
+scored_dt[, polarity_label := fcase(
+  polarity == 2L, "positive",
+  polarity == 1L, "neutral",
+  polarity == 0L, "negative",
+  default = NA_character_
+)]
+
 #scored_dt <- fread("~/Downloads/kaiaulu_predictions.csv")
 #engagement_sentiment_dt <- engagement_sentiment(
   #datetimetz      = scored_dt$reply_datetimetz,
@@ -304,7 +312,7 @@ scored_dt[, polarity := as.character(pred_dt$polarity)]
 engagement_sentiment_dt <- engagement_sentiment(
   datetimetz      = scored_dt$reply_datetimetz,
   user_name_email = scored_dt$reply_from,
-  polarity        = scored_dt$polarity,
+  polarity        = scored_dt$polarity_label,
   lag             = lag,
   aggregate_func  = aggregate_func
 )
@@ -319,7 +327,7 @@ This plot visualizes each author's aggregate sentiment polarity over the engagem
 
 ```{r fig.width=12, fig.height=7}
 ggplot(engagement_sentiment_dt, aes(x = datetimetz, y = aggregate_polarity, group = user_name_email, color = user_name_email)) +
-  geom_line() +
+  geom_line() + scale_y_continuous(limits = c(-1, 1)) +
   labs(title = paste0("Author Engagement on ", lag, "-day Time Window"),
        x = "Date",
        y = "Aggregate Sentiment",
