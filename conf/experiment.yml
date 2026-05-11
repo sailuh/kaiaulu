@@ -1,0 +1,25 @@
+# -*- yaml -*-
+# This experiment .yml file has all projects that are currently being used in Kaiaulu.
+# It shows which project configurations are paired with which analysis configurations.
+
+projects:
+ apr_project.yml:
+    - analysisA.yml
+ calculator_project.yml:
+    - analysisB.yml
+ camel_project.yml:
+     - analysisC.yml
+ chromium_project.yml:
+     - analysisD.yml
+ geronimo_project.yml:
+     - analysisE.yml
+ helix_project.yml:
+     - analysisF.yml
+ junit5_project.yml:
+     - analysisG.yml
+ kaiaulu_project.yml:
+     - analysisH.yml
+ openssl_project.yml:
+     - analysisI.yml
+ tomcat_project.yml:
+     - analysisJ.yml

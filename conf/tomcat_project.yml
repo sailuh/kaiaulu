@@ -1,0 +1,119 @@
+# -*- yaml -*-
+# Project data configuration (tomcat)
+
+# https://github.com/sailuh/kaiaulu
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
+# Project Configuration File #
+#
+# To perform analysis on open source projects, you need to manually
+# collect some information from the project's website. As there is
+# no standardized website format, this file serves to distill
+# important data source information so it can be reused by others
+# and understood by Kaiaulu.
+#
+# Please check https://github.com/sailuh/kaiaulu/tree/master/conf to
+# see if a project configuration file already exists. Otherwise, we
+# would appreciate if you share your curated file with us by sending a
+# Pull Request: https://github.com/sailuh/kaiaulu/pulls
+#
+# Note, you do NOT need to specify this entire file to conduct analysis.
+# Each R Notebook uses a different portion of this file. To know what
+# information is used, see the project configuration file section at
+# the start of each R Notebook.
+#
+# Please comment unused parameters instead of deleting them for clarity.
+# If you have questions, please open a discussion:
+# https://github.com/sailuh/kaiaulu/discussions
+
+project:
+  website: https://tomcat.apache.org
+  openhub: https://www.openhub.net/p/tomcat
+
+version_control:
+  # Where is the git log located locally?
+  # This is the path to the .git of the project repository you are analyzing.
+  # The .git is hidden, so you can see it using `ls -a`
+  log: ../../rawdata/tomcat/git_repo/.git
+  # From where the git log was downloaded?
+  log_url: https://github.com/apache/tomcat
+  # List of branches used for analysis
+  branch:
+    - master
+
+mailing_list:
+  mod_mbox:
+    project_key_1:
+      mailing_list: http://mail-archives.apache.org/mod_mbox/tomcat-dev
+      save_folder_path: ../../rawdata/tomcat/mod_mbox/save_mbox_mail/
+      # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+#      mbox_file_path: ../../rawdata/tomcat/mod_mbox/save_mbox_mail/tomcat.mbox
+    project_key_2:
+      mailing_list: http://mail-archives.apache.org/mod_mbox/tomcat-users
+      save_folder_path: ../../rawdata/tomcat/mod_mbox/save_mbox_mail_2/
+#       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+#       mbox_file_path: ../../rawdata/kaiaulu/mod_mbox/save_mbox_mail_2/tomcat.mbox
+#   pipermail:
+#     project_key_1:
+#       mailing_list: https://mta.openssl.org/pipermail/kaiaulu-dev/
+#       save_folder_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail/
+#       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+#       mbox_file_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail/kaiaulu.mbox
+#     project_key_2:
+#       mailing_list: https://mta.openssl.org/pipermail/kaiaulu-users/
+#       save_folder_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail_2/
+#       # mbox_file_path is for use only with parse_mbox() function. It is the file to parse
+#       mbox_file_path: ../../rawdata/kaiaulu/pipermail/save_mbox_mail_2/kaiaulu.mbox
+
+# issue_tracker:
+#   jira:
+#     project_key_1:
+#       # Obtained from the project's JIRA URL
+#       domain: https://sailuh.atlassian.net
+#       project_key: SAILUH
+#       # Download using `download_jira_data.Rmd`
+#       issues: ../../rawdata/kaiaulu/jira/issues/sailuh/
+#       issue_comments: ../../rawdata/kaiaulu/jira/issue_comments/sailuh/
+#   github:
+#     project_key_1:
+#       # Obtained from the project's GitHub URL
+#       owner: sailuh
+#       repo: kaiaulu
+#       # Download using `download_github_comments.Rmd`
+#       issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/sailuh_kaiaulu/
+#       issue: ../../rawdata/kaiaulu/github/issue/sailuh_kaiaulu/
+#       issue_search: ../../rawdata/kaiaulu/github/issue_search/sailuh_kaiaulu/
+#       issue_event: ../../rawdata/kaiaulu/github/issue_event/sailuh_kaiaulu/
+#       pull_request: ../../rawdata/kaiaulu/github/pull_request/sailuh_kaiaulu/
+#       commit: ../../rawdata/kaiaulu/github/commit/sailuh_kaiaulu/
+#     project_key_2:
+#       # Obtained from the project's GitHub URL
+#       owner: ssunoo2
+#       repo: kaiaulu
+#       # Download using `download_github_comments.Rmd`
+#       issue_or_pr_comment: ../../rawdata/kaiaulu/github/issue_or_pr_comment/ssunoo2_kaiaulu/
+#       issue: ../../rawdata/kaiaulu/github/issue/ssunoo2_kaiaulu/
+#       issue_search: ../../rawdata/kaiaulu/github/issue_search/ssunoo2_kaiaulu/
+#       issue_event: ../../rawdata/kaiaulu/github/issue_event/ssunoo2_kaiaulu/
+#       pull_request: ../../rawdata/kaiaulu/github/pull_request/ssunoo2_kaiaulu/
+#       commit: ../../rawdata/kaiaulu/github/commit/ssunoo2_kaiaulu/
+#   bugzilla:
+#     project_key_1:
+#       project_key: kaiaulu
+#       issues: ../../rawdata/kaiaulu/bugzilla/issues/kaiaulu/
+#       issue_comments: ../../rawdata/kaiaulu/bugzilla/issue_comments/kaiaulu/
+
+#vulnerabilities:
+  # Folder path with nvd cve feeds (e.g. nvdcve-1.1-2018.json)
+  # Download at: https://nvd.nist.gov/vuln/data-feeds
+  #nvd_feed: rawdata/nvdfeed
+
+# Commit message CVE or Issue Regular Expression (regex)
+# See project's commit message for examples to create the regex
+commit_message_id_regex:
+  #issue_id: ?
+  cve_id: (?i)CVE-[0-9]+-[0-9]+
