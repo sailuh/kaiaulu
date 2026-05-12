@@ -427,7 +427,212 @@ example_notebook_alternating_function_in_files <- function(folder_path, folder_n
 
   return(git_repo_path)
 }
+############################ Example JIRA.R ############################
+#' Example JIRA Issue
+#'
+#' Create fake JIRA issue tracker with 1 issue, no comments
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return the JSON folder path of the newly created issue issue tracker
+#' @export
+#' @keywords internal
+example_jira_issue <- function(folder_path, folder_name) {
 
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)
+
+  issue1 <- make_jira_issue(
+    jira_domain_url = "https://project.org/jira",
+    issue_key = "PROJECT-11",
+    project_key = "PROJECT",
+    summary = "Summary of issue 1",
+    description = "Description of summary 1",
+    issue_type = "New Feature",
+    resolution = "Finished",
+    priority = "Minor",
+    status = "Closed",
+    labels = c("pull-request-available"),
+    components = c("jira"),
+    affects_versions = c("1.1.1"),
+    fix_versions = c("1.1.1"),
+    assignee_name = "Moe",
+    creator_name = "Bob",
+    reporter_name = "Joe"
+  )
+
+  issues <- list(issue1)
+
+  jira_json_path <- make_jira_issue_tracker(issues,
+                                            save_filepath=file.path(folder_path, "ONE_ISSUE_NO_COMMMENTS_issues_1121646814_1121719175.json"))
+
+  return(folder_path)
+}
+#' Example JIRA Missing Key
+#'
+#' Create fake JIRA issue tracker with 1 issue, no comments that is missing an
+#' issue_key.
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return the JSON folder path of the newly created issue issue tracker
+#' @export
+#' @keywords internal
+example_jira_missing_key <- function(folder_path, folder_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)
+
+  issue1 <- make_jira_issue(
+    jira_domain_url = "https://project.org/jira",
+    issue_key = NA,
+    project_key = "PROJECT",
+    summary = "Summary of issue 1",
+    description = "Description of summary 1",
+    issue_type = "New Feature",
+    resolution = "Finished",
+    priority = "Minor",
+    status = "Closed",
+    labels = c("pull-request-available"),
+    components = c("jira"),
+    affects_versions = c("1.1.1"),
+    fix_versions = c("1.1.1"),
+    assignee_name = "Moe",
+    creator_name = "Bob",
+    reporter_name = "Joe"
+  )
+
+  issues <- list(issue1)
+
+  jira_json_path <- make_jira_issue_tracker(issues,
+                                            save_filepath=file.path(folder_path, "ONE_ISSUE_NO_COMMENTS_issues_1121646814_1121719175.json"))
+
+  return(folder_path)
+}
+#' Example JIRA Escape Character
+#'
+#' Create fake JIRA issue tracker with 1 issue, no comments that contains escape
+#' backslashes.
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return the JSON folder path of the newly created issue issue tracker
+#' @export
+#' @keywords internal
+example_jira_escape_character <- function(folder_path, folder_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)
+
+  issue1 <- make_jira_issue(
+    jira_domain_url = "https://project.org/jira",
+    issue_key = "PROJECT-11",
+    project_key = "PROJECT",
+    summary = "Summary of issue 1",
+    description = "This \\n should not add a newline",
+    issue_type = "New Feature",
+    resolution = "Finished",
+    priority = "Minor",
+    status = "Closed",
+    labels = c("pull-request-available"),
+    components = c("jira"),
+    affects_versions = c("1.1.1"),
+    fix_versions = c("1.1.1"),
+    assignee_name = "Moe",
+    creator_name = "Bob",
+    reporter_name = "Joe"
+  )
+
+  issues <- list(issue1)
+
+  jira_json_path <- make_jira_issue_tracker(issues,
+                                            save_filepath=file.path(folder_path, "ONE_ISSUE_NO_COMMENTS_issues_1121646814_1121719175.json"))
+
+  return(folder_path)
+}
+#' Example JIRA Empty Assignee
+#'
+#' Create fake JIRA issue tracker with 1 issue, no comments that has no
+#' assignee_name
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return the JSON folder path of the newly created issue issue tracker
+#' @export
+#' @keywords internal
+example_jira_empty_assignee <- function(folder_path, folder_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)
+
+  issue1 <- make_jira_issue(
+    jira_domain_url = "https://project.org/jira",
+    issue_key = "PROJECT-11",
+    project_key = "PROJECT",
+    summary = "Summary of issue 1",
+    description = "Description of summary 1",
+    issue_type = "New Feature",
+    resolution = "Finished",
+    priority = "Minor",
+    status = "Closed",
+    labels = c("pull-request-available"),
+    components = c("jira"),
+    affects_versions = c("1.1.1"),
+    fix_versions = c("1.1.1"),
+    assignee_name = "",
+    creator_name = "Bob",
+    reporter_name = "Joe"
+  )
+
+  issues <- list(issue1)
+
+  jira_json_path <- make_jira_issue_tracker(issues,
+                                            save_filepath=file.path(folder_path, "ONE_ISSUE_NO_COMMENTS_issues_1121646814_1121719175.json"))
+
+  return(folder_path)
+}
+#' Example JIRA Unicode Characters
+#'
+#' Create fake JIRA issue tracker with 1 issue, no comments that contains a
+#' description with unicode characters. In this example, it is japanese
+#' characters and an emoji.
+#'
+#' @param folder_path The path where the folder will be created
+#' @param folder_name The name of the folder
+#' @return the JSON folder path of the newly created issue issue tracker
+#' @export
+#' @keywords internal
+example_jira_unicode_characters <- function(folder_path, folder_name) {
+
+  # Create folder & repo
+  folder_path <- io_make_folder(folder_path = folder_path, folder_name = folder_name)
+
+  issue1 <- make_jira_issue(
+    jira_domain_url = "https://project.org/jira",
+    issue_key = "PROJECT-11",
+    project_key = "PROJECT",
+    summary = "Summary of issue 1",
+    description = "今日は😎. This is a test for unicode characters.",
+    issue_type = "New Feature",
+    resolution = "Finished",
+    priority = "Minor",
+    status = "Closed",
+    labels = c("pull-request-available"),
+    components = c("jira"),
+    affects_versions = c("1.1.1"),
+    fix_versions = c("1.1.1"),
+    assignee_name = "Moe",
+    creator_name = "Bob",
+    reporter_name = "Joe"
+  )
+
+  issues <- list(issue1)
+
+  jira_json_path <- make_jira_issue_tracker(issues,
+                                            save_filepath=file.path(folder_path, "ONE_ISSUE_NO_COMMENTS_issues_1121646814_1121719175.json"))
+
+  return(folder_path)
+}
 #' Create one No-Comment Issue with Two Components
 #'
 #' This example can be used to evaluate the parser does not replicate
