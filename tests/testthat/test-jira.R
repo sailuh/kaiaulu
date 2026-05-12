@@ -44,7 +44,7 @@ test_that("When parse_jira is given a folder path containing jira issues as .jso
   jira_json_path <- example_jira_issue_components(folder_path = "/tmp", folder_name = "single_issue")
   issues <- parse_jira(json_folder_path  = jira_json_path)
 
-  expect_is(issues$issue, "data.table")
+  expect_is(issues$issues, "data.table")
   expect_is(issues$comment, "data.table")
 
   io_delete_folder(folder_path="/tmp", folder_name="single_issue")
@@ -62,7 +62,7 @@ test_that("When parse_jira is given a .json file that is missing the necessary k
   io_delete_folder(folder_path="/tmp", folder_name="missing_issue_key")
 })
 
-test_that("When parse_jira is given a descrpition that contains an escape character, then it returns an unescaped result in the data table", {
+test_that("When parse_jira is given a description that contains an escape character, then it returns an unescaped result in the data table", {
   jira_json_path <- example_jira_escape_character(folder_path = "/tmp", folder_name = "escape_character")
 
   issues <- parse_jira(json_folder_path = jira_json_path)
