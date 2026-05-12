@@ -266,3 +266,344 @@ test_that("Check Pair Wise Cumulative Temporal Sum reflects Codeface actual impl
   expect_equal(temporal_projection[["edgelist"]][from == "dev 2 <>" & to == "dev 2 <>"]$weight, 7+3)
 
 })
+
+########### Model Directed Graph ############
+
+test_that("When model_directed_graph is given a valid edgelist, color, then node and edgelist tables are returned", {
+  dt <- data.table(
+    from = c(
+      "Node 1",
+      "Node 2"
+    ),
+    to = c(
+      "Node 1",
+      "Node 2")
+  )
+  graph <- model_directed_graph(dt, is_bipartite = FALSE, color = c("black","#f4dbb5"), aggregate_duplicate = FALSE)
+
+  expect_is(graph$nodes, "data.table")
+  expect_is(graph$edgelist, "data.table")
+
+})
+
+test_that("When model_directed_graph is given a valid edgelist, color, and aggregate_duplicate is set to TRUE, the function generates edge weights", {
+  dt <- data.table(
+    from = c(
+      "Node 1",
+      "Node 1",
+      "Node 2"
+    ),
+    to = c(
+      "Node 1",
+      "Node 1",
+      "Node 2")
+  )
+  graph <- model_directed_graph(dt, is_bipartite = FALSE, color = c("black","#f4dbb5"), aggregate_duplicate = TRUE)
+
+  expect_equal(graph$edgelist$weight[1], 2)
+})
+
+test_that("When model_directed_graph is given valid edgelist with one node and one edge connecting it to itself, it returns the same one node one edge connnection", {
+  dt <- data.table(
+    from = c(
+      "Node 1")
+    ,
+    to = c(
+      "Node 1")
+    )
+
+  graph <- model_directed_graph(dt, is_bipartite = TRUE, color = c("black","#f4dbb5"), aggregate_duplicate = TRUE)
+
+  expect_equal(graph$node$name[1], "Node 1")
+  expect_equal(graph$edgelist$from[1], "Node 1")
+  expect_equal(graph$edgelist$to[1], "Node 1")
+})
+
+test_that("When model_directed_graph is given a valid edgelist with one edge connecting two nodes and takes a normal graph, it returns two nodes and one edge", {
+  dt <- data.table(
+    from = c(
+      "Node 1")
+    ,
+    to = c(
+      "Node 2")
+  )
+
+  graph <- model_directed_graph(dt, is_bipartite = FALSE, color = c("black","#f4dbb5"), aggregate_duplicate = TRUE)
+
+  expect_equal(graph$node$name[1], "Node 1")
+  expect_equal(graph$node$name[2], "Node 2")
+  expect_equal(graph$edgelist$from[1], "Node 1")
+  expect_equal(graph$edgelist$to[1], "Node 2")
+})
+
+test_that("When model_directed_graph is given a valid edgelist with one edge connecting two nodes and takes a bipartite graph, it returns two nodes and one edge", {
+  dt <- data.table(
+    from = c(
+      "Node 1")
+    ,
+    to = c(
+      "Node 2")
+  )
+
+  graph <- model_directed_graph(dt, is_bipartite = TRUE, color = c("black","#f4dbb5"), aggregate_duplicate = TRUE)
+
+  expect_equal(graph$node$name[1], "Node 1")
+  expect_equal(graph$node$name[2], "Node 2")
+  expect_equal(graph$edgelist$from[1], "Node 1")
+  expect_equal(graph$edgelist$to[1], "Node 2")
+})
+
+test_that("When model_directed_graph is given a valid edgelist with two disconnected edges and takes a normal graph, it returns four nodes and two edges", {
+  # Creates a disconnected graph
+  dt <- data.table(
+    from = c(
+      "Node 1",
+      "Node 3")
+    ,
+    to = c(
+      "Node 2",
+      "Node 4")
+  )
+
+  graph <- model_directed_graph(dt, is_bipartite = FALSE, color = c("black","#f4dbb5"), aggregate_duplicate = TRUE)
+
+  expect_equal(graph$node$name, c("Node 1","Node 3", "Node 2", "Node 4"))
+  expect_equal(graph$edgelist$from, c("Node 1", "Node 3"))
+  expect_equal(graph$edgelist$to, c("Node 2", "Node 4"))
+})
+
+
+test_that("When model_directed_graph is given a valid edgelist with two disconnected edges and takes a bipartite graph, it returns four nodes and two edges", {
+  # Creates a disconnected bipartite graph
+  dt <- data.table(
+    from = c(
+      "Node 1",
+      "Node 3")
+    ,
+    to = c(
+      "Node 2",
+      "Node 4")
+  )
+
+  graph <- model_directed_graph(dt, is_bipartite = TRUE, color = c("black","#f4dbb5"), aggregate_duplicate = TRUE)
+
+  expect_equal(graph$node$name, c("Node 1","Node 3", "Node 2", "Node 4"))
+  expect_equal(graph$edgelist$from, c("Node 1", "Node 3"))
+  expect_equal(graph$edgelist$to, c("Node 2", "Node 4"))
+})
+
+########### Bipartite Graph Projection ############
+
+test_that("When bipartite_graph_projection is given a valid graph, mode, and weight_scheme_function, then node and edgelist data tables are returned", {
+  # Create bipartite graph data
+  nodes <- data.table(
+    name = c("Author 1", "Author 2", "File 1"),
+    type = c(TRUE, TRUE, FALSE),
+    color = c("black", "black", "#f4dbb5")
+  )
+  edgelist <- data.table(
+    from = c("Author 1", "Author 2"),
+    to   = c("File 1", "File 1"),
+    weight = c(1L, 1L)
+  )
+  # Combine into graph
+  dt <- list(
+    nodes = nodes,
+    edgelist = edgelist
+  )
+
+  bigraph <- bipartite_graph_projection(dt, TRUE, weight_scheme_function = NULL)
+
+  expect_is(bigraph$nodes, "data.table")
+  expect_is(bigraph$edgelist, "data.table")
+})
+
+test_that("When bipartite_graph_projection is given a bipartite graph with author nodes connecting to file nodes and mode is set to TRUE, then the function will return only author nodes", {
+  # Create bipartite graph data
+  nodes <- data.table(
+    name = c("Author 1", "Author 2", "File 1"),
+    type = c(TRUE, TRUE, FALSE),
+    color = c("black", "black", "#f4dbb5")
+  )
+  edgelist <- data.table(
+    from = c("Author 1", "Author 2"),
+    to   = c("File 1", "File 1"),
+    weight = c(1L, 1L)
+  )
+  # Combine into graph
+  dt <- list(
+    nodes = nodes,
+    edgelist = edgelist
+  )
+
+  bigraph <- bipartite_graph_projection(dt, TRUE, weight_scheme_function = NULL)
+
+  expect_equal(bigraph$nodes$name[1], "Author 1")
+  expect_equal(bigraph$nodes$name[2], "Author 2")
+})
+
+test_that("When bipartite_graph_projection is given a bipartite graph with author nodes connecting to file nodes and mode is set to FALSE, then the function will return only author nodes", {
+  # Create bipartite graph data
+  nodes <- data.table(
+    name = c("Author 1", "File 1", "File 2"),
+    type = c(TRUE, FALSE, FALSE),
+    color = c("black", "#f4dbb5", "#f4dbb5")
+  )
+  edgelist <- data.table(
+    from = c("Author 1", "Author 1"),
+    to   = c("File 1", "File 2"),
+    weight = c(1L, 1L)
+  )
+  # Combine into graph
+  dt <- list(
+    nodes = nodes,
+    edgelist = edgelist
+  )
+
+  bigraph <- bipartite_graph_projection(dt, FALSE, weight_scheme_function = NULL)
+
+  expect_equal(bigraph$nodes$name[1], "File 1")
+  expect_equal(bigraph$nodes$name[2], "File 2")
+})
+
+test_that("When bipartite_graph_projection is given a bipartite graph with three author nodes connecting to one file node and mode is set to TRUE, then there are edges created between all three authors", {
+  # Create bipartite graph data
+  nodes <- data.table(
+    name = c("Author 1", "Author 2", "Author 3","File 1"),
+    type = c(TRUE, TRUE, TRUE, FALSE),
+    color = c("black", "black", "black", "#f4dbb5")
+  )
+  edgelist <- data.table(
+    from = c("Author 1", "Author 2", "Author 3"),
+    to   = c("File 1", "File 1", "File 1"),
+    weight = c(1L, 1L, 1L)
+  )
+  # Combine into graph
+  dt <- list(
+    nodes = nodes,
+    edgelist = edgelist
+  )
+
+  bigraph <- bipartite_graph_projection(dt, TRUE, weight_scheme_function = NULL)
+
+  expect_equal(bigraph$edgelist$to_projection, c("Author 2", "Author 3", "Author 3"))
+  expect_equal(bigraph$edgelist$from_projection, c("Author 1", "Author 1", "Author 2"))
+})
+
+test_that("When bipartite_graph_projection is given a bipartite graph with Author 1 having two connections to File 1 and Author 2 having one connection to File 1, and weight_scheme_function = weight_scheme_sum_edges, and mode = TRUE, then their returned edge is 4", {
+  # Create bipartite graph data
+  nodes <- data.table(
+    name = c("Author 1", "Author 2","File 1"),
+    type = c(TRUE, TRUE, FALSE),
+    color = c("black", "black", "#f4dbb5")
+  )
+  edgelist <- data.table(
+    from = c("Author 1", "Author 1", "Author 2"),
+    to   = c("File 1", "File 1", "File 1"),
+    weight = c(1L, 1L, 1L)
+  )
+  # Combine into graph
+  dt <- list(
+    nodes = nodes,
+    edgelist = edgelist
+  )
+
+  bigraph <- bipartite_graph_projection(dt, TRUE, weight_scheme_function = weight_scheme_sum_edges)
+
+  expect_equal(bigraph$edgelist$weight[1], 4)
+})
+
+test_that("When bipartite_graph_projection is given a bipartite graph with Author 1 having one connection to File 1, File 2, and File 3, and Author 2 having one connection to File 1, File 2, and File 3, and weight_scheme_function = weight_scheme_count_deleted_nodes, and mode = TRUE, then their returned edge is 3", {
+  # Create bipartite graph data
+  nodes <- data.table(
+    name = c("Author 1", "Author 2", "File 1", "File 2", "File 3"),
+    type = c(TRUE, TRUE, FALSE, FALSE, FALSE),
+    color = c("black", "black", "#f4dbb5", "#f4dbb5", "#f4dbb5")
+  )
+  edgelist <- data.table(
+    from = c("Author 1", "Author 1", "Author 1", "Author 2", "Author 2", "Author 2"),
+    to   = c("File 1", "File 2", "File 3", "File 1", "File 2", "File 3"),
+    weight = c(1L, 1L, 1L, 1L, 1L, 1L)
+  )
+  # Combine into graph
+  dt <- list(
+    nodes = nodes,
+    edgelist = edgelist
+  )
+
+  bigraph <- bipartite_graph_projection(dt, TRUE, weight_scheme_function = weight_scheme_count_deleted_nodes)
+
+  expect_equal(bigraph$edgelist$weight[1], 3)
+})
+
+test_that("When bipartite_graph_projection is given two bipartite graphs with each containing one author node connecting to a file node and mode is set to TRUE, then the function will return the correctly projected authors with no edges", {
+  # Create bipartite graph data
+  nodes <- data.table(
+    name = c("Author 1", "Author 2", "File 1", "File 2"),
+    type = c(TRUE, TRUE, FALSE, FALSE),
+    color = c("black", "black", "#f4dbb5", "#f4dbb5")
+  )
+  edgelist <- data.table(
+    from = c("Author 1", "Author 2"),
+    to   = c("File 1", "File 2"),
+    weight = c(1L, 1L)
+  )
+  # Combine into graph
+  dt <- list(
+    nodes = nodes,
+    edgelist = edgelist
+  )
+
+  bigraph <- bipartite_graph_projection(dt, TRUE, weight_scheme_function = NULL)
+
+  expect_equal(bigraph$nodes$name, c("Author 1", "Author 2"))
+  expect_equal(bigraph$edgelist$to_projection, character(0))
+  expect_equal(bigraph$edgelist$from_projection, character(0))
+})
+
+test_that("When bipartite_graph_projection is given a graph with one edge connecting an author and file node, and mode is set to TRUE then only a singular author node is returned", {
+  # Create bipartite graph data
+  nodes <- data.table(
+    name = c("Author 1", "File 1"),
+    type = c(TRUE, FALSE),
+    color = c("black", "#f4dbb5")
+  )
+  edgelist <- data.table(
+    from = c("Author 1"),
+    to   = c("File 1"),
+    weight = c(1L, 1L)
+  )
+  # Combine into graph
+  dt <- list(
+    nodes = nodes,
+    edgelist = edgelist
+  )
+
+  bigraph <- bipartite_graph_projection(dt, TRUE, weight_scheme_function = NULL)
+
+  expect_equal(bigraph$nodes$name, c("Author 1"))
+})
+
+test_that("When bipartite_graph_projection is given a bipartite graph with one author node with no edges and mode is set to TRUE, then the function will return the author node", {
+  # Create bipartite graph data
+  nodes <- data.table(
+    name = c("Author 1"),
+    type = c(TRUE),
+    color = c("black")
+  )
+  edgelist <- data.table(
+    from = c(""),
+    to   = c(""),
+    weight = c("")
+  )
+  # Combine into graph
+  dt <- list(
+    nodes = nodes,
+    edgelist = edgelist
+  )
+
+  bigraph <- bipartite_graph_projection(dt, TRUE, weight_scheme_function = NULL)
+
+  expect_equal(bigraph$nodes$name, c("Author 1"))
+})
+

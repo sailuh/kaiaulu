@@ -68,7 +68,14 @@ parse_gitlog <- function(perceval_path,git_repo_path,save_path=NA,perl_regex=NA)
                              stdout = TRUE,
                              stderr = FALSE)
 
-  perceval_parsed <- data.table(jsonlite::stream_in(textConnection(perceval_output),verbose = FALSE))
+  # Parse JSON output as a data.table
+  perceval_parsed <- tryCatch({
+    # Parsed JSON output as a data.table.
+    data.table(jsonlite::stream_in(textConnection(perceval_output),verbose=FALSE))
+  }, error = function(e) {
+    #print(e$message)
+    stop("JSON parsing failed.")
+  })
 
   if(nrow(perceval_parsed) == 0){
     stop("The repository specified has no commits.")
@@ -568,8 +575,6 @@ git_head <- function(git_repo_path){
                   stderr = FALSE)
   return(head)
 }
-#' Saves gitlog to a path
-#'
 #' Saves the `.git` of a github repository as a gitlog at the specified path
 #'
 #' @param git_repo_path The git repo path
@@ -595,16 +600,16 @@ git_log <- function(git_repo_path,flags,save_path){
       )
     },
     error = function(cond){
-      #message(stringi::stri_c("An error ocurred when generating the git log from this repository.",
-      #                        " Perhaps the path specified was incorrect or the repository has no commits?"))
-      #message(cond)
-      return(NULL)
+      # message(stringi::stri_c("An error ocurred when generating the git log from this repository.",
+      #                         " Perhaps the path specified was incorrect or the repository has no commits?"))
+      # message(cond)
+      # return("NULL")
     },
     warning = function(cond){
-      #message(stringi::stri_c("A warning ocurred when generating the git log from this repository.",
-      #" Perhaps the path specified was incorrect or the repository has no commits?"))
-      #message(cond)
-      return(NULL)
+      # message(stringi::stri_c("A warning ocurred when generating the git log from this repository.",
+      # " Perhaps the path specified was incorrect or the repository has no commits?"))
+      # message(cond)
+      # return("NULL")
     }
   )
   return(out)
@@ -944,7 +949,7 @@ transform_gitlog_to_entity_temporal_network <- function(project_git_entity,mode 
   mode <- match.arg(mode)
 
   git_entity <- copy(project_git_entity)
-
+  git_graph <- copy(git_entity) # Added to fix the else statement, graph not initialized before
 
   if(mode == "author"){
     setnames(git_entity,
