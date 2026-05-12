@@ -875,6 +875,78 @@ get_cveid_regex <- function(config_file) {
 
 ##### Filter #####
 
+#' Returns the author substrings used for filtering reply tables.
+#'
+#' @description This function returns the list of author substrings used to filter replies
+#' in the configuration file. The input `config_file` must be a parsed YAML configuration
+#' file obtained from \code{\link{parse_config}}. The function will warn the user if
+#' the attribute does not exist in the configuration file.
+#'
+#' @param config_file The parsed configuration file.
+#' @return A character vector of author substrings.
+#' @export
+get_filter_by_reply_author_substring <- function(config_file) {
+  author_substrings <- config_file[["filter"]][["replies"]][["filter_by_reply_author_substring"]]
+  if (is.null(author_substrings)) {
+    warning("Attribute'filter_by_reply_author_substring' does not exist in the configuration file.")
+  }
+  return(author_substrings)
+}
+
+#' Returns the subject substrings used for filtering reply tables.
+#'
+#' @description This function returns the list of subject substrings used to filter replies
+#' in the configuration file. The input `config_file` must be a parsed YAML configuration
+#' file obtained from \code{\link{parse_config}}. The function will warn the user if
+#' the attribute does not exist in the configuration file.
+#'
+#' @param config_file The parsed configuration file.
+#' @return A character vector of subject substrings.
+#' @export
+get_filter_by_reply_subject_substring <- function(config_file) {
+  subject_substrings <- config_file[["filter"]][["replies"]][["filter_by_reply_subject_substring"]]
+  if (is.null(subject_substrings)) {
+    warning("Attribute 'filter_by_reply_subject_substring' does not exist in the configuration file.")
+  }
+  return(subject_substrings)
+}
+
+#' Returns the body substrings used for filtering reply tables.
+#'
+#' @description This function returns the list of body substrings used to filter replies
+#' in the configuration file. The input `config_file` must be a parsed YAML configuration
+#' file obtained from \code{\link{parse_config}}. The function will warn the user if
+#' the attribute does not exist in the configuration file.
+#'
+#' @param config_file The parsed configuration file.
+#' @return A character vector of body substrings.
+#' @export
+get_filter_by_reply_body_substring <- function(config_file) {
+  body_substrings <- config_file[["filter"]][["replies"]][["filter_by_reply_body_substring"]]
+  if (is.null(body_substrings)) {
+    warning("Attribute 'filter_by_reply_body_substring' does not exist in the configuration file.")
+  }
+  return(body_substrings)
+}
+
+#' Returns the token regex replacements for text processing.
+#'
+#' @description This function returns a named list of token regex patterns used to replace
+#' certain patterns in text. The input `config_file` must be a parsed YAML configuration
+#' file obtained from \code{\link{parse_config}}. The function will warn the user if
+#' the attribute does not exist in the configuration file.
+#'
+#' @param config_file The parsed configuration file.
+#' @return A named list of regex patterns for token replacement.
+#' @export
+get_replace_token_regex_with <- function(config_file) {
+  token_replacements <- config_file[["filter"]][["replies"]][["regex_to_replace_key_with"]]
+  if (is.null(token_replacements)) {
+    warning("Attribute 'regex_to_replace_key_with' does not exist in the configuration file.")
+  }
+  return(token_replacements)
+}
+
 #' Returns the list of file extensions used for filtering files to keep.
 #'
 #' @description This function returns the list of file extensions that will be
@@ -965,6 +1037,123 @@ get_tool_project <- function(tool_name, config_file) {
   }
 
   return(tool_path)
+}
+
+#' Returns the path to the PySenti Python script
+#'
+#' @description This function retrieves the path to the PySenti Python script
+#' from a parsed configuration file. The input `config_file` must be a parsed
+#' configuration file (from \code{\link{parse_config}}). If the attribute does
+#' not exist, a warning is issued.
+#'
+#' @param config_file A parsed configuration file obtained from \code{\link{parse_config}}.
+#' @return The file path to the PySenti script as a string.
+#' @export
+get_pysenti_path <- function(config_file) {
+
+  pysenti_path <- config_file[["pysenti"]]
+
+  if (is.null(pysenti_path)) {
+    warning("Attribute does not exist.")
+  }
+
+  return(pysenti_path)
+}
+
+#' Returns the path to conda
+#'
+#' @description This function retrieves the path to conda so system calls can be
+#' used from R to tools in other conda environments when necessary.
+#'
+#' @param config_file A parsed configuration file obtained from \code{\link{parse_config}}.
+#' @return The file path to the PySenti script as a string.
+#' @export
+get_conda_path <- function(config_file) {
+
+  conda_path <- config_file[["conda"]]
+
+  if (is.null(conda_path)) {
+    warning("Attribute does not exist.")
+  }
+
+  return(conda_path)
+}
+
+#' Returns the path to conda
+#'
+#' @description This function retrieves the path to pysenti conda environment. Used
+#' in conjunction to \code{\link{get_conda_path}} to invoke pysenti from outside the environment.
+#'
+#' @param config_file A parsed configuration file obtained from \code{\link{parse_config}}.
+#' @return The file path to the PySenti script as a string.
+#' @export
+get_pysenti_conda_env_name <- function(config_file) {
+
+  pysenti_conda_env_name <- config_file[["pysenti_conda_env_name"]]
+
+  if (is.null(pysenti_conda_env_name)) {
+    warning("Attribute does not exist.")
+  }
+
+  return(pysenti_conda_env_name)
+}
+
+#' Returns the trained sentiment model classifier filepath
+#'
+#' @description See \code{\{link{pysenti_train_model}}}.
+#'
+#' @param config_file A parsed configuration file obtained from \code{\link{parse_config}}.
+#' @return The folder path for sentiment models as a string.
+#' @export
+get_trained_model_path <- function(config_file) {
+
+  trained_model_path <- config_file[["tool"]][["sentiment"]][["trained_model_filepath"]]
+
+  if (is.null(trained_model_path)) {
+    warning("Attribute does not exist.")
+  }
+
+  return(trained_model_path)
+}
+
+#' Returns sentiment classifier training dataset filepath
+#'
+#' @description The training dataset must be provided by the user or use one of sailuh
+#' sentiment datasets. See sailuh/github_sentiment_dataset, and \code{\{link{pysenti_train_model}}}
+#' for how to train models using it.
+#'
+#'
+#' @param config_file A parsed configuration file obtained from \code{\link{parse_config}}.
+#' @return The folder path for sentiment predictions as a string.
+#' @export
+get_sentiment_training_dataset_filepath <- function(config_file) {
+
+  train_dataset_path <- config_file[["tool"]][["sentiment"]][["train_dataset_filepath"]]
+
+  if (is.null(train_dataset_path)) {
+    warning("Attribute does not exist.")
+  }
+
+  return(train_dataset_path)
+}
+
+#' Returns sentiment classifier prediction dataset filepath
+#'
+#' @description This function retrieves the filepath where the prediction will be stored
+#' for the sentiment classifier.
+#'
+#' @param config_file A parsed configuration file obtained from \code{\link{parse_config}}.
+#' @return The folder path for sentiment predictions as a string.
+#' @export
+get_prediction_dataset_filepath <- function(config_file) {
+
+  prediction_dataset_filepath <- config_file[["tool"]][["sentiment"]][["prediction_dataset_filepath"]]
+
+  if (is.null(prediction_dataset_filepath)) {
+    warning("Attribute does not exist.")
+  }
+
+  return(prediction_dataset_filepath)
 }
 
 #' Returns the depends code language for analysis.

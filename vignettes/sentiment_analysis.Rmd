@@ -1,0 +1,341 @@
+---
+title: "Github developer comments Sentiment Analysis"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Github, Mailing List, and Jira developer comments Sentiment Analysis}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Introduction
+
+This notebook demonstrates the full workflow for conducting sentiment analysis. Sentiment analysis is an approach which helps users detect the emotional tone of comments in order to gain insights into developer collaboration and how sentiment may influence project progress by classifying developer comments as expressing positive, negative, or neutral sentiment. This notebook applies this approach to developer communication sources such as GitHub issues, pull requests, comments, commits, JIRA discussions, and mailing lists. It guides the user through preparing data, training a sentiment-classification model, and generating predictions on new datasets to study collaboration patterns and developer interactions.
+
+# Libraries
+
+Please ensure the following R packages are installed on your computer. 
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+
+require(kaiaulu)
+require(data.table)
+require(jsonlite)
+require(magrittr)
+require(gt)
+require(stringi)
+require(markdown)
+require(XML)
+require(ggplot2)
+```
+
+
+```{r}
+# Paths to Sentiment Classifier -- see sailuh/sentiment_classifier
+tool <- parse_config("../tools.yml")
+pysenti_path <- get_pysenti_path(tool)        
+pysenti_conda_env_name <- get_pysenti_conda_env_name(tool)
+conda_path <- get_conda_path(tool)
+
+# GitHub Dataset for Prediction
+conf <- parse_config("../conf/kaiaulu.yml")
+authors <- get_filter_by_reply_author_substring(conf)
+subjects <- get_filter_by_reply_subject_substring(conf)
+body <- get_filter_by_reply_body_substring(conf)
+token_replacements <- get_replace_token_regex_with(conf)
+
+# Sentiment Classifier Params
+training_dataset_filepath <- get_sentiment_training_dataset_filepath(conf)
+model_save_path <- get_trained_model_path(conf)     
+prediction_save_path <- get_prediction_dataset_filepath(conf) 
+```
+
+# Preparing Dataset
+
+We grab project data from GitHub, JIRA, and mailing lists because these sources capture the core developer communication, including issues, pull requests, and comments. Within these sources, the `body` field generally contains the actual developer interactions and discussions within the project. Parsing this data into a unified reply data.table standardizes its structure, enabling consistent pre-processing and ensuring our sentiment model can accurately analyze human-generated content.
+
+In order to download Github data, you need a Github token. For details, see [Here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token). The functions in Kaiaulu will assume you have a token available, which can be passed as parameter. 
+
+```{r}
+conf <- parse_config("../conf/kaiaulu.yml")
+
+save_path_issue_refresh <- get_github_issue_search_path(conf, "project_key_1")
+save_path_pull_request <- get_github_pull_request_path(conf, "project_key_1")
+save_path_issue_or_pr_comments <- get_github_issue_or_pr_comment_path(conf, "project_key_1")
+
+# Make sure the above save_path_* folders exists using
+
+dir.create(save_path_issue_refresh)
+dir.create(save_path_pull_request)
+dir.create(save_path_issue_or_pr_comments)
+
+owner <- get_github_owner(conf, "project_key_1") # Has to match github organization (e.g. github.com/sailuh)
+repo <- get_github_repo(conf, "project_key_1") # Has to match github repository (e.g. github.com/sailuh/perceive)
+# your file github_token (a text file) contains the GitHub token API
+token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
+```
+
+# Download and Parse Github
+
+Here, we are downloading and parsing Github issue data by date range using the `/issue_search/` API endpoint. After being parsed into a structured data table (we will refer to it as reply data.table for the rest of the notebook), it will contain the column 'reply_body', this is what we are looking for in every data that is being parsed in this notebook as it typically represents developer comments. Specifically, by fetching this `/issue_search/` API endpoint, we capture the initial message of each issue in the specified repository. For more information on API endpoints, see the `download_github_comments.Rmd` notebook.
+
+```{r Collect issues by date x, eval = FALSE}
+created_lower_bound_issue <- "1990-01-01"
+created_upper_bound_issue <- "2021-01-01"
+gh_response <- github_api_project_issue_by_date(owner,
+                                                repo,
+                                                token,
+                                                created_lower_bound_issue,
+                                                created_upper_bound_issue,
+                                                "is:issue",
+                                                verbose=TRUE)
+
+github_api_iterate_pages(token,gh_response,
+                         save_path_issue_refresh,
+                         prefix="issue",
+                         verbose=TRUE)
+```
+
+The downloaded data will then be parsed and formatted into a reply data.table. 
+
+```{r}
+# Read all JSON files from the directory
+all_issue_files <- lapply(list.files(save_path_issue_refresh, full.names = TRUE), read_json)
+
+# Parse each JSON file using the refresh parser
+all_issues <- lapply(all_issue_files, github_parse_search_issues_refresh)
+
+# Combine all the data tables
+all_issues <- rbindlist(all_issues, fill = TRUE)
+
+all_issues <- all_issues[,.(reply_id=issue_id,
+                            in_reply_to_id=NA_character_,
+                            reply_datetimetz=created_at,
+                            reply_from=issue_user_login,
+                            reply_to=NA_character_,
+                            reply_cc=NA_character_,
+                            reply_subject=issue_number,
+                            reply_body=body)]
+
+head(all_issues,3) %>%
+  gt(auto_align = FALSE)
+```
+
+Using the `/issue_or_pr_comment/` endpoint, we capture subsequent messages that are after the initial message in both issues and pull requests. 
+
+```{r Collect comments by date, eval = FALSE}
+updated_lower_bound_comment <- "2024-04-25"
+gh_response <- github_api_project_issue_or_pr_comments_by_date(owner = owner,
+                                                repo = repo,
+                                                token = token,
+                                                since = updated_lower_bound_comment,
+                                                verbose=TRUE)
+
+github_api_iterate_pages(token,gh_response,
+                         save_path_issue_or_pr_comments,
+                         prefix="issue",
+                         verbose=TRUE)
+```
+
+```{r}
+
+all_issue_or_pr_comments <- lapply(list.files(save_path_issue_or_pr_comments,
+                                     full.names = TRUE),read_json)
+all_issue_or_pr_comments <- lapply(all_issue_or_pr_comments,
+                                   github_parse_project_issue_or_pr_comments)
+all_issue_or_pr_comments <- rbindlist(all_issue_or_pr_comments,fill=TRUE)
+
+all_issue_or_pr_comments <- all_issue_or_pr_comments[,.(reply_id=comment_id,
+                                                          in_reply_to_id=NA_character_,
+                                                          reply_datetimetz=created_at,
+                                                          reply_from=comment_user_login,
+                                                          reply_to=NA_character_,
+                                                          reply_cc=NA_character_,
+                                                          reply_subject=issue_url,
+                                                          reply_body=body)]
+                                                          
+head(all_issue_or_pr_comments,3) %>%
+  gt(auto_align = FALSE)                                                                                                                   
+```
+
+Using the `/pull_request/` endpoint, we capture the initial message of each pull request in a specified repository.
+
+```{r Collect all pull requests, eval = FALSE}
+gh_response <- github_api_project_pull_request_refresh(owner,repo,token, save_path_pull_request)
+dir.create(save_path_pull_request)
+github_api_iterate_pages(token,gh_response,
+                         save_path_pull_request,
+                         prefix="pull_request",
+                         verbose=TRUE)
+```
+
+```{r}
+all_pr <- lapply(list.files(save_path_pull_request,
+                                     full.names = TRUE),read_json)
+all_pr <- lapply(all_pr,
+                                   github_parse_project_pull_request)
+all_pr <- rbindlist(all_pr,fill=TRUE)
+
+all_pr <- all_pr[,.(reply_id=issue_id,
+                      in_reply_to_id=NA_character_,
+                      reply_datetimetz=created_at,
+                      reply_from=issue_user_login,
+                      reply_to=NA_character_,
+                      reply_cc=NA_character_,
+                      reply_subject=issue_number,
+                      reply_body=body)]
+
+head(all_pr, 3) %>%
+  gt(auto_align = FALSE)                      
+```
+
+We then combine all Github parsed replies into one unified reply data.table that will eventually be combined with Mbox and JIRA reply data.tables.
+
+```{r}
+github_replies <- rbindlist(
+  list(all_issues, all_issue_or_pr_comments, all_pr),
+  fill = TRUE
+)
+```
+
+# Training Models
+
+Create directories for saving the trained model and prediction outputs. These directories ensure that the training function can store the best model and the prediction function can save generated results.
+
+```{r, eval = FALSE}
+dir.create(model_save_path, recursive = TRUE, showWarnings = FALSE)
+dir.create(prediction_save_path, recursive = TRUE, showWarnings = FALSE)
+```
+
+We will now train the sentiment model. The train function expects a data.table with `text` (the comment body) and `polarity` (`0` = neutral, `1` = positive, `2` = negative) columns.
+
+Users must specify a model to train such as "bert-base-cased". Other text models, but not all, are available for use on the huggingface website [Here](https://huggingface.co/docs/transformers/en/model_doc/bert). To determine if a text model may work, it must be compatible with AutoTokenizer and AutoForSequenceClassification classes (e.g, For `bert-base-cased` model, BertTokenizer and BertForSequenceClassification must appear in the text models documentation) Note, a text model that is not compatible with these classes will not work, and not all text models that are compatible with it can be used. (More research is necessary)
+
+The train function fine-tunes the model by training it on the labeled dataset. During training, the model makes predictions on the same training data and compares them to the ground-truth labels. It evaluates its accuracy, and keeps track of the best-performing version. The version with the highest accuracy on this dataset is saved to the `model_save_path` folder and the file is named the model you specified (e.g., bert-base-cased)
+
+Training data comes from [sailuh/sentiment_github_dataset](https://github.com/sailuh/sentiment_github_dataset), a labeled GitHub dataset of developer comments. The repository provides several CSV options depending on your goal. Change the `fread()` URL below to select the setup you want:
+
+```{r Download Noviellis Dataset}
+train_df <- fread("https://github.com/user-attachments/files/27577408/combined_all_comments.csv")
+```
+
+```{r Training Step}
+
+fwrite(train_df[1:20],training_dataset_filepath)
+
+pysenti_train_model(
+  conda_path             = conda_path,
+  pysenti_conda_env_name = pysenti_conda_env_name,  
+  pysenti_path           = pysenti_path,
+  train_data_path        = training_dataset_filepath,
+  model_save_path        = model_save_path,
+  model_name            = "bert-base-cased"
+)
+```
+
+# Prediction
+
+Since we've previously renamed one of our columns to `text`, the predict function can now be used. 
+
+Once a model is trained, it can be applied to any filtered reply data.tables that has the `text` column to generate sentiment predictions. The generated prediction reply data.table is then saved to our `prediction_save_path` folder.
+
+We use the `github_replies` table built earlier in this notebook. We rename `reply_body` to `text` and add a `polarity` placeholder column, which is what the predict function expects.
+
+```{r}
+reply_dt <- data.table::copy(github_replies)
+reply_dt <- setnames(reply_dt, "reply_body", "text")
+reply_dt[, polarity := 0]
+```
+
+
+
+
+```{r Predict Step}
+pred_dt <- pysenti_predict(
+  conda_path             = conda_path,
+  pysenti_conda_env_name = pysenti_conda_env_name,
+  pysenti_path           = pysenti_path,  
+  reply_dt               = reply_dt[1:20],
+  model_save_path        = model_save_path,
+  model_name             = "bert-base-cased",
+  prediction_save_path   = prediction_save_path
+)
+data.table::fwrite(reply_dt, prediction_save_path)
+
+head(pred_dt,3) %>%
+  gt(auto_align = FALSE)
+```
+
+# Engagement Sentiment Analysis
+
+We can utilize `engagement_sentiment()` to analyze how developers, on aggregate, feel within consecutive rolling windows. This function takes polarity labels (positive, negative, neutral), converts them to numeric values (1, -1, 0) for each message, and aggregates them over non-overlapping rolling windows. These polarity values are associated with a developer's particular message within a project. 
+
+The function implements a true rolling window approach: it creates consecutive non-overlapping windows of the specified size and pools all sentiment values within each window. Importantly, **only complete windows are included** in the output—any incomplete final window is discarded.
+
+By default, the window size is set to 90 days, and the aggregate function is set to mean, which calculates the average sentiment within that window. The result includes one row per author per complete window, with the timestamp representing the end of that window. This can help us understand how sentiment fluctuates over time and identify periods of high or low engagement sentiment.
+
+You can adjust the window parameters based on your needs. For example, a smaller window size may capture more immediate sentiment changes, while a larger window size may provide a broader view of sentiment trends.
+
+```{r}
+lag <- 90
+aggregate_func <- mean
+```
+
+```{r}
+scored_dt <- data.table::copy(reply_dt[1:20])
+scored_dt[, polarity := as.character(pred_dt$polarity)]
+
+# Map 2/1/0 -> label strings
+scored_dt[, polarity_label := fcase(
+  polarity == 2L, "positive",
+  polarity == 1L, "neutral",
+  polarity == 0L, "negative",
+  default = NA_character_
+)]
+```
+
+```{r}
+scored_dt <- fread("~/Downloads/kaiaulu_predictions.csv")
+scored_dt <- scored_dt[,.(created_at,comment_user_login,polarity)]
+engagement_sentiment_dt <- engagement_sentiment(
+  datetimetz      = scored_dt$created_at,
+  user_name_email = scored_dt$comment_user_login,
+  polarity        = scored_dt$polarity,
+  lag             = lag,
+  aggregate_func  = aggregate_func
+)
+```
+
+```{r eval = FALSE}
+engagement_sentiment_dt <- engagement_sentiment(
+  datetimetz      = scored_dt$reply_datetimetz,
+  user_name_email = scored_dt$reply_from,
+  polarity        = scored_dt$polarity_label,
+  lag             = lag,
+  aggregate_func  = aggregate_func
+)
+```
+
+```{r}
+head(engagement_sentiment_dt,3) %>%
+  gt(auto_align = FALSE)
+```
+
+This plot visualizes each author's aggregate sentiment polarity over the engagement_sentiment time window.
+
+```{r fig.width=12, fig.height=7}
+ggplot(engagement_sentiment_dt, aes(x = datetimetz, y = aggregate_polarity, group = user_name_email, color = user_name_email)) +
+  geom_line() + scale_y_continuous(limits = c(-1, 1)) +
+  labs(title = paste0("Author Engagement on ", lag, "-day Time Window"),
+       x = "Date",
+       y = "Aggregate Sentiment",
+       color = "Author"
+       ) +
+       theme_minimal() +
+       theme(plot.title = element_text(hjust = 0.5))
+```

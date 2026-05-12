@@ -21,3 +21,9 @@ pattern4: ~/Desktop/kaiaulu/tools/pattern4.jar
 scitools: /Applications/Understand.app/Contents/MacOS/und
 # Temporary folder path for intermediate files
 tmp: /tmp
+# https://github.com/sailuh/sentiment_classifier
+pysenti: ../../haotian_sentiment_classifier/exec/train_or_predict.py
+# The name of the conda env pysenti is setup if pysenti is deployed on conda env
+pysenti_conda_env_name: sentiment_classifier
+# to access third party tools located in a conda environment. NOT for kaiaulu. see bash_profile for conda path. which conda may not suffice.
+conda: /opt/miniconda3/bin/conda
