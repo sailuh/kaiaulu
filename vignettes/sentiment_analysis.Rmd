@@ -220,7 +220,7 @@ The train function fine-tunes the model by training it on the labeled dataset. D
 
 Training data comes from [sailuh/sentiment_github_dataset](https://github.com/sailuh/sentiment_github_dataset), a labeled GitHub dataset of developer comments. The repository provides several CSV options depending on your goal. Change the `fread()` URL below to select the setup you want:
 
-```{r Download Novielli's Dataset}
+```{r Download Noviellis Dataset}
 train_df <- fread("https://github.com/user-attachments/files/27577408/combined_all_comments.csv")
 ```
 
@@ -267,7 +267,7 @@ pred_dt <- pysenti_predict(
 )
 data.table::fwrite(reply_dt, prediction_save_path)
 
-pred_dt %>%
+head(pred_dt,3) %>%
   gt(auto_align = FALSE)
 ```
 
@@ -297,18 +297,21 @@ scored_dt[, polarity_label := fcase(
   polarity == 0L, "negative",
   default = NA_character_
 )]
+```
 
-#scored_dt <- fread("~/Downloads/kaiaulu_predictions.csv")
-#engagement_sentiment_dt <- engagement_sentiment(
-  #datetimetz      = scored_dt$reply_datetimetz,
-#  datetimetz      = scored_dt$created_at,
-  #user_name_email = scored_dt$reply_from,
-#  user_name_email = scored_dt$comment_user_login,
-#  polarity        = scored_dt$polarity,
-#  lag             = lag,
-#  aggregate_func  = aggregate_func
-#)
+```{r}
+scored_dt <- fread("~/Downloads/kaiaulu_predictions.csv")
+scored_dt <- scored_dt[,.(created_at,comment_user_login,polarity)]
+engagement_sentiment_dt <- engagement_sentiment(
+  datetimetz      = scored_dt$created_at,
+  user_name_email = scored_dt$comment_user_login,
+  polarity        = scored_dt$polarity,
+  lag             = lag,
+  aggregate_func  = aggregate_func
+)
+```
 
+```{r eval = FALSE}
 engagement_sentiment_dt <- engagement_sentiment(
   datetimetz      = scored_dt$reply_datetimetz,
   user_name_email = scored_dt$reply_from,
@@ -319,7 +322,7 @@ engagement_sentiment_dt <- engagement_sentiment(
 ```
 
 ```{r}
-engagement_sentiment_dt %>%
+head(engagement_sentiment_dt,3) %>%
   gt(auto_align = FALSE)
 ```
 
