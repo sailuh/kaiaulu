@@ -49,6 +49,7 @@ repo <- get_github_repo(conf, "project_key_1") # Has to match github repository 
 save_path_issue_or_pr_comments <- path.expand(get_github_issue_or_pr_comment_path(conf, "project_key_1"))
 save_path_issue_event <- get_github_issue_event_path(conf, "project_key_1")
 save_path_commit <- get_github_commit_path(conf, "project_key_1")
+save_path_commit_comments <- get_github_commit_comment_path(conf, "project_key_1")
 
 # your file github_token contains the GitHub token API obtained in the steps above
 token <- scan("~/.ssh/github_token",what="character",quiet=TRUE)
@@ -76,6 +77,16 @@ gh_response <- github_api_project_commits(owner,repo,token)
 github_api_iterate_pages(token,gh_response,save_path_commit,prefix="commit")
 ```
 
+## Commit Comments
+
+Next we download repository commit comments from GitHub API. These comments are posted directly on commit pages and can be joined by `comment_id` for sentiment analysis.
+
+```{r Collect all project commit comments, eval = FALSE}
+dir.create(save_path_commit_comments, recursive = TRUE, showWarnings = FALSE)
+gh_response <- github_api_project_commit_comments(owner,repo,token)
+github_api_iterate_pages(token,gh_response,save_path_commit_comments,prefix="commit_comments")
+```
+
 # Parsing Raw Data to Csv
 
 To parse raw data, we use the associated endpoint parser functions. Keep in mind these functions only parse a subset of all the information in the json ("column wise"). Please consult with the GitHub API or inspect the raw data directly to see all information which is available.
@@ -95,6 +106,19 @@ all_commit <- rbindlist(all_commit,fill=TRUE)
 all_commit[,commit_message:=NULL] # removing column just to prevent html rendering error
 
 kable(head(all_commit))
+```
+
+```{r}
+all_commit_comments <- lapply(list.files(save_path_commit_comments,full.names = TRUE),read_json)
+all_commit_comments <- lapply(all_commit_comments,github_parse_project_commit_comments)
+all_commit_comments <- rbindlist(all_commit_comments,fill=TRUE)
+
+kable(head(all_commit_comments))
+
+# Save the data table for commit comments as a CSV
+out_csv <- file.path(dirname(save_path_commit_comments), paste0(owner, "_", repo, "_commit_comments.csv"))
+data.table::fwrite(all_commit_comments, out_csv)
+cat("Saved:", out_csv, "\n")
 ```
 
 # Obtaining Issue Assignments from Non-Committers

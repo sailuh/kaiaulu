@@ -3,6 +3,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ *  `github_api_project_commit_comments()` and `github_parse_project_commit_comments()` has been added to `github.R`. This downloads and parses Github commit comments. `get_github_commit_comment_path()` has been added to `config.R`. This returns the local folder path for GitHub commit comments. [#378](https://github.com/sailuh/kaiaulu/issues/378)
  *  A new capability to export events for process mining has been added. [#301](https://github.com/sailuh/kaiaulu/issues/301)
  * `exec/ghevents.R` has been added. It is a executable CLI (command-line interface) to download and parse Github Issue Events from outside Kaiaulu.
  * All GitHub Pull Request Comments are able to be downloaded in the Pull Request Comments notebook. [342](https://github.com/sailuh/kaiaulu/issues/342)
