@@ -194,7 +194,9 @@ visIgraph(gcid,randomSeed = 1)
 
 ```{r}
 
-project_git_slice <- project_git[author_datetimetz >= as.POSIXct("2015-01-01", format = "%Y-%m-%d",tz = "UTC") & author_datetimetz < as.POSIXct("2019-12-31", format = "%Y-%m-%d",tz = "UTC")]
+#project_git_slice <- project_git[author_datetimetz >= as.POSIXct("2015-01-01", format = "%Y-%m-%d",tz = "UTC") & author_datetimetz < as.POSIXct("2019-12-31", format = "%Y-%m-%d",tz = "UTC")]
+
+project_git_slice <- project_git[author_datetimetz >= as.POSIXct("1999-01-01", format = "%Y-%m-%d",tz = "UTC") & author_datetimetz < as.POSIXct("2000-12-31", format = "%Y-%m-%d",tz = "UTC")]
 
 project_commit_network <- transform_gitlog_to_bipartite_network(project_git_slice,
                                                                 mode="commit-file")
