@@ -730,7 +730,7 @@ example_mbox_malformed_date <- function(folder_path, folder_name, file_name) {
 }
 #' Mbox Missing Subject Body
 #'
-#' Create a mailing list of one email thread with two recipeients being replied
+#' Create a mailing list of one email thread with two recipients being replied
 #' to.
 #'
 #' @param folder_path The folder path to create the example
@@ -747,7 +747,7 @@ example_mbox_two_recipients <- function(folder_path, folder_name, file_name) {
   # Step 1: Create fake mbox replies and assign them to variables for easy editing
   thread_1_reply_1 <- make_mbox_reply(mailing_list="test-list",
                                       reply_from_author = "John Doe", reply_from_email = "johndoe@example.com",
-                                      reply_to_author = c("Dev 1", "Dev 2"), reply_to_email = c("dev1@test-list.com", "dev1@test-list.com"),
+                                      reply_to_author = c("Dev 1", "Dev 2"), reply_to_email = c("dev1@test-list.com", "dev2@test-list.com"),
                                       reply_cc_author = "Smithsonian Doe", reply_cc_email = "smith_doe@example.com",
                                       reply_datetime = "2023-01-15T08:30:00", timezone = "EST",
                                       reply_subject = "Subject 1",
