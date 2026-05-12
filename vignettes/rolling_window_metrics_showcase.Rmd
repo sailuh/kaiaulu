@@ -31,6 +31,7 @@ require(knitr)
 require(magrittr)
 require(jsonlite)
 require(ggplot2)
+require(gt)
 ```
 
 # Project Configuration File
@@ -76,6 +77,8 @@ git_branch <- get_git_branches(conf)[1]
 # Filters
 file_extensions <- get_file_extensions(conf)
 substring_filepath <- get_substring_filepath(conf)
+
+lag <- 30 
 ```
 
 This is all the project configuration files are used for. If you inspect the variables above, you will see they are just strings. As a reminder, the `tools.yml` is where you store the file paths to third party software on your computer. Please see Kaiaulu's `README.md` for details. As a rule of thumb, any R Notebooks in Kaiaulu load the project configuration file at the start, much like you would normally initialize variables at the start of your source code.
@@ -106,15 +109,12 @@ all_issue_or_pr_comments[, created_at := as.POSIXct(created_at, tz = "UTC")]
 ```
 
 ```{r}
-kable(head(all_issue_or_pr_comments))
+head(all_issue_or_pr_comments)  %>%
+  gt(auto_align = FALSE) 
 ```
 
 ## Obtaining the Output Table
 Here, we will define the rolling window as 90 days (around 3 months), which is the default value for the `lag` parameter in the `engagement_communication()` function. If you want to change the value of lag, you can do so by passing a different value in the function call. The output table will contain the number of messages sent by each developer in the past 90 days at each point in time, which is one way to measure their engagement with a project. Note that the `engagement_communication()` function can be used with any type of communication data, such as issue comments or pull request comments.
-
-```{r}
-lag = 90
-```
 
 ```{r}
 engagement_communication_output <- engagement_communication(
@@ -125,7 +125,8 @@ engagement_communication_output <- engagement_communication(
 ``` 
 
 ```{r}
-kable(head(engagement_communication_output))
+head(engagement_communication_output)  %>%
+  gt(auto_align = FALSE) 
 ```
 
 ## Visualizing the Output Tables as a Time Series
@@ -179,18 +180,19 @@ project_git$author_datetimetz <- as.POSIXct(
 Now, we can obtain the output tables from `productivity_author_commits()` and `productivity_author_churn()`. We will save them to a variable called `productivity_author_commits_output` and `productivity_author_churn_output` respectively and keep the default value of lag to be 90 days (around 3 months) to define the rolling window. If you want to change the value of lag, you can do so by passing a different value in the function call. For example, if you want to use a 120-day (around 4 months) rolling window, you can set `lag = 120` in the function call.
 
 ```{r}
-lag = 90
-```
-
-```{r}
 productivity_author_commits_output <- productivity_author_commits(project_git, lag = lag)
 productivity_author_churn_output <- productivity_author_churn(project_git, lag = lag)
 ```
 
 We'll show the head of the output tables for the two functions below.
 ```{r}
-kable(head(productivity_author_commits_output))
-kable(head(productivity_author_churn_output))
+head(productivity_author_commits_output)  %>%
+  gt(auto_align = FALSE) 
+```
+
+```{r}
+head(productivity_author_churn_output)  %>%
+  gt(auto_align = FALSE) 
 ```
 
 ## Visualizing the Output Tables as a Time Series
