@@ -108,9 +108,7 @@ example_nested_folder_case <- function(folder_path, folder_name, subfolder_name)
 
   # Add & commit
   git_add(git_repo, folder_path, file_path)
-  git_commit(
-    git_repo,
-    folder_path, "Add subfolder with file", "John Doe", "JohnDoe@test.com")
+  git_commit(git_repo, folder_path, "Add subfolder with file", "John Doe", "JohnDoe@test.com")
 
   return(folder_path)
 }
