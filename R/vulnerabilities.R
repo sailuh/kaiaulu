@@ -53,36 +53,32 @@ parse_nvdfeed <- function(nvdfeed_folder_path){
 #' @export
 #' @family edgelists
 transform_cve_cwe_file_to_network <- function(project_cve,nvd_feed){
-  commit_message_id <- cwe_id <- name <- color <- src <- dest <- weight <- NULL # due to NSE notes in R CMD check
+  cwe_id <- from <- name <- color <- NULL # due to NSE notes in R CMD check
 
-  cve_nodes <- project_cve[["nodes"]]
+  cve_nodes    <- project_cve[["nodes"]]
   cve_edgelist <- project_cve[["edgelist"]]
   # Find the edges from CVE ids to CWE ids
   cwe_edgelist <- merge(
     cve_edgelist,
     nvd_feed,
-    by.x="from",
+    by.x = "from",
     by.y = "cve_id",
-    all.x = TRUE)[,.(from,cwe_id)]
+    all.x = TRUE)[, .(from, cwe_id)]
   # Edges from CVE ids without a matching CWE should be removed
   cwe_edgelist <- cwe_edgelist[!is.na(cwe_id)]
   # Add all new CWE IDs to the list of nodes with a different color
   # Type is dropped, as graph viz tools can't distinguish between 3 types of nodes
-  cve_nodes <- cve_nodes[,.(name,color)]
-  cwe_nodes <- data.table(name=unique(cwe_edgelist$cwe_id),
-                          color="#D44942")
-  # Set Union Nodes
-  cve_cwe_file_nodes <- rbind(cve_nodes,cwe_nodes)
-  # Network will be 3 modal, rename columns to avoid confusion
-  colnames(cve_edgelist) <- c("src","dest","weight")
-  colnames(cwe_edgelist) <- c("src","dest")
-  # For each cve id, only 1 edge is added, hence weight is always 1
-  cwe_edgelist$weight <- rep(1,nrow(cwe_edgelist))
-  # Set union the cve and cwe edgelists
-  cve_cwe_file_edgelist <- rbind(cve_edgelist,cwe_edgelist)
-  # Return the set union as nodes and edgelist.
-  cve_cwe_file_network <- list()
-  cve_cwe_file_network[["nodes"]] <- cve_cwe_file_nodes
-  cve_cwe_file_network[["edgelist"]] <- cve_cwe_file_edgelist
-  return(cve_cwe_file_network)
+  cve_nodes <- cve_nodes[, .(name, color)]
+  cwe_nodes <- data.table(name = unique(cwe_edgelist$cwe_id), color = "#D44942")
+  # Set union nodes
+  cve_cwe_file_nodes <- rbind(cve_nodes, cwe_nodes)
+  # Rename cwe_id to to and add weight for the cwe edgelist
+  setnames(cwe_edgelist, "cwe_id", "to")
+  cwe_edgelist[, weight := 1L]
+  cwe_edgelist[, direction := "directed"]
+  # Set union edgelists
+  cve_cwe_file_edgelist <- rbind(cve_edgelist, cwe_edgelist)
+  cve_cwe_file_edgelist[, direction := "directed"]
+  cve_cwe_graph <- model_unimodal_graph(cve_cwe_file_nodes, cve_cwe_file_edgelist, direction = "directed")
+  return(cve_cwe_graph)
 }

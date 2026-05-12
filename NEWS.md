@@ -3,6 +3,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ * Transform functions now produce standardized S3 graph objects via `model_unimodal_graph()` and `model_multimodal_graph()`, encoding directionality, weight, and bipartiteness in the object class. S3 generic functions — including `graph_to_dsmj()`, `community_oslom()`, and `bipartite_graph_projection()` — dispatch to the correct method automatically based on graph type, allowing new analyses to be added without modifying existing transforms. Custom numeric values such as sentiment scores can be assigned as edge weights via the `weight` parameter on transform functions such as `transform_reply_to_bipartite_network()`. [#361](https://github.com/sailuh/kaiaulu/issues/361)
  *  A new capability to export events for process mining has been added. [#301](https://github.com/sailuh/kaiaulu/issues/301)
  * `exec/ghevents.R` has been added. It is a executable CLI (command-line interface) to download and parse Github Issue Events from outside Kaiaulu.
  * All GitHub Pull Request Comments are able to be downloaded in the Pull Request Comments notebook. [342](https://github.com/sailuh/kaiaulu/issues/342)

@@ -37,7 +37,9 @@ transform_dependencies_to_sdsmj <- function(project_dependencies, sdsmj_path, is
   setcolorder(project_depends[["edgelist"]], c("from", "to", "weight", "label"))
 
   # This is a directed graph, so no duplication of edges
-  graph_to_dsmj(project_depends, sdsmj_path, dsmj_name="sdsm", is_directed=TRUE, is_sorted)
+  project_depends[["edgelist"]][, direction := "directed"]
+  depends_graph <- model_unimodal_graph(project_depends[["nodes"]], project_depends[["edgelist"]], direction = "directed")
+  graph_to_dsmj(depends_graph, sdsmj_path, dsmj_name="sdsm", is_sorted=is_sorted)
 }
 
 #' Transform parsed git repo into a history dsm.json file.
@@ -69,7 +71,7 @@ transform_gitlog_to_hdsmj <- function(project_git, hdsmj_path, is_sorted=FALSE){
   cochange_table[["edgelist"]][["label"]] <- "Cochange"
 
   # This is an undirected graph, so there is duplication of edges
-  graph_to_dsmj(cochange_table, hdsmj_path, dsmj_name="hdsm", is_directed=FALSE, is_sorted)
+  graph_to_dsmj(cochange_table, hdsmj_path, dsmj_name="hdsm", is_sorted=is_sorted)
 }
 
 #' Transform parsed git repo into an author dsm.json file.
@@ -97,48 +99,9 @@ transform_temporal_gitlog_to_adsmj <- function(project_git, adsmj_path, is_sorte
   author_table[["edgelist"]][["label"]] <- "Collaborate"
 
   # This is a directed graph, so no duplication of edges
-  graph_to_dsmj(author_table, adsmj_path, dsmj_name="adsm", is_directed=TRUE, is_sorted)
+  graph_to_dsmj(author_table, adsmj_path, dsmj_name="adsm", is_sorted=is_sorted)
 }
 
-#' Transform parsed git repo into an edgelist
-#'
-#' @param project_git A parsed git project by \code{\link{parse_gitlog}}.
-#' @param mode The network of interest: author-entity, committer-entity, commit-entity, author-committer
-#' @export
-#' @family edgelists
-transform_gitlog_to_bipartite_network <- function(project_git, mode = c("author-file","committer-file","commit-file",'author-committer')){
-  author_name_email <- author_datetimetz <- commit_hash <- committer_name_email <- committer_datetimetz <- lines_added <- lines_removed <- NULL # due to NSE notes in R CMD check
-  # Check user did not specify a mode that does not exist
-  mode <- match.arg(mode)
-  # Select and rename relevant columns. Key = commit_hash.
-  project_git <- project_git[,.(author=author_name_email,
-                                author_date=author_datetimetz,
-                                commit_hash=commit_hash,
-                                committer=committer_name_email,
-                                committer_date = committer_datetimetz,
-                                file = file_pathname,
-                                added = lines_added,
-                                removed = lines_removed)]
-  if(mode == "author-file"){
-    git_graph <- model_directed_graph(project_git[,.(from=author,to=file)],
-                                      is_bipartite=TRUE,
-                                      color=c("black","#f4dbb5"))
-  }else if(mode == "committer-file"){
-    git_graph <- model_directed_graph(project_git[,.(from=committer,to=file)],
-                                      is_bipartite=TRUE,
-                                      color=c("#bed7be","#f4dbb5"))
-  }else if(mode == "commit-file"){
-    git_graph <- model_directed_graph(project_git[,.(from=commit_hash,to=file)],
-                                      is_bipartite=TRUE,
-                                      color=c("#afe569","#f4dbb5"))
-  }else if(mode == "author-committer"){
-    git_graph <- model_directed_graph(project_git[,.(from=author,to=committer)],
-                                      is_bipartite=TRUE,
-                                      color=c("black","#bed7be"))
-  }
-  return(git_graph)
-
-}
 
 #' Transforms a gitlog table to a historical DSM JSON file.
 #'
@@ -738,21 +701,21 @@ dv8_mdsmb_to_hierclsxb <- function(dv8_path,
                                    modules=FALSE,
                                    recursive=FALSE) {
   dv8_path <- path.expand(dv8_path)
-  output_file_arg <- sprintf("-outputFile %s", hierclsxb_path)
-  max_depth_arg <- ""
-  modules_arg <- ""
-  recursive_arg <- ""
+  hierclsxb_path <- path.expand(hierclsxb_path)
+  max_depth_arg <- c()
+  modules_arg <- c()
+  recursive_arg <- c()
 
-  if (max_depth_arg != "") {
-    max_depth_arg <- sprintf("-maxDepth %i ", max_depth)
+  if (max_depth != "") {
+    max_depth_arg <- c("-maxDepth", max_depth)
   }
 
   if (modules) {
-    modules_arg <- "-modules "
+    modules_arg <- "-modules"
   }
 
   if (recursive) {
-    recursive_arg <- "-recursive "
+    recursive_arg <- "-recursive"
   }
 
   system2(command=dv8_path,
@@ -760,9 +723,9 @@ dv8_mdsmb_to_hierclsxb <- function(dv8_path,
                  max_depth_arg,
                  modules_arg,
                  recursive_arg,
-                 output_file_arg,
+                 "-outputFile", hierclsxb_path,
                  mdsmb_path),
-          stdout=hierclsxb_path)
+          stdout=FALSE)
 
   return(hierclsxb_path)
 }
@@ -897,51 +860,47 @@ parse_dv8_clusters <- function(clsxj_path){
   # Read in the clustering file
   dv8_clusters_json <- jsonlite::read_json(clsxj_path)
 
-  # Get number of cluster layers in the json
-  num_layers <- length(dv8_clusters_json$structure)
-
   # The structure field holds the relevant data
   structure <- dv8_clusters_json[["structure"]]
 
-  # Will hold each row (a list of the current layer, module, and file) for the data table
+  collect_leaves <- function(node) {
+    if (is.null(node$nested) || length(node$nested) == 0) return(node$name)
+    unlist(lapply(node$nested, collect_leaves), use.names = FALSE)
+  }
+
   cluster_list <- list()
 
-  # Iterate through each cluster
-  for (i in 1: num_layers) {
-    # Get the layer number (L0, L1, L2, ...)
-    layer_i <- structure[[i]]$name
+  # Emit (file_path, module, layer) rows at every level of the hierarchy.
+  # Leaf children (authors appearing directly under a layer node rather than
+  # inside a named sub-module) are assigned module "Isolated" at that level.
+  traverse <- function(node) {
+    children <- node$nested
+    if (is.null(children) || length(children) == 0) return()
 
-    # Get the number of modules for the current layer
-    num_modules <- length(structure[[i]]$nested)
+    current_layer <- node$name
 
-    # Iterate through each module
-    for (j in 1: num_modules) {
-      # Get the module number (M0, M1, M2, ...)
-      LM_name <- stringi::stri_split_regex(structure[[i]]$nested[[j]]$name, pattern = "/")
-      module_j <- LM_name[[1]][2]
+    for (child in children) {
+      is_leaf_child <- is.null(child$nested) || length(child$nested) == 0
 
-      # Get number of files for the layer/module pair
-      num_files_per_LM <- length(structure[[i]]$nested[[j]]$nested)
-
-      # Iterate through each file
-      for (k in 1: num_files_per_LM) {
-        # Get the file name
-        filename_k <- structure[[i]]$nested[[j]]$nested[[k]]$name
-
-        # Represents a row in the table with the layer #, module #, and filename
-        row_ijk <- list(filename_k, module_j, layer_i)
-
-        # Append current row (made up of the layer number, module number, & filename) to a list
-        cluster_list <- append(cluster_list, list(row_ijk))
+      if (is_leaf_child) {
+        cluster_list[[length(cluster_list) + 1]] <<- list(child$name, "Isolated", current_layer)
+      } else {
+        parts       <- strsplit(child$name, "/")[[1]]
+        module_name <- parts[length(parts)]
+        for (leaf in collect_leaves(child)) {
+          cluster_list[[length(cluster_list) + 1]] <<- list(leaf, module_name, current_layer)
+        }
+        traverse(child)
       }
     }
   }
 
-  # Create table from list of layer,module,file rows
-  cluster_parsed <- data.table::rbindlist(cluster_list)
+  for (top in structure) {
+    traverse(top)
+  }
 
-  # Rename result columns
+  # Create table from list of layer, module, file rows
+  cluster_parsed <- data.table::rbindlist(cluster_list)
   cluster_parsed <- data.table::setnames(cluster_parsed, c("V1", "V2", "V3"), c("file_path", "module", "layer"))
-  # Return parsed cluster data table
   return(cluster_parsed)
 }

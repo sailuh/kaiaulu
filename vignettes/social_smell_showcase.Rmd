@@ -355,8 +355,7 @@ for(j in 2:size_time_window){
     code_clusters <- community_oslom(oslom_undir_path,
                                      git_network_authors,
                                      seed=seed,
-                                     n_runs = 1000,
-                                     is_weighted = TRUE)
+                                     n_runs = 1000)
     
   }
   if(ml_exist){
@@ -372,8 +371,7 @@ for(j in 2:size_time_window){
     mail_clusters <- community_oslom(oslom_undir_path,
               reply_network_authors,
               seed=seed,
-              n_runs = 1000,
-              is_weighted = TRUE)
+              n_runs = 1000)
       
   }
   # Metrics #

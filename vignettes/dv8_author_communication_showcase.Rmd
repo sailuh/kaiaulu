@@ -1,0 +1,164 @@
+---
+title: "DV8 DR Space Clustering — Author Communication Network"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{DV8 DR Space Clustering — Author Communication Network}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(visNetwork)
+require(data.table)
+require(igraph)
+require(yaml)
+require(stringi)
+require(gt)
+```
+
+# Introduction
+
+This notebook demonstrates the first end-to-end pipeline from raw mailing list data to DV8 DR Space clustering applied to an author communication network in Kaiaulu. Prior use of DV8 in Kaiaulu focused on source code dependency structure. Here, the same clustering infrastructure is applied to a social network of developers derived from mbox data.
+
+DR Space (Dependency and Ratio Space) is a hierarchical clustering algorithm implemented in DV8. It groups nodes based on the density and balance of their connections. In a code dependency context, this identifies architectural modules. Applied to an author communication network, it identifies cohesive communication clusters among developers.
+
+The pipeline proceeds as follows:
+
+1. Parse git issue comments into a reply table
+2. Parse mbox files into a reply table
+3. Build a bipartite author-subject network
+4. Project to a unimodal author-author network
+5. Export as a DV8 DSM JSON file
+6. Convert to DV8 binary format
+7. Run DR Space hierarchical clustering
+8. Parse and inspect the resulting cluster assignments
+
+# Project Configuration File
+
+```{r}
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/kaiaulu.yml")
+
+dv8_path      <- get_tool_project("dv8", tool)
+
+github_issue_path          <- get_github_issue_path(conf, "project_key_1")
+github_pull_request_path   <- get_github_pull_request_path(conf, "project_key_1")
+github_reply_path          <- get_github_issue_or_pr_comment_path(conf, "project_key_1")
+github_commit_path         <- get_github_commit_path(conf, "project_key_1")
+github_pr_comments_path    <- get_github_pr_comments_path(conf, "project_key_1")
+
+# DV8 parameters
+project_path <- get_dv8_folder_path(conf)
+project_name <- stringi::stri_split_regex(project_path, pattern = "/")[[1]]
+project_name <- project_name[length(project_name)-1]
+```
+
+# Parse GitHub Replies
+
+Parse all GitHub issues, pull requests, and comments into a single reply table.
+
+```{r}
+project_github_replies <- parse_github_replies(
+  issues_json_folder_path        = github_issue_path,
+  pull_requests_json_folder_path = github_pull_request_path,
+  comments_json_folder_path      = github_reply_path,
+  commit_json_folder_path        = github_commit_path,
+  pr_comments_json_folder_path   = github_pr_comments_path
+)
+nrow(project_github_replies)
+head(project_github_replies[, .(reply_from, reply_subject)]) %>%
+  gt(auto_align = FALSE)
+```
+
+# Build Author-Subject Bipartite Graph
+
+Transform the reply table into a bipartite graph where one node type represents authors and the other represents issue/PR threads.
+
+```{r}
+bipartite_graph <- transform_reply_to_bipartite_network(project_github_replies)
+head(bipartite_graph[["nodes"]]) %>%
+  gt(auto_align = FALSE)
+head(bipartite_graph[["edgelist"]]) %>%
+  gt(auto_align = FALSE)
+```
+
+# Project to Author-Author Unimodal Graph
+
+Project the bipartite graph onto the author node type to obtain a unimodal author-author co-communication network. An edge between two authors indicates they participated in the same thread.
+
+```{r}
+author_graph <- bipartite_graph_projection(bipartite_graph, mode = TRUE,
+                                           weight_scheme_function = weight_scheme_sum_edges)
+head(author_graph[["nodes"]]) %>%
+  gt(auto_align = FALSE)
+head(author_graph[["edgelist"]]) %>%
+  gt(auto_align = FALSE)
+```
+
+## Visualize Author-Author Network
+
+```{r fig.width=10, fig.height=7}
+author_edges <- author_graph[["edgelist"]][, .(from, to, weight)]
+is_directed  <- any(author_graph[["edgelist"]][["direction"]] == "directed")
+i_author_graph <- igraph::graph_from_data_frame(
+  d        = author_edges,
+  directed = FALSE,
+  vertices = author_graph[["nodes"]]
+)
+visIgraph(i_author_graph, randomSeed = seed)
+```
+
+# Export DSM and Convert to DV8 Binary
+
+Export the author-author graph as a DSM JSON file and convert it to the DV8 binary format required for clustering.
+
+```{r}
+dir.create(project_path, showWarnings = FALSE, recursive = TRUE)
+
+adsmj_path <- file.path(project_path, paste0(project_name, "-adsm.json"))
+graph_to_dsmj(author_graph, dsmj_path = adsmj_path, dsmj_name = paste0(project_name, "-adsm"))
+
+adsmb_path <- file.path(project_path, paste0(project_name, "-adsm.dv8-dsm"))
+dv8_dsmj_to_dsmb(dv8_path = dv8_path, dsmj_path = adsmj_path, dsmb_path = adsmb_path)
+```
+
+# Run DR Space Hierarchical Clustering
+
+Run DV8's DR Space hierarchical clustering on the author-author DSM binary.
+
+```{r}
+clsx_path <- file.path(project_path, paste0(project_name, "-clsx.dv8-clsx"))
+dv8_mdsmb_to_hierclsxb(dv8_path = dv8_path, mdsmb_path = adsmb_path, hierclsxb_path = clsx_path,
+                        recursive = TRUE)
+```
+
+# Parse Cluster Assignments
+
+Convert the binary cluster file to JSON and parse the cluster assignments into a data table.
+
+```{r}
+clsxj_path <- file.path(project_path, paste0(project_name,"-clsxj.json"))
+dv8_clsxb_to_clsxj(dv8_path = dv8_path, clsxb_path = clsx_path, clsxj_path = clsxj_path)
+
+cluster_table <- parse_dv8_clusters(clsxj_path)
+top_cluster_table <- cluster_table[!grepl("/", layer)]
+head(top_cluster_table) %>%
+  gt(auto_align = FALSE)
+```
+
+## Module Summary
+
+```{r}
+top_cluster_table[, .N, by = module][order(module == "Isolated", module)] %>%
+  gt(auto_align = FALSE)
+```

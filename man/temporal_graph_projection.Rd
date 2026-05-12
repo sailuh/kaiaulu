@@ -2,22 +2,46 @@
 % Please edit documentation in R/graph.R
 \name{temporal_graph_projection}
 \alias{temporal_graph_projection}
-\title{Apply a temporal graph projection}
+\alias{temporal_graph_projection.multimodal}
+\alias{temporal_graph_projection.is_bipartite}
+\title{Apply a temporal graph projection (S3 generic)}
 \usage{
 temporal_graph_projection(
   graph,
   mode,
   weight_scheme_function = NULL,
   timestamp_column,
-  lag = c("one_lag", "all_lag")
+  edge_type = NULL,
+  lag = c("one_lag", "all_lag"),
+  ...
+)
+
+\method{temporal_graph_projection}{multimodal}(
+  graph,
+  mode,
+  weight_scheme_function = NULL,
+  timestamp_column,
+  edge_type = NULL,
+  lag = c("one_lag", "all_lag"),
+  ...
+)
+
+\method{temporal_graph_projection}{is_bipartite}(
+  graph,
+  mode,
+  weight_scheme_function = NULL,
+  timestamp_column,
+  edge_type = NULL,
+  lag = c("one_lag", "all_lag"),
+  ...
 )
 }
 \arguments{
-\item{graph}{A bipartite network (the same pair of nodes can have multiple edges)}
+\item{graph}{A bipartite graph returned by \code{\link{model_multimodal_graph}}.}
 
-\item{mode}{Which of the two nodes the projection should be applied to. TRUE or FALSE}
+\item{mode}{Which of the two node types to project onto. TRUE or FALSE.}
 
-\item{weight_scheme_function}{When not specified, bipartite_graph_projection will return an intermediate
+\item{weight_scheme_function}{When not specified, temporal_graph_projection will return an intermediate
 projection table specifying the deleted node, from_projection, to_projection, from_weight, and to_weight.
 This table also contains (N choose 2) rows for every "deleted_node" in the original graph.
 When receiving as parameter \code{\link{weight_scheme_sum_edges}} or
@@ -25,13 +49,18 @@ When receiving as parameter \code{\link{weight_scheme_sum_edges}} or
 
 \item{timestamp_column}{a string containing the name of the timestamp variable}
 
+\item{edge_type}{For multimodal graphs only: a string specifying which edge type to slice before projecting. Ignored for bipartite graphs.}
+
 \item{lag}{a string specifying either "one_lag" or "all_lag".}
+
+\item{...}{Additional arguments passed to the method.}
 }
 \value{
-A graph projection.
+A unimodal graph projection.
 }
 \description{
-Apply a temporal graph projection
+A generic temporal projection function that dispatches to the appropriate
+method based on the class of the graph passed in.
 }
 \references{
 M. Joblin, W. Mauerer, S. Apel,

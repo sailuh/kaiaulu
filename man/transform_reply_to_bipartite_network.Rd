@@ -4,10 +4,20 @@
 \alias{transform_reply_to_bipartite_network}
 \title{Transform parsed mbox or parsed jira replies into a network}
 \usage{
-transform_reply_to_bipartite_network(project_reply)
+transform_reply_to_bipartite_network(
+  project_reply,
+  weight = NULL,
+  weight_agg = mean
+)
 }
 \arguments{
 \item{project_reply}{A parsed mbox by \code{\link{parse_mbox}} or \code{\link{parse_jira_replies}}.}
+
+\item{weight}{A string naming a numeric column in \code{project_reply} to use as the edge
+weight. When \code{NULL} (default), edges are weighted by message count.}
+
+\item{weight_agg}{A function to aggregate the weight column across multiple messages
+sharing the same \code{from}/\code{to} pair. Defaults to \code{mean}.}
 }
 \description{
 Transform parsed mbox or parsed jira replies into a network
@@ -22,6 +32,7 @@ Other edgelists:
 \code{\link{transform_gitlog_to_entity_bipartite_network}()},
 \code{\link{transform_gitlog_to_entity_temporal_network}()},
 \code{\link{transform_gitlog_to_hdsmj}()},
+\code{\link{transform_gitlog_to_multimodal_network}()},
 \code{\link{transform_gitlog_to_temporal_network}()},
 \code{\link{transform_temporal_gitlog_to_adsmj}()},
 \code{\link{transform_understand_dependencies_to_network}()}
