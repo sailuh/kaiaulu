@@ -505,7 +505,7 @@ example_jira_missing_key <- function(folder_path, folder_name) {
   issues <- list(issue1)
 
   jira_json_path <- make_jira_issue_tracker(issues,
-                                            save_filepath=file.path(folder_path, "ONE_ISSUE_NO_COMMMENTS_issues_1121646814_1121719175.json"))
+                                            save_filepath=file.path(folder_path, "ONE_ISSUE_NO_COMMENTS_issues_1121646814_1121719175.json"))
 
   return(folder_path)
 }
@@ -546,7 +546,7 @@ example_jira_escape_character <- function(folder_path, folder_name) {
   issues <- list(issue1)
 
   jira_json_path <- make_jira_issue_tracker(issues,
-                                            save_filepath=file.path(folder_path, "ONE_ISSUE_NO_COMMMENTS_issues_1121646814_1121719175.json"))
+                                            save_filepath=file.path(folder_path, "ONE_ISSUE_NO_COMMENTS_issues_1121646814_1121719175.json"))
 
   return(folder_path)
 }
@@ -587,7 +587,7 @@ example_jira_empty_assignee <- function(folder_path, folder_name) {
   issues <- list(issue1)
 
   jira_json_path <- make_jira_issue_tracker(issues,
-                                            save_filepath=file.path(folder_path, "ONE_ISSUE_NO_COMMMENTS_issues_1121646814_1121719175.json"))
+                                            save_filepath=file.path(folder_path, "ONE_ISSUE_NO_COMMENTS_issues_1121646814_1121719175.json"))
 
   return(folder_path)
 }
@@ -629,7 +629,7 @@ example_jira_unicode_characters <- function(folder_path, folder_name) {
   issues <- list(issue1)
 
   jira_json_path <- make_jira_issue_tracker(issues,
-                                            save_filepath=file.path(folder_path, "ONE_ISSUE_NO_COMMMENTS_issues_1121646814_1121719175.json"))
+                                            save_filepath=file.path(folder_path, "ONE_ISSUE_NO_COMMENTS_issues_1121646814_1121719175.json"))
 
   return(folder_path)
 }
