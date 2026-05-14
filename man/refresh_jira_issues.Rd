@@ -60,15 +60,15 @@ data.
 
 \code{\link{parse_jira_latest_date}} to retrieve the file path of the latest issue key
 
-Other downloaders: 
-\code{\link{download_jira_issues_by_date}()},
-\code{\link{download_jira_issues_by_issue_key}()},
-\code{\link{download_jira_issues}()}
+Other downloaders:
+\code{\link[=download_jira_issues]{download_jira_issues()}},
+\code{\link[=download_jira_issues_by_date]{download_jira_issues_by_date()}},
+\code{\link[=download_jira_issues_by_issue_key]{download_jira_issues_by_issue_key()}}
 
-Other jira: 
-\code{\link{download_jira_issues_by_date}()},
-\code{\link{download_jira_issues_by_issue_key}()},
-\code{\link{download_jira_issues}()}
+Other jira:
+\code{\link[=download_jira_issues]{download_jira_issues()}},
+\code{\link[=download_jira_issues_by_date]{download_jira_issues_by_date()}},
+\code{\link[=download_jira_issues_by_issue_key]{download_jira_issues_by_issue_key()}}
 }
 \concept{downloaders}
 \concept{jira}

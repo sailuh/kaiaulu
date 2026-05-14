@@ -25,10 +25,10 @@ in IEEE Transactions on Software Engineering, vol. 48, no. 8, pp. 3159-3184,
 1 Aug. 2022, doi: 10.1109/TSE.2021.3082074.
 }
 \seealso{
-Other motif: 
-\code{\link{motif_factory_anti_square}()},
-\code{\link{motif_factory_anti_triangle}()},
-\code{\link{motif_factory_triangle}()},
-\code{\link{motif_factory}()}
+Other motif:
+\code{\link[=motif_factory]{motif_factory()}},
+\code{\link[=motif_factory_anti_square]{motif_factory_anti_square()}},
+\code{\link[=motif_factory_anti_triangle]{motif_factory_anti_triangle()}},
+\code{\link[=motif_factory_triangle]{motif_factory_triangle()}}
 }
 \concept{motif}

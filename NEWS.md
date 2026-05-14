@@ -3,6 +3,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
+ * Add new metric functions that measure developer engagement: `engagement_communication()`, `productivity_author_churn()`, and `productivity_author_commits()`. A corresponding notebook titled `rolling_window_metrics_showcase.Rmd` was also added. [#402](https://github.com/sailuh/kaiaulu/issues/402)
  *  A new capability to export events for process mining has been added. [#301](https://github.com/sailuh/kaiaulu/issues/301)
  * `exec/ghevents.R` has been added. It is a executable CLI (command-line interface) to download and parse Github Issue Events from outside Kaiaulu.
  * All GitHub Pull Request Comments are able to be downloaded in the Pull Request Comments notebook. [342](https://github.com/sailuh/kaiaulu/issues/342)
