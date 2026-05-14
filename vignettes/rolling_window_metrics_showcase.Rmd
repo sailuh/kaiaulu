@@ -264,6 +264,9 @@ plot_long <- rbindlist(list(
   plot_dt[, .(author_datetimetz, metric = "Churn", value = author_churn, panel = "Churn")]
 ))
 
+# Return only rows with complete cases i.e. no missing values for plotting
+plot_long <- plot_long[complete.cases(plot_long)]
+
 ggplot(plot_long, aes(x = author_datetimetz, y = value, color = metric)) +
   geom_point(alpha = 0.7) +
   geom_line() +
