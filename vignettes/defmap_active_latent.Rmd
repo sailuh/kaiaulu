@@ -1,0 +1,85 @@
+---
+title: "Lift — Defmap Model from Apache Helix"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Defmap Active Latent}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE, message=FALSE}
+require(kaiaulu); require(data.table); require(stringi)
+require(knitr); require(yaml); require(magrittr)
+# Helpers (myths_*.R) loaded with library(kaiaulu).
+```
+
+# Introduction
+
+The `defmap` model (Abdel-Hamid & Madnick 1991 defect submodel) tracks
+Injected / Caught / Latent / Prod stocks. `ctrl` is `tst` (testing
+intensity). Thesis: `tst` 2.5 → 0.5 increases operational defects.
+
+This notebook lifts the model's defect-flow stocks across Helix
+release-tag phases. Each phase = (tag_i, tag_{i+1}].
+
+# Project Configuration
+
+```{r}
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/helix.yml")
+git_repo_path <- get_git_repo_path(conf)
+perceval_path <- get_tool_project("perceval", tool)
+```
+
+# Parse Git Log + SZZ
+
+```{r}
+project_git <- parse_gitlog(perceval_path, git_repo_path) %>%
+  filter_by_file_extension(get_file_extensions(conf), "file_pathname") %>%
+  filter_by_filepath_substring(get_substring_filepath(conf), "file_pathname")
+project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
+                                            format = "%a %b %d %H:%M:%S %Y %z",
+                                            tz = "UTC")
+szz <- parse_szz_bugfixes("../data/helix/derived/szz_pairs.csv")
+```
+
+# Release-Tag Phase Boundaries
+
+```{r}
+tag_dates <- get_tag_dates(git_repo_path)
+kable(head(tag_dates, 20))
+nrow(tag_dates)
+```
+
+# Per-Phase Defect Flow
+
+```{r}
+phases <- compute_per_phase_defects(szz, project_git, tag_dates)
+kable(phases)
+summary(phases$tst_proxy)
+```
+
+# Outputs
+
+```{r}
+dir.create("../outputs", showWarnings = FALSE)
+out <- data.table(project       = "helix",
+                  tst_median    = median(phases$tst_proxy, na.rm = TRUE),
+                  tst_mean      = mean(phases$tst_proxy,   na.rm = TRUE),
+                  total_inject  = sum(phases$injected,  na.rm = TRUE),
+                  total_caught  = sum(phases$caught,    na.rm = TRUE),
+                  total_leaked  = sum(phases$leaked,    na.rm = TRUE),
+                  n_phases      = nrow(phases),
+                  seed          = seed)
+fwrite(out, "../outputs/lift_defmap_helix.csv")
+kable(out)
+```

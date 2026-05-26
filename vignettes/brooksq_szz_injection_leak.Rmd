@@ -1,0 +1,193 @@
+---
+title: "Lift — Brooksq Model from Apache Helix"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Brooksq Szz Injection Leak}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE, message=FALSE}
+require(kaiaulu)
+require(data.table)
+require(stringi)
+require(knitr)
+require(yaml)
+require(magrittr)
+# Helpers (myths_*.R) loaded with library(kaiaulu).
+```
+
+# Introduction
+
+The `brooksq` model extends Brooks with quality tracking: a late-hire
+boost slows veteran velocity AND raises the bug injection rate, so
+quality-adjusted progress `y = Done - 5*Esc` is hurt twice over. The
+sd.py model declares `boost` as its `ctrl` variable; the thesis says
+y drops when boost increases.
+
+This notebook lifts the quality side of `brooksq` from Apache Helix
+using B-SZZ output (PyDriller). The Brooks side (`brooks_tax`) is
+reused from `lift_brooks.Rmd`.
+
+Calibration outputs:
+
+| sd.py param   | source                                           |
+|---------------|--------------------------------------------------|
+| `brooks_tax`  | veteran velocity drop in post-hire window        |
+| `inj_rate`    | bug-introducing commits per day, pre-hire window |
+| `inj_rate'`   | same, post-hire — the boost-driven increase      |
+| `leak_rate`   | fraction of bugs unfixed past a latency threshold|
+
+# Project Configuration
+
+```{r}
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/helix.yml")
+
+perceval_path <- get_tool_project("perceval", tool)
+git_repo_path <- get_git_repo_path(conf)
+
+file_extensions    <- get_file_extensions(conf)
+substring_filepath <- get_substring_filepath(conf)
+```
+
+# Parse Git Log
+
+```{r}
+project_git <- parse_gitlog(perceval_path, git_repo_path)
+
+project_git <- project_git %>%
+  filter_by_file_extension(file_extensions, "file_pathname") %>%
+  filter_by_filepath_substring(substring_filepath, "file_pathname")
+
+project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
+                                            format = "%a %b %d %H:%M:%S %Y %z",
+                                            tz = "UTC")
+```
+
+# Identity Resolution
+
+```{r}
+project_log <- list(git_log = project_git)
+name_column <- c("author_name_email")
+project_log <- identity_match(project_log,
+                              name_column,
+                              assign_identity_function = assign_exact_identity,
+                              use_name_only = FALSE,
+                              label = "identity_id")
+project_git <- project_log$git_log
+```
+
+# Parse SZZ Bug-Fix Pairs
+
+The SZZ pairs are produced by an external PyDriller pass; the script
+lives at `../scripts/szz_helix.py` and the CSV at
+`../data/helix/derived/szz_pairs.csv`. Re-run that script whenever the
+git repo is refreshed.
+
+```{r}
+szz <- parse_szz_bugfixes("../data/helix/derived/szz_pairs.csv")
+
+nrow(szz)
+length(unique(szz$fixing_commit_hash))
+length(unique(szz$introducing_commit_hash))
+```
+
+# Detect Late-Hire Events
+
+```{r}
+late_hires <- detect_late_hires(project_git,
+                                min_project_age_days = 365)
+kable(head(late_hires, 20))
+```
+
+# Brooks Side — Veteran Velocity Drop
+
+```{r}
+window_days <- 90
+
+velocity_changes <- compute_velocity_changes(project_git,
+                                             late_hires,
+                                             window_days = window_days)
+velocity_changes[, brooks_tax := (pre_velocity - post_velocity) / pre_velocity]
+
+summary(velocity_changes$brooks_tax)
+```
+
+# Quality Side — Bug Injection Around Each Hire
+
+For each late hire, count bug-introducing commits in the pre- and
+post-hire windows. A positive `inj_rate_increase` confirms brooksq's
+quality thesis: hires don't just slow veterans, they introduce bugs.
+
+```{r}
+injection_changes <- compute_injection_changes(szz,
+                                               late_hires,
+                                               window_days = window_days)
+injection_changes[, inj_rate_increase := inj_rate_post - inj_rate_pre]
+
+kable(head(injection_changes, 20))
+summary(injection_changes$inj_rate_increase)
+```
+
+# Leak Rate
+
+Fraction of bug-introducing commits whose fix takes longer than
+`latency_days`. Higher = more bugs leak past the immediate-review
+window into `Esc`.
+
+```{r}
+latency_days <- 30
+leak_rate    <- estimate_leak_rate(szz, latency_days = latency_days)
+leak_rate
+```
+
+# Sanity Checks
+
+Carlos's two-part check:
+
+**(1) Bug-count dependency**: this lift DOES depend on bug attribution.
+We use the JIRA-key-in-commit-message heuristic to identify bug-fix
+commits (see `scripts/szz_helix.py`). Datasets without JIRA keys in
+commit messages — pure-GitHub-issue projects — would need a different
+seed mechanism (e.g. linked PR closes).
+
+**(2) Identity bridging**: the brooksq lift uses identity_match on
+git only. SZZ pairs are joined on `commit_hash`, not on developer.
+GitHub would still need an extra alias source if we extended this
+to author-attributed injection rates.
+
+# Outputs for the SD Framework
+
+```{r}
+out <- data.table(
+  project           = "helix",
+  brooks_tax_median = median(velocity_changes$brooks_tax,        na.rm = TRUE),
+  inj_rate_pre_med  = median(injection_changes$inj_rate_pre,     na.rm = TRUE),
+  inj_rate_post_med = median(injection_changes$inj_rate_post,    na.rm = TRUE),
+  inj_rate_increase = median(injection_changes$inj_rate_increase,na.rm = TRUE),
+  leak_rate         = leak_rate,
+  n_hires           = nrow(velocity_changes),
+  n_szz_pairs       = nrow(szz),
+  window_days       = window_days,
+  latency_days      = latency_days,
+  seed              = seed
+)
+fwrite(out, "../outputs/lift_brooksq_helix.csv")
+kable(out)
+```
+
+Verdict interpretation: brooksq's thesis is supported if both
+`brooks_tax_median > 0` AND `inj_rate_increase > 0`. Falsified if
+either is at-or-below zero. Pass these calibrated values to
+`sd.opt(brooksq, ...)` and re-run `verdict()` to obtain the y0 vs y1
+margin on the calibrated model.

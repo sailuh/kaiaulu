@@ -1,0 +1,62 @@
+# -*- yaml -*-
+# https://github.com/sailuh/kaiaulu
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved. This file is offered as-is,
+# without any warranty.
+
+# Apache Airflow Project Configuration File
+#
+# Airflow moved its issue tracking from JIRA to GitHub Issues in 2021.
+# Pre-2021 issues live on issues.apache.org/jira; post-2021 issues live
+# on github.com/apache/airflow/issues. Configuration below targets the
+# GitHub side (the active surface as of 2026). To reproduce historical
+# JIRA-era analysis, uncomment the jira block and point it at a local
+# JIRA dump.
+
+project:
+  website: https://airflow.apache.org
+  openhub: https://www.openhub.net/p/apacheairflow
+
+version_control:
+  # Where is the git log located locally?
+  log: ../../rawdata/airflow/git_repo/airflow/.git
+  # From where the git log was downloaded?
+  log_url: https://github.com/apache/airflow
+  # List of branches used for analysis
+  branch:
+    - main
+
+issue_tracker:
+  # github project (current): activated by issue/PR analysis
+  github:
+    project_key_1:
+      owner: apache
+      repo: airflow
+      issue_or_pr_comment: ../../rawdata/airflow/github/apache_airflow/issue_or_pr_comment/
+      issue: ../../rawdata/airflow/github/apache_airflow/issue/
+      issue_search: ../../rawdata/airflow/github/apache_airflow/issue_search/
+      issue_event: ../../rawdata/airflow/github/apache_airflow/issue_event/
+      pull_request: ../../rawdata/airflow/github/apache_airflow/pull_request/
+      pr_comments: ../../rawdata/airflow/github/apache_airflow/pr_comments/
+      pr_reviews: ../../rawdata/airflow/github/apache_airflow/pr_reviews/
+      commit: ../../rawdata/airflow/github/apache_airflow/commit/
+      pr_commits: ../../rawdata/airflow/github/apache_airflow/pr_commits/
+      pr_files: ../../rawdata/airflow/github/apache_airflow/pr_files/
+  # jira project (legacy, pre-2021): uncomment to reproduce older lifts
+  # jira:
+  #   project_key_1:
+  #     domain: https://issues.apache.org/jira
+  #     project_key: AIRFLOW
+  #     issues: ../../rawdata/airflow/jira/issues/
+  #     issue_comments: ../../rawdata/airflow/jira/issue_comments/
+
+commit_message_id_regex:
+  issue_id: "\\#[0-9]+"
+
+filter:
+  keep_filepaths_ending_with:
+    - py
+  remove_filepaths_containing:
+    - test

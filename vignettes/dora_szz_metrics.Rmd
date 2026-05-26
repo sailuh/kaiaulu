@@ -1,0 +1,86 @@
+---
+title: "Lift — DORA Model from Apache Helix"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Dora Szz Metrics}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE, message=FALSE}
+require(kaiaulu); require(data.table); require(stringi)
+require(knitr); require(yaml); require(magrittr)
+# Helpers (myths_*.R) loaded with library(kaiaulu).
+```
+
+# Introduction
+
+The `dora` model (Forsgren, Humble, Kim 2018) tracks Wip / Deploys /
+Incidents / Recovery stocks. `ctrl` is `batch_size`. Thesis: large
+batches drive change-failure rate (CFR) up, hurting net deploys.
+
+This notebook lifts four DORA metrics from Apache Helix:
+- `batch_size`: mean commits between consecutive release tags
+- `cfr`: bug-fix commits / total commits
+- `arrival_rate`: commits per day
+- `rec_rate`: 1 / median bug-fix latency (days)
+
+# Project Configuration
+
+```{r}
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/helix.yml")
+git_repo_path <- get_git_repo_path(conf)
+perceval_path <- get_tool_project("perceval", tool)
+```
+
+# Parse Git Log + SZZ + Tags
+
+```{r}
+project_git <- parse_gitlog(perceval_path, git_repo_path) %>%
+  filter_by_file_extension(get_file_extensions(conf), "file_pathname") %>%
+  filter_by_filepath_substring(get_substring_filepath(conf), "file_pathname")
+project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
+                                            format = "%a %b %d %H:%M:%S %Y %z",
+                                            tz = "UTC")
+szz       <- parse_szz_bugfixes("../data/helix/derived/szz_pairs.csv")
+tag_dates <- get_tag_dates(git_repo_path)
+```
+
+# DORA Metrics
+
+```{r}
+m <- compute_dora_metrics(szz, project_git, tag_dates)
+str(m)
+```
+
+# Outputs
+
+```{r}
+dir.create("../outputs", showWarnings = FALSE)
+out <- data.table(project       = "helix",
+                  batch_size    = m$batch_size,
+                  cfr           = m$cfr,
+                  arrival_rate  = m$arrival_rate,
+                  rec_rate      = m$rec_rate,
+                  n_tags        = m$n_tags,
+                  span_days     = m$span_days,
+                  seed          = seed)
+fwrite(out, "../outputs/lift_dora_helix.csv")
+kable(out)
+```
+
+# Verdict Interpretation
+
+`dora` predicts `batch_size = 50` hurts net deploys vs `batch_size =
+5`. Helix's measured `batch_size` value here is the operating point;
+plug into `sd.opt(dora, ...)` then `verdict()`.
