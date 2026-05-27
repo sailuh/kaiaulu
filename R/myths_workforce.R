@@ -1,19 +1,12 @@
-# Sterman-Style Workforce-Cohort Transitions
+# Kaiaulu - https://github.com/sailuh/kaiaulu
 #
-# Estimate Jr -> Tr -> Sr transition rates from a project git log. Supports the learn lift.
-#
-# Carried into kaiaulu from icse27theories/lifts/functions.R.
-# Style follows kaiaulu's verb_noun snake_case + data.table.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-require(data.table)
-require(stringi)
-require(magrittr)
-
-# Null-coalescing helper used by several functions below. Local to each
-# myths_*.R file rather than a global import so each module is
-# self-contained when sourced.
-`%||%` <- function(a, b) if (is.null(a) || length(a) == 0) b else a
-
+# Kaiaulu helpers — workforce
+# Carried in from icse27theories/lifts/functions.R.
+# Style follows kaiaulu verb_noun + data.table.
 
 #' Compute Workforce Cohort Distribution
 #'
@@ -39,7 +32,7 @@ compute_cohorts <- function(project_git, jr_max_days = 365,
     tenure_days >= sr_min_days,  "Sr",
     default                   = "Tr"
   )]
-  per_dev
+  return(per_dev)
 }
 
 #' Estimate Transition Rates from Cohort Trajectories
@@ -98,12 +91,12 @@ estimate_transition_rates <- function(project_git, jr_max_days = 365,
   }
 
   annualise <- 365 / slice_days
-  list(
+  return(list(
     train_rate   = annualise * median(train_n   / pmax(jr_at_t, 1),
                                       na.rm = TRUE),
     promote_rate = annualise * median(promote_n / pmax(tr_at_t, 1),
                                       na.rm = TRUE),
     n_slices     = length(cuts) - 1,
     slice_days   = slice_days
-  )
+  ))
 }

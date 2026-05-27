@@ -1,19 +1,12 @@
-# Mailing-List Reply Motifs
+# Kaiaulu - https://github.com/sailuh/kaiaulu
 #
-# Parse Perceval-emitted mbox JSON, build reply edges, detect radio-silence (broker-loss) events. Supports the congruence lift.
-#
-# Carried into kaiaulu from icse27theories/lifts/functions.R.
-# Style follows kaiaulu's verb_noun snake_case + data.table.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-require(data.table)
-require(stringi)
-require(magrittr)
-
-# Null-coalescing helper used by several functions below. Local to each
-# myths_*.R file rather than a global import so each module is
-# self-contained when sourced.
-`%||%` <- function(a, b) if (is.null(a) || length(a) == 0) b else a
-
+# Kaiaulu helpers — mailing
+# Carried in from icse27theories/lifts/functions.R.
+# Style follows kaiaulu verb_noun + data.table.
 
 #' Parse All Mbox Files in a Directory via kaiaulu::parse_mbox
 #'
@@ -32,14 +25,14 @@ parse_mbox_dir <- function(perceval_path, mbox_dir) {
   if (length(files) == 0) {
     stop("no .mbox files in ", mbox_dir)
   }
-  rbindlist(lapply(files, function(f) {
+  return(rbindlist(lapply(files, function(f) {
     tryCatch(parse_mbox(perceval_path, f),
              error = function(e) {
                warning(sprintf("parse_mbox failed on %s: %s",
                                basename(f), conditionMessage(e)))
-               NULL
+               return(NULL)
              })
-  }), fill = TRUE)
+  }), fill = TRUE))
 }
 
 #' Build Reply Edge List from Mbox Messages
@@ -66,7 +59,7 @@ build_reply_edges <- function(msgs) {
     src_id = pmin(child_id, parent_id),
     dst_id = pmax(child_id, parent_id)
   )]
-  replies[, .(weight = .N), by = .(src_id, dst_id)]
+  return(replies[, .(weight = .N), by = .(src_id, dst_id)])
 }
 
 #' Detect Radio-Silence Brokers
@@ -122,7 +115,7 @@ detect_radio_silence <- function(edges) {
       if (length(ext) == 0) next
       for (oc in unique(ext)) {
         key <- paste(oc, v, sep = "|")
-        out_counts[[key]] <- (out_counts[[key]] %||% 0L) +
+        out_counts[[key]] <- (if (is.null(out_counts[[key]])) 0L else out_counts[[key]]) +
                              sum(ext == oc)
       }
     }
@@ -140,11 +133,11 @@ detect_radio_silence <- function(edges) {
       }
     }
   }
-  list(
+  return(list(
     graph         = g_main,
     partition     = membership,
     brokers       = unique(brokers),
     incidents     = incidents,
     cluster_sizes = sort(as.integer(table(membership)), decreasing = TRUE)
-  )
+  ))
 }

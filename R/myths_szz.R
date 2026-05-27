@@ -1,19 +1,12 @@
-# SZZ-Pair Defect Attribution
+# Kaiaulu - https://github.com/sailuh/kaiaulu
 #
-# Parse PyDriller B-SZZ output and derive per-window injection, leak, and per-file bug frequency metrics. Supports the brooksq, defmap, rework, and dora lifts.
-#
-# Carried into kaiaulu from icse27theories/lifts/functions.R.
-# Style follows kaiaulu's verb_noun snake_case + data.table.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-require(data.table)
-require(stringi)
-require(magrittr)
-
-# Null-coalescing helper used by several functions below. Local to each
-# myths_*.R file rather than a global import so each module is
-# self-contained when sourced.
-`%||%` <- function(a, b) if (is.null(a) || length(a) == 0) b else a
-
+# Kaiaulu helpers — szz
+# Carried in from icse27theories/lifts/functions.R.
+# Style follows kaiaulu verb_noun + data.table.
 
 #' Parse PyDriller B-SZZ Output
 #'
@@ -30,7 +23,7 @@ parse_szz_bugfixes <- function(szz_csv_path) {
   dt <- data.table::fread(szz_csv_path)
   dt[, fixing_date       := as.POSIXct(fixing_date,       tz = "UTC")]
   dt[, introducing_date  := as.POSIXct(introducing_date,  tz = "UTC")]
-  dt
+  return(dt)
 }
 
 #' Count Bug Introductions per Late-Hire Window
@@ -68,7 +61,7 @@ compute_injection_changes <- function(szz, late_hires,
       inj_rate_post = post_n / window_days
     )
   })
-  rbindlist(results)
+  return(rbindlist(results))
 }
 
 #' Estimate Leak Rate from SZZ Pairs
@@ -88,7 +81,7 @@ estimate_leak_rate <- function(szz, latency_days = 30) {
                                    units = "days"))
   latencies <- latencies[is.finite(latencies) & latencies >= 0]
   if (length(latencies) == 0) return(NA_real_)
-  mean(latencies > latency_days)
+  return(mean(latencies > latency_days))
 }
 
 #' Compute Failure Rate per Rolling Window
@@ -122,7 +115,7 @@ compute_failrate_per_window <- function(szz, project_git, window_days = 90) {
       failrate        = sum(chunk$has_intro) / nrow(chunk)
     )
   })
-  rbindlist(out[!sapply(out, is.null)])
+  return(rbindlist(out[!sapply(out, is.null)]))
 }
 
 #' Compute Per-Release-Phase Defect Flow
@@ -160,7 +153,7 @@ compute_per_phase_defects <- function(szz, project_git, tag_dates) {
   ), by = phase_intro]
   setnames(out, "phase_intro", "phase")
   out[, tst_proxy := caught / pmax(injected, 1)]
-  out
+  return(out)
 }
 
 #' Compute DORA-style Metrics from Tags + SZZ
@@ -199,14 +192,14 @@ compute_dora_metrics <- function(szz, project_git, tag_dates) {
   rec_rate <- if (is.finite(median_mttr) && median_mttr > 0) 1 / median_mttr
               else NA_real_
 
-  list(
+  return(list(
     batch_size   = batch_size,
     cfr          = cfr,
     arrival_rate = arrival_rate,
     rec_rate     = rec_rate,
     n_tags       = n_tags,
     span_days    = span_days
-  )
+  ))
 }
 
 #' Compute Per-File Bug Frequency
@@ -226,5 +219,5 @@ compute_file_bug_frequency <- function(project_git, jira_bugs,
                                        issue_id_regex) {
   bug_keys <- jira_bugs$issue_key
   bug_commits <- project_git[commit_message_id %in% bug_keys]
-  bug_commits[, .(bug_count = uniqueN(commit_hash)), by = file_pathname]
+  return(bug_commits[, .(bug_count = uniqueN(commit_hash)), by = file_pathname])
 }

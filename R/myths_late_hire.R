@@ -1,19 +1,12 @@
-# Brooks-Style Late-Hire Velocity Analysis
+# Kaiaulu - https://github.com/sailuh/kaiaulu
 #
-# Detect late-hire events from a project git log and compute pre/post veteran velocity per hire.
-#
-# Carried into kaiaulu from icse27theories/lifts/functions.R.
-# Style follows kaiaulu's verb_noun snake_case + data.table.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-require(data.table)
-require(stringi)
-require(magrittr)
-
-# Null-coalescing helper used by several functions below. Local to each
-# myths_*.R file rather than a global import so each module is
-# self-contained when sourced.
-`%||%` <- function(a, b) if (is.null(a) || length(a) == 0) b else a
-
+# Kaiaulu helpers — late hire
+# Carried in from icse27theories/lifts/functions.R.
+# Style follows kaiaulu verb_noun + data.table.
 
 #' Detect Late-Hire Events from Git Log
 #'
@@ -41,7 +34,7 @@ detect_late_hires <- function(project_git, min_project_age_days = 365) {
   first_commits[, days_after_project_start :=
     as.numeric(difftime(first_commit_at, project_start, units = "days"))]
 
-  first_commits[days_after_project_start >= min_project_age_days]
+  return(first_commits[days_after_project_start >= min_project_age_days])
 }
 
 #' Compute Veteran Velocity Before and After Each Late-Hire Event
@@ -91,5 +84,5 @@ compute_velocity_changes <- function(project_git, late_hires,
       post_velocity = post_commits / window_days
     )
   })
-  rbindlist(results)
+  return(rbindlist(results))
 }

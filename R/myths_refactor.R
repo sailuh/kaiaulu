@@ -1,19 +1,12 @@
-# Refactoring + Release-Snapshot Helpers
+# Kaiaulu - https://github.com/sailuh/kaiaulu
 #
-# Drive RefactoringMiner, parse its JSON output, compute debt pay-rate and born-rate proxies, traverse release tags, and stage snapshots. Supports debt, archpat, and any release-anchored lift.
-#
-# Carried into kaiaulu from icse27theories/lifts/functions.R.
-# Style follows kaiaulu's verb_noun snake_case + data.table.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-require(data.table)
-require(stringi)
-require(magrittr)
-
-# Null-coalescing helper used by several functions below. Local to each
-# myths_*.R file rather than a global import so each module is
-# self-contained when sourced.
-`%||%` <- function(a, b) if (is.null(a) || length(a) == 0) b else a
-
+# Kaiaulu helpers — refactor
+# Carried in from icse27theories/lifts/functions.R.
+# Style follows kaiaulu verb_noun + data.table.
 
 #' Build a Tag-Date Table for a Git Repo
 #'
@@ -35,10 +28,10 @@ get_tag_dates <- function(git_repo_path) {
                    stdout = TRUE)
     if (length(out) == 0) NA_character_ else out[1]
   }, character(1))
-  data.table(tag  = tags,
-             date = as.POSIXct(as.numeric(unix_ts),
-                               origin = "1970-01-01", tz = "UTC"))[
-                                 order(date)]
+  return(data.table(tag  = tags,
+                    date = as.POSIXct(as.numeric(unix_ts),
+                                      origin = "1970-01-01", tz = "UTC"))[
+                                        order(date)])
 }
 
 #' Get Release Tags from a Git Repository
@@ -54,7 +47,7 @@ get_release_tags <- function(git_repo_path) {
   out  <- system2("git",
                   args = c("-C", repo, "tag", "--sort=v:refname"),
                   stdout = TRUE)
-  out
+  return(out)
 }
 
 #' Check Out a Git Snapshot to a Temporary Directory
@@ -73,7 +66,7 @@ checkout_snapshot <- function(git_repo_path, ref) {
   system2("git",
           args = c("-C", repo, "worktree", "add", "--detach", snap, ref),
           stdout = FALSE, stderr = FALSE)
-  snap
+  return(snap)
 }
 
 #' Compute Pay Rate from Refactoring Activity
@@ -112,7 +105,7 @@ compute_pay_rate <- function(project_git, refactorings,
       pay_rate           = sum(chunk$has_refactor) / nrow(chunk)
     )
   })
-  rbindlist(out[!sapply(out, is.null)])
+  return(rbindlist(out[!sapply(out, is.null)]))
 }
 
 #' Crude Born-Rate Proxy from Gitlog Churn
@@ -149,7 +142,7 @@ compute_born_rate_proxy <- function(project_git, window_days = 90,
       born_rate     = sum(chunk$big) / nrow(chunk)
     )
   })
-  rbindlist(out[!sapply(out, is.null)])
+  return(rbindlist(out[!sapply(out, is.null)]))
 }
 
 #' Run RefactoringMiner on a Git Repository
@@ -174,7 +167,7 @@ run_refactoring_miner <- function(refminer_jar, git_repo_path,
                    "-a", repo,        # -a = all commits
                    "-json", out_path),
           stdout = FALSE, stderr = FALSE)
-  out_path
+  return(out_path)
 }
 
 #' Flatten RefactoringMiner JSON to a data.table
@@ -195,7 +188,7 @@ flatten_refactoring_json <- function(refminer_json_path) {
       data.table(
         commit_hash             = c$sha1,
         refactoring_type        = r$type,
-        refactoring_description = r$description %||% NA_character_,
+        refactoring_description = (if (is.null(r$description)) NA_character_ else r$description),
         left_locations  = paste(sapply(r$leftSideLocations,  `[[`,
                                        "filePath"), collapse = ";"),
         right_locations = paste(sapply(r$rightSideLocations, `[[`,
@@ -203,7 +196,7 @@ flatten_refactoring_json <- function(refminer_json_path) {
       )
     }))
   })
-  rbindlist(rows[!sapply(rows, is.null)])
+  return(rbindlist(rows[!sapply(rows, is.null)]))
 }
 
 #' Merge Commit Dates Back into a Refactoring Table
@@ -215,7 +208,7 @@ flatten_refactoring_json <- function(refminer_json_path) {
 merge_commit_dates <- function(refactorings, project_git) {
   hashes <- unique(project_git[, .(commit_hash, author_datetimetz)])
   m <- merge(refactorings, hashes, by = "commit_hash", all.x = TRUE)
-  m$author_datetimetz
+  return(m$author_datetimetz)
 }
 
 #' Compute Per-File Churn over a Recent Window
@@ -236,7 +229,7 @@ compute_file_churn <- function(project_git, window_days = 180) {
              all.y = TRUE)
   m[is.na(recent_n), recent_n := 0]
   m[, churn_score := recent_n / total_n]
-  m[, .(file_pathname, churn_score)]
+  return(m[, .(file_pathname, churn_score)])
 }
 
 #' Assign Each File to a Stock (Patterned, Legacy, or Drift)
@@ -277,17 +270,16 @@ assign_file_partition <- function(patterned_files,
 }
 
 #' @export
-compute_smell_appearance_rate <- function(gof_per_tag) NA_real_
+compute_smell_appearance_rate <- function(gof_per_tag) return(NA_real_)
 #' @export
-compute_legacy_growth_rate    <- function(project_git, patterned_files) NA_real_
+compute_legacy_growth_rate    <- function(project_git, patterned_files) return(NA_real_)
 #' @export
-compute_born_pat_rate         <- function(refactorings, gof_per_tag) NA_real_
+compute_born_pat_rate         <- function(refactorings, gof_per_tag) return(NA_real_)
 #' @export
-compute_born_leg_rate         <- function(project_git, patterned_files) NA_real_
+compute_born_leg_rate         <- function(project_git, patterned_files) return(NA_real_)
 
 # ---- Utility -------------------------------------------------------------
 
-`%||%` <- function(a, b) if (is.null(a) || length(a) == 0) b else a
 
 #' Merge Commit Dates Back into a Refactoring Table
 #'
@@ -295,8 +287,3 @@ compute_born_leg_rate         <- function(project_git, patterned_files) NA_real_
 #' gitlog to recover the commit_datetimetz.
 #'
 #' @export
-merge_commit_dates <- function(refactorings, project_git) {
-  hashes <- unique(project_git[, .(commit_hash, author_datetimetz)])
-  m <- merge(refactorings, hashes, by = "commit_hash", all.x = TRUE)
-  m$author_datetimetz
-}
