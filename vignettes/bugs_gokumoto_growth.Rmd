@@ -27,7 +27,7 @@ require(knitr); require(yaml); require(jsonlite)
 The `bugs` model (Goel & Okumoto 1979) is the canonical software-
 reliability-growth thesis: cumulative bug detection follows an
 exponential approach to an asymptotic total. The SD form is in
-`models/sd.py:bugs()`:
+the downstream SD model:
 
 $$N(t) = a \cdot (1 - e^{-b \cdot t})$$
 
@@ -152,7 +152,7 @@ indicates a moderate fit — the trajectory deviates from pure
 exponential, suggesting Helix is still in the early discovery regime
 where new sub-systems keep entering the bug-detectable population.
 
-In `models/sd.py:bugs()` terms: the initial `Latent` stock would be
+In the downstream SD model terms: the initial `Latent` stock would be
 ≈ 245 (the asymptote), of which 170 have been `Found` to date and
 all 170 are `Fixed`. The model's RQ is "2x initial Latent → ~2x
 eventual Fixed (linearity)" — Helix is the wrong test bed because
@@ -180,7 +180,7 @@ disk yet.
 - Goel, A. L. & Okumoto, K. (1979). Time-dependent error-detection
   rate model for software reliability and other performance measures.
   *IEEE Transactions on Reliability*, R-28(3), 206–211.
-- `models/sd.py:bugs()` — the SD model.
+- the downstream SD model — the SD model.
 - `scripts/lift_bugs_gh.py` + `scripts/lift_bugs_jira.py` — Python
   variants for the multi-project sweep that produced the family-
   member table above.

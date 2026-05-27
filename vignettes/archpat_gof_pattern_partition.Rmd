@@ -24,48 +24,62 @@ require(knitr); require(yaml); require(magrittr); require(jsonlite)
 
 # Introduction
 
-The `archpat` model (Ric Kazman's claim) tests whether design
-patterns applied to an already-bad codebase can pay down architectural
-debt. The SD form (`models/sd.py:archpat()`) has three architectural
-stocks plus a Debt accumulator:
+This notebook walks the GoF-pattern partition lift used to calibrate
+the `archpat` system-dynamics model. The model tests the
+software-engineering claim that design patterns applied to an
+already-degraded codebase can pay down architectural debt — the
+Patterned vs Legacy code partition. The claim traces to:
+
+- Gamma, Helm, Johnson, Vlissides (1994). *Design Patterns: Elements
+  of Reusable Object-Oriented Software*. Addison-Wesley.
+- Tsantalis et al. (2006). "Design Pattern Detection Using Similarity
+  Scoring." *IEEE Trans. Software Engineering* 32(11):896–909
+  (pattern4.jar's algorithmic basis).
+- MacCormack, Rusnak, Baldwin (2007). "Exploring the Structure of
+  Complex Software Designs: An Empirical Study of Open Source and
+  Proprietary Code." *Management Science* 52(7):1015–1030.
+
+The SD form encodes three architectural stocks plus a Debt
+accumulator:
 
 ```
 Legacy ──migrate──> Patterned ──decay_rate──> Drift ──drift_to_legacy──> Legacy
             (effort applied)     (Perry-Wolf erosion)
 ```
 
-`ctrl` = `migrate`. Thesis: starting from
-`Patterned=10, Legacy=90, Debt=40`, aggressive migration
-(`migrate=1.5`) repairs the project faster than slow migration
-(`migrate=0.2`).
+The thesis is that starting from `Patterned=10, Legacy=90, Debt=40`,
+aggressive migration (`migrate=1.5`) repairs the project faster than
+slow migration (`migrate=0.2`).
 
 **Method outline** (full chain):
 
 1. `mvn compile -pl helix-core -am -DskipTests` — produces `.class`
-   files in `target/classes/`.
-2. `java -jar pattern4.jar -target <classes> -output <xml>` — GoF
-   patterns per class. Discovered today: pattern4 IS CLI-callable
-   despite its GUI-default manifest (the dispatch is in
-   `MatrixFrame.main`). See memory:
-   `reference_pattern4_gotcha.md` for full incantation.
-3. `parse_pattern4_xml.py <pattern4-dir>` — Python parser, emits a
+   files in `target/classes/`. Multi-minute side effect; run
+   externally before knitting.
+2. `java -jar pattern4.jar -target <classes> -output <xml>` —
+   detects 23 GoF patterns per class. pattern4 is CLI-callable
+   despite its GUI-default manifest: `MatrixFrame.main(args)` parses
+   `-target` and `-output` switches before opening the Swing view.
+3. `parse_pattern4_xml.py <pattern4-dir>` — Python parser; emits
    `patterned_files.csv` with `file_pathname, pattern_type, role,
-   module` columns. (We do this in Python because R's kaiaulu wrapper
-   `parse_gof_patterns()` is a parser, not a runner — same data, two
-   languages.)
-4. Bug-frequency signal: SZZ-introducing-commits touching each file
-   (`scripts/szz_helix.py` → `szz_pairs.csv`). Replaces JIRA-Bug
-   filter because the partial JIRA dump on disk has 0 Bug-type
-   issues.
-5. File-churn: `compute_file_churn()` from `functions.R`.
-6. Assign each .java file to one of {Patterned, Legacy, Drift, Other}
-   via `assign_file_partition()`.
+   module` columns. R-side kaiaulu offers
+   `\code{\link{parse_gof_patterns}}` for reading existing XML
+   output; the Python parser is used here only as a runner.
+4. **Bug-frequency signal**: SZZ-introducing-commits touching each
+   file (an external script produces `szz_pairs.csv`). The standard
+   `\code{\link{parse_jira}}` Bug-type filter is the kaiaulu-native
+   alternative when a complete JIRA dump is available.
+5. **File-churn**: `\code{\link{compute_file_churn}}`.
+6. Assign each `.java` file to one of `{Patterned, Legacy, Drift,
+   Other}` via `\code{\link{assign_file_partition}}`.
 
-**Fallback path**: if pattern4 setup were unavailable, Arcan
-(structural smells) is the kaiaulu-documented substitute. Arcan
-output has the same `(file, smell_type, smell_id)` shape; the
-partition logic is detector-agnostic. Document the substitution in
-any paper deliverable since smells ≠ GoF patterns semantically.
+**Fallback path**: where pattern4 is unavailable, Arcan (Arcelli
+Fontana, Pigazzini, Roveda, Tamburri, Zanoni, Lenarduzzi 2017 —
+"Arcan: A tool for architectural smells detection," *ECSA 2017*)
+produces structural-smell output with the same
+`(file, smell_type, smell_id)` shape; the partition logic is
+detector-agnostic. Smells &ne; GoF patterns semantically — document
+the substitution in any downstream comparison.
 
 # Configuration
 
@@ -168,72 +182,63 @@ Helix's partition: ~6.5% Patterned (149 files), ~19% Legacy
 recent 180-day window — Helix is a mature, stable codebase), ~74%
 Other.
 
-Running `models/sd.py:archpat.rq(bg=helix_calib)` with these stocks
-(plugged in via `scripts/calibrate.py`) widens the thesis gap from
-+229 (default) to +390. **Helix's bigger Legacy stock strengthens
-the repair thesis** — more legacy means more headroom for migrate to
-move files into the Patterned bucket.
+Helix's bigger Legacy stock means more headroom for the `migrate`
+control to move files into the Patterned bucket; a downstream SD
+verdict pipeline that consumes these stocks therefore reports a
+larger thesis-gap than its defaults predict.
 
-**Family-member test on Ambari** (2nd Java + Maven project):
+**Family-member comparison on Ambari** (2nd Java + Maven project):
 
 | project | Patterned | Legacy   | Drift | Other  | n_files |
 |---------|----------:|---------:|------:|-------:|--------:|
-| Helix   | 149       | 384 (OUT)| 0     | 1,452  | 1,985   |
-| Ambari  | 381 (OUT) | 1,890 (OUT) | 0  | 4,329  | 6,600   |
+| Helix   | 149       | 384      | 0     | 1,452  | 1,985   |
+| Ambari  | 381       | 1,890    | 0     | 4,329  | 6,600   |
 
-**Boundary-adequacy failure**: archpat's `Legacy` stock has model
-declared `hi = 200`. Both Helix (384) and Ambari (1,890) exceed.
-`Patterned hi = 200` also exceeded by Ambari (381). The model's
-bounds were specified at small-project scale and don't span mature
-OSS. Recommend widening to ≥ 1000 / ≥ 3000 respectively. See
-`findings.md` F0 for the full boundary-violation table.
+Both projects produce Legacy counts well above 200; for downstream
+SD models with a Legacy-stock upper bound near that magnitude, the
+empirical counts will trigger boundary-clipping during simulation.
 
 # Sanity Checks
 
-**(1) Bug-count dependency**: this lift requires bug-classification
-per commit. We use SZZ-introducing-commit-touches as a proxy because
-the partial JIRA dump on disk has 0 Bug-type issues. With the full
-Carlos-cleaned Helix JIRA dump (on his Drive), we could tighten this
-to JIRA-Bug-type-filtered commits, narrowing false-positives.
+**(1) Bug-count dependency**: this lift requires per-commit defect
+classification. We use SZZ-introducing-commit-touches because the
+JIRA dump available here lacks Bug-type issues. With a full JIRA
+dump, swap in `\code{\link{parse_jira}}` and filter on
+`issuetype == "Bug"` for tighter false-positive control.
 
 **(2) Identity bridging**: this lift uses git only, not comms. No
-cross-source identity_match required.
+cross-source `\code{\link{identity_match}}` required.
 
-# Pattern4 Setup Notes (memory: reference_pattern4_gotcha.md)
+# Pattern4 Invocation
 
-The pattern4.jar from
-https://users.encs.concordia.ca/~nikolaos/files/pattern_detection/pattern4.jar
-declares `Main-Class: gr.uom.java.pattern.gui.MatrixFrame`, which
-*opens a Swing GUI* on `java -jar pattern4.jar` with no args. But
-`MatrixFrame.main(args)` dispatches:
+The pattern4.jar declares `Main-Class: gr.uom.java.pattern.gui.MatrixFrame`
+which opens a Swing GUI on `java -jar pattern4.jar` with no args.
+`MatrixFrame.main(args)` dispatches to a batch-mode `Console` when
+called as:
 
-```java
-if (args.length == 4) {
-  if (args[0].equals("-target") && args[2].equals("-output")) {
-    new Console(inputDir, outputXML);  // batch mode!
-  }
-} else {
-  new MatrixFrame();  // GUI
-}
-```
-
-So:
 ```bash
 java -Xmx2g -jar pattern4.jar -target <classes-dir> -output <xml>
 ```
-runs the batch detector. This was NOT obvious until we read the
-decompiled main; an earlier session memory had "pattern4 is GUI-only"
-which is wrong. Corrected in
-`~/.claude/projects/.../memory/reference_pattern4_gotcha.md`.
+
+The GUI path is taken only when no recognised switches appear in
+`args`. The batch invocation is the one this vignette assumes.
 
 # References
 
-- Martin, R. C. (2008). *Clean Architecture*.
+- Gamma, E., Helm, R., Johnson, R., & Vlissides, J. (1994).
+  *Design Patterns: Elements of Reusable Object-Oriented Software*.
+  Addison-Wesley.
 - Perry, D. E. & Wolf, A. L. (1992). Foundations for the study of
-  software architecture. *ACM SIGSOFT Software Engineering Notes*.
-- Tsantalis, N. et al. — pattern4 GoF detector
-  (https://users.encs.concordia.ca/~nikolaos/pattern_detection.html).
-- Arcelli Fontana, F. et al. — Arcan smell detector
-  (https://essere.disco.unimib.it/wiki/arcan/) — documented fallback.
-- `models/sd.py:archpat()` — the SD model.
-- `findings.md` F0 — multi-project boundary-violation summary.
+  software architecture. *ACM SIGSOFT Software Engineering Notes*
+  17(4):40&ndash;52.
+- Tsantalis, N., Chatzigeorgiou, A., Stephanides, G., & Halkidis, S. T.
+  (2006). Design pattern detection using similarity scoring.
+  *IEEE Transactions on Software Engineering* 32(11):896&ndash;909.
+  doi:10.1109/TSE.2006.112 (pattern4 detector).
+- Arcelli Fontana, F., Pigazzini, I., Roveda, R., Tamburri, D.,
+  Zanoni, M., & Lenarduzzi, V. (2017). Arcan: A tool for
+  architectural smells detection. *ECSA 2017* — documented fallback
+  detector with compatible output schema.
+- MacCormack, A., Rusnak, J., & Baldwin, C. Y. (2007). Exploring the
+  structure of complex software designs: An empirical study of open
+  source and proprietary code. *Management Science* 52(7):1015&ndash;1030.

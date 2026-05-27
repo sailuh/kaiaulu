@@ -1007,3 +1007,248 @@ transform_commit_message_id_to_network <- function(project_git, commit_message_i
 
 }
 
+############## SD-lift helpers (PR #409) ##############
+# Helpers folded in from R/myths_*.R per Carlos's review.
+# Style consistent with kaiaulu: snake_case, data.table,
+# explicit returns, MPL license inherited from this file.
+
+#' Detect Late-Hire Events from Git Log
+#'
+#' A late hire is a developer whose first commit is at least
+#' \code{min_project_age_days} after the project's first commit.
+#' Returns a data.table with one row per late hire.
+#'
+#' @param project_git A gitlog data.table (output of parse_gitlog +
+#'   optional identity_match). Must contain identity_id (preferred)
+#'   or author_name_email and author_datetimetz columns.
+#' @param min_project_age_days Numeric. Minimum days after project
+#'   start for a hire to count as "late." Default 365.
+#' @return data.table with columns: identity_id (or
+#'   author_name_email), first_commit_at, days_after_project_start.
+#' @export
+detect_late_hires <- function(project_git, min_project_age_days = 365) {
+  id_col <- if ("identity_id" %in% names(project_git)) "identity_id"
+            else "author_name_email"
+
+  first_commits <- project_git[, .(
+    first_commit_at = min(author_datetimetz)
+  ), by = id_col]
+
+  project_start <- min(project_git$author_datetimetz)
+  first_commits[, days_after_project_start :=
+    as.numeric(difftime(first_commit_at, project_start, units = "days"))]
+
+  return(first_commits[days_after_project_start >= min_project_age_days])
+}
+
+#' Compute Veteran Velocity Before and After Each Late-Hire Event
+#'
+#' For each late hire, compute the commit rate of veterans (devs who
+#' joined before the hire) in the windows before and after. Returns
+#' one row per late hire.
+#'
+#' @param project_git A gitlog data.table.
+#' @param late_hires Output of \code{detect_late_hires()}.
+#' @param window_days Numeric. Size of the pre/post window in days.
+#' @return data.table with columns: identity_id (or
+#'   author_name_email), pre_velocity, post_velocity, brooks_tax.
+#' @export
+compute_velocity_changes <- function(project_git, late_hires,
+                                     window_days = 90) {
+  id_col <- if ("identity_id" %in% names(project_git)) "identity_id"
+            else "author_name_email"
+
+  results <- lapply(seq_len(nrow(late_hires)), function(i) {
+    hire_id   <- late_hires[i, get(id_col)]
+    hire_at   <- late_hires[i, first_commit_at]
+    win_start <- hire_at - as.difftime(window_days, units = "days")
+    win_end   <- hire_at + as.difftime(window_days, units = "days")
+
+    # Veterans = devs who joined strictly before hire_at
+    veterans <- project_git[author_datetimetz < hire_at,
+                            unique(get(id_col))]
+
+    pre_commits <- project_git[
+      get(id_col) %in% veterans &
+      author_datetimetz >= win_start &
+      author_datetimetz <  hire_at,
+      uniqueN(commit_hash)
+    ]
+    post_commits <- project_git[
+      get(id_col) %in% veterans &
+      author_datetimetz >  hire_at &
+      author_datetimetz <= win_end,
+      uniqueN(commit_hash)
+    ]
+
+    data.table(
+      id            = hire_id,
+      hire_at       = hire_at,
+      pre_velocity  = pre_commits  / window_days,
+      post_velocity = post_commits / window_days
+    )
+  })
+  return(rbindlist(results))
+}
+
+#' Compute Workforce Cohort Distribution
+#'
+#' For each developer, compute tenure (last_commit - first_commit) and
+#' assign to Jr / Tr / Sr buckets.
+#'
+#' @param project_git A gitlog data.table with identity_id.
+#' @param jr_max_days Tenure < this = Jr. Default 365.
+#' @param sr_min_days Tenure >= this = Sr. Default 1095 (3 years).
+#' @return data.table with identity_id, tenure_days, cohort.
+#' @references Sterman, J. D. (2000). \emph{Business Dynamics:
+#' Systems Thinking and Modeling for a Complex World}. McGraw-Hill —
+#' workforce cohort flow chapter (Jr -> Tr -> Sr promotion structure).
+#' @references Abdel-Hamid, T., & Madnick, S. E. (1991).
+#' \emph{Software Project Dynamics: An Integrated Approach}.
+#' Prentice-Hall.
+#' @seealso \code{\link{parse_gitlog}} \code{\link{identity_match}}
+#' @export
+compute_cohorts <- function(project_git, jr_max_days = 365,
+                            sr_min_days = 1095) {
+  per_dev <- project_git[, .(
+    first_commit = min(author_datetimetz),
+    last_commit  = max(author_datetimetz),
+    n_commits    = uniqueN(commit_hash)
+  ), by = identity_id]
+  per_dev[, tenure_days := as.numeric(difftime(last_commit, first_commit,
+                                               units = "days"))]
+  per_dev[, cohort := fcase(
+    tenure_days <  jr_max_days,  "Jr",
+    tenure_days >= sr_min_days,  "Sr",
+    default                   = "Tr"
+  )]
+  return(per_dev)
+}
+
+#' Estimate Transition Rates from Cohort Trajectories
+#'
+#' Buckets the project history into time slices and counts devs who
+#' moved Jr→Tr (train) and Tr→Sr (promote) between slices. Rates =
+#' transitions / starting-bucket-size, normalised to per-year.
+#'
+#' Slice size defaults to 90 days (not 365) to avoid the artifact where
+#' jr_max_days=365 + slice=365 forces every surviving Jr to graduate,
+#' saturating train_rate at 1.0.
+#'
+#' @param project_git A gitlog data.table with identity_id.
+#' @param jr_max_days Tenure < this = Jr at slice midpoint.
+#' @param sr_min_days Tenure >= this = Sr at slice midpoint.
+#' @param slice_days Time-slice width. Default 90.
+#' @return list with train_rate, promote_rate (medians over slices,
+#'   annualised by multiplying per-slice fractions by 365/slice_days).
+#' @export
+estimate_transition_rates <- function(project_git, jr_max_days = 365,
+                                      sr_min_days = 1095,
+                                      slice_days = 90) {
+  start <- min(project_git$author_datetimetz)
+  end   <- max(project_git$author_datetimetz)
+  step  <- as.difftime(slice_days, units = "days")
+  cuts  <- seq(start, end, by = step)
+  if (length(cuts) < 2) return(list(train_rate = NA_real_,
+                                    promote_rate = NA_real_))
+
+  # First-commit-date per dev (anchor for tenure)
+  per_dev <- project_git[, .(first_commit = min(author_datetimetz)),
+                          by = identity_id]
+
+  cohorts_at <- function(when) {
+    active <- per_dev[first_commit <= when]
+    active[, td := as.numeric(difftime(when, first_commit, units = "days"))]
+    active[, cohort := fcase(
+      td <  jr_max_days, "Jr",
+      td >= sr_min_days, "Sr",
+      default          = "Tr"
+    )]
+    active[, .(identity_id, cohort)]
+  }
+
+  train_n   <- promote_n   <- integer(0)
+  jr_at_t   <- tr_at_t     <- integer(0)
+  for (i in seq_len(length(cuts) - 1)) {
+    c0 <- cohorts_at(cuts[i])
+    c1 <- cohorts_at(cuts[i + 1])
+    m  <- merge(c0, c1, by = "identity_id",
+                suffixes = c("_0", "_1"))
+    jr_at_t   <- c(jr_at_t,   sum(m$cohort_0 == "Jr"))
+    tr_at_t   <- c(tr_at_t,   sum(m$cohort_0 == "Tr"))
+    train_n   <- c(train_n,   sum(m$cohort_0 == "Jr" & m$cohort_1 == "Tr"))
+    promote_n <- c(promote_n, sum(m$cohort_0 == "Tr" & m$cohort_1 == "Sr"))
+  }
+
+  annualise <- 365 / slice_days
+  return(list(
+    train_rate   = annualise * median(train_n   / pmax(jr_at_t, 1),
+                                      na.rm = TRUE),
+    promote_rate = annualise * median(promote_n / pmax(tr_at_t, 1),
+                                      na.rm = TRUE),
+    n_slices     = length(cuts) - 1,
+    slice_days   = slice_days
+  ))
+}
+
+#' Build a Tag-Date Table for a Git Repo
+#'
+#' Wraps git system calls to enumerate tags in v:refname order and
+#' fetch each tag's commit date.
+#'
+#' @param git_repo_path Path to .git or worktree.
+#' @return data.table with tag, date (POSIXct).
+#' @export
+get_tag_dates <- function(git_repo_path) {
+  repo <- gsub("/\\.git/?$", "", git_repo_path)
+  tags <- system2("git", c("-C", repo, "tag", "--sort=v:refname"),
+                  stdout = TRUE)
+  if (length(tags) == 0) return(data.table(tag = character(),
+                                           date = as.POSIXct(character())))
+  unix_ts <- vapply(tags, function(tg) {
+    out <- system2("git",
+                   c("-C", repo, "log", "-1", "--format=%ct", tg),
+                   stdout = TRUE)
+    if (length(out) == 0) NA_character_ else out[1]
+  }, character(1))
+  return(data.table(tag  = tags,
+                    date = as.POSIXct(as.numeric(unix_ts),
+                                      origin = "1970-01-01", tz = "UTC"))[
+                                        order(date)])
+}
+
+#' Get Release Tags from a Git Repository
+#'
+#' Wraps system call to \code{git tag}. Returns tags in lexicographic
+#' order (which usually approximates release order for SemVer projects).
+#'
+#' @param git_repo_path Path to the .git directory or working tree.
+#' @return Character vector of tag names.
+#' @export
+get_release_tags <- function(git_repo_path) {
+  repo <- gsub("/\\.git/?$", "", git_repo_path)
+  out  <- system2("git",
+                  args = c("-C", repo, "tag", "--sort=v:refname"),
+                  stdout = TRUE)
+  return(out)
+}
+
+#' Check Out a Git Snapshot to a Temporary Directory
+#'
+#' Creates a worktree at the given tag/commit. Returns the worktree
+#' path. Caller is responsible for cleanup via
+#' \code{system2("git", c("-C", repo, "worktree", "remove", path))}.
+#'
+#' @param git_repo_path Path to the .git directory or working tree.
+#' @param ref Tag name, branch name, or commit hash.
+#' @return Character path to the snapshot directory.
+#' @export
+checkout_snapshot <- function(git_repo_path, ref) {
+  repo <- gsub("/\\.git/?$", "", git_repo_path)
+  snap <- tempfile(pattern = paste0("snap_", gsub("/", "_", ref), "_"))
+  system2("git",
+          args = c("-C", repo, "worktree", "add", "--detach", snap, ref),
+          stdout = FALSE, stderr = FALSE)
+  return(snap)
+}
+

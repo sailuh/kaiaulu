@@ -33,7 +33,7 @@ Man-Month* (Brooks 1975): adding people to a late project makes it
 later. In SD form, two stocks track personnel — veteran developers
 (`Vet`) and new hires (`New`) — and a productivity tax falls on
 veterans whenever newcomers join (training cost + intra-team
-communication overhead). The SD model is in `models/sd.py:brooks()`.
+communication overhead). The SD model is in the downstream SD model.
 
 This notebook lifts the model's productivity-tax parameter from
 Apache Helix's git history. We need only the git log and kaiaulu's
@@ -95,9 +95,10 @@ length(unique(project_git$author_name_email))
 
 # Identity Resolution
 
-Merge name+email aliases so one human contributor is one developer.
-Required by Carlos's sanity check #2 (single source here, but
-identity_match is the canonical kaiaulu step).
+Merges `(name, email)` aliases so one human contributor maps to one
+developer record. Standard kaiaulu step via
+`\code{\link{identity_match}}` even when working with a single
+source, since downstream cohort logic operates on `identity_id`.
 
 ```{r}
 project_log <- list(git_log = project_git)
@@ -151,7 +152,7 @@ brooks_tax_values <- velocity_changes[,
 summary(brooks_tax_values$brooks_tax)
 ```
 
-Median brooks_tax is the calibration value for `models/sd.py:brooks()`.
+Median brooks_tax is the calibration value for the downstream SD model.
 A positive median supports Brooks; a negative or near-zero median is
 itself an interesting falsification.
 
@@ -168,25 +169,24 @@ team-size and mentoring practices modulate the effect heavily.
 # References
 
 - Brooks, F. P. (1975). *The Mythical Man-Month*. Addison-Wesley.
-- Tim's SD-framework `models/sd.py:brooks()` (this repo) — encodes
-  the thesis as a `Model(init, step, y, rq, ctrl)` namedtuple.
-- Replication: re-run this notebook on a different Apache project
-  by swapping `../conf/helix.yml` for `../conf/<project>.yml`.
+- Curtis, B., Krasner, H., & Iscoe, N. (1988). A field study of the
+  software design process for large systems. *Communications of the ACM*
+  31(11):1268&ndash;1287. doi:10.1145/50087.50089.
+- Replication: re-run this notebook on a different Apache project by
+  swapping `../conf/helix.yml` for `../conf/<project>.yml`.
 
 # Sanity Checks
 
-Carlos's two-part check:
+**Bug-count dependency**: this lift does not use bug count; the
+choice of communication source (mbox / github / jira) is irrelevant.
+The recipe runs on any git-only project.
 
-**(1) Bug-count dependency**: this lift does NOT use bug count, so
-the choice of communication source (mbox/github/jira) is irrelevant.
-The lift would work on any git-only project.
-
-**(2) Identity bridging**: we used identity_match on a single source
-(git). The lift does not require comms-to-code bridging. If the
-brooks model were later extended to discriminate bug-introducing
+**Identity bridging**: `\code{\link{identity_match}}` is applied on
+a single source (git). No comms-to-code bridging required. If the
+brooks recipe were extended to discriminate bug-introducing
 late-hires from feature-introducing late-hires, JIRA + git
-identity_match would be required, and GitHub would need an extra
-alias source.
+identity_match would be required, and a GitHub username alias
+source would also be needed.
 
 # Outputs for the SD Framework
 

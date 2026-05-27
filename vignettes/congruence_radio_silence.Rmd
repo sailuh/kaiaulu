@@ -25,7 +25,7 @@ require(knitr); require(yaml); require(magrittr); require(igraph)
 # Introduction
 
 The `congruence` model (Newman 2015; radio-silence smell port from
-kaiaulu R/smells.R:207; SD form in `models/sd.py:congruence()`) tests
+kaiaulu R/smells.R; SD form in the downstream SD model) tests
 whether **boundary-spanning developers** ("brokers") hold a
 communication-fragmented project together. Stocks:
 
@@ -39,7 +39,7 @@ fragment_rate            broker_loss (ctrl)
 key brokers) collapses Cohesion because fragmented clusters can no
 longer exchange context.
 
-This lift exercises **Carlos's sanity-check #2**: a model that needs
+This lift exercises the cross-source identity-bridging step: a model that needs
 *both* communication and source code, requiring kaiaulu's
 `identity_match` to bridge mbox sender addresses ↔ git author emails.
 Without that bridge, a single human appearing as `asebastian@linkedin`
@@ -55,7 +55,7 @@ nodes — distorting cluster size and broker detection.
    identities across mbox + git.
 4. Build undirected reply graph on identity_id nodes.
 5. Louvain community detection on largest connected component.
-6. Radio-silence broker pass per kaiaulu R/smells.R:207 logic.
+6. Radio-silence broker pass per kaiaulu R/smells.R logic.
 7. Output: Brokers, Clusters, n_incidents, cluster_size_dist.
 
 # Configuration
@@ -92,7 +92,7 @@ cat("git rows:", nrow(project_git),
     "  unique authors:", uniqueN(project_git$author_name_email), "\n")
 ```
 
-# Identity Match across Mbox + Git (Carlos §2 sanity check #2)
+# Identity Match across Mbox + Git 
 
 ```{r}
 project_log <- list(git_log = project_git, mbox = msgs)
@@ -126,7 +126,7 @@ print(head(edges, 5))
 # Detect Radio-Silence Brokers
 
 ```{r}
-rs <- detect_radio_silence(edges)
+rs <- detect_broker_silence_gaps(edges)
 cat("Brokers (radio-silence smell incidents):", length(rs$brokers), "\n")
 cat("Louvain clusters:", length(rs$cluster_sizes), "\n")
 cat("Cluster sizes:", paste(rs$cluster_sizes, collapse = ", "), "\n")
@@ -148,7 +148,7 @@ Helix's communication graph (on identity-matched developers):
   pre-identity-match; with identity_match this should slightly
   consolidate.
 
-The lifted `Brokers` stock plugs into `models/sd.py:congruence()`'s
+The lifted `Brokers` stock plugs into the downstream SD model's
 init via `scripts/calibrate.py`. Helix's defaults already match the
 model's defaults (Brokers=3, Clusters=5) — this is partly because
 the model was specified with knowledge of an earlier radio_silence
@@ -175,7 +175,7 @@ fwrite(out, "../outputs/lift_congruence_helix.csv")
 kable(out)
 ```
 
-# Sanity Checks (Carlos's two-part)
+# Sanity Checks
 
 **(1) Bug-count dependency**: congruence does NOT use bug counts.
 Any project with mbox + git can support this lift.
@@ -186,7 +186,7 @@ this lift. We call `identity_match` with **two** name_columns —
 Helix has 73 git identities + ~100 raw mbox senders. Post-merge, the
 identity_id space consolidates overlap. The radio-silence pass then
 runs on identity_ids, not raw emails. **This is exactly the
-cross-source bridge Carlos's §2 asked us to demonstrate.**
+cross-source bridge that the model requires.**
 
 For GitHub-only projects (e.g. junit5), the same pattern would
 require an additional alias source: the GitHub `commit.json` files
@@ -213,7 +213,7 @@ exceed `congruence` model's declared `hi = 20` for both stocks. See
 - Newman, M. E. J. (2015). Networks: An Introduction. Oxford UP.
 - Blondel, V. D. et al. (2008). Fast unfolding of communities in
   large networks. *J. Stat. Mech.*.
-- kaiaulu R/smells.R:207 — the original radio-silence smell.
+- kaiaulu R/smells.R — the original radio-silence smell.
 - `smells/radio_silence.py` — earlier Python port (this .Rmd
   supersedes it for paper deliverables).
-- `models/sd.py:congruence()` — the SD model.
+- the downstream SD model — the SD model.

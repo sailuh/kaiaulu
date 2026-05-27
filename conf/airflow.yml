@@ -17,7 +17,6 @@
 
 project:
   website: https://airflow.apache.org
-  openhub: https://www.openhub.net/p/apacheairflow
 
 version_control:
   # Where is the git log located locally?

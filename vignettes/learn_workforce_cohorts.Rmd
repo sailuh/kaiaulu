@@ -31,7 +31,7 @@ pipeline that develops engineering capability over time:
 Jr ──train──> Tr ──promote──> Sr ──mentor──> Ment(or)
 ```
 
-The SD form is in `models/sd.py:learn()`. `ctrl` = `Sr` (the senior
+The SD form is in the downstream SD model. `ctrl` = `Sr` (the senior
 stock). Thesis: removing seniors (`Sr = 0`) starves the training
 pipeline because juniors and trainees have no mentors to graduate
 toward; the cumulative `Sr + Ment` output collapses.
@@ -126,7 +126,7 @@ Helix's cohort distribution is **top-heavy junior** (Jr=43, Tr=21,
 Sr=9). The train_rate ≈ 0.81 — most surviving Jrs graduate within a
 year. The Sr stock is small relative to Jr (9 vs 43 = 21%).
 
-Running `models/sd.py:learn.rq(bg=helix_calib)` (via
+Running the downstream SD verdict pipeline (via
 `scripts/calibrate.py`) re-runs the thesis test with these stocks
 fixed. Baseline gap (Sr=5 → Sr=0) is −5.28; with Helix's Jr=43
 calibration it widens to −6.54 — more juniors means more starvation
@@ -158,6 +158,6 @@ contributors, few core maintainers" OSS profile.
 # References
 
 - Sterman, J. (2000). *Business Dynamics*, ch. 18 (workforce flow).
-- `models/sd.py:learn()` — the SD model under test.
+- the downstream SD model — the SD model under test.
 - Replication: swap `../conf/helix.yml` for any of the 8 project
   configs in `../conf/` and re-knit.
