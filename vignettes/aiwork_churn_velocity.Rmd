@@ -1,0 +1,101 @@
+---
+title: "Lift -- Aiwork Model from Git Commit Subjects"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+params:
+  commits: "commits.csv"   # input: extract output (kaiaulu::parse_gitlog)
+  out:     "aiwork.csv"    # output: model-language CSV (one row per project)
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Aiwork Churn Velocity}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+set.seed(1)
+```
+
+```{r warning=FALSE, message=FALSE}
+require(kaiaulu)
+require(data.table)
+require(stringi)
+```
+
+# Introduction
+
+The `aiwork` SD model (GitClear 2024 + METR 2025) carries five
+parameters; two of them can be lifted directly from commit history
+without per-developer AI-usage telemetry:
+
+* **`churn_base`** -- baseline (no-AI) churn rate.  Estimated as the
+  fraction of commits whose subject matches a revert / rollback /
+  "fix typo" pattern.  GitClear and METR both treat AI-induced
+  churn as a multiplicative inflation *on top of* this base.
+
+* **`mature_rate`** -- the Wip -> Kept transition rate.  Lifted as
+  the inverse of the mean short-author commit-cycle length (days
+  between the same author's first and last commit in a short run).
+  A rough proxy for "how fast WIP becomes shipped" pending PR-cycle
+  data from issue trackers.
+
+The remaining params (`gen_boost`, `churn_mult`, `verify_drag`)
+remain literature priors -- they require AI-usage telemetry the
+OSS git log cannot supply.
+
+# Method
+
+1.  Read the extract-stage commits CSV (already produced by
+    `kaiaulu::parse_gitlog`).
+2.  Match each commit subject against the churn regex.
+3.  `churn_base` = matched / total commits, capped to [0, 1].
+4.  Per-author short-run cycle: max(date) - min(date) within author;
+    `mature_rate` = 1 / median(cycle in ticks), where 1 tick = 7 days.
+5.  Write a one-row CSV with the two lifted values + diagnostic counts.
+
+# Lift
+
+```{r}
+commits <- fread(params$commits)
+setnames(commits, tolower(names(commits)))
+
+# kaiaulu schema: author_name_email, author_datetimetz, commit_hash, commit_message, ...
+setnames(commits, "author_name_email", "author")
+# Dedupe by commit (the CSV has one row per commit-file).
+commits <- unique(commits, by = "commit_hash")
+
+# Churn-subject pattern: revert/rollback/fix-typo/undo conventions.
+churn_rx <- "(?i)\\b(revert|rollback|undo|fix(:|\\s)?\\s*typo|hot ?fix|re-?do)\\b"
+matched  <- stri_detect_regex(commits$commit_message, churn_rx)
+churn_base <- min(1, max(0, mean(matched, na.rm = TRUE)))
+
+# mature_rate: inverse of median author-run length, expressed in ticks.
+commits[, date := as.IDate(as.POSIXct(author_datetimetz,
+                                      format = "%a %b %d %H:%M:%S %Y %z",
+                                      tz = "UTC"))]
+runs <- commits[!is.na(date), .(span_days = as.integer(max(date) - min(date)) + 1),
+                by = author]
+runs <- runs[span_days > 0]
+med_days  <- median(runs$span_days)
+ticks     <- med_days / 7
+mature_rate <- if (ticks > 0) 1 / ticks else NA_real_
+
+# Output: one row, the two lifted aiwork params + provenance counts.
+out <- data.table(
+  metric        = c("churn_base", "mature_rate"),
+  value         = c(churn_base, mature_rate),
+  n_commits     = nrow(commits),
+  n_churn_match = sum(matched, na.rm = TRUE),
+  n_authors     = nrow(runs))
+fwrite(out, params$out)
+out
+```
+
+# Notes
+
+* No PR-cycle data => `mature_rate` is a proxy.  When issue-tracker
+  extracts are available, swap in the PR-merge cycle directly.
+* `churn_base` regex is conservative.  Project-specific conventions
+  (e.g., "amend", "squash") could widen it; documented here as a
+  honest under-count.
