@@ -1,0 +1,89 @@
+---
+title: "Lift — Rework Model from Apache Helix"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Rework Szz Cycle}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE, message=FALSE}
+require(kaiaulu); require(data.table); require(stringi)
+require(knitr); require(yaml); require(magrittr)
+# Helpers (myths_*.R) loaded with library(kaiaulu).
+```
+
+# Introduction
+
+The `rework` model (Abdel-Hamid & Madnick 1991) expresses the hidden
+rework cycle: Req → Dev → Test → (pass | Rew → Dev again). Its `ctrl`
+parameter is `failrate`. Thesis: `failrate` 0.1 → 0.7 lets rework
+dominate, killing net Done output.
+
+This notebook lifts `failrate` from Apache Helix as the share of
+commits in each window that the SZZ pass marks as bug-introducing.
+
+# Project Configuration
+
+```{r}
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/helix.yml")
+perceval_path <- get_tool_project("perceval", tool)
+git_repo_path <- get_git_repo_path(conf)
+```
+
+# Parse Git Log
+
+```{r}
+project_git <- parse_gitlog(perceval_path, git_repo_path) %>%
+  filter_by_file_extension(get_file_extensions(conf), "file_pathname") %>%
+  filter_by_filepath_substring(get_substring_filepath(conf), "file_pathname")
+project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
+                                            format = "%a %b %d %H:%M:%S %Y %z",
+                                            tz = "UTC")
+```
+
+# Load SZZ Pairs
+
+```{r}
+szz <- parse_szz_bugfixes("../data/helix/derived/szz_pairs.csv")
+nrow(szz)
+```
+
+# Compute failrate per Window
+
+```{r}
+window_days <- 90
+fr <- compute_failrate_per_window(szz, project_git,
+                                  window_days = window_days)
+kable(head(fr, 20))
+summary(fr$failrate)
+```
+
+# Verdict Interpretation
+
+`rework`'s thesis predicts net `Done` drops when `failrate` crosses
+the 0.5 mark. Compare Helix's median `failrate` to that threshold.
+
+# Outputs
+
+```{r}
+dir.create("../outputs", showWarnings = FALSE)
+out <- data.table(project        = "helix",
+                  failrate_median = median(fr$failrate, na.rm = TRUE),
+                  failrate_mean   = mean(fr$failrate,   na.rm = TRUE),
+                  n_windows       = nrow(fr),
+                  window_days     = window_days,
+                  seed            = seed)
+fwrite(out, "../outputs/lift_rework_helix.csv")
+kable(out)
+```

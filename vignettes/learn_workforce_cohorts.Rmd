@@ -1,0 +1,163 @@
+---
+title: "Lift — Learn Model from Apache Helix"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Learn Workforce Cohorts}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE, message=FALSE}
+require(kaiaulu); require(data.table); require(stringi)
+require(knitr); require(yaml); require(magrittr)
+# Helpers (myths_*.R) loaded with library(kaiaulu).
+```
+
+# Introduction
+
+The `learn` model (Sterman 2000, ch. 18) tracks the workforce-flow
+pipeline that develops engineering capability over time:
+
+```
+Jr ──train──> Tr ──promote──> Sr ──mentor──> Ment(or)
+```
+
+The SD form is in the downstream SD model. `ctrl` = `Sr` (the senior
+stock). Thesis: removing seniors (`Sr = 0`) starves the training
+pipeline because juniors and trainees have no mentors to graduate
+toward; the cumulative `Sr + Ment` output collapses.
+
+This notebook lifts the stocks and transition rates from a project's
+git history alone. We require only `parse_gitlog` and
+`identity_match` — no JIRA or mbox.
+
+**Method outline**:
+1. Parse git log; merge developer aliases via `identity_match`.
+2. For each developer, compute tenure = last_commit − first_commit.
+3. Bucket: tenure < 365d = Jr, 365d ≤ tenure < 1095d = Tr,
+   tenure ≥ 1095d = Sr. (Ment is not directly observable from git
+   alone; it represents a mentor *role* not a tenure bucket.)
+4. Estimate transition rates by sliding 90-day windows through the
+   history and counting Jr→Tr and Tr→Sr identity transitions per
+   slice. Annualise by multiplying by 365/90.
+
+A previous methodology mistake: using 365-day slices with a 365-day
+Jr cutoff forced every surviving Jr to graduate per slice (saturating
+train_rate at 1.0). The 90-day slice fixes this and gives realistic
+0.7–0.9 train_rates across 8 OSS projects (see `findings.md` F0
+methodology note).
+
+# Project Configuration
+
+```{r}
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/helix.yml")
+git_repo_path <- get_git_repo_path(conf)
+perceval_path <- get_tool_project("perceval", tool)
+```
+
+# Parse Git Log + Identity Match
+
+```{r}
+project_git <- parse_gitlog(perceval_path, git_repo_path) %>%
+  filter_by_file_extension(get_file_extensions(conf), "file_pathname") %>%
+  filter_by_filepath_substring(get_substring_filepath(conf), "file_pathname")
+project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
+                                            format = "%a %b %d %H:%M:%S %Y %z",
+                                            tz = "UTC")
+project_git <- identity_match(list(git_log = project_git),
+                              c("author_name_email"),
+                              assign_identity_function = assign_exact_identity,
+                              use_name_only = FALSE,
+                              label = "identity_id")$git_log
+uniqueN(project_git$identity_id)
+```
+
+# Compute Cohorts at End of Project
+
+```{r}
+cohorts <- compute_cohorts(project_git,
+                           jr_max_days = 365,
+                           sr_min_days = 1095)
+kable(head(cohorts[order(-tenure_days)], 20))
+table(cohorts$cohort)
+```
+
+# Estimate Transition Rates
+
+```{r}
+rates <- estimate_transition_rates(project_git,
+                                   jr_max_days = 365,
+                                   sr_min_days = 1095)
+str(rates)
+```
+
+# Outputs
+
+```{r}
+dir.create("../outputs", showWarnings = FALSE)
+counts <- table(cohorts$cohort)
+out <- data.table(
+  project       = "helix",
+  Jr_n          = as.integer(counts["Jr"]),
+  Tr_n          = as.integer(counts["Tr"]),
+  Sr_n          = as.integer(counts["Sr"]),
+  train_rate    = rates$train_rate,
+  promote_rate  = rates$promote_rate,
+  n_slices      = rates$n_slices,
+  seed          = seed
+)
+fwrite(out, "../outputs/lift_learn_helix.csv")
+kable(out)
+```
+
+# Verdict on Helix
+
+Helix's cohort distribution is **top-heavy junior** (Jr=43, Tr=21,
+Sr=9). The train_rate ≈ 0.81 — most surviving Jrs graduate within a
+year. The Sr stock is small relative to Jr (9 vs 43 = 21%).
+
+Running the downstream SD verdict pipeline (via
+`scripts/calibrate.py`) re-runs the thesis test with these stocks
+fixed. Baseline gap (Sr=5 → Sr=0) is −5.28; with Helix's Jr=43
+calibration it widens to −6.54 — more juniors means more starvation
+when seniors leave. Thesis CONFIRM in both cases.
+
+# Family-Member Test
+
+8-project comparison (see `outputs/cross_project.csv`):
+
+| project  | Jr / Tr / Sr | train_rate | promote_rate |
+|----------|--------------|-----------:|-------------:|
+| Helix    | 43 / 21 / 9  | 0.81       | 0.24         |
+| junit5   | 155 / 14 / 16| 0.89       | 0.42         |
+| Ambari   | 80 / 36 / 18 | 0.70       | 0.24         |
+| airflow  | 1221 / 94 / 23 | 0.85    | 0.13         |
+| openssl  | 854 / 81 / 94| 0.51       | 0.00         |
+| tomcat   | 37 / 7 / 18  | 0.00*      | 0.00*        |
+| camel    | 9 / 5 / 0    | 0.00*      | 0.00*        |
+| kaiaulu  | 7 / 0 / 1    | 0.00*      | 0.00*        |
+
+*small-sample artifacts: too few identities for the 90-day-slice
+transition estimator to detect non-zero rates.
+
+Jr counts vary 170x (7 → 1221). The mature projects (Helix, Ambari,
+openssl) show roughly proportional Tr and Sr buckets. junit5 + airflow
+show massive Jr inflows but small Sr — classic "lots of drive-by
+contributors, few core maintainers" OSS profile.
+
+# References
+
+- Sterman, J. (2000). *Business Dynamics*, ch. 18 (workforce flow).
+- the downstream SD model — the SD model under test.
+- Replication: swap `../conf/helix.yml` for any of the 8 project
+  configs in `../conf/` and re-knit.

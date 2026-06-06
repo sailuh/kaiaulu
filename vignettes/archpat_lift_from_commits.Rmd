@@ -1,0 +1,95 @@
+---
+title: "Lift -- Archpat from Pre-Extracted Commits + LoC + Patterns"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+params:
+  commits:  "commits.csv"
+  loc:      "loc.csv"
+  patterns: "patterns.csv"
+  out:      "archpat.csv"
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Archpat Lift From Commits}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+set.seed(1)
+```
+
+```{r warning=FALSE, message=FALSE}
+require(data.table)
+require(stringi)
+```
+
+# Method
+
+Consumes three pre-extracted CSVs and produces the archpat-model
+inputs:
+
+* `commits.csv` (kaiaulu::parse_gitlog) -> commit volume per module
+* `loc.csv` (scc) -> module sizes (loc per file)
+* `patterns.csv` (pattern4.jar) -> GoF pattern occurrences per file
+
+Outputs four lift values:
+
+* `Patterned_n`  -- module count under a detected GoF pattern
+* `Legacy_n`     -- remaining module count
+* `gen_pat_rate` -- mean commits/patterned-module/month (proxy for
+                    archpat's `gen_pat` parameter)
+* `gen_leg_rate` -- same for non-patterned modules (`gen_leg` proxy)
+
+# Lift
+
+```{r}
+commits  <- fread(params$commits)
+loc      <- fread(params$loc)
+patterns <- fread(params$patterns)
+setnames(commits,  tolower(names(commits)))
+setnames(loc,      tolower(names(loc)))
+setnames(patterns, tolower(names(patterns)))
+
+# Patterned modules = unique file/class paths flagged by pattern4.
+patterned_files <- unique(patterns$file)
+
+# All known modules (from scc LoC dump): one row per file.
+all_files <- unique(loc$location)
+patterned_set <- intersect(all_files, patterned_files)
+legacy_set    <- setdiff(all_files, patterned_files)
+
+Patterned_n <- length(patterned_set)
+Legacy_n    <- length(legacy_set)
+
+# kaiaulu schema: one row per commit-file with file_pathname + author_datetimetz.
+file_col <- "file_pathname"
+commits[, date := as.POSIXct(author_datetimetz,
+                             format = "%a %b %d %H:%M:%S %Y %z",
+                             tz = "UTC")]
+commits <- commits[!is.na(date) & !is.na(get(file_col))]
+months <- as.numeric(difftime(max(commits$date), min(commits$date), units = "days")) / 30
+months <- max(1, months)
+
+pat_commits <- nrow(commits[get(file_col) %in% patterned_set])
+leg_commits <- nrow(commits[get(file_col) %in% legacy_set])
+
+gen_pat_rate <- if (Patterned_n > 0) pat_commits / Patterned_n / months else NA_real_
+gen_leg_rate <- if (Legacy_n    > 0) leg_commits / Legacy_n    / months else NA_real_
+
+out <- data.table(
+  metric = c("Patterned_n", "Legacy_n", "gen_pat_rate", "gen_leg_rate"),
+  value  = c(Patterned_n,    Legacy_n,   gen_pat_rate,   gen_leg_rate),
+  n_pat_commits = pat_commits,
+  n_leg_commits = leg_commits,
+  months_span   = months)
+fwrite(out, params$out)
+out
+```
+
+# Notes
+
+* Pattern4 detects GoF patterns in Java only. For polyglot repos, the
+  Legacy stock will be inflated.
+* gen_*_rate uses module *count* as denominator (not LoC); swap to
+  per-loc rate for a more even comparison.

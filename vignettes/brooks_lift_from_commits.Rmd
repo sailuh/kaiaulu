@@ -1,0 +1,95 @@
+---
+title: "Lift -- Brooks Tax from Pre-Extracted Commits CSV"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+params:
+  commits: "commits.csv"   # input: extract output (kaiaulu::parse_gitlog)
+  out:     "brooks.csv"    # output: one-row lift CSV (brooks_tax median + counts)
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Brooks Lift From Commits}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+set.seed(1)
+```
+
+```{r warning=FALSE, message=FALSE}
+require(data.table)
+require(stringi)
+```
+
+# Method
+
+Reads a pre-extracted commits CSV (output of `kaiaulu::parse_gitlog`)
+and computes the Brooks tax = (pre_velocity - post_velocity) /
+pre_velocity, where velocities are veteran commit rates in symmetric
+90-day windows around each late-hire event.
+
+**Late hire** = an author whose first commit lands more than 365 days
+after the project's first commit.
+
+# Lift
+
+```{r}
+commits <- fread(params$commits)
+setnames(commits, tolower(names(commits)))
+
+# kaiaulu schema: author_name_email, author_datetimetz, commit_hash, ...
+commits[, date := as.POSIXct(author_datetimetz,
+                             format = "%a %b %d %H:%M:%S %Y %z",
+                             tz = "UTC")]
+if (all(is.na(commits$date))) {
+  commits[, date := as.POSIXct(author_datetimetz, tz = "UTC")]
+}
+commits <- commits[!is.na(date)]
+setnames(commits, "author_name_email", "author")
+setorder(commits, date)
+
+project_start <- min(commits$date)
+WINDOW_DAYS   <- 90
+LATE_THRESH   <- 365
+
+# Per-author first commit (dedupe across multi-file commit rows).
+first_by <- unique(commits, by = c("commit_hash", "author"))[, .(first = min(date)), by = author]
+first_by[, days_into := as.numeric(difftime(first, project_start, units = "days"))]
+late_hires <- first_by[days_into >= LATE_THRESH]
+
+# For each late-hire event, count VETERAN commits in [event-90d, event)
+# vs [event, event+90d).  A veteran = author whose first commit is
+# before this event.
+tax_rows <- list()
+# Count VETERAN COMMITS (not commit-file rows); dedupe by hash.
+veteran_commits <- unique(commits, by = "commit_hash")
+for (i in seq_len(nrow(late_hires))) {
+  ev <- late_hires$first[i]
+  vets <- first_by[first < ev, author]
+  pre  <- nrow(veteran_commits[author %in% vets & date >= ev - WINDOW_DAYS * 86400 & date <  ev])
+  post <- nrow(veteran_commits[author %in% vets & date >= ev                  & date <  ev + WINDOW_DAYS * 86400])
+  if (pre > 0) {
+    tax_rows[[i]] <- data.table(event = ev, pre = pre, post = post,
+                                tax = (pre - post) / pre)
+  }
+}
+taxes <- rbindlist(tax_rows)
+
+out <- data.table(
+  metric        = c("brooks_tax_median", "brooks_tax_mean"),
+  value         = c(median(taxes$tax, na.rm = TRUE), mean(taxes$tax, na.rm = TRUE)),
+  n_late_hires  = nrow(late_hires),
+  n_paired      = nrow(taxes),
+  n_commits     = nrow(commits))
+fwrite(out, params$out)
+out
+```
+
+# Notes
+
+* `brooks_tax > 0` supports Brooks (veterans slowed after the hire).
+* `brooks_tax < 0` falsifies it for this project (hire correlated with
+  acceleration).
+* The 365-day late-hire threshold + 90-day window are kaiaulu's
+  defaults; both can be tightened by editing this vignette.

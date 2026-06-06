@@ -8,3 +8,7 @@ docs
 pkgdown
 rawdata
 .Rproj.user
+
+# Lift vignette artifacts (sd4se pipeline)
+vignettes/*.html
+vignettes/*_files/

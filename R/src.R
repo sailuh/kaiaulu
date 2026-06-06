@@ -804,3 +804,62 @@ utils::globalVariables(c("."))
 #' @importFrom data.table last
 NULL
 
+############## SD-lift helpers (PR #409) ##############
+# Helpers folded in from R/myths_*.R per Carlos's review.
+# Style consistent with kaiaulu: snake_case, data.table,
+# explicit returns, MPL license inherited from this file.
+
+#' Run RefactoringMiner on a Git Repository
+#'
+#' System call to the RefactoringMiner CLI. Returns the path to the
+#' resulting JSON file. The JSON is the standard RefactoringMiner
+#' \code{-all} output (every refactoring across the project history).
+#'
+#' @param refminer_jar Path to RefactoringMiner-*.jar.
+#' @param git_repo_path Path to the .git directory or working tree.
+#' @param out_path Optional output file path. Default: tempfile.
+#' @return Character path to the resulting JSON file.
+#' @export
+run_refactoring_miner <- function(refminer_jar, git_repo_path,
+                                  out_path = NULL) {
+  repo <- gsub("/\\.git/?$", "", git_repo_path)
+  if (is.null(out_path)) {
+    out_path <- tempfile(fileext = ".json")
+  }
+  system2("java",
+          args = c("-jar", refminer_jar,
+                   "-a", repo,        # -a = all commits
+                   "-json", out_path),
+          stdout = FALSE, stderr = FALSE)
+  return(out_path)
+}
+
+#' Flatten RefactoringMiner JSON to a data.table
+#'
+#' kaiaulu's parse_java_code_refactoring_json returns a nested list.
+#' This helper flattens to one row per refactoring event.
+#'
+#' @param refminer_json_path Path to a RefactoringMiner JSON output
+#'   file (from \code{run_refactoring_miner}).
+#' @return data.table with: commit_hash, refactoring_type,
+#'   refactoring_description, left_locations, right_locations.
+#' @export
+flatten_refactoring_json <- function(refminer_json_path) {
+  raw <- jsonlite::fromJSON(refminer_json_path, simplifyVector = FALSE)
+  rows <- lapply(raw$commits, function(c) {
+    if (length(c$refactorings) == 0) return(NULL)
+    rbindlist(lapply(c$refactorings, function(r) {
+      data.table(
+        commit_hash             = c$sha1,
+        refactoring_type        = r$type,
+        refactoring_description = (if (is.null(r$description)) NA_character_ else r$description),
+        left_locations  = paste(sapply(r$leftSideLocations,  `[[`,
+                                       "filePath"), collapse = ";"),
+        right_locations = paste(sapply(r$rightSideLocations, `[[`,
+                                       "filePath"), collapse = ";")
+      )
+    }))
+  })
+  return(rbindlist(rows[!sapply(rows, is.null)]))
+}
+

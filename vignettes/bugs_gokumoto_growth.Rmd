@@ -1,0 +1,193 @@
+---
+title: "Lift — Bugs Model (Goel-Okumoto) from Apache Helix"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Bugs Gokumoto Growth}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE, message=FALSE}
+require(kaiaulu); require(data.table); require(stringi)
+require(knitr); require(yaml); require(jsonlite)
+# Helpers (myths_*.R) loaded with library(kaiaulu).
+```
+
+# Introduction
+
+The `bugs` model (Goel & Okumoto 1979) is the canonical software-
+reliability-growth thesis: cumulative bug detection follows an
+exponential approach to an asymptotic total. The SD form is in
+the downstream SD model:
+
+$$N(t) = a \cdot (1 - e^{-b \cdot t})$$
+
+where `a` is the eventual total bug population and `b` is the
+discovery rate.
+
+**Input source choice**: bugs needs a bug-count signal with
+timestamps. Helix provides three candidates:
+
+- **GitHub issue dump** (label='bug', closed_at) — used here
+- JIRA dump (issuetype='Bug', resolutiondate) — partial dump only;
+  the available window has 0 Bug-type issues
+- commit-message heuristic — too noisy without ground-truth filter
+
+We choose GitHub issues because the dump is complete (1879 issues)
+and the `bug` label provides a clean classifier.
+
+**Method outline**:
+1. Parse all GitHub issue JSON files.
+2. Filter issues with label='bug' AND non-null `closed_at`.
+3. Sort by close time. Build cumulative-N(t) trajectory.
+4. Grid-search Goel-Okumoto fit (a × b parameter pairs).
+5. Output: `a`, `b`, R² fit quality.
+
+# Configuration
+
+```{r}
+gh_issue_glob <- "/Users/timm/Downloads/helix/github/apache_helix/issue/*.json"
+```
+
+# Load GitHub Issues
+
+```{r}
+files <- Sys.glob(gh_issue_glob)
+cat("Issue files:", length(files), "\n")
+
+issues <- rbindlist(lapply(files, function(f) {
+  d <- fromJSON(f, simplifyVector = FALSE)
+  if (is.list(d) && !is.null(d[[1]]$id)) {
+    # list of issues
+    rbindlist(lapply(d, function(i) {
+      labels <- vapply(i$labels %||% list(), `[[`, "", "name")
+      data.table(
+        id        = as.integer(i$id %||% NA),
+        state     = i$state %||% NA_character_,
+        labels    = paste(labels, collapse = ";"),
+        closed_at = i$closed_at %||% NA_character_
+      )
+    }), fill = TRUE)
+  } else if (is.list(d) && "issues" %in% names(d)) {
+    rbindlist(lapply(d$issues, function(i) data.table(
+      id = as.integer(i$id %||% NA),
+      state = i$state %||% NA_character_,
+      labels = "",
+      closed_at = i$closed_at %||% NA_character_
+    )), fill = TRUE)
+  } else NULL
+}), fill = TRUE)
+
+cat("Total issues parsed:", nrow(issues), "\n")
+cat("States:\n"); print(table(issues$state))
+```
+
+# Filter to closed bug-labeled issues
+
+```{r}
+bugs <- issues[grepl("bug", labels, ignore.case = TRUE) &
+               !is.na(closed_at) & closed_at != ""]
+cat("Bug-labeled + closed:", nrow(bugs), "\n")
+bugs[, closed_ts := as.POSIXct(closed_at, format = "%Y-%m-%dT%H:%M:%SZ",
+                               tz = "UTC")]
+setorder(bugs, closed_ts)
+```
+
+# Fit Goel-Okumoto
+
+```{r}
+t0       <- min(bugs$closed_ts)
+rel_t    <- as.numeric(difftime(bugs$closed_ts, t0, units = "secs"))
+cum_N    <- seq_along(rel_t)
+mean_N   <- mean(cum_N)
+ss_tot   <- sum((cum_N - mean_N)^2)
+a_max    <- max(cum_N) * 1.2
+best     <- list(a = NA, b = NA, sse = Inf)
+for (a in a_max * c(0.8, 1.0, 1.2, 1.5, 2.0, 3.0)) {
+  for (b in c(1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4)) {
+    pred <- a * (1 - exp(-b * rel_t))
+    sse  <- sum((pred - cum_N)^2)
+    if (sse < best$sse) best <- list(a = a, b = b, sse = sse)
+  }
+}
+r2 <- 1 - best$sse / ss_tot
+cat(sprintf("Goel-Okumoto: a=%.2f  b=%.3e  R^2=%.4f\n",
+            best$a, best$b, r2))
+span_days <- as.numeric(difftime(max(bugs$closed_ts), t0, units = "days"))
+cat(sprintf("Span: %.1f days\n", span_days))
+```
+
+# Outputs
+
+```{r}
+dir.create("../outputs", showWarnings = FALSE)
+out <- data.table(
+  project         = "helix",
+  n_issues_total  = nrow(issues),
+  n_bugs_closed   = nrow(bugs),
+  gokumoto_a      = best$a,
+  gokumoto_b      = best$b,
+  fit_r2          = r2,
+  span_days       = span_days,
+  seed            = seed
+)
+fwrite(out, "../outputs/lift_bugs_helix.csv")
+kable(out)
+```
+
+# Verdict on Helix
+
+The Goel-Okumoto fit predicts an eventual total of ~245 closed bugs
+(`a`) on a discovery rate of `b ≈ 1e-8 per second`. The R² of ~0.62
+indicates a moderate fit — the trajectory deviates from pure
+exponential, suggesting Helix is still in the early discovery regime
+where new sub-systems keep entering the bug-detectable population.
+
+In the downstream SD model terms: the initial `Latent` stock would be
+≈ 245 (the asymptote), of which 170 have been `Found` to date and
+all 170 are `Fixed`. The model's RQ is "2x initial Latent → ~2x
+eventual Fixed (linearity)" — Helix is the wrong test bed because
+the trajectory hasn't saturated yet. A family-member test on a
+project at or near saturation (e.g. an older project with declining
+bug arrivals) would be a better falsification target.
+
+# Family-Member Test
+
+Three projects with bug data on disk:
+
+| project  | n_bugs | source     | a (asymptote) | b           | R²   |
+|----------|-------:|------------|--------------:|-------------|-----:|
+| helix    | 170    | GH labels  | 244.80        | 1.00e-08    | 0.62 |
+| kaiaulu  | 22     | GH labels  | 26.40         | 1.00e-08    | 0.91 |
+| camel    | 185    | JIRA       | 177.60        | 1.00e-07    | 0.60 |
+
+kaiaulu's higher R² is partly small-sample artifact (fewer outliers).
+camel's `b` is 10x kaiaulu's — faster discovery in the older / busier
+project. Other 5 projects don't have a bug-classification source on
+disk yet.
+
+# References
+
+- Goel, A. L. & Okumoto, K. (1979). Time-dependent error-detection
+  rate model for software reliability and other performance measures.
+  *IEEE Transactions on Reliability*, R-28(3), 206–211.
+- the downstream SD model — the SD model.
+- `scripts/lift_bugs_gh.py` + `scripts/lift_bugs_jira.py` — Python
+  variants for the multi-project sweep that produced the family-
+  member table above.
+
+# Notes
+
+The Goel-Okumoto fit is **grid-search**, not LM-style optimisation.
+Six values of `a`, six of `b`. Adequate for a sanity calibration, not
+publication-grade. For paper use, replace with `nls()` or `optim()`
+with bounds.

@@ -1,0 +1,148 @@
+---
+title: "Lift — Debt Model from Apache Helix"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Debt Refactor Pay Rate}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE, message=FALSE}
+require(kaiaulu)
+require(data.table)
+require(stringi)
+require(knitr)
+require(yaml)
+require(magrittr)
+# Helpers (myths_*.R) loaded with library(kaiaulu).
+```
+
+# Introduction
+
+The `debt` model (Cunningham 1992) expresses the thesis that shipping
+fast accrues technical debt, which then slows future shipping. The SD
+form has stocks `Feat` (cumulative features), `Debt` (current debt),
+`Vel` (velocity); parameters `born_rate` (debt born per ship),
+`intr_rate` (compounding interest on existing debt), `pay_rate` (debt
+paid by refactoring).
+
+This notebook lifts `debt` from Apache Helix using:
+
+| sd.py param  | source                                            |
+|--------------|---------------------------------------------------|
+| `pay_rate`   | RefactoringMiner: refactor commits / total commits|
+| `born_rate`  | gitlog: share of "big" multi-file commits         |
+| `intr_rate`  | proxy: bug-touch revisit rate on prior-changed files (TODO) |
+
+`intr_rate` remains imperfect from git-alone; either accept fitting via
+`sd.opt()` or refine later using SZZ pairs joined to gitlog churn.
+
+# Project Configuration
+
+```{r}
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/helix.yml")
+
+perceval_path  <- get_tool_project("perceval", tool)
+refminer_path  <- tool$refactoring_miner$executable
+git_repo_path  <- get_git_repo_path(conf)
+
+file_extensions    <- get_file_extensions(conf)
+substring_filepath <- get_substring_filepath(conf)
+```
+
+# Parse Git Log
+
+```{r}
+project_git <- parse_gitlog(perceval_path, git_repo_path)
+
+project_git <- project_git %>%
+  filter_by_file_extension(file_extensions, "file_pathname") %>%
+  filter_by_filepath_substring(substring_filepath, "file_pathname")
+
+project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
+                                            format = "%a %b %d %H:%M:%S %Y %z",
+                                            tz = "UTC")
+```
+
+# Load RefactoringMiner Output
+
+The full RefactoringMiner pass on Helix produces JSON at
+`../data/helix/derived/refminer.json`. Re-run via:
+
+```bash
+tools/RefactoringMiner-3.0.10/bin/RefactoringMiner -a \
+  data/helix/git_repo master \
+  -json data/helix/derived/refminer.json
+```
+
+```{r}
+refminer_json <- "../data/helix/derived/refminer.json"
+refactorings  <- flatten_refactoring_json(refminer_json)
+
+nrow(refactorings)
+length(unique(refactorings$commit_hash))
+table(refactorings$refactoring_type)[1:10]
+```
+
+# Compute pay_rate per Window
+
+```{r}
+window_days <- 90
+pay_rate_table <- compute_pay_rate(project_git, refactorings,
+                                   window_days = window_days)
+kable(head(pay_rate_table, 20))
+summary(pay_rate_table$pay_rate)
+```
+
+# Compute born_rate Proxy per Window
+
+```{r}
+born_rate_table <- compute_born_rate_proxy(project_git,
+                                           window_days = window_days,
+                                           big_commit_files = 5)
+kable(head(born_rate_table, 20))
+summary(born_rate_table$born_rate)
+```
+
+# Sanity Checks
+
+**(1) Bug-count dependency**: this lift does NOT depend on bug-count,
+so JIRA/GitHub/mbox choice is irrelevant. The lift would work on any
+Java-or-similar project with a git history.
+
+**(2) Identity bridging**: `debt` is whole-project, not per-developer.
+`identity_match` is not required for the lift, though it would be for
+any extension that breaks pay_rate by developer cohort.
+
+# Outputs for the SD Framework
+
+```{r}
+out <- data.table(
+  project           = "helix",
+  pay_rate_median   = median(pay_rate_table$pay_rate,   na.rm = TRUE),
+  pay_rate_mean     = mean(pay_rate_table$pay_rate,     na.rm = TRUE),
+  born_rate_median  = median(born_rate_table$born_rate, na.rm = TRUE),
+  born_rate_mean    = mean(born_rate_table$born_rate,   na.rm = TRUE),
+  n_refactor_events = nrow(refactorings),
+  n_commits         = uniqueN(project_git$commit_hash),
+  window_days       = window_days,
+  seed              = seed
+)
+fwrite(out, "../outputs/lift_debt_helix.csv")
+kable(out)
+```
+
+Verdict interpretation: with `pay_rate` and `born_rate` calibrated,
+pass them to `sd.opt(debt, ...)` for `intr_rate` fitting (only net Debt
+change is observable from gitlog alone), then re-run `verdict()` to
+compare baseline (Debt=0) vs perturbed (Debt=50) trajectories.

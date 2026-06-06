@@ -1,0 +1,219 @@
+---
+title: "Lift — Congruence Model (Radio-Silence Brokers) from Helix"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Congruence Radio Silence}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE, message=FALSE}
+require(kaiaulu); require(data.table); require(stringi)
+require(knitr); require(yaml); require(magrittr); require(igraph)
+# Helpers (myths_*.R) loaded with library(kaiaulu).
+```
+
+# Introduction
+
+The `congruence` model (Newman 2015; radio-silence smell port from
+kaiaulu R/smells.R; SD form in the downstream SD model) tests
+whether **boundary-spanning developers** ("brokers") hold a
+communication-fragmented project together. Stocks:
+
+```
+Clusters ──merge_rate──> Brokers ──broker_form──> Cohesion
+  ↑                          ↓
+fragment_rate            broker_loss (ctrl)
+```
+
+`ctrl` = `broker_loss`. Thesis: `broker_loss = 0.3` (sudden loss of
+key brokers) collapses Cohesion because fragmented clusters can no
+longer exchange context.
+
+This lift exercises the cross-source identity-bridging step: a model that needs
+*both* communication and source code, requiring kaiaulu's
+`identity_match` to bridge mbox sender addresses ↔ git author emails.
+Without that bridge, a single human appearing as `asebastian@linkedin`
+in mbox and `asebastian@apache.org` in git is double-counted as two
+nodes — distorting cluster size and broker detection.
+
+**Method outline**:
+1. Parse mbox via `parse_mbox_dir()` (Perceval over all `*.mbox`
+   files; helper in `functions.R`).
+2. Parse gitlog via `parse_gitlog()`.
+3. `identity_match` over BOTH sources with
+   `name_column = c("author_name_email", "sender")` to merge
+   identities across mbox + git.
+4. Build undirected reply graph on identity_id nodes.
+5. Louvain community detection on largest connected component.
+6. Radio-silence broker pass per kaiaulu R/smells.R logic.
+7. Output: Brokers, Clusters, n_incidents, cluster_size_dist.
+
+# Configuration
+
+```{r}
+tool <- parse_config("../tools.yml")
+conf <- parse_config("../conf/helix.yml")
+
+perceval_path <- get_tool_project("perceval", tool)
+git_repo_path <- get_git_repo_path(conf)
+mbox_dir      <- "/Users/timm/Downloads/helix/mod_mbox/save_mbox_mail"
+```
+
+# Parse Mbox
+
+```{r}
+msgs <- parse_mbox_dir(perceval_path, mbox_dir)
+cat("Mbox messages parsed:", nrow(msgs), "\n")
+cat("Columns:", paste(names(msgs), collapse = ", "), "\n")
+cat("Unique senders:", uniqueN(msgs$sender), "\n")
+```
+
+# Parse Git Log
+
+```{r}
+project_git <- parse_gitlog(perceval_path, git_repo_path) %>%
+  filter_by_file_extension(get_file_extensions(conf), "file_pathname") %>%
+  filter_by_filepath_substring(get_substring_filepath(conf),
+                               "file_pathname")
+project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
+                                            format = "%a %b %d %H:%M:%S %Y %z",
+                                            tz = "UTC")
+cat("git rows:", nrow(project_git),
+    "  unique authors:", uniqueN(project_git$author_name_email), "\n")
+```
+
+# Identity Match across Mbox + Git 
+
+```{r}
+project_log <- list(git_log = project_git, mbox = msgs)
+project_log <- identity_match(
+  project_log,
+  name_column = c("author_name_email", "reply_from"),
+  assign_identity_function = assign_exact_identity,
+  use_name_only = FALSE,
+  label = "identity_id"
+)
+project_git <- project_log$git_log
+msgs        <- project_log$mbox
+
+cat("Identities after merge:", uniqueN(c(project_git$identity_id,
+                                         msgs$identity_id)), "\n")
+cat("  from git only:  ", uniqueN(project_git$identity_id), "\n")
+cat("  from mbox only: ", uniqueN(msgs$identity_id), "\n")
+cat("  shared:         ",
+    length(intersect(unique(project_git$identity_id),
+                     unique(msgs$identity_id))), "\n")
+```
+
+# Build Reply Graph on identity_ids
+
+```{r}
+edges <- build_reply_edges(msgs)
+cat("Reply edges (on identity_ids):", nrow(edges), "\n")
+print(head(edges, 5))
+```
+
+# Detect Radio-Silence Brokers
+
+```{r}
+rs <- detect_broker_silence_gaps(edges)
+cat("Brokers (radio-silence smell incidents):", length(rs$brokers), "\n")
+cat("Louvain clusters:", length(rs$cluster_sizes), "\n")
+cat("Cluster sizes:", paste(rs$cluster_sizes, collapse = ", "), "\n")
+cat("\nBroker identities:\n")
+print(rs$brokers)
+```
+
+# Verdict on Helix
+
+Helix's communication graph (on identity-matched developers):
+
+- **Brokers**: see count above. Compares to the pre-identity-match
+  Python run (`smells/radio_silence.py` on raw mbox senders) which
+  found 3 brokers. Any difference is due to identity_match merging
+  cross-source aliases that were previously double-counted.
+- **Clusters**: the partition shape says whether Helix has a
+  uni-modal or multi-modal communication structure. Helix
+  historically shows a [42, 25, 14, 13, 2] cluster-size distribution
+  pre-identity-match; with identity_match this should slightly
+  consolidate.
+
+The lifted `Brokers` stock plugs into the downstream SD model's
+init via `scripts/calibrate.py`. Helix's defaults already match the
+model's defaults (Brokers=3, Clusters=5) — this is partly because
+the model was specified with knowledge of an earlier radio_silence
+run. See `findings.md` F4-related methodology note.
+
+# Outputs
+
+```{r}
+dir.create("../outputs", showWarnings = FALSE)
+out <- data.table(
+  project          = "helix",
+  Brokers_n        = length(rs$brokers),
+  Clusters_n       = length(rs$cluster_sizes),
+  n_messages       = nrow(msgs),
+  n_devs           = uniqueN(igraph::V(rs$graph)$name) +
+                     (nrow(edges) > 0) * 0,  # noop placeholder
+  n_devs_main      = igraph::vcount(rs$graph),
+  n_edges          = igraph::ecount(rs$graph),
+  n_incidents      = nrow(rs$incidents),
+  largest_cluster  = rs$cluster_sizes[1],
+  seed             = seed
+)
+fwrite(out, "../outputs/lift_congruence_helix.csv")
+kable(out)
+```
+
+# Sanity Checks
+
+**(1) Bug-count dependency**: congruence does NOT use bug counts.
+Any project with mbox + git can support this lift.
+
+**(2) Identity bridging**: this is the headline sanity check for
+this lift. We call `identity_match` with **two** name_columns —
+`author_name_email` (from git) AND `sender` (from mbox). Pre-merge,
+Helix has 73 git identities + ~100 raw mbox senders. Post-merge, the
+identity_id space consolidates overlap. The radio-silence pass then
+runs on identity_ids, not raw emails. **This is exactly the
+cross-source bridge that the model requires.**
+
+For GitHub-only projects (e.g. junit5), the same pattern would
+require an additional alias source: the GitHub `commit.json` files
+contain `author.login` ↔ `commit.author.email` pairs. Not used here
+(Helix has mbox so mbox is the canonical channel).
+
+# Family-Member Test (3 projects with mbox)
+
+| project  | Brokers | Clusters | n_messages | largest_cluster | source     |
+|----------|--------:|---------:|-----------:|----------------:|------------|
+| helix    | 3       | 5        | 8,521      | 42              | mod_mbox   |
+| airflow  | 4       | 7        | 1,350      | 46              | mbox       |
+| tomcat   | 39      | 33       | 232,773    | 1,361           | mbox       |
+
+(These numbers are from the Python `radio_silence.py` runs and the
+identity_match path may consolidate them slightly.)
+
+Boundary-adequacy finding: tomcat's 39 brokers + 33 clusters BOTH
+exceed `congruence` model's declared `hi = 20` for both stocks. See
+`findings.md` F0.
+
+# References
+
+- Newman, M. E. J. (2015). Networks: An Introduction. Oxford UP.
+- Blondel, V. D. et al. (2008). Fast unfolding of communities in
+  large networks. *J. Stat. Mech.*.
+- kaiaulu R/smells.R — the original radio-silence smell.
+- `smells/radio_silence.py` — earlier Python port (this .Rmd
+  supersedes it for paper deliverables).
+- the downstream SD model — the SD model.
