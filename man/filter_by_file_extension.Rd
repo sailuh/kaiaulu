@@ -26,6 +26,10 @@ Filters a data.table containing filepaths using the specified extensions
 Other filters: 
 \code{\link{filter_by_commit_interval}()},
 \code{\link{filter_by_commit_size}()},
-\code{\link{filter_by_filepath_substring}()}
+\code{\link{filter_by_filepath_substring}()},
+\code{\link{filter_by_reply_author_substring}()},
+\code{\link{filter_by_reply_body_substring}()},
+\code{\link{filter_by_reply_subject_substring}()},
+\code{\link{replace_token_regex_with}()}
 }
 \concept{filters}

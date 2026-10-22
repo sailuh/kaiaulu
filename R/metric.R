@@ -181,6 +181,100 @@ commit_message_id_coverage <- function(git_log,commit_message_id_regex){
                                          pattern = commit_message_id_regex)
   return(length(is_match[is_match]))
 }
+
+#' Engagement Sentiment Metric
+#'
+#' @description Apply an aggregate function to the sentiment (polarity) for each 
+#' rolling window (lag days) from the author (user_name_email).
+#' Creates consecutive non-overlapping windows and only includes complete windows.
+#' @param datetimetz A POSIXct data table column indicating the timestamp of an author's message
+#' @param user_name_email A data table column indicating the author of a message
+#' @param polarity A data table column indicating the sentiment of a message
+#' @param lag The number of days for each rolling window (90 day default)
+#' @param aggregate_func The aggregate function to apply to the polarity values in the windows.
+#' The default is mean, but it can be overridden
+#' @export
+#' @references Wouter Mulder (2025). Am I finished yet? A discovery of burnout and
+#' ragequits within open-source projects. (Master thesis, Jheronimus Academy of Data Science).
+engagement_sentiment <- function(datetimetz, user_name_email, polarity, lag = 90, aggregate_func = mean) {
+
+  # Convert polarity strings to numeric representation: positive = 1, negative = -1, neutral = 0
+  numeric_polarity <- data.table::fifelse(polarity == "positive", 1,
+                                          data.table::fifelse(polarity == "negative", -1, 0))
+
+  # Extract timezone attribute from POSIXct datetimetz vector
+  # datetimetz should be POSIXct; tz_val becomes a character string (e.g., "UTC")
+  tz_val <- attr(datetimetz, "tzone")
+  if (is.null(tz_val) || tz_val == "") tz_val <- "UTC"
+
+  # Create data table
+  dt <- data.table::data.table(
+    datetimetz = as.POSIXct(datetimetz, tz = tz_val),
+    user_name_email = user_name_email,
+    polarity = numeric_polarity
+  )
+
+  # Order data
+  data.table::setorder(dt, user_name_email, datetimetz)
+
+  # Rolling window: create consecutive non-overlapping windows of lag days
+  result <- dt[, {
+    all_times <- datetimetz
+    all_polarity_values <- polarity
+    
+    if (length(all_times) == 0) {
+      return(data.table::data.table(
+        datetimetz = as.POSIXct(character(), tz = tz_val),
+        aggregate_polarity = numeric()
+      ))
+    }
+    
+    min_time <- min(all_times, na.rm = TRUE)
+    max_time <- max(all_times, na.rm = TRUE)
+    
+    # Create window boundaries using a list of data.tables to preserve POSIXct class
+    window_results <- list()
+    current_start <- min_time
+    
+    while (current_start < max_time) {
+      current_end <- stringi::stri_datetime_add(
+        current_start,
+        value = lag,
+        units = "days",
+        tz = tz_val
+      )
+      
+      # Get polarity values in this window [current_start, current_end)
+      # Only include complete windows
+      if (current_end <= max_time) {
+        idx <- all_times >= current_start & all_times < current_end
+        agg_value <- aggregate_func(all_polarity_values[idx], na.rm = TRUE)
+        
+        if (any(idx)) {
+          window_results[[length(window_results) + 1]] <- data.table::data.table(
+            datetimetz = current_end,
+            aggregate_polarity = agg_value
+          )
+        }
+      }
+      
+      current_start <- current_end
+    }
+    
+    if (length(window_results) > 0) {
+      data.table::rbindlist(window_results)
+    } else {
+      data.table::data.table(
+        datetimetz = as.POSIXct(character(), tz = tz_val),
+        aggregate_polarity = numeric()
+      )
+    }
+
+  }, by = .(user_name_email)]
+
+  return(result[])
+}
+
 # Various imports
 #' @importFrom stringi stri_c
 #' @importFrom stringi stri_split_regex

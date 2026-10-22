@@ -733,6 +733,7 @@ github_api_project_issue_refresh <- function(owner,
                                              verbose=TRUE){
 
 
+
   # Check if refresh folder is empty
   contents_refresh <- list.files(path = save_path_issue_refresh)
 
@@ -920,6 +921,7 @@ github_parse_project_issue_or_pr_comments <- function(api_responses){
     } else {
       parsed_response[["body"]] <- NA_character_
     }
+
     parsed_response[["total_count"]] <- api_response[["total_count"]]
     parsed_response[["+1"]] <- api_response[["+1"]]
     parsed_response[["-1"]] <- api_response[["-1"]]

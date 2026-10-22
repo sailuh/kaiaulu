@@ -26,6 +26,10 @@ all filepaths which contain the word 'test' anywhere in it)
 Other filters: 
 \code{\link{filter_by_commit_interval}()},
 \code{\link{filter_by_commit_size}()},
-\code{\link{filter_by_file_extension}()}
+\code{\link{filter_by_file_extension}()},
+\code{\link{filter_by_reply_author_substring}()},
+\code{\link{filter_by_reply_body_substring}()},
+\code{\link{filter_by_reply_subject_substring}()},
+\code{\link{replace_token_regex_with}()}
 }
 \concept{filters}
