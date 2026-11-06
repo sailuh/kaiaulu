@@ -282,3 +282,61 @@ smell_radio_silence <- function (mail.graph, clusters) {
 
   return(unique(brockers))
 }
+
+#' Radio Silence Social Smell per DV8 Layer
+#'
+#' Calls \code{\link{smell_radio_silence}} on every layer of a DV8 DR Space hierarchy,
+#' using the modules in each layer as the sub-communities. Layers with fewer than two
+#' modules (not counting "Isolated") are skipped.
+#'
+#' @param mail.graph A uni-modal network, such as the one returned by
+#' \code{\link{bipartite_graph_projection}}. Node names must match the file_path column
+#' of cluster_table.
+#' @param cluster_table A data.table from \code{\link{parse_dv8_clusters}}, with the
+#' columns file_path, module and layer.
+#' @return A data.table with the columns layer and boundary_spanner.
+#' @export
+
+smell_radio_silence_by_layer <- function(mail.graph, cluster_table){
+
+  layer <- NULL # due to NSE notes in R CMD check
+
+  all_brokers <- list()
+
+  for(lyr in unique(cluster_table$layer)){
+    layer_dt <- cluster_table[layer == lyr]
+    modules <- unique(layer_dt$module)
+
+    # Without two modules other than Isolated, there is nothing to span between
+    if(length(setdiff(modules, "Isolated")) < 2){
+      next
+    }
+
+    # One cluster id per module, as a character like the clusters from community_oslom
+    module_to_id <- seq_along(modules)
+    names(module_to_id) <- modules
+    assignment <- data.table(node_id = layer_dt$file_path,
+                             cluster_id = as.character(module_to_id[layer_dt$module]))
+    info <- assignment[, .(cluster_size = .N), by = "cluster_id"]
+    layer_clusters <- list(assignment = assignment, info = info)
+
+    # Keep only the authors in this layer, and the edges between them
+    layer_graph <- mail.graph
+    layer_graph[["nodes"]] <- mail.graph[["nodes"]][name %in% layer_dt$file_path]
+    layer_graph[["edgelist"]] <- mail.graph[["edgelist"]][from %in% layer_dt$file_path &
+                                                      to %in% layer_dt$file_path]
+
+    brokers <- smell_radio_silence(layer_graph, layer_clusters)
+
+    if(length(brokers) > 0){
+      all_brokers[[length(all_brokers) + 1]] <- data.table(layer = lyr,
+                                                           boundary_spanner = brokers)
+    }
+  }
+
+  if(length(all_brokers) == 0){
+    return(data.table(layer = character(0), boundary_spanner = character(0)))
+  }
+
+  return(rbindlist(all_brokers))
+}
