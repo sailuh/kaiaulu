@@ -238,7 +238,8 @@ table_co_change_network <- igraph::bipartite_projection(plot_project_commit_netw
                                           which = FALSE) # FALSE is the file projection
 
 co_change_matrix <- as_adjacency_matrix(table_co_change_network,attr = "weight",sparse = F)
-kable(co_change_matrix[1:10,1:10])
+n <- min(10, nrow(co_change_matrix))
+kable(co_change_matrix[1:n,1:n])
 ```
 
 # Bipartite Networks vs Temporal Networks
