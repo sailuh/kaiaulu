@@ -1,0 +1,21 @@
+# -*- yaml -*-
+# https://github.com/sailuh/kaiaulu
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
+# Analysis File #
+#
+# Choices made for an analysis. Do not add project names, dates or
+# languages here, so the same file can be used with any project.
+# Project conventions (file extensions, test paths) and dates live in
+# conf/projects/.
+
+filter:
+  # Remove commits that change more than this number of files
+  max_files_per_commit: 30
+
+# Name of the period to analyze. Each project file defines its dates.
+period: default

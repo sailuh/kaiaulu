@@ -8,6 +8,11 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{Exploring Git Logs}
   %\VignetteEncoding{UTF-8}
+params:
+  project: kaiaulu
+  analysis: collab_network
+  conf_dir: ../conf
+  overrides: !r list()
 ---
 
 # Introduction
@@ -15,7 +20,7 @@ vignette: >
 This notebook presents some of the functionality of the **Parser** and **Network** modules in Kaiaulu. 
 
 ```{r}
-rm(list = ls())
+rm(list = setdiff(ls(), "params")) # keep the notebook parameters
 seed <- 1
 set.seed(seed)
 ```
@@ -34,26 +39,38 @@ require(magrittr)
 
 # Project Configuration File
 
-Analyzing open source projects often requires some manual work on your part to find where the open source project hosts its codebase and mailing list. Instead of hard-coding this on Notebooks, we keep this information in a project configuration file. Here's the minimal information this Notebook requires in a project configuration file:
+Analyzing open source projects often requires some manual work on your part to find where the open source project hosts its codebase and mailing list. Instead of hard-coding this on Notebooks, we keep this information in configuration files. This Notebook reads two of them, chosen by the Notebook parameters `project` and `analysis`:
+
+ * A project file, `conf/projects/<project>.yml`, with facts and conventions about the project: where its git log is, which branch to use, which file extensions are source code, how test files are named, and named periods of time.
+ * An analysis file, `conf/analyses/<analysis>.yml`, with choices made for the analysis: the commit size filter, and which named period to analyze. It contains no project names or dates, so the same analysis file works for every project.
+
+For example, `conf/projects/geronimo.yml` contains:
 
 ```
-data_path:
-  project_website: https://apr.apache.org/
-  git_url: https://github.com/apache/apr
-  git: ../rawdata/git_repo/APR/.git
-  
-filter:
-  keep_filepaths_ending_with:
-    - cpp
-    - c
-    - h
+version_control:
+  log: ../../rawdata/geronimo/git_repo/.git
+  branch:
+    - trunk
+conventions:
+  source_extensions:
     - java
-    - js
-    - py
-    - cc
-  remove_filepaths_containing:
+  test_paths:
     - test
+periods:
+  default:
+    start: 2009-01-01
+    end: 2010-01-01
 ```
+
+And `conf/analyses/collab_network.yml` contains:
+
+```
+filter:
+  max_files_per_commit: 30
+period: default
+```
+
+To run this Notebook on another project, pass a different project name instead of editing the code, e.g. `rmarkdown::render("gitlog_showcase.Rmd", params = list(project = "geronimo"))`, or use `run_experiment()` to run several projects at once.
 
 As you can see, the project configuration file is a simple bullet list. This is by design: We want the files to be human readable, so you can share by e-mail, include as appendix, or even attach as supplemental material in a conference. To facilitate formatting and commenting on files, we use .YAML, instead of plain .txt or markdown. 
 
@@ -67,15 +84,20 @@ The following code block reads the information explained just now:
 
 ```{r}
 tool <- parse_config("../tools.yml")
-conf <- parse_config("../conf/kaiaulu.yml")
+conf <- load_config(params$project, params$analysis,
+                    conf_dir = params$conf_dir, overrides = params$overrides)
+check_config(conf, "git")
 perceval_path <- get_tool_project("perceval", tool)
 git_repo_path <- get_git_repo_path(conf)
 git_branch <- get_git_branches(conf)[1]
-nvdfeed_folder_path <- get_nvdfeed_folder_path(conf)
 
 # Filters
 file_extensions <- get_file_extensions(conf)
 substring_filepath <- get_substring_filepath(conf)
+commit_size <- get_filter_commit_size(conf)
+
+# Period
+period <- get_period(conf)
 ```
 
 This is all the project configuration files are used for. If you inspect the variables above, you will see they are just strings. As a reminder, the tools.yml is where you store the filepaths to third party software in your computer. Please see Kaiaulu's README.md for details. As a rule of thumb, any R Notebooks in Kaiaulu load the project configuration file at the start, much like you would normally initialize variables at the start of your source code.
@@ -99,7 +121,8 @@ We may also want to filter files, to include only source code and exclude test f
 ```{r}
 project_git <- project_git  %>%
   filter_by_file_extension(file_extensions,"file_pathname")  %>% 
-  filter_by_filepath_substring(substring_filepath,"file_pathname")
+  filter_by_filepath_substring(substring_filepath,"file_pathname")  %>%
+  filter_by_commit_size(commit_size)
 ```
 
 # Identity Match
@@ -121,7 +144,7 @@ project_git <- project_log[["project_git"]]
 
 Git Logs contain a myriad of information, and we offer different ways to explore the data. Here, we will use graph representations to do so. Since these networks can get very large, it is useful to explore them in smaller time slices. 
 
-In order to slice a portion of the data for visualization, we must first convert all timestamps to the same timezone. Here we use UTC, and focus on the changes made to APR files in 2019. 
+In order to slice a portion of the data for visualization, we must first convert all timestamps to the same timezone. Here we use UTC, and focus on the changes made in the period chosen by the analysis file. 
 
 ```{r}
 project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
@@ -129,8 +152,8 @@ project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
 project_git$committer_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
                                               format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
 
-#project_git_slice <- project_git[author_datetimetz >= as.POSIXct("2019-01-01", format = "%Y-%m-%d",tz = "UTC") & author_datetimetz < as.POSIXct("2019-12-31", format = "%Y-%m-%d",tz = "UTC")]
-project_git_slice <- project_git 
+project_git_slice <- project_git[author_datetimetz >= as.POSIXct(period$start, format = "%Y-%m-%d", tz = "UTC") &
+                                  author_datetimetz < as.POSIXct(period$end, format = "%Y-%m-%d", tz = "UTC")]
 ```
 
 ## Authors, Committers, Files and Commits

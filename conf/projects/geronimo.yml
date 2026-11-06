@@ -1,0 +1,49 @@
+# -*- yaml -*-
+# https://github.com/sailuh/kaiaulu
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
+# Project File #
+#
+# Facts and conventions about the project. They do not change with the
+# analysis, so this file is curated once and shared by Pull Request.
+# Analysis choices go in conf/analyses/, studies in conf/experiments/.
+# Load with load_config("geronimo", "<analysis>").
+#
+# Sections are added module by module (see #419). Only the git module
+# sections are here for now; conf/geronimo.yml still holds the rest.
+
+project:
+  name: geronimo
+  website: https://geronimo.apache.org
+  openhub: https://www.openhub.net/p/geronimo
+
+version_control:
+  # Path to the .git of the project repository
+  log: ../../rawdata/geronimo/git_repo/.git
+  # From where the git log was downloaded
+  log_url: https://github.com/apache/geronimo
+  # Branches used for analysis
+  branch:
+    - trunk
+
+conventions:
+  # File extensions of the project's source code
+  source_extensions:
+    - java
+  # Substrings that identify test files in this project
+  test_paths:
+    - test
+
+periods:
+  # Named time windows. Analysis files refer to them by name.
+  # geronimo was mostly inactive in 2013, so the default window is 2009.
+  default:
+    start: 2009-01-01
+    end: 2010-01-01
+  late:
+    start: 2013-05-01
+    end: 2013-11-01

@@ -1,0 +1,30 @@
+# -*- yaml -*-
+# https://github.com/sailuh/kaiaulu
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
+# Experiment File #
+#
+# One study: its goal, the projects, the analysis and the notebooks.
+# Run everything with run_experiment("conf/experiments/notebook_critique.yml").
+# Entries under a project override the combined project and analysis
+# configuration for this study only.
+
+goal: >
+  Check that the git notebooks run on several projects without editing
+  notebook code.
+
+analysis: collab_network
+
+notebooks:
+  - gitlog_showcase.Rmd
+  - line_metrics_showcase.Rmd
+
+projects:
+  kaiaulu: {}
+  geronimo: {}
+  # geronimo:
+  #   period: late

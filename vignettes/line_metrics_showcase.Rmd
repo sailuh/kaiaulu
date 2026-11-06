@@ -8,6 +8,11 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{File Line Metrics Showcase}
   %\VignetteEncoding{UTF-8}
+params:
+  project: apr
+  analysis: !r NULL
+  conf_dir: ../conf
+  overrides: !r list()
 ---
 
 ```{r warning = FALSE, message = FALSE}
@@ -25,32 +30,24 @@ This notebook showcases Kaiaulu interface to the [SCC](https://github.com/boyter
 
 Notebooks in Kaiaulu use project configuration files. You can always directly hardcode paths in your notebook to bypass them, but using the config files helps ensure reproducibility of your analysis. 
 
-This Notebook uses the APR config file on the Kaiaulu repo. This is the relevant portion used in this Notebook:
+This Notebook reads the project file `conf/projects/<project>.yml`, chosen by the Notebook parameter `project` (APR by default). This is the relevant portion of `conf/projects/apr.yml`:
 
 ```yml
 version_control:
-  # Where is the git log located locally?
-  # This is the path to the .git of the project repository you are analyzing.
-  # The .git is hidden, so you can see it using `ls -a`
-  log: ../../rawdata/git_repo/APR/.git
-  # From where the git log was downloaded?
+  log: ../../rawdata/apr/git_repo/APR/.git
   log_url: https://github.com/apache/apr
-  # List of branches used for analysis
   branch:
-    - 1.7.4
-    
-filter:
-  keep_filepaths_ending_with:
-    - cpp
+    - 1.2.9
+    - trunk
+conventions:
+  source_extensions:
     - c
     - h
-    - java
-    - js
-    - py
-    - cc
-  remove_filepaths_containing:
+  test_paths:
     - test
 ```
+
+To run this Notebook on another project, pass a different project name instead of editing the code, e.g. `rmarkdown::render("line_metrics_showcase.Rmd", params = list(project = "geronimo"))`.
 
 # Choosing a Release or Commit Hash
 
@@ -58,7 +55,8 @@ We load the necessary information in this code block:
 
 ```{r}
 tool <- parse_config("../tools.yml")
-conf <- parse_config("../conf/apr.yml")
+conf <- load_config(params$project, params$analysis, conf_dir = params$conf_dir, overrides = params$overrides)
+check_config(conf, "git")
 scc_path <- get_tool_project("scc", tool)
 
 git_repo_path <- get_git_repo_path(conf)
