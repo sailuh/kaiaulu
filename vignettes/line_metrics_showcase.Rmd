@@ -56,7 +56,6 @@ We load the necessary information in this code block:
 ```{r}
 tool <- parse_config("../tools.yml")
 conf <- load_config(params$project, params$analysis, conf_dir = params$conf_dir, overrides = params$overrides)
-check_config(conf, "git")
 scc_path <- get_tool_project("scc", tool)
 
 git_repo_path <- get_git_repo_path(conf)

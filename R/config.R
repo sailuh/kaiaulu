@@ -1430,68 +1430,6 @@ get_enumeration_commits <- function(config_file) {
   return(enumeration_commit)
 }
 
-##### Module Manifests #####
-
-#' Checks a configuration against a module manifest.
-#'
-#' @description Each module declares in `inst/modules/<module>.yml` the
-#' configuration entries it reads. This function looks up every declared
-#' entry in `config_file` and reports which are missing, and which paths do
-#' not exist on disk, before a notebook or executable runs. It warns about
-#' missing required entries and missing paths.
-#'
-#' @param config_file The parsed configuration obtained from \code{\link{load_config}} or \code{\link{parse_config}}.
-#' @param module The module name (e.g. "git").
-#' @param module_dir The folder containing the module manifests.
-#' @return A data.table with one row per declared entry: `entry`, `required`, `present`, `path_exists`, `getter` and `how_to_fill`.
-#' @export
-check_config <- function(config_file, module, module_dir = system.file("modules", package = "kaiaulu")) {
-
-  manifest_path <- file.path(module_dir, paste0(module, ".yml"))
-  if (!file.exists(manifest_path)) {
-    stop(paste0("Module manifest does not exist: ", manifest_path))
-  }
-  manifest <- yaml::read_yaml(manifest_path)
-
-  check_entry <- function(entry, spec) {
-    keys <- strsplit(entry, ".", fixed = TRUE)[[1]]
-    value <- config_file
-    for (key in keys) {
-      value <- if (is.list(value)) value[[key]] else NULL
-    }
-    present <- !is.null(value)
-    path_exists <- NA
-    if (present && identical(spec[["type"]], "path")) {
-      path_exists <- file.exists(value)
-    }
-    how_to_fill <- spec[["how_to_fill"]]
-    data.table::data.table(entry = entry,
-                           required = isTRUE(spec[["required"]]),
-                           present = present,
-                           path_exists = path_exists,
-                           getter = if (is.null(spec[["getter"]])) NA_character_ else spec[["getter"]],
-                           how_to_fill = if (is.null(how_to_fill)) NA_character_ else how_to_fill)
-  }
-
-  result <- data.table::rbindlist(mapply(check_entry,
-                                         names(manifest[["reads"]]),
-                                         manifest[["reads"]],
-                                         SIMPLIFY = FALSE))
-
-  missing_required <- result[required == TRUE & present == FALSE]$entry
-  if (length(missing_required) > 0) {
-    warning(paste0("Module '", module, "' requires entries missing from the configuration: ",
-                   paste(missing_required, collapse = ", ")))
-  }
-  missing_paths <- result[path_exists == FALSE]$entry
-  if (length(missing_paths) > 0) {
-    warning(paste0("Module '", module, "' paths do not exist: ",
-                   paste(missing_paths, collapse = ", ")))
-  }
-
-  return(result)
-}
-
 ##### Experiments #####
 
 #' Runs every notebook of an experiment on every project of the experiment.

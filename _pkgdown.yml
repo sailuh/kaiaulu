@@ -321,7 +321,6 @@ reference:
 - contents:
   - parse_config
   - load_config
-  - check_config
   - run_experiment
   - get_period
   - get_tool_project

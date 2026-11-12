@@ -1,6 +1,5 @@
-# Uses the project, analysis and module files shipped with Kaiaulu.
+# Uses the project and analysis files shipped with Kaiaulu.
 conf_dir <- test_path("..", "..", "conf")
-module_dir <- test_path("..", "..", "inst", "modules")
 
 test_that("load_config combines project and analysis files", {
   conf <- load_config("geronimo", "collab_network", conf_dir = conf_dir)
@@ -33,13 +32,4 @@ test_that("getters still read old single-file configurations", {
   expect_equal(get_file_extensions(conf), conf[["filter"]][["keep_filepaths_ending_with"]])
   expect_equal(get_substring_filepath(conf), conf[["filter"]][["remove_filepaths_containing"]])
   expect_equal(get_filter_commit_size(conf), conf[["filter"]][["remove_filepaths_on_commit_size_greather_than"]])
-})
-
-test_that("check_config reports missing required entries", {
-  conf <- load_config("geronimo", "collab_network", conf_dir = conf_dir)
-  conf[["version_control"]][["branch"]] <- NULL
-  expect_warning(result <- check_config(conf, "git", module_dir = module_dir),
-                 "version_control.branch")
-  expect_false(result[entry == "version_control.branch"]$present)
-  expect_true(result[entry == "conventions.source_extensions"]$present)
 })
