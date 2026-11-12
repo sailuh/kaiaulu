@@ -3,7 +3,6 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### NEW FEATURES
 
- * The git module configuration has been refactored. Project facts and conventions (repository, file extensions, test paths, named periods) are now in `conf/projects/<project>.yml`, and reusable analysis choices (commit size filter, which period) in `conf/analyses/<analysis>.yml`. `load_config()` combines them, and `run_experiment()` renders the notebooks listed in `conf/experiments/<study>.yml` for each project and writes a run record. `gitlog_showcase.Rmd` and `line_metrics_showcase.Rmd` now take the project as a notebook parameter instead of a hardcoded path. `get_file_extensions()`, `get_substring_filepath()` and `get_filter_commit_size()` read the new entries and fall back to the old ones, so existing configuration files keep working. [#419](https://github.com/sailuh/kaiaulu/issues/419)
  *  A new capability to export events for process mining has been added. [#301](https://github.com/sailuh/kaiaulu/issues/301)
  * `exec/ghevents.R` has been added. It is a executable CLI (command-line interface) to download and parse Github Issue Events from outside Kaiaulu.
  * All GitHub Pull Request Comments are able to be downloaded in the Pull Request Comments notebook. [342](https://github.com/sailuh/kaiaulu/issues/342)
@@ -66,6 +65,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### BUG FIXES
 
+ * `gitlog_showcase.Rmd` no longer fails on projects with fewer than 10 files, applies the commit size filter and the analysis window of the project configuration, and no longer reads the unused NVD feed path. `conf/apr.yml` keeps only `c` and `h` as source extensions. [#419](https://github.com/sailuh/kaiaulu/issues/419)
  * `exec/github.R` has been fixed to address cases when issues have empty descriptions. [#298](https://github.com/sailuh/kaiaulu/issues/298)
  * keyword internal is now required to ommit functions in the docs API. [#241](https://github.com/sailuh/kaiaulu/issues/241)
  * Fixes duplication of issue rows due to multiple components in component field [#244](https://github.com/sailuh/kaiaulu/issues/244)

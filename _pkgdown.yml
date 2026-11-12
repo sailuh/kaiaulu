@@ -320,9 +320,6 @@ reference:
    in future versions of the config.
 - contents:
   - parse_config
-  - load_config
-  - run_experiment
-  - get_period
   - get_tool_project
   - gitlog_to_hdsmj
   - get_bugzilla_issue_comment_path

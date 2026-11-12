@@ -27,77 +27,6 @@ parse_config <- function(config_path) {
   return(conf)
 }
 
-#' Returns a project configuration combined with an analysis configuration.
-#'
-#' @description Reads the project file `conf/projects/<project>.yml` and,
-#' if given, the analysis file `conf/analyses/<analysis>.yml`, and returns
-#' them as a single parsed configuration that the getter functions accept.
-#' The project file holds facts and conventions about the project (e.g.
-#' repository location, file extensions, named periods). The analysis file
-#' holds choices made for an analysis (e.g. commit size filter, which period
-#' to use) and must not contain project names or dates, so it can be reused
-#' across projects. Entries in `overrides` (e.g. from an experiment file)
-#' replace entries of the combined configuration.
-#'
-#' @param project The project name, which is also the project file name without extension (e.g. "geronimo").
-#' @param analysis The analysis name, which is also the analysis file name without extension (e.g. "collab_network"). Optional.
-#' @param conf_dir The folder containing the `projects/` and `analyses/` folders.
-#' @param overrides A named list whose entries replace entries of the combined configuration. Optional.
-#' @return The combined parsed configuration.
-#' @export
-#' @seealso \code{\link{parse_config}} to parse a single configuration file.
-load_config <- function(project, analysis = NULL, conf_dir = "../conf", overrides = NULL) {
-
-  project_path <- file.path(conf_dir, "projects", paste0(project, ".yml"))
-  if (!file.exists(project_path)) {
-    stop(paste0("Project file does not exist: ", project_path))
-  }
-  conf <- yaml::read_yaml(project_path)
-
-  if (!is.null(analysis)) {
-    analysis_path <- file.path(conf_dir, "analyses", paste0(analysis, ".yml"))
-    if (!file.exists(analysis_path)) {
-      stop(paste0("Analysis file does not exist: ", analysis_path))
-    }
-    conf <- utils::modifyList(conf, yaml::read_yaml(analysis_path))
-  }
-
-  if (length(overrides) > 0) {
-    conf <- utils::modifyList(conf, overrides)
-  }
-
-  return(conf)
-}
-
-#' Returns the start and end dates of the period used for analysis.
-#'
-#' @description Analysis files refer to a period by name (e.g. `period: default`),
-#' and each project file defines the dates of its named periods under `periods:`.
-#' This function looks up the period name of the configuration in its periods.
-#' The function will inform the user if the period does not exist in the parsed
-#' configuration file, `config_file`.
-#'
-#' @param config_file The parsed configuration obtained from \code{\link{load_config}}.
-#' @return A list with `start` and `end` dates (as character "YYYY-MM-DD"), or NULL.
-#' @export
-get_period <- function(config_file) {
-
-  period_name <- config_file[["period"]]
-  if (is.null(period_name)) {
-    period_name <- "default"
-  }
-
-  period <- config_file[["periods"]][[period_name]]
-
-  if (is.null(period)) {
-    warning(paste0("Period '", period_name, "' does not exist in the configuration file."))
-    return(NULL)
-  }
-
-  return(list(start = as.character(period[["start"]]),
-              end = as.character(period[["end"]])))
-}
-
 ##### Git #####
 
 #' Returns the path to the .git of the project repository that is being analyzed.
@@ -959,11 +888,7 @@ get_cveid_regex <- function(config_file) {
 #' @export
 get_file_extensions <- function(config_file) {
 
-  # Project files (conf/projects/) keep file extensions as a project convention
-  file_extensions <- config_file[["conventions"]][["source_extensions"]]
-  if (is.null(file_extensions)) {
-    file_extensions <- config_file[["filter"]][["keep_filepaths_ending_with"]]
-  }
+  file_extensions <- config_file[["filter"]][["keep_filepaths_ending_with"]]
 
   if (is.null(file_extensions)) {
     warning("Attribute does not exist in the configuration file.")
@@ -985,11 +910,7 @@ get_file_extensions <- function(config_file) {
 #' @export
 get_substring_filepath <- function(config_file) {
 
-  # Project files (conf/projects/) keep test paths as a project convention
-  substring_filepath <- config_file[["conventions"]][["test_paths"]]
-  if (is.null(substring_filepath)) {
-    substring_filepath <- config_file[["filter"]][["remove_filepaths_containing"]]
-  }
+  substring_filepath <- config_file[["filter"]][["remove_filepaths_containing"]]
 
   if (is.null(substring_filepath)) {
     warning("Attribute does not exist in the configuration file.")
@@ -1011,11 +932,7 @@ get_substring_filepath <- function(config_file) {
 #' @export
 get_filter_commit_size <- function(config_file) {
 
-  # Analysis files (conf/analyses/) keep the commit size as an analysis choice
-  filter_commit_size <- config_file[["filter"]][["max_files_per_commit"]]
-  if (is.null(filter_commit_size)) {
-    filter_commit_size <- config_file[["filter"]][["remove_filepaths_on_commit_size_greather_than"]]
-  }
+  filter_commit_size <- config_file[["filter"]][["remove_filepaths_on_commit_size_greather_than"]]
 
   if (is.null(filter_commit_size)) {
     warning("Attribute does not exist in the configuration file.")
@@ -1428,75 +1345,4 @@ get_enumeration_commits <- function(config_file) {
   }
 
   return(enumeration_commit)
-}
-
-##### Experiments #####
-
-#' Runs every notebook of an experiment on every project of the experiment.
-#'
-#' @description An experiment file (`conf/experiments/<study>.yml`) records
-#' the goal of a study, the projects, the analysis and the notebooks it uses
-#' (see #397). This function renders each notebook for each project, passing
-#' the project, the analysis and the project's overrides as notebook
-#' parameters, so no notebook code is edited. It writes the HTML files to
-#' `<output_dir>/<project>/` and a run record (`run_record.yml`) with the
-#' date, the Kaiaulu version and the commit of each project repository.
-#'
-#' @param experiment_path The path to the experiment file.
-#' @param conf_dir The folder containing the `projects/` and `analyses/` folders.
-#' @param notebook_dir The folder containing the notebooks.
-#' @param output_dir The folder where results are written, one subfolder per project.
-#' @return The run record as a list, invisibly.
-#' @export
-run_experiment <- function(experiment_path,
-                           conf_dir = "conf",
-                           notebook_dir = "vignettes",
-                           output_dir = "../analysis") {
-
-  if (!requireNamespace("rmarkdown", quietly = TRUE)) {
-    stop("The rmarkdown package is required to run an experiment.")
-  }
-
-  experiment <- yaml::read_yaml(experiment_path)
-  conf_dir <- normalizePath(conf_dir)
-  run_record <- list(experiment = experiment_path,
-                     goal = experiment[["goal"]],
-                     date = format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"),
-                     kaiaulu_version = as.character(utils::packageVersion("kaiaulu")),
-                     runs = list())
-
-  for (project in names(experiment[["projects"]])) {
-    overrides <- experiment[["projects"]][[project]]
-    project_output_dir <- file.path(output_dir, project)
-    dir.create(project_output_dir, recursive = TRUE, showWarnings = FALSE)
-    project_output_dir <- normalizePath(project_output_dir)
-
-    conf <- load_config(project, experiment[["analysis"]], conf_dir, overrides)
-    git_repo_path <- file.path(normalizePath(notebook_dir), get_git_repo_path(conf))
-    repo_commit <- tryCatch(system2("git", c("--git-dir", git_repo_path, "rev-parse", "HEAD"),
-                                    stdout = TRUE, stderr = FALSE),
-                            error = function(e) NA_character_,
-                            warning = function(w) NA_character_)
-
-    for (notebook in experiment[["notebooks"]]) {
-      output_file <- paste0(tools::file_path_sans_ext(notebook), "_", project, ".html")
-      rmarkdown::render(file.path(notebook_dir, notebook),
-                        params = list(project = project,
-                                      analysis = experiment[["analysis"]],
-                                      conf_dir = conf_dir,
-                                      overrides = overrides),
-                        output_file = output_file,
-                        output_dir = project_output_dir,
-                        output_options = list(self_contained = FALSE),
-                        envir = new.env())
-      run_record[["runs"]][[length(run_record[["runs"]]) + 1]] <-
-        list(project = project,
-             notebook = notebook,
-             repository_commit = repo_commit,
-             output = file.path(project_output_dir, output_file))
-    }
-  }
-
-  yaml::write_yaml(run_record, file.path(output_dir, "run_record.yml"))
-  return(invisible(run_record))
 }
