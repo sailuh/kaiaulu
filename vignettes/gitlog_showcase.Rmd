@@ -71,11 +71,15 @@ conf <- parse_config("../conf/kaiaulu.yml")
 perceval_path <- get_tool_project("perceval", tool)
 git_repo_path <- get_git_repo_path(conf)
 git_branch <- get_git_branches(conf)[1]
-nvdfeed_folder_path <- get_nvdfeed_folder_path(conf)
 
 # Filters
 file_extensions <- get_file_extensions(conf)
 substring_filepath <- get_substring_filepath(conf)
+commit_size <- get_filter_commit_size(conf)
+
+# Analysis window
+start_commit <- get_window_start_commit(conf)
+end_commit <- get_window_end_commit(conf)
 ```
 
 This is all the project configuration files are used for. If you inspect the variables above, you will see they are just strings. As a reminder, the tools.yml is where you store the filepaths to third party software in your computer. Please see Kaiaulu's README.md for details. As a rule of thumb, any R Notebooks in Kaiaulu load the project configuration file at the start, much like you would normally initialize variables at the start of your source code.
@@ -89,17 +93,32 @@ git_checkout(git_branch,git_repo_path)
 project_git <- parse_gitlog(perceval_path,git_repo_path)
 #project_git <- parse_gitlog(perceval_path,git_repo_path,save_path)
 #project_git <- readRDS(save_path)
+
+# Dates of the analysis window commits, read before the filters below remove any commit
+window_dates <- NULL
+if (!is.null(start_commit) && !is.null(end_commit)) {
+  window_dates <- as.POSIXct(c(get_date_from_commit_hash(project_git, start_commit),
+                               get_date_from_commit_hash(project_git, end_commit)),
+                             format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
+  if (anyNA(window_dates)) {
+    stop("The analysis window start_commit or end_commit is not in the git log.")
+  }
+}
 ```
 
 
 # Filter files
 
-We may also want to filter files, to include only source code and exclude test files for example. 
+We may also want to filter files, to include only source code and exclude test files for example. If the project configuration sets a commit size, commits that change more files than that are removed too. 
 
 ```{r}
 project_git <- project_git  %>%
   filter_by_file_extension(file_extensions,"file_pathname")  %>% 
   filter_by_filepath_substring(substring_filepath,"file_pathname")
+
+if (!is.null(commit_size)) {
+  project_git <- filter_by_commit_size(project_git, commit_size)
+}
 ```
 
 # Identity Match
@@ -121,7 +140,7 @@ project_git <- project_log[["project_git"]]
 
 Git Logs contain a myriad of information, and we offer different ways to explore the data. Here, we will use graph representations to do so. Since these networks can get very large, it is useful to explore them in smaller time slices. 
 
-In order to slice a portion of the data for visualization, we must first convert all timestamps to the same timezone. Here we use UTC, and focus on the changes made to APR files in 2019. 
+In order to slice a portion of the data for visualization, we must first convert all timestamps to the same timezone. Here we use UTC, and focus on the changes made in the analysis window of the project configuration (`analysis: window:`), or on the full history if the project configuration has no window. 
 
 ```{r}
 project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
@@ -129,8 +148,11 @@ project_git$author_datetimetz <- as.POSIXct(project_git$author_datetimetz,
 project_git$committer_datetimetz <- as.POSIXct(project_git$committer_datetimetz,
                                               format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
 
-#project_git_slice <- project_git[author_datetimetz >= as.POSIXct("2019-01-01", format = "%Y-%m-%d",tz = "UTC") & author_datetimetz < as.POSIXct("2019-12-31", format = "%Y-%m-%d",tz = "UTC")]
-project_git_slice <- project_git 
+if (is.null(window_dates)) {
+  project_git_slice <- project_git
+} else {
+  project_git_slice <- project_git[author_datetimetz >= window_dates[1] & author_datetimetz <= window_dates[2]]
+}
 ```
 
 ## Authors, Committers, Files and Commits
@@ -215,7 +237,8 @@ table_co_change_network <- igraph::bipartite_projection(plot_project_commit_netw
                                           which = FALSE) # FALSE is the file projection
 
 co_change_matrix <- as_adjacency_matrix(table_co_change_network,attr = "weight",sparse = F)
-kable(co_change_matrix[1:10,1:10])
+n <- min(10, nrow(co_change_matrix))
+kable(co_change_matrix[1:n,1:n])
 ```
 
 # Bipartite Networks vs Temporal Networks
