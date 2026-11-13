@@ -4,12 +4,21 @@
 \alias{transform_commit_message_id_to_network}
 \title{Transform parsed git repo commit messages id and files into an edgelist}
 \usage{
-transform_commit_message_id_to_network(project_git, commit_message_id_regex)
+transform_commit_message_id_to_network(
+  project_git,
+  commit_message_id_regex,
+  weight = NULL,
+  weight_agg = mean
+)
 }
 \arguments{
 \item{project_git}{A parsed git project by \code{\link{parse_gitlog}}.}
 
 \item{commit_message_id_regex}{the regex to extract the id from the commit message}
+
+\item{weight}{A string naming a numeric column in \code{project_git} to use as the edge weight. When \code{NULL} (default), edges are weighted by commit count per issue-file pair.}
+
+\item{weight_agg}{A function to aggregate the weight column across multiple rows sharing the same \code{from}/\code{to} pair. Defaults to \code{mean}.}
 }
 \description{
 Transform parsed git repo commit messages id and files into an edgelist
@@ -23,6 +32,7 @@ Other edgelists:
 \code{\link{transform_gitlog_to_entity_bipartite_network}()},
 \code{\link{transform_gitlog_to_entity_temporal_network}()},
 \code{\link{transform_gitlog_to_hdsmj}()},
+\code{\link{transform_gitlog_to_multimodal_network}()},
 \code{\link{transform_gitlog_to_temporal_network}()},
 \code{\link{transform_reply_to_bipartite_network}()},
 \code{\link{transform_temporal_gitlog_to_adsmj}()},

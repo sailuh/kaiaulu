@@ -524,6 +524,7 @@ file_network[["nodes"]]$color <- "#f4dbb5"
 edgelist <- file_network[["edgelist"]][,.(from=src_filepath,
                                           to=dest_filepath)]
 edgelist$weight <- rowSums(file_network[["edgelist"]][,3:ncol(file_network[["edgelist"]]),with=FALSE])
+edgelist[, direction := "directed"]
 file_network[["edgelist"]] <- edgelist
 ```
 

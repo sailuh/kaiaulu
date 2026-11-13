@@ -6,13 +6,19 @@
 \usage{
 transform_r_dependencies_to_network(
   r_dependencies_edgelist,
-  dependency_type = c("function", "file")
+  dependency_type = c("function", "file"),
+  weight = NULL,
+  weight_agg = mean
 )
 }
 \arguments{
 \item{r_dependencies_edgelist}{A parsed R folder by \code{\link{parse_r_dependencies}}.}
 
 \item{dependency_type}{The type of dependency to be parsed: Function or File}
+
+\item{weight}{A string naming a numeric column in \code{r_dependencies_edgelist} to use as the edge weight. When \code{NULL} (default), edges are weighted by dependency occurrence count.}
+
+\item{weight_agg}{A function to aggregate the weight column across multiple rows sharing the same \code{from}/\code{to} pair. Defaults to \code{mean}.}
 }
 \description{
 Transform parsed R dependencies into a graph
