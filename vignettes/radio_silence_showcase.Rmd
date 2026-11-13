@@ -63,7 +63,7 @@ project_name <- project_name[length(project_name)]
 
 # Parse GitHub Replies
 
-Parse all GitHub issues, pull requests, and comments into a single reply table.
+Parse all GitHub issues, pull requests, and comments into a single reply table. Bot accounts such as `codecov[bot]` are removed first, so they do not show up as authors in the network.
 
 ```{r}
 project_github_replies <- parse_github_replies(
@@ -73,6 +73,12 @@ project_github_replies <- parse_github_replies(
   commit_json_folder_path        = github_commit_path,
   pr_comments_json_folder_path   = github_pr_comments_path
 )
+
+# Remove bot accounts so they are not counted as authors
+bots <- "codecov"
+project_github_replies <- project_github_replies[
+  !grepl(bots, reply_from, ignore.case = TRUE) &
+  !grepl(bots, reply_to, ignore.case = TRUE)]
 nrow(project_github_replies)
 head(project_github_replies[, .(reply_from, reply_subject)]) %>%
   gt(auto_align = FALSE)
@@ -170,40 +176,15 @@ cluster_table[, .N, by = .(layer, module)][order(layer, module)] %>%
 
 ## Radio Silence per Layer
 
-For each layer in the DR Space hierarchy, call radio silence using the module assignments as communities. Layers with fewer than two distinct non-Isolated modules are skipped.
+`smell_radio_silence_by_layer` calls radio silence on each layer in the DR Space hierarchy, using the modules in that layer as communities. Layers with fewer than two distinct non-Isolated modules are skipped.
 
 ```{r}
-all_brokers <- character(0)
-
-for (lyr in unique(cluster_table$layer)) {
-  layer_dt       <- cluster_table[layer == lyr]
-  active_modules <- setdiff(unique(layer_dt$module), "Isolated")
-  if (length(active_modules) < 2) next
-
-  cat("\n### Layer:", lyr, "\n")
-
-  module_levels <- unique(layer_dt$module)
-  module_to_id  <- seq_along(module_levels)
-  names(module_to_id) <- module_levels
-
-  assignment <- data.table(node_id    = layer_dt$file_path,
-                           cluster_id = as.character(module_to_id[layer_dt$module]))
-  info_dt    <- assignment[, .(cluster_size = .N), by = cluster_id]
-  layer_clusters <- list(assignment = assignment, info = info_dt)
-
-  layer_nodes    <- layer_dt$file_path
-  layer_network  <- author_network
-  layer_network[["nodes"]]    <- author_network[["nodes"]][author_network[["nodes"]]$name %in% layer_nodes, ]
-  layer_network[["edgelist"]] <- author_network[["edgelist"]][author_network[["edgelist"]]$from %in% layer_nodes &
-                                                                author_network[["edgelist"]]$to   %in% layer_nodes, ]
-
-  brokers <- smell_radio_silence(mail.graph = layer_network, clusters = layer_clusters)
-  cat("Radio silence boundary spanners:", length(brokers), "\n")
-  if (length(brokers) > 0) {
-    data.table(layer = lyr, boundary_spanner = brokers) %>%
-  gt(auto_align = FALSE) %>% print()
-    all_brokers <- union(all_brokers, brokers)
-  }
+layer_brokers <- smell_radio_silence_by_layer(author_network, cluster_table)
+all_brokers <- unique(layer_brokers$boundary_spanner)
+cat("Radio silence boundary spanners:", length(all_brokers), "\n")
+if (nrow(layer_brokers) > 0) {
+  layer_brokers %>%
+    gt(auto_align = FALSE)
 }
 ```
 
