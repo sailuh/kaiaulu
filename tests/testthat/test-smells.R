@@ -41,3 +41,47 @@ test_that("each layer is reported on its own", {
 
   expect_equal(unique(brokers$layer), "L0")
 })
+
+# Collaboration: dev 1 - dev 2 and dev 3 - dev 4. Communication: dev 1 - dev 2 only.
+code_edgelist <- data.table(from = c("dev 1","dev 3"),
+                            to = c("dev 2","dev 4"),
+                            weight = c(1,1))
+code_graph <- list(nodes = nodes, edgelist = code_edgelist)
+mail_edgelist <- data.table(from = "dev 1", to = "dev 2", weight = 1)
+mail_graph <- list(nodes = nodes, edgelist = mail_edgelist)
+
+test_that("collaboration without communication is found in a layer", {
+
+  cluster_table <- data.table(file_path = c("dev 1","dev 2","dev 3","dev 4"),
+                              module = c("M0","M0","M1","M1"),
+                              layer = c("L0","L0","L0","L0"))
+
+  missing <- smell_missing_links_by_layer(mail_graph, code_graph, cluster_table)
+
+  expect_equal(nrow(missing), 1)
+  expect_equal(sort(c(missing$developer_1, missing$developer_2)), c("dev 3","dev 4"))
+  expect_equal(missing$layer, "L0")
+})
+
+test_that("each layer only looks at its own authors", {
+
+  cluster_table <- data.table(file_path = c("dev 1","dev 2","dev 3","dev 4",
+                                            "dev 1","dev 2"),
+                              module = c("M0","M0","M1","M1","M0","M0"),
+                              layer = c("L0","L0","L0","L0","L1","L1"))
+
+  missing <- smell_missing_links_by_layer(mail_graph, code_graph, cluster_table)
+
+  expect_equal(unique(missing$layer), "L0")
+})
+
+test_that("no missing links gives an empty table", {
+
+  cluster_table <- data.table(file_path = c("dev 1","dev 2"),
+                              module = c("M0","M0"),
+                              layer = c("L0","L0"))
+
+  missing <- smell_missing_links_by_layer(mail_graph, code_graph, cluster_table)
+
+  expect_equal(nrow(missing), 0)
+})
