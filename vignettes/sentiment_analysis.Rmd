@@ -209,8 +209,9 @@ github_replies <- rbindlist(
 Create directories for saving the trained model and prediction outputs. These directories ensure that the training function can store the best model and the prediction function can save generated results.
 
 ```{r, eval = FALSE}
-dir.create(model_save_path, recursive = TRUE, showWarnings = FALSE)
-dir.create(prediction_save_path, recursive = TRUE, showWarnings = FALSE)
+dir.create(dirname(model_save_path), recursive = TRUE, showWarnings = FALSE)
+dir.create(dirname(prediction_save_path), recursive = TRUE, showWarnings = FALSE)
+dir.create(dirname(training_dataset_filepath), recursive = TRUE, showWarnings = FALSE)
 ```
 
 We will now train the sentiment model. The train function expects a data.table with `text` (the comment body) and `polarity` (`0` = neutral, `1` = positive, `2` = negative) columns.
@@ -227,9 +228,9 @@ train_df <- fread("https://github.com/user-attachments/files/27577408/combined_a
 
 ```{r Training Step}
 
-fwrite(train_df[1:20],training_dataset_filepath)
+fwrite(train_df,training_dataset_filepath)
 
-pysenti_train_model(
+training <- pysenti_train_model(
   conda_path             = conda_path,
   pysenti_conda_env_name = pysenti_conda_env_name,  
   pysenti_path           = pysenti_train_path,
@@ -237,6 +238,53 @@ pysenti_train_model(
   model_save_path        = model_save_path,
   model_name            = "bert-base-cased"
 )
+```
+
+## Evaluating the Model
+
+The training script holds out part of the dataset as a test set and evaluates the best model on it. The results are saved as a `_metrics.json` file next to the model, and `pysenti_train_model()` returns them as `training$metrics`. The full Python console output is kept in `training$log` for debugging.
+
+The summary below reports weighted accuracy, precision, recall and F1 on the test set, along with the size of each data split.
+
+```{r Evaluation Summary}
+pysenti_metrics_summary(training$metrics) %>%
+  gt() %>%
+  tab_header(title = "Test-set performance") %>%
+  fmt_number(columns = c(accuracy, precision, recall, f1), decimals = 3)
+```
+
+Per-class metrics show whether the model handles each sentiment equally well. `support` is the number of test comments with that true label.
+
+```{r Per Class Metrics}
+pysenti_per_class_metrics(training$metrics) %>%
+  gt() %>%
+  tab_header(title = "Per-class performance") %>%
+  fmt_number(columns = c(precision, recall, f1), decimals = 3)
+```
+
+The training history shows the loss and accuracy for each epoch. The best epoch by validation F1 is the one saved to `model_save_path`.
+
+```{r Training History}
+pysenti_training_history(training$metrics) %>%
+  gt() %>%
+  tab_header(title = "Training history") %>%
+  fmt_number(columns = -epoch, decimals = 3)
+```
+
+In the confusion matrix, each row is the true label and each column is the predicted label. Counts on the diagonal are correct predictions. Off-diagonal cells show which sentiments the model confuses.
+
+```{r Confusion Matrix, fig.width = 5, fig.height = 4}
+cm <- pysenti_confusion_matrix(training$metrics)
+
+ggplot(cm, aes(x = predicted, y = true, fill = n)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = n), size = 5) +
+  scale_fill_gradient(low = "#f7fbff", high = "#2171b5") +
+  scale_y_discrete(limits = rev) +
+  coord_equal() +
+  labs(x = "Predicted", y = "Actual", fill = "Count",
+       title = "Test-set confusion matrix") +
+  theme_minimal()
 ```
 
 # Prediction

@@ -4,22 +4,44 @@
 \alias{pysenti_train_model}
 \title{Train a sentiment model using PySenti}
 \usage{
-pysenti_train_model(pysenti_path, train_data_path, model_save_path, model_name)
+pysenti_train_model(
+  conda_path = "",
+  pysenti_conda_env_name = "",
+  pysenti_path,
+  train_data_path,
+  model_save_path,
+  model_name,
+  metrics_save_path = paste0(sub("\\\\.[^./]*$", "", model_save_path), "_metrics.json")
+)
 }
 \arguments{
+\item{conda_path}{Path to conda if pysenti is setup in a conda env (optional)}
+
+\item{pysenti_conda_env_name}{pysenti conda env name if pysenti is setup in a conda env (required only if conda path specified)}
+
 \item{pysenti_path}{Path to the PySenti training Python script.}
 
 \item{train_data_path}{Path to the model train .csv with at least `text` and `polarity` columns.}
 
-\item{model_save_path}{Directory where the trained model will be stored.}
+\item{model_save_path}{Path where the trained model will be stored.}
 
 \item{model_name}{Model architecture name; `"bert-base-cased"`, `"xlnet-base-cased", etc.}
+
+\item{metrics_save_path}{Path of the JSON metrics file written by PySenti. Defaults to
+`model_save_path` without its extension, followed by `_metrics.json`.}
 }
 \value{
-Character vector containing stdout/stderr from the Python process.
+A list with `log`, a character vector of the Python process stdout/stderr, and
+`metrics`, a list parsed from the metrics JSON (`model_name`, `split_sizes`, `history`, `test`).
 }
 \description{
 Trains a transformer-based sentiment model (e.g., BERT, XLNet, RoBERTa,
 ALBERT) by passing a labeled reply data.table to the external PySenti
-Python script.
+Python script. The script splits the data into train/validation/test sets,
+trains the model, evaluates it on the test set, and writes the metrics to a
+JSON file, which this function reads back.
+
+Use \code{\link{pysenti_metrics_summary}}, \code{\link{pysenti_per_class_metrics}},
+\code{\link{pysenti_training_history}} and \code{\link{pysenti_confusion_matrix}}
+to turn the returned `metrics` into tables.
 }
