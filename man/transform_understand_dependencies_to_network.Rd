@@ -4,12 +4,21 @@
 \alias{transform_understand_dependencies_to_network}
 \title{Transform Understand Dependencies}
 \usage{
-transform_understand_dependencies_to_network(parsed, weight_types)
+transform_understand_dependencies_to_network(
+  understand_parsed,
+  weight_types,
+  weight = NULL,
+  weight_agg = mean
+)
 }
 \arguments{
-\item{parsed}{Parsed table from \code{\link{parse_understand_dependencies}}}
+\item{understand_parsed}{Parsed table from \code{\link{parse_understand_dependencies}}}
 
 \item{weight_types}{The weight types as defined in Depends. Accepts single string and vector input}
+
+\item{weight}{A string naming a numeric column in the parsed edge list to use as the edge weight. When \code{NULL} (default), edges are weighted by dependency occurrence count.}
+
+\item{weight_agg}{A function to aggregate the weight column across multiple rows sharing the same \code{from}/\code{to} pair. Defaults to \code{mean}.}
 }
 \description{
 This function subsets a parsed table from parse_understand_dependencies
@@ -24,6 +33,7 @@ Other edgelists:
 \code{\link{transform_gitlog_to_entity_bipartite_network}()},
 \code{\link{transform_gitlog_to_entity_temporal_network}()},
 \code{\link{transform_gitlog_to_hdsmj}()},
+\code{\link{transform_gitlog_to_multimodal_network}()},
 \code{\link{transform_gitlog_to_temporal_network}()},
 \code{\link{transform_reply_to_bipartite_network}()},
 \code{\link{transform_temporal_gitlog_to_adsmj}()}

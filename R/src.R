@@ -201,8 +201,17 @@ parse_dependencies <- function(depends_jar_path,git_repo_path,language,output_di
                    '--format=json'),
           stdout = FALSE,
           stderr = FALSE)
-  # Construct /output_dir/ file path
-  output_path <- stri_c(output_dir, project_name,".json")
+  # Construct /output_dir/ file path — older Depends versions produce <name>.json,
+  # newer versions produce <name>-file.json
+  output_path_file <- stri_c(output_dir, project_name, "-file.json")
+  output_path_plain <- stri_c(output_dir, project_name, ".json")
+  if(file.exists(output_path_file)){
+    output_path <- output_path_file
+  } else if(file.exists(output_path_plain)){
+    output_path <- output_path_plain
+  } else {
+    stop("Depends output not found. Expected: ", output_path_file, " or ", output_path_plain)
+  }
   # Parsed JSON output.
   depends_parsed <- jsonlite::read_json(output_path)
   # The JSON has two main parts. The first is a vector of all file names.
@@ -385,36 +394,50 @@ parse_r_dependencies <- function(folder_path){
 #'
 #' @description This function subsets a parsed table from parse_understand_dependencies
 #'
-#' @param parsed Parsed table from \code{\link{parse_understand_dependencies}}
+#' @param understand_parsed Parsed table from \code{\link{parse_understand_dependencies}}
 #' @param weight_types The weight types as defined in Depends. Accepts single string and vector input
+#' @param weight A string naming a numeric column in the parsed edge list to use as the edge weight. When \code{NULL} (default), edges are weighted by dependency occurrence count.
+#' @param weight_agg A function to aggregate the weight column across multiple rows sharing the same \code{from}/\code{to} pair. Defaults to \code{mean}.
 #' @export
 #' @family edgelists
-transform_understand_dependencies_to_network <- function(parsed, weight_types) {
+transform_understand_dependencies_to_network <- function(understand_parsed, weight_types, weight = NULL, weight_agg = mean) {
+  dependency_kind <- node_label <- id <- label_from <- id_from <- label_to <- id_to <- NULL # due to NSE notes in R CMD check
+  nodes <- understand_parsed[["node_list"]]
+  edges <- understand_parsed[["edge_list"]]
 
-  nodes <- parsed[["node_list"]]
-  edges <- parsed[["edge_list"]]
+  # Disambiguate node labels with their ID since the same label may appear in multiple contexts
+  nodes[, node_label := stringi::stri_c(node_label, "|", id)]
+  edges[, label_from := stringi::stri_c(label_from, "|", id_from)]
+  edges[, label_to   := stringi::stri_c(label_to,   "|", id_to)]
 
-  # Create an ID column, as the file name in a label may occur
-  # again in other parts of the code.
-
-  nodes$node_label <- stringi::stri_c(nodes$node_label,"|",nodes$id)
-
-  edges$label_from <- stringi::stri_c(edges$label_from,"|",edges$id_from)
-  edges$label_to <- stringi::stri_c(edges$label_to,"|",edges$id_to)
-
-  # Filter out by weights if vector provided
+  # Filter to requested dependency types
   if (length(weight_types) > 0) {
     edges <- edges[dependency_kind %in% weight_types]
   }
-
-  # If filter removed all edges:
   if (nrow(edges) == 0) {
-    stop("Error: No edges found under weight_types.")
+    stop("No edges found under weight_types.")
   }
 
-  # Create a list to return
-  graph <- list(node_list = nodes, edge_list = edges)
-  return(graph)
+  # Build nodes table
+  depend_nodes <- data.table(
+    name  = nodes[["node_label"]],
+    type  = FALSE
+  )
+  # Build edgelist — weight = count of this dependency kind per from-to pair, or custom column if provided
+  if(is.null(weight)){
+    depend_edgelist <- edges[, .(weight = .N), by = .(from = label_from, to = label_to, label = dependency_kind)]
+  } else {
+    if(!weight %in% colnames(edges)){
+      stop("Column '", weight, "' not found in parsed edge list.")
+    }
+    weight_col <- weight
+    depend_edgelist <- edges[, .(weight = weight_agg(.SD[[weight_col]])),
+                              by = .(from = label_from, to = label_to, label = dependency_kind),
+                              .SDcols = weight_col]
+  }
+  depend_edgelist[, direction := "directed"]
+  understand_graph <- model_unimodal_graph(depend_nodes, depend_edgelist, direction = "directed")
+  return(understand_graph)
 }
 
 #' Transform parsed dependencies into a network
@@ -426,14 +449,30 @@ transform_understand_dependencies_to_network <- function(parsed, weight_types) {
 #' @family edgelists
 transform_dependencies_to_network <- function(depends_parsed,weight_types=NA){
   src <- dest <- weight <- NULL # due to NSE notes in R CMD check
+  # Verify input is a valid parse_dependencies output before transforming
+  if(!is.list(depends_parsed)){
+    stop("depends_parsed must be a list returned by parse_dependencies.")
+  }
+  if(!all(c("nodes","edgelist") %in% names(depends_parsed))){
+    stop("depends_parsed must contain 'nodes' and 'edgelist' elements.")
+  }
+  if(!is.data.table(depends_parsed[["nodes"]])){
+    stop("depends_parsed[['nodes']] must be a data.table.")
+  }
+  if(!is.data.table(depends_parsed[["edgelist"]])){
+    stop("depends_parsed[['edgelist']] must be a data.table.")
+  }
   # Can only include types user wants if Depends found them at least once on codebase
 
   nodes <- depends_parsed[["nodes"]]
   edgelist <- depends_parsed[["edgelist"]]
 
+  # Capture NA flag before intersect() converts NA to character(0)
+  use_all_types <- any(is.na(weight_types))
   weight_types <- intersect(names(edgelist)[3:ncol(edgelist)],weight_types)
-  dependency_edgelist <- edgelist[,.(src_filepath,dest_filepath)]
-  if(any(is.na(weight_types))){
+  # copy() preserves all dependency type columns (Import, Call, Use, etc.)
+  dependency_edgelist <- copy(edgelist)
+  if(use_all_types){
     dependency_edgelist$weight <- rowSums(edgelist[,3:ncol(edgelist),with=FALSE])
   }else{
     dependency_edgelist$weight <- rowSums(edgelist[,weight_types,with=FALSE])
@@ -443,38 +482,52 @@ transform_dependencies_to_network <- function(depends_parsed,weight_types=NA){
   setnames(dependency_edgelist,
            old=c("src_filepath","dest_filepath"),
            new=c("from","to"))
-  # Select relevant columns for nodes
-  dependency_nodes <- nodes
-  setnames(x=dependency_nodes,
-           old="filepath",
-           new="name")
-  # Color files yellow
-  dependency_nodes <- data.table(name=dependency_nodes$name,color="#f4dbb5")
-  # Return the parsed JSON output as nodes and edgelist.
-  file_network <- list()
-  file_network[["nodes"]] <- dependency_nodes
-  file_network[["edgelist"]] <- dependency_edgelist
-  return(file_network)
+  # Build nodes table in transform before passing to constructor.
+  # copy() prevents setnames from mutating the caller's depends_parsed object.
+  # Copying from parse output preserves all files including isolated nodes.
+  dependency_nodes <- copy(nodes)
+  setnames(dependency_nodes, old="filepath", new="name")
+  dependency_nodes$type <- FALSE
+  dependency_nodes$color <- "#f4dbb5"
+  # Constructor only wraps pre-built tables and assigns graph type.
+  dependency_edgelist[, direction := "directed"]
+  depends_graph <- model_unimodal_graph(dependency_nodes, dependency_edgelist, direction = "directed")
+  return(depends_graph)
 }
 #' Transform parsed R dependencies into a graph
 #' @param r_dependencies_edgelist A parsed R folder by \code{\link{parse_r_dependencies}}.
 #' @param dependency_type The type of dependency to be parsed: Function or File
+#' @param weight A string naming a numeric column in \code{r_dependencies_edgelist} to use as the edge weight. When \code{NULL} (default), edges are weighted by dependency occurrence count.
+#' @param weight_agg A function to aggregate the weight column across multiple rows sharing the same \code{from}/\code{to} pair. Defaults to \code{mean}.
 #' @export
-transform_r_dependencies_to_network <- function(r_dependencies_edgelist,dependency_type=c("function","file")){
+transform_r_dependencies_to_network <- function(r_dependencies_edgelist, dependency_type=c("function","file"), weight = NULL, weight_agg = mean){
+  src_functions_call_name <- src_functions_caller_name <- src_functions_call_filename <- src_functions_caller_filename <- NULL # due to NSE notes in R CMD check
   mode <- match.arg(dependency_type)
   if(mode == "function"){
-    graph <-  model_directed_graph(r_dependencies_edgelist[,.(from=src_functions_call_name,
-                                                              to=src_functions_caller_name)],
-                                   is_bipartite = FALSE,
-                                   color = c("#fafad2"))
-  }else if(mode == "file"){
-    graph <-  model_directed_graph(r_dependencies_edgelist[,.(from=src_functions_call_filename,
-                                                              to=src_functions_caller_filename)],
-                                   is_bipartite = FALSE,
-                                   color = c("#f4dbb5"))
-
+    from_col <- "src_functions_call_name"
+    to_col   <- "src_functions_caller_name"
+    color    <- "#fafad2"
+  } else {
+    from_col <- "src_functions_call_filename"
+    to_col   <- "src_functions_caller_filename"
+    color    <- "#f4dbb5"
   }
-  return(graph)
+  nodes    <- data.table(name = unique(c(r_dependencies_edgelist[[from_col]], r_dependencies_edgelist[[to_col]])), type = FALSE, color = color)
+  if(is.null(weight)){
+    edgelist <- r_dependencies_edgelist[, .(weight = .N), by = c(from_col, to_col)]
+  } else {
+    if(!weight %in% colnames(r_dependencies_edgelist)){
+      stop("Column '", weight, "' not found in r_dependencies_edgelist.")
+    }
+    weight_col <- weight
+    edgelist <- r_dependencies_edgelist[, .(weight = weight_agg(.SD[[weight_col]])),
+                                         by = c(from_col, to_col),
+                                         .SDcols = weight_col]
+  }
+  setnames(edgelist, old = c(from_col, to_col), new = c("from", "to"))
+  edgelist[, direction := "directed"]
+  r_dependencies_graph <- model_unimodal_graph(nodes, edgelist, direction = "directed")
+  return(r_dependencies_graph)
 }
 
 

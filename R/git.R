@@ -832,91 +832,179 @@ git_mv <- function(git_repo, folder_path, old_name, new_name) {
 #' 2015 IEEE/ACM 37th IEEE International Conference on
 #' Software Engineering, Florence, 2015, pp. 563-573,
 #' doi: 10.1109/ICSE.2015.73.
-transform_gitlog_to_temporal_network <- function(project_git,mode = c("author","committer"),lag = "one_lag",weight_scheme_function = weight_scheme_sum_edges){
-
-
-  # Check user did not specify a mode that does not exist
-  mode <- match.arg(mode)
-
-
-
-  if(mode == "author"){
-
-    git_graph <- copy(project_git)
-    setnames(git_graph,
-             old = c("author_name_email",
-                     "file_pathname",
-                     "author_datetimetz"),
-             new = c("from",
-                     "to",
-                     "datetimetz"))
-
-    git_graph <- model_directed_graph(git_graph,is_bipartite = TRUE, color = c("black","#f4dbb5"), aggregate_duplicate = FALSE)
-
-
-  }else if(mode == "committer"){
-
-    git_graph <- copy(project_git)
-    setnames(git_graph,
-             old = c("committer_name_email",
-                     "file_pathname",
-                     "committer_datetimetz"),
-             new = c("from",
-                     "to",
-                     "datetimetz"))
-
-    git_graph <- model_directed_graph(git_graph,is_bipartite = TRUE, color = c("black","#bed7be"), aggregate_duplicate = FALSE)
-
-
-
-
+transform_gitlog_to_temporal_network <- function(project_git, mode = c("author","committer"), lag = "one_lag", weight_scheme_function = weight_scheme_sum_edges){
+  author_name_email <- committer_name_email <- file_pathname <- author_datetimetz <- committer_datetimetz <- NULL # due to NSE notes in R CMD check
+  if(!is.data.table(project_git)){
+    stop("project_git must be a data.table returned by parse_gitlog.")
   }
-
-  temporal_projection <- temporal_graph_projection(git_graph,mode=TRUE,timestamp_column ="datetimetz",
+  mode <- match.arg(mode)
+  if(mode == "author"){
+    from_col   <- "author_name_email"
+    to_col     <- "file_pathname"
+    dt_col     <- "author_datetimetz"
+    from_color <- "black"
+    to_color   <- "#f4dbb5"
+  } else {
+    from_col   <- "committer_name_email"
+    to_col     <- "file_pathname"
+    dt_col     <- "committer_datetimetz"
+    from_color <- "black"
+    to_color   <- "#bed7be"
+  }
+  from_nodes <- data.table(name = unique(project_git[[from_col]]), type = TRUE,  color = from_color)
+  to_nodes   <- data.table(name = unique(project_git[[to_col]]),   type = FALSE, color = to_color)
+  git_nodes  <- rbind(from_nodes, to_nodes)
+  # Keep one row per git log entry — temporal projection requires individual timestamps
+  # Use pre-computed weight column if present (e.g. lines changed), otherwise default to 1
+  edge_weight <- if ("weight" %in% names(project_git)) project_git[["weight"]] else 1L
+  git_edgelist <- data.table(
+    from       = project_git[[from_col]],
+    to         = project_git[[to_col]],
+    weight     = edge_weight,
+    datetimetz = project_git[[dt_col]],
+    direction  = "directed"
+  )
+  git_graph <- model_multimodal_graph(git_nodes, git_edgelist, direction = "directed", is_bipartite = TRUE)
+  temporal_projection <- temporal_graph_projection(git_graph, mode = TRUE, timestamp_column = "datetimetz",
                                                    weight_scheme_function = weight_scheme_function,
                                                    lag = lag)
-
-
   return(temporal_projection)
 }
+#' Transform parsed git log into a bipartite network
+#'
+#' Constructs a bipartite graph from a parsed git log where one node type
+#' represents authors, committers, or commits and the other represents files.
+#' The transform function is responsible for building the nodes and edgelist
+#' tables before passing them to \code{\link{model_multimodal_graph}}.
+#'
+#' @param project_git A parsed git project by \code{\link{parse_gitlog}}.
+#' @param mode The network of interest: author-file, committer-file, commit-file, author-committer
+#' @param weight A string naming a numeric column in \code{project_git} to use as the edge weight. When \code{NULL} (default), edges are weighted by commit co-occurrence count.
+#' @param weight_agg A function to aggregate the weight column across multiple rows sharing the same \code{from}/\code{to} pair. Defaults to \code{mean}.
+#' @export
+#' @family edgelists
+transform_gitlog_to_bipartite_network <- function(project_git, mode = c("author-file","committer-file","commit-file","author-committer"), weight = NULL, weight_agg = mean){
+  author_name_email <- committer_name_email <- commit_hash <- file_pathname <- lines_added <- lines_removed <- NULL # due to NSE notes in R CMD check
+  if(!is.data.table(project_git)){
+    stop("project_git must be a data.table returned by parse_gitlog.")
+  }
+  mode <- match.arg(mode)
+  if(mode == "author-file"){
+    from_col   <- "author_name_email"
+    to_col     <- "file_pathname"
+    from_color <- "black"
+    to_color   <- "#f4dbb5"
+  }else if(mode == "committer-file"){
+    from_col   <- "committer_name_email"
+    to_col     <- "file_pathname"
+    from_color <- "#bed7be"
+    to_color   <- "#f4dbb5"
+  }else if(mode == "commit-file"){
+    from_col   <- "commit_hash"
+    to_col     <- "file_pathname"
+    from_color <- "#afe569"
+    to_color   <- "#f4dbb5"
+  }else if(mode == "author-committer"){
+    from_col   <- "author_name_email"
+    to_col     <- "committer_name_email"
+    from_color <- "black"
+    to_color   <- "#bed7be"
+  }
+  # Build nodes table — from nodes get type=TRUE, to nodes get type=FALSE
+  from_nodes <- data.table(
+    name  = unique(project_git[[from_col]]),
+    type  = TRUE,
+    color = from_color
+  )
+  to_nodes <- data.table(
+    name  = unique(project_git[[to_col]]),
+    type  = FALSE,
+    color = to_color
+  )
+  git_nodes <- rbind(from_nodes, to_nodes)
+  if(is.null(weight)){
+    git_edgelist <- project_git[, .(weight = .N), by = c(from_col, to_col)]
+  } else {
+    if(!weight %in% colnames(project_git)){
+      stop("Column '", weight, "' not found in project_git.")
+    }
+    weight_col <- weight
+    git_edgelist <- project_git[, .(weight = weight_agg(.SD[[weight_col]])),
+                                 by = c(from_col, to_col),
+                                 .SDcols = weight_col]
+  }
+  setnames(git_edgelist, old = c(from_col, to_col), new = c("from", "to"))
+  git_edgelist[, direction := "directed"]
+  # Constructor only wraps pre-built tables and assigns graph type
+  git_graph <- model_multimodal_graph(git_nodes, git_edgelist, direction = "directed", is_bipartite = TRUE)
+  return(git_graph)
+}
+
 #' Transform parsed git repo into an edgelist
 #'
 #' @param project_git_entity A parsed git project by \code{\link{parse_gitlog_entity}}.
 #' @param mode The network of interest: author-entity, committer-entity, commit-entity, author-committer
+#' @param weight A string naming a numeric column in \code{project_git_entity} to use as the edge weight. When \code{NULL} (default), edges are weighted by commit co-occurrence count.
+#' @param weight_agg A function to aggregate the weight column across multiple rows sharing the same \code{from}/\code{to} pair. Defaults to \code{mean}.
 #' @export
 #' @family edgelists
-transform_gitlog_to_entity_bipartite_network <- function(project_git_entity, mode = c("author-entity","committer-entity","commit-entity",'author-committer')){
-  author_name_email <- author_datetimetz <- commit_hash <- committer_name_email <- committer_datetimetz <- lines_added <- lines_removed <- NULL # due to NSE notes in R CMD check
+transform_gitlog_to_entity_bipartite_network <- function(project_git_entity, mode = c("author-entity","committer-entity","commit-entity","author-committer"), weight = NULL, weight_agg = mean){
+  author_name_email <- committer_name_email <- commit_hash <- entity <- weight <- NULL # due to NSE notes in R CMD check
+  if(!is.data.table(project_git_entity)){
+    stop("project_git_entity must be a data.table returned by parse_gitlog_entity.")
+  }
   # Check user did not specify a mode that does not exist
   mode <- match.arg(mode)
-  # Select and rename relevant columns. Key = commit_hash.
-  project_git_entity <- project_git_entity[,.(author=author_name_email,
-                                              author_date=author_datetimetz,
-                                              commit_hash=commit_hash,
-                                              committer=committer_name_email,
-                                              committer_date = committer_datetimetz,
-                                              entity,
-                                              weight)]
-
+  # Map each mode to the from/to columns and their colors
   if(mode == "author-entity"){
-    # Select relevant columns for nodes
-    git_graph <- model_directed_graph(project_git_entity[,.(from=author,to=entity)],
-                                      is_bipartite=TRUE,
-                                      color=c("black","#fafad2"))
+    from_col   <- "author_name_email"
+    to_col     <- "entity"
+    from_color <- "black"
+    to_color   <- "#fafad2"
   }else if(mode == "committer-entity"){
-    # Select relevant columns for nodes
-    git_graph <- model_directed_graph(project_git_entity[,.(from=author,to=entity)],
-                                      is_bipartite=TRUE,
-                                      color=c("#bed7be","#fafad2"))
+    from_col   <- "committer_name_email"
+    to_col     <- "entity"
+    from_color <- "#bed7be"
+    to_color   <- "#fafad2"
   }else if(mode == "commit-entity"){
-    git_graph <- model_directed_graph(project_git_entity[,.(from=commit_hash,to=entity)],
-                                      is_bipartite=TRUE,
-                                      color=c("#afe569","#fafad2"))
+    from_col   <- "commit_hash"
+    to_col     <- "entity"
+    from_color <- "#afe569"
+    to_color   <- "#fafad2"
   }else if(mode == "author-committer"){
-    git_graph <- model_directed_graph(project_git_entity[,.(from=author,to=committer)],
-                                      is_bipartite=TRUE,
-                                      color=c("#bed7be","black"))
+    from_col   <- "author_name_email"
+    to_col     <- "committer_name_email"
+    from_color <- "black"
+    to_color   <- "#bed7be"
   }
+  # Build nodes table — from nodes get type=TRUE, to nodes get type=FALSE
+  from_nodes <- data.table(
+    name  = unique(project_git_entity[[from_col]]),
+    type  = TRUE,
+    color = from_color
+  )
+  to_nodes <- data.table(
+    name  = unique(project_git_entity[[to_col]]),
+    type  = FALSE,
+    color = to_color
+  )
+  git_nodes <- rbind(from_nodes, to_nodes)
+  # Build edgelist — count co-occurrences per unique from-to pair
+  if(is.null(weight)){
+    git_edgelist <- project_git_entity[, .(weight = .N), by = c(from_col, to_col)]
+  } else {
+    if(!weight %in% colnames(project_git_entity)){
+      stop("Column '", weight, "' not found in project_git_entity.")
+    }
+    weight_col <- weight
+    git_edgelist <- project_git_entity[, .(weight = weight_agg(.SD[[weight_col]])),
+                                        by = c(from_col, to_col),
+                                        .SDcols = weight_col]
+  }
+  setnames(git_edgelist, old = c(from_col, to_col), new = c("from", "to"))
+  git_edgelist[, direction := "directed"]
+  # Constructor only wraps pre-built tables and assigns graph type
+  git_graph <- model_multimodal_graph(git_nodes, git_edgelist, direction = "directed", is_bipartite = TRUE)
   return(git_graph)
 }
 #' Create time-ordered contribution network
@@ -938,48 +1026,38 @@ transform_gitlog_to_entity_bipartite_network <- function(project_git_entity, mod
 #' 2015 IEEE/ACM 37th IEEE International Conference on
 #' Software Engineering, Florence, 2015, pp. 563-573,
 #' doi: 10.1109/ICSE.2015.73.
-transform_gitlog_to_entity_temporal_network <- function(project_git_entity,mode = c("author","committer"),lag = "one_lag",weight_scheme_function=weight_scheme_sum_edges){
-
-  # Check user did not specify a mode that does not exist
-  mode <- match.arg(mode)
-
-  git_entity <- copy(project_git_entity)
-
-
-  if(mode == "author"){
-    setnames(git_entity,
-             old = c("author_name_email",
-                     "entity_definition_name",
-                     "author_datetimetz"),
-             new = c("from",
-                     "to",
-                     "datetimetz"))
-
-    git_entity$weight <- git_entity$n_lines_changed
-    git_graph <- model_directed_graph(git_entity,is_bipartite = TRUE,
-                                      color = c("black","#fafad2"),
-                                      aggregate_duplicate = FALSE)
-
-
-  }else{
-    setnames(git_graph,
-             old = c("committer_name_email",
-                     "entity_definition_name",
-                     "committer_datetimetz"),
-             new = c("from",
-                     "to",
-                     "datetimetz"))
-    git_graph[["edgelist"]]$weight <- git_graph[["edgelist"]]$n_lines_changed
-    git_graph <- model_directed_graph(git_graph,is_bipartite = TRUE,
-                                      color = c("black","#bed7be"),
-                                      aggregate_duplicate = FALSE)
+transform_gitlog_to_entity_temporal_network <- function(project_git_entity, mode = c("author","committer"), lag = "one_lag", weight_scheme_function = weight_scheme_sum_edges){
+  author_name_email <- committer_name_email <- author_datetimetz <- committer_datetimetz <- n_lines_changed <- NULL # due to NSE notes in R CMD check
+  if(!is.data.table(project_git_entity)){
+    stop("project_git_entity must be a data.table returned by parse_gitlog_entity.")
   }
-  git_graph[["edgelist"]] <- git_graph[["edgelist"]][,.(from,to,weight,datetimetz)]
-
-  temporal_projection <- temporal_graph_projection(git_graph,mode=TRUE,timestamp_column ="datetimetz",
+  mode <- match.arg(mode)
+  if(mode == "author"){
+    from_col   <- "author_name_email"
+    dt_col     <- "author_datetimetz"
+    from_color <- "black"
+  } else {
+    from_col   <- "committer_name_email"
+    dt_col     <- "committer_datetimetz"
+    from_color <- "black"
+  }
+  to_col   <- "entity"
+  to_color <- if (mode == "author") "#fafad2" else "#bed7be"
+  from_nodes <- data.table(name = unique(project_git_entity[[from_col]]), type = TRUE,  color = from_color)
+  to_nodes   <- data.table(name = unique(project_git_entity[[to_col]]),   type = FALSE, color = to_color)
+  git_nodes  <- rbind(from_nodes, to_nodes)
+  # Keep one row per git log entry — temporal projection requires individual timestamps
+  git_edgelist <- data.table(
+    from       = project_git_entity[[from_col]],
+    to         = project_git_entity[[to_col]],
+    weight     = project_git_entity[["n_lines_changed"]],
+    datetimetz = project_git_entity[[dt_col]],
+    direction  = "directed"
+  )
+  git_graph <- model_multimodal_graph(git_nodes, git_edgelist, direction = "directed", is_bipartite = TRUE)
+  temporal_projection <- temporal_graph_projection(git_graph, mode = TRUE, timestamp_column = "datetimetz",
                                                    weight_scheme_function = weight_scheme_function,
                                                    lag = lag)
-
   return(temporal_projection)
 }
 
@@ -987,23 +1065,154 @@ transform_gitlog_to_entity_temporal_network <- function(project_git_entity,mode 
 #'
 #' @param project_git A parsed git project by \code{\link{parse_gitlog}}.
 #' @param commit_message_id_regex the regex to extract the id from the commit message
+#' @param weight A string naming a numeric column in \code{project_git} to use as the edge weight. When \code{NULL} (default), edges are weighted by commit count per issue-file pair.
+#' @param weight_agg A function to aggregate the weight column across multiple rows sharing the same \code{from}/\code{to} pair. Defaults to \code{mean}.
 #' @export
 #' @family edgelists
-transform_commit_message_id_to_network <- function(project_git, commit_message_id_regex){
-  commit_message_id <- NULL # due to NSE notes in R CMD check
+transform_commit_message_id_to_network <- function(project_git, commit_message_id_regex, weight = NULL, weight_agg = mean){
+  commit_message_id <- file_pathname <- NULL # due to NSE notes in R CMD check
+  if(!is.data.table(project_git)){
+    stop("project_git must be a data.table returned by parse_gitlog.")
+  }
+  project_git <- copy(project_git)
   # Extract the id according to the parameter regex
-  project_git$commit_message_id <- data.table(stringi::stri_match_first_regex(project_git$commit_message,
-                                                                              pattern = commit_message_id_regex))
-
-  # Keep only the edges which contain the commit message id
-
-  project_git <- project_git[!is.na(commit_message_id),.(commit_message_id,
-                                                         file_pathname)]
-
-  git_graph <- model_directed_graph(project_git[,.(from=commit_message_id,to=file_pathname)],
-                                    is_bipartite=TRUE,
-                                    color=c("#0052cc","#f4dbb5"))
+  project_git[, commit_message_id := stringi::stri_match_first_regex(commit_message, pattern = commit_message_id_regex)[, 1]]
+  # Keep only rows with a matched id
+  project_git <- project_git[!is.na(commit_message_id)]
+  from_nodes <- data.table(name = unique(project_git[["commit_message_id"]]), type = TRUE,  color = "#0052cc")
+  to_nodes   <- data.table(name = unique(project_git[["file_pathname"]]),     type = FALSE, color = "#f4dbb5")
+  git_nodes  <- rbind(from_nodes, to_nodes)
+  # Weight = number of commits linking this issue id to this file, or custom column if provided
+  if(is.null(weight)){
+    git_edgelist <- project_git[, .(weight = .N), by = .(from = commit_message_id, to = file_pathname)]
+  } else {
+    if(!weight %in% colnames(project_git)){
+      stop("Column '", weight, "' not found in project_git.")
+    }
+    weight_col <- weight
+    git_edgelist <- project_git[, .(weight = weight_agg(.SD[[weight_col]])),
+                                 by = .(from = commit_message_id, to = file_pathname),
+                                 .SDcols = weight_col]
+  }
+  git_edgelist[, direction := "directed"]
+  git_graph <- model_multimodal_graph(git_nodes, git_edgelist, direction = "directed", is_bipartite = TRUE)
   return(git_graph)
+}
 
+#' Transform parsed git repo into a multimodal network
+#'
+#' Combines authors, commits, and files into a single multimodal graph
+#' where each node type is labeled and edges carry a type describing the
+#' relationship between the two connected node types.
+#'
+#' Node types:
+#' \itemize{
+#'   \item \code{"author"} - the developer who authored the commit.
+#'   \item \code{"commit"} - the commit hash.
+#'   \item \code{"file"} - the file changed by the commit.
+#' }
+#'
+#' Edge types:
+#' \itemize{
+#'   \item \code{"authored"} - connects an author to a commit they made. Weight is 1.
+#'   \item \code{"changed"} - connects a commit to a file it modified. Weight is
+#'     total lines added and removed for that commit-file pair.
+#' }
+#'
+#' @param project_git A parsed git project by \code{\link{parse_gitlog}}.
+#' @param node_cols A character vector of column names from \code{project_git}
+#' to use as node identifiers. Each column maps to one node type in the graph.
+#' Only the node types whose columns are included here will appear in the nodes
+#' table. Edges between the requested node types are included automatically.
+#' Supported columns and their node types:
+#' \itemize{
+#'   \item \code{"author_name_email"} - builds \code{"author"} nodes (color: black).
+#'   \item \code{"commit_hash"} - builds \code{"commit"} nodes (color: #afe569).
+#'   \item \code{"file_pathname"} - builds \code{"file"} nodes (color: #f4dbb5).
+#' }
+#' Supported edges derived from node pairs:
+#' \itemize{
+#'   \item \code{"authored"} - built when both \code{"author_name_email"} and
+#'     \code{"commit_hash"} are in \code{node_cols}. Weight is 1 per unique pair.
+#'   \item \code{"changed"} - built when both \code{"commit_hash"} and
+#'     \code{"file_pathname"} are in \code{node_cols}. Weight is total lines
+#'     added and removed per commit-file pair.
+#'   \item \code{"modified"} - built when both \code{"author_name_email"} and
+#'     \code{"file_pathname"} are in \code{node_cols} but \code{"commit_hash"}
+#'     is not. Collapses the two-hop author->commit->file path into a direct
+#'     author-file edge. Weight is total lines added and removed per
+#'     author-file pair across all commits.
+#' }
+#' Defaults to all three node types and both edge types.
+#' @return a multimodal graph with nodes (name, type, color) and
+#' edgelist (from, to, weight, type, color).
+#' @export
+#' @family edgelists
+transform_gitlog_to_multimodal_network <- function(project_git,
+                                                      node_cols = c("author_name_email",
+                                                                    "commit_hash",
+                                                                    "file_pathname")){
+  author_name_email <- commit_hash <- file_pathname <- lines_added <- lines_removed <- author_datetimetz <- NULL # due to NSE notes in R CMD check
+  # Verify input is a valid parse_gitlog output before transforming
+  if(!is.data.table(project_git)){
+    stop("project_git must be a data.table returned by parse_gitlog.")
+  }
+  # Internal mapping from column name to node type label and color
+  col_to_type  <- c(author_name_email="author", commit_hash="commit", file_pathname="file")
+  col_to_color <- c(author_name_email="black",  commit_hash="#afe569", file_pathname="#f4dbb5")
+  # Build one node table per requested column and stack them
+  node_tables <- lapply(node_cols, function(col){
+    data.table(
+      name  = unique(project_git[[col]]),
+      type  = col_to_type[[col]],
+      color = col_to_color[[col]]
+    )
+  })
+  git_nodes <- rbindlist(node_tables)
+  # Build edges automatically for node type pairs that are both present in node_cols
+  edge_tables <- list()
+  if(all(c("author_name_email","commit_hash") %in% node_cols)){
+    # One edge per unique author-commit pair, timestamp from author_datetimetz
+    edge_tables[["authored"]] <- unique(project_git[,.(
+      from       = author_name_email,
+      to         = commit_hash,
+      weight     = 1L,
+      type       = "authored",
+      color      = "black",
+      direction  = "directed",
+      datetimetz = author_datetimetz
+    )])
+  }
+  if(all(c("commit_hash","file_pathname") %in% node_cols)){
+    # One edge per commit-file pair, weight is total lines changed
+    # All rows sharing the same commit_hash have the same timestamp so take first
+    # lines_added and lines_removed are stored as characters by parse_gitlog
+    edge_tables[["changed"]] <- project_git[,.(
+      weight     = sum(as.numeric(lines_added) + as.numeric(lines_removed), na.rm = TRUE),
+      type       = "changed",
+      color      = "#afe569",
+      direction  = "directed",
+      datetimetz = author_datetimetz[1]
+    ), by = .(from = commit_hash, to = file_pathname)]
+  }
+  if(all(c("author_name_email","file_pathname") %in% node_cols) &&
+     !("commit_hash" %in% node_cols)){
+    # Direct author-file edge collapsed from the two-hop author->commit->file path
+    # Since every row in the git log already contains both author and file, we group
+    # directly on that pair and sum lines changed across all commits connecting them
+    # Take the earliest timestamp as the representative time for this relationship
+    # lines_added and lines_removed are stored as characters by parse_gitlog
+    edge_tables[["modified"]] <- project_git[,.(
+      weight     = sum(as.numeric(lines_added) + as.numeric(lines_removed), na.rm = TRUE),
+      type       = "modified",
+      color      = "black",
+      direction  = "directed",
+      datetimetz = min(author_datetimetz)
+    ), by = .(from = author_name_email, to = file_pathname)]
+  }
+  git_edgelist <- rbindlist(edge_tables)
+  # Constructor only wraps pre-built tables and assigns graph type
+  git_graph <- model_multimodal_graph(git_nodes, git_edgelist, direction = "directed")
+  return(git_graph)
 }
 
