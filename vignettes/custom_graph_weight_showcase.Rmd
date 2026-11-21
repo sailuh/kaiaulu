@@ -1,0 +1,205 @@
+---
+title: "Custom Graph Weight Showcase"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Custom Graph Weight Showcase}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+rm(list = ls())
+seed <- 1
+set.seed(seed)
+```
+
+```{r warning=FALSE,message=FALSE}
+require(kaiaulu)
+require(igraph)
+require(visNetwork)
+require(data.table)
+require(yaml)
+require(stringi)
+require(gt)
+```
+
+# Introduction
+
+This notebook demonstrates how to assign custom numeric values as edge weights when transforming raw data into a graph object. Specifically, it uses sentiment polarity scores from GitHub issue comments as edge weights in a bipartite author-to-issue network, and visualizes the resulting network with edges colored by sentiment.
+
+Polarity integers (`0` = neutral, `1` = positive, `2` = negative) are remapped to (`0`, `1`, `-1`) before being passed to `transform_reply_to_bipartite_network()` via the `weight` parameter. The `weight_agg` parameter controls how multiple comments between the same author and issue are aggregated — defaulting to `mean`.
+
+# Load Data
+
+The input is a CSV of Kaiaulu GitHub issue comments with predicted sentiment polarity labels.
+
+```{r}
+dt <- fread("https://github.com/user-attachments/files/27417102/kaiaulu_predictions.csv")
+head(dt[, .(comment_id, issue_url, comment_user_login, polarity)]) %>%
+  gt(auto_align = FALSE)
+```
+
+# Prepare Data
+
+Rename columns to match the expected `reply_from` and `reply_subject` format, and remap polarity integers (0 = neutral, 1 = positive, 2 = negative) to signed weights (0, 1, -1).
+
+```{r}
+dt[, reply_from    := comment_user_login]
+dt[, reply_subject := sub(".*/issues/", "#", issue_url)]
+dt[, polarity_int  := fcase(
+  polarity == 1L,  1L,
+  polarity == 0L,  0L,
+  polarity == 2L, -1L
+)]
+head(dt[, .(reply_from, reply_subject, polarity_int)]) %>%
+  gt(auto_align = FALSE)
+```
+
+# Build Weighted Bipartite Network
+
+Transform the reply table into a bipartite graph using sentiment polarity as the edge weight, aggregated by mean across multiple comments between the same author and issue.
+
+```{r}
+reply_graph <- transform_reply_to_bipartite_network(dt, weight = "polarity_int", weight_agg = mean)
+head(reply_graph[["nodes"]]) %>%
+  gt(auto_align = FALSE)
+head(reply_graph[["edgelist"]]) %>%
+  gt(auto_align = FALSE)
+```
+
+# Visualize Network
+
+Edge color reflects the mean sentiment between an author and a commit: green for positive, black for neutral, and red for negative.
+
+```{r}
+nodes <- reply_graph[["nodes"]]
+edges <- reply_graph[["edgelist"]]
+
+edges[, color := fcase(
+  weight > 0,  "green",
+  weight == 0, "black",
+  weight < 0,  "red"
+)]
+
+is_directed <- any(edges[["direction"]] == "directed")
+plot_reply_graph <- igraph::graph_from_data_frame(d = edges,
+                                                  directed = is_directed,
+                                                  vertices = nodes)
+visIgraph(plot_reply_graph, randomSeed = 1)
+```
+
+# Emotion Graph
+
+This section demonstrates using binary emotion labels as edge weights in a bipartite author-to-issue network. The dataset contains JIRA comments from the Apache Harmony project, each annotated with six binary emotion labels: `love`, `joy`, `sadness`, `anger`, `surprise`, and `fear`.
+
+Each emotion is visualized as a separate graph. The `weight` parameter is set to the emotion column, and `weight_agg = mean` aggregates multiple comments between the same author and issue into a proportion (0 = no comments with that emotion, 1 = all comments with that emotion). Only edges with weight > 0 are shown. Edge color encodes intensity using three levels — light, medium, dark — and edge labels show the rounded weight value.
+
+## Load Emotion Data
+
+```{r}
+emotion_dt <- as.data.table(read.csv("https://github.com/user-attachments/files/27313854/harmony_emotion_comments_joined.csv"))
+head(emotion_dt[, .(comment_id, issue_key, author_login, author_name, love, joy, sadness, anger, surprise, fear)]) %>%
+  gt(auto_align = FALSE)
+```
+
+## Prepare Data
+
+```{r}
+emotion_dt[, reply_from    := author_login]
+emotion_dt[, reply_subject := issue_key]
+head(emotion_dt[, .(reply_from, reply_subject, love, joy, sadness, anger, surprise, fear)]) %>%
+  gt(auto_align = FALSE)
+```
+
+## Love
+
+```{r fig.width=10, fig.height=7}
+love_graph <- transform_reply_to_bipartite_network(emotion_dt, weight = "love", weight_agg = mean)
+nodes <- love_graph[["nodes"]]
+edges <- love_graph[["edgelist"]]
+if (nrow(edges) > 0) {
+  edges[, color := "hotpink"]
+  edges[, label := as.character(round(weight, 2))]
+  is_directed <- any(love_graph[["edgelist"]][["direction"]] == "directed")
+  visIgraph(igraph::graph_from_data_frame(d = edges, directed = is_directed, vertices = nodes), randomSeed = seed) |>
+    visEdges(font = list(align = "horizontal", background = "white", strokeWidth = 0))
+}
+```
+
+## Joy
+
+```{r fig.width=10, fig.height=7}
+joy_graph <- transform_reply_to_bipartite_network(emotion_dt, weight = "joy", weight_agg = mean)
+nodes <- joy_graph[["nodes"]]
+edges <- joy_graph[["edgelist"]]
+if (nrow(edges) > 0) {
+  edges[, color := "darkorange"]
+  edges[, label := as.character(round(weight, 2))]
+  is_directed <- any(joy_graph[["edgelist"]][["direction"]] == "directed")
+  visIgraph(igraph::graph_from_data_frame(d = edges, directed = is_directed, vertices = nodes), randomSeed = seed) |>
+    visEdges(font = list(align = "horizontal", background = "white", strokeWidth = 0))
+}
+```
+
+## Sadness
+
+```{r fig.width=10, fig.height=7}
+sadness_graph <- transform_reply_to_bipartite_network(emotion_dt, weight = "sadness", weight_agg = mean)
+nodes <- sadness_graph[["nodes"]]
+edges <- sadness_graph[["edgelist"]]
+if (nrow(edges) > 0) {
+  edges[, color := "steelblue"]
+  edges[, label := as.character(round(weight, 2))]
+  is_directed <- any(sadness_graph[["edgelist"]][["direction"]] == "directed")
+  visIgraph(igraph::graph_from_data_frame(d = edges, directed = is_directed, vertices = nodes), randomSeed = seed) |>
+    visEdges(font = list(align = "horizontal", background = "white", strokeWidth = 0))
+}
+```
+
+## Anger
+
+```{r fig.width=10, fig.height=7}
+anger_graph <- transform_reply_to_bipartite_network(emotion_dt, weight = "anger", weight_agg = mean)
+nodes <- anger_graph[["nodes"]]
+edges <- anger_graph[["edgelist"]]
+if (nrow(edges) > 0) {
+  edges[, color := "darkred"]
+  edges[, label := as.character(round(weight, 2))]
+  is_directed <- any(anger_graph[["edgelist"]][["direction"]] == "directed")
+  visIgraph(igraph::graph_from_data_frame(d = edges, directed = is_directed, vertices = nodes), randomSeed = seed) |>
+    visEdges(font = list(align = "horizontal", background = "white", strokeWidth = 0))
+}
+```
+
+## Surprise
+
+```{r fig.width=10, fig.height=7}
+surprise_graph <- transform_reply_to_bipartite_network(emotion_dt, weight = "surprise", weight_agg = mean)
+nodes <- surprise_graph[["nodes"]]
+edges <- surprise_graph[["edgelist"]]
+if (nrow(edges) > 0) {
+  edges[, color := "darkcyan"]
+  edges[, label := as.character(round(weight, 2))]
+  is_directed <- any(surprise_graph[["edgelist"]][["direction"]] == "directed")
+  visIgraph(igraph::graph_from_data_frame(d = edges, directed = is_directed, vertices = nodes), randomSeed = seed) |>
+    visEdges(font = list(align = "horizontal", background = "white", strokeWidth = 0))
+}
+```
+
+## Fear
+
+```{r fig.width=10, fig.height=7}
+fear_graph <- transform_reply_to_bipartite_network(emotion_dt, weight = "fear", weight_agg = mean)
+nodes <- fear_graph[["nodes"]]
+edges <- fear_graph[["edgelist"]]
+if (nrow(edges) > 0) {
+  edges[, color := "mediumpurple"]
+  edges[, label := as.character(round(weight, 2))]
+  is_directed <- any(fear_graph[["edgelist"]][["direction"]] == "directed")
+  visIgraph(igraph::graph_from_data_frame(d = edges, directed = is_directed, vertices = nodes), randomSeed = seed) |>
+    visEdges(font = list(align = "horizontal", background = "white", strokeWidth = 0))
+}
+```
