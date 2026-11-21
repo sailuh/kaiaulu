@@ -41,3 +41,14 @@ test_that("each layer is reported on its own", {
 
   expect_equal(unique(brokers$layer), "L0")
 })
+
+test_that("Isolated authors are left out of the layer", {
+
+  cluster_table <- data.table(file_path = c("dev 1","dev 2","dev 3","dev 4"),
+                              module = c("M0","M0","M1","Isolated"),
+                              layer = c("L0","L0","L0","L0"))
+
+  brokers <- smell_radio_silence_by_layer(graph, cluster_table)
+
+  expect_equal(sort(brokers$boundary_spanner), c("dev 2","dev 3"))
+})

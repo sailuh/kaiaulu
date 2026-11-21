@@ -304,11 +304,12 @@ smell_radio_silence_by_layer <- function(mail.graph, cluster_table){
   all_brokers <- list()
 
   for(lyr in unique(cluster_table$layer)){
-    layer_dt <- cluster_table[layer == lyr]
+    # Isolated is not a real module, so its authors are left out of the layer
+    layer_dt <- cluster_table[layer == lyr & module != "Isolated"]
     modules <- unique(layer_dt$module)
 
-    # Without two modules other than Isolated, there is nothing to span between
-    if(length(setdiff(modules, "Isolated")) < 2){
+    # Without two modules, there is nothing to span between
+    if(length(modules) < 2){
       next
     }
 
