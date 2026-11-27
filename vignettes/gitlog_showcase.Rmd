@@ -75,11 +75,14 @@ git_branch <- get_git_branches(conf)[1]
 # Filters
 file_extensions <- get_file_extensions(conf)
 substring_filepath <- get_substring_filepath(conf)
-commit_size <- get_filter_commit_size(conf)
+
+# The commit size filter and the analysis window are optional, so a missing
+# entry is reported below in plain words instead of as a getter warning
+commit_size <- suppressWarnings(get_filter_commit_size(conf))
 
 # Analysis window
-start_commit <- get_window_start_commit(conf)
-end_commit <- get_window_end_commit(conf)
+start_commit <- suppressWarnings(get_window_start_commit(conf))
+end_commit <- suppressWarnings(get_window_end_commit(conf))
 ```
 
 This is all the project configuration files are used for. If you inspect the variables above, you will see they are just strings. As a reminder, the tools.yml is where you store the filepaths to third party software in your computer. Please see Kaiaulu's README.md for details. As a rule of thumb, any R Notebooks in Kaiaulu load the project configuration file at the start, much like you would normally initialize variables at the start of your source code.
@@ -96,7 +99,11 @@ project_git <- parse_gitlog(perceval_path,git_repo_path)
 
 # Dates of the analysis window commits, read before the filters below remove any commit
 window_dates <- NULL
-if (!is.null(start_commit) && !is.null(end_commit)) {
+if (is.null(start_commit) && is.null(end_commit)) {
+  message("The project configuration has no analysis window, so the full history is used.")
+} else if (is.null(start_commit) || is.null(end_commit)) {
+  warning("The analysis window needs both start_commit and end_commit, but only one is set, so the full history is used.")
+} else {
   window_dates <- as.POSIXct(c(get_date_from_commit_hash(project_git, start_commit),
                                get_date_from_commit_hash(project_git, end_commit)),
                              format = "%a %b %d %H:%M:%S %Y %z", tz = "UTC")
@@ -116,7 +123,9 @@ project_git <- project_git  %>%
   filter_by_file_extension(file_extensions,"file_pathname")  %>% 
   filter_by_filepath_substring(substring_filepath,"file_pathname")
 
-if (!is.null(commit_size)) {
+if (is.null(commit_size)) {
+  message("The project configuration has no commit size filter, so commits are not filtered by size.")
+} else {
   project_git <- filter_by_commit_size(project_git, commit_size)
 }
 ```
