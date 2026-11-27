@@ -65,6 +65,7 @@ __kaiaulu 0.0.0.9700 (in development)__
 
 ### BUG FIXES
 
+ * `gitlog_showcase.Rmd` no longer fails on projects with fewer than 10 files, applies the commit size filter and the analysis window of the project configuration, and no longer reads the unused NVD feed path. `conf/apr.yml` keeps only `c` and `h` as source extensions. [#419](https://github.com/sailuh/kaiaulu/issues/419)
  * `exec/github.R` has been fixed to address cases when issues have empty descriptions. [#298](https://github.com/sailuh/kaiaulu/issues/298)
  * keyword internal is now required to ommit functions in the docs API. [#241](https://github.com/sailuh/kaiaulu/issues/241)
  * Fixes duplication of issue rows due to multiple components in component field [#244](https://github.com/sailuh/kaiaulu/issues/244)
